@@ -1,7 +1,9 @@
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
+  schema: './drizzle/schema.ts',
+  out: './drizzle/migrations',
   dialect: 'sqlite',
-  schema: '../drizzle/schemas/worker/index.ts',
-  out: '../drizzle/migrations/worker',
+  verbose: true,
+  strict: true,
 });

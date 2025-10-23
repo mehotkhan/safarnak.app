@@ -20,7 +20,7 @@ yarn install
 # Generate database migrations
 yarn db:generate
 
-# Apply migrations to both databases
+# Apply migrations to worker database
 yarn db:migrate
 
 # Start development servers
@@ -46,373 +46,228 @@ safarnak.app/
 │   └── drizzle.config.ts   # Client Drizzle configuration
 ├── worker/                   # ⚡ Cloudflare Worker backend
 │   ├── src/                 # Worker source code
+│   ├── drizzle/             # Database schemas and migrations
+│   │   ├── schemas/         # Database schema definitions
+│   │   └── migrations/      # Database migration files
 │   ├── drizzle.config.ts    # Worker Drizzle configuration
 │   └── wrangler.toml        # Cloudflare Worker configuration
-├── drizzle/                  # 🗄️ Shared database schema management
-│   ├── schemas/
-│   │   ├── shared/          # Common types and utilities
-│   │   ├── client/          # Client-specific schema
-│   │   └── worker/          # Server-specific schema
-│   └── migrations/
-│       ├── client/          # Client migration files
-│       └── worker/          # Worker migration files
-├── graphql/                  # 📊 Shared GraphQL schema and queries
-│   ├── schema/              # GraphQL type definitions
-│   ├── queries/             # Shared query strings
+├── graphql/                  # 📡 Shared GraphQL definitions
+│   ├── schema/              # GraphQL schema definitions
+│   ├── queries/             # GraphQL queries and mutations
 │   └── types/               # TypeScript type definitions
-├── drizzle.config.ts        # Root Drizzle configuration
-└── package.json             # Root workspace configuration
+└── package.json              # Root workspace configuration
 ```
 
-## 🛠️ Development Workflow
+## 🛠️ Development Commands
 
-### Daily Development Commands
+### Root Level Commands
+| Command | Description |
+|---------|-------------|
+| `yarn dev` | Start both client and worker |
+| `yarn build` | Build for production |
+| `yarn clean` | Clear databases and cache |
+
+### Client Commands
+| Command | Description |
+|---------|-------------|
+| `yarn client:start` | Start Expo dev server |
+| `yarn client:android` | Build Android app |
+| `yarn client:ios` | Build iOS app |
+| `yarn client:web` | Build web app |
+
+### Worker Commands
+| Command | Description |
+|---------|-------------|
+| `yarn worker:dev` | Start worker development server |
+| `yarn worker:deploy` | Deploy worker to Cloudflare |
+
+### Database Commands
+| Command | Description |
+|---------|-------------|
+| `yarn db:generate` | Generate database migrations |
+| `yarn db:migrate` | Apply migrations to worker |
+| `yarn db:studio` | Open Drizzle Studio |
+
+## 🔧 Development Workflow
+
+### 1. Feature Development
 ```bash
-# Start both client and worker in development mode
+# Create a new feature branch
+git checkout -b feature/new-feature
+
+# Start development servers
 yarn dev
 
-# Start only client (Expo React Native)
-yarn client:start
-
-# Start only worker (Cloudflare Worker)
-yarn worker:dev
-
-# Run on specific platforms
-yarn client:android    # Android device/emulator
-yarn client:ios        # iOS device/simulator
-yarn client:web        # Web browser
+# Make your changes
+# Test on multiple platforms
+# Commit your changes
+git commit -m "feat: add new feature"
 ```
 
-### Database Management
+### 2. Database Changes
 ```bash
-# Generate migrations for both client and worker
+# Modify schemas in worker/drizzle/schemas/
+# Generate migrations
 yarn db:generate
 
-# Apply migrations to both databases
+# Apply migrations
 yarn db:migrate
 
-# Apply migrations to worker only
-yarn worker:db:migrate
-
-# Open Drizzle Studio for database inspection
+# Test changes
 yarn db:studio
-
-# Clear all database files (development only)
-yarn db:purge
 ```
 
-### Building and Deployment
+### 3. Testing
 ```bash
-# Build both client and worker
-yarn build
+# Test client on different platforms
+yarn client:android  # Android
+yarn client:ios      # iOS
+yarn client:web      # Web
 
-# Deploy worker to Cloudflare
-yarn worker:deploy
-
-# Build client for specific platforms
-yarn client:android    # Android APK
-yarn client:ios        # iOS build
-yarn client:web         # Web build
+# Test worker locally
+yarn worker:dev
 ```
 
 ## 📝 Coding Standards
 
-### TypeScript Guidelines
-- **Strict Mode**: Always use strict TypeScript configuration
-- **Type Safety**: Avoid `any` type; use proper type definitions
-- **Interfaces**: Prefer interfaces over types for object shapes
-- **Path Aliases**: Use `@drizzle/*` and `@graphql/*` instead of relative imports
-- **Return Types**: Always specify return types for functions
+### TypeScript
+- Use strict TypeScript configuration
+- Prefer interfaces over types for object shapes
+- Use path aliases instead of relative imports
+- Always type function parameters and return values
 
-```typescript
-// ✅ Good
-interface UserProps {
-  id: number;
-  name: string;
-  email: string;
-}
+### React/React Native
+- Use functional components with hooks
+- Prefer `useCallback` and `useMemo` for performance
+- Use TypeScript for all component props
+- Follow Expo Router conventions for navigation
 
-function getUser(id: number): Promise<UserProps | null> {
-  // Implementation
-}
+### Database
+- Use Drizzle ORM for all database operations
+- Follow shared schema patterns in `worker/drizzle/schemas/`
+- Use migrations for schema changes
+- Prefer type-safe queries over raw SQL
 
-// ❌ Bad
-function getUser(id: any): any {
-  // Implementation
-}
-```
+### GraphQL
+- Use shared GraphQL definitions from `graphql/` directory
+- Follow Apollo Client patterns for data fetching
+- Use error policies for graceful error handling
+- Implement proper loading states
 
-### React/React Native Guidelines
-- **Functional Components**: Use functional components with hooks
-- **Performance**: Use `useCallback` and `useMemo` for expensive operations
-- **Props**: Always type component props with interfaces
-- **Hooks**: Extract reusable logic into custom hooks
-- **Navigation**: Follow Expo Router conventions
+## 🎯 Best Practices
 
-```typescript
-// ✅ Good
-interface LoginScreenProps {
-  onLogin: (user: User) => void;
-}
-
-export default function LoginScreen({ onLogin }: LoginScreenProps) {
-  const [username, setUsername] = useState('');
-  
-  const handleLogin = useCallback(async () => {
-    // Login logic
-  }, [username]);
-  
-  return (
-    <View>
-      {/* Component JSX */}
-    </View>
-  );
-}
-
-// ❌ Bad
-export default function LoginScreen(props: any) {
-  // Implementation without proper typing
-}
-```
-
-### Database Guidelines
-- **Drizzle ORM**: Use Drizzle for all database operations
-- **Shared Schemas**: Follow shared schema patterns in `drizzle/schemas/`
-- **Migrations**: Always use migrations for schema changes
-- **Type Safety**: Use type-safe queries instead of raw SQL
-
-```typescript
-// ✅ Good
-import { users } from '@drizzle/schemas/client';
-import { eq } from 'drizzle-orm';
-
-const user = await db.select().from(users).where(eq(users.id, userId)).get();
-
-// ❌ Bad
-const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
-```
-
-### GraphQL Guidelines
-- **Shared Definitions**: Use shared GraphQL definitions from `graphql/` directory
-- **Apollo Client**: Follow Apollo Client patterns for data fetching
-- **Error Handling**: Use error policies for graceful error handling
-- **Loading States**: Implement proper loading states
-
-```typescript
-// ✅ Good
-const { data, loading, error } = useQuery(GET_TOURS, {
-  errorPolicy: 'all',
-});
-
-if (loading) return <LoadingScreen />;
-if (error) return <ErrorScreen error={error} />;
-
-// ❌ Bad
-const { data } = useQuery(GET_TOURS);
-// No error handling or loading states
-```
-
-## 🎨 UI/UX Guidelines
+### State Management
+- Use Redux Toolkit for complex state
+- Keep state normalized and flat
+- Use selectors for computed values
+- Implement proper error handling
 
 ### Component Design
-- **Atomic Design**: Organize components by complexity (atoms, molecules, organisms)
-- **Reusability**: Create reusable components in `components/ui/`
-- **Props Interface**: Use consistent prop naming conventions
-- **Accessibility**: Implement proper ARIA labels and semantic HTML
+- Create reusable components in `components/ui/`
+- Use custom hooks for shared logic
+- Implement proper prop validation
+- Follow atomic design principles
 
-### Theme System
-- **Light/Dark Mode**: Support both light and dark themes
-- **Consistent Colors**: Use design tokens for consistent colors
-- **Responsive Design**: Ensure components work on different screen sizes
-- **Platform Adaptation**: Adapt UI for iOS, Android, and Web
+### Performance
+- Use lazy loading for routes and components
+- Implement proper memoization
+- Optimize images and assets
+- Use efficient data structures
 
-### Internationalization
-- **Multi-language**: Support English and Persian (Farsi)
-- **RTL Support**: Implement right-to-left text direction for Persian
-- **Translation Keys**: Use descriptive translation keys
-- **Fallback**: Provide fallback translations
+### Error Handling
+- Implement error boundaries
+- Use proper error messages
+- Handle network errors gracefully
+- Log errors for debugging
 
-```typescript
-// ✅ Good
-const { t } = useTranslation();
-return <Text>{t('login.welcome', { name: user.name })}</Text>;
+## 🔍 Debugging
 
-// ❌ Bad
-return <Text>Welcome {user.name}</Text>;
-```
+### Client Debugging
+- Use React Native Debugger
+- Enable Flipper for advanced debugging
+- Use console.log for simple debugging
+- Implement proper error boundaries
 
-## 🔒 Security Guidelines
+### Worker Debugging
+- Use Wrangler dev tools
+- Check Cloudflare Workers dashboard
+- Use console.log for server-side debugging
+- Monitor worker performance
 
-### Authentication
-- **Token Security**: Use secure token generation and validation
-- **Password Hashing**: Use PBKDF2 for password hashing
-- **Input Validation**: Validate all user inputs
-- **Session Management**: Implement proper session handling
+### Database Debugging
+- Use Drizzle Studio for database inspection
+- Check migration logs
+- Verify schema changes
+- Test queries manually
 
-### Data Protection
-- **Local Storage**: Encrypt sensitive data in local storage
-- **Network Security**: Use HTTPS/TLS for all communications
-- **API Security**: Implement proper API security measures
-- **Error Handling**: Don't expose sensitive information in errors
-
-## 🧪 Testing Guidelines
+## 🧪 Testing
 
 ### Unit Testing
-- **Component Tests**: Test components with React Testing Library
-- **Hook Tests**: Test custom hooks with React Hooks Testing Library
-- **Utility Tests**: Test utility functions with Jest
-- **Mocking**: Mock external dependencies properly
+- Test utility functions
+- Test custom hooks
+- Test Redux reducers
+- Test GraphQL resolvers
 
 ### Integration Testing
-- **API Tests**: Test GraphQL resolvers and mutations
-- **Database Tests**: Test database operations with test database
-- **Authentication Tests**: Test authentication flows
-- **Offline Tests**: Test offline functionality
+- Test API endpoints
+- Test database operations
+- Test authentication flow
+- Test offline functionality
 
-### Test Structure
-```typescript
-// ✅ Good test structure
-describe('LoginScreen', () => {
-  beforeEach(() => {
-    renderWithProviders(<LoginScreen />);
-  });
+### E2E Testing
+- Test complete user flows
+- Test cross-platform compatibility
+- Test offline scenarios
+- Test real-time features
 
-  it('should render login form', () => {
-    expect(screen.getByText('Login')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Username')).toBeInTheDocument();
-  });
+## 🚀 Deployment
 
-  it('should handle login success', async () => {
-    // Test implementation
-  });
-});
-```
-
-## 📊 Performance Guidelines
-
-### Client Performance
-- **Lazy Loading**: Use lazy loading for routes and components
-- **Memoization**: Use React.memo for expensive components
-- **Redux Selectors**: Use selectors for efficient state access
-- **Image Optimization**: Optimize images and assets
-
-### Backend Performance
-- **Database Queries**: Optimize database queries
-- **Caching**: Implement proper caching strategies
-- **Error Handling**: Handle errors efficiently
-- **Monitoring**: Monitor performance metrics
-
-## 🚀 Deployment Guidelines
-
-### Worker Deployment
-- **Environment Variables**: Configure environment variables in `wrangler.toml`
-- **Database Migrations**: Apply migrations before deployment
-- **Health Checks**: Implement health check endpoints
-- **Rollback Plan**: Have a rollback plan ready
-
-### Client Deployment
-- **EAS Build**: Use EAS Build for app builds
-- **Environment Configuration**: Configure different environments
-- **Asset Optimization**: Optimize assets for production
-- **App Store Guidelines**: Follow platform-specific guidelines
-
-## 🔧 Troubleshooting
-
-### Common Issues
-
-#### Database Migration Errors
+### Development Deployment
 ```bash
-# Clear everything and start fresh
-yarn db:purge
-yarn db:generate
-yarn db:migrate
+# Deploy worker to development
+yarn worker:deploy
+
+# Test on development environment
+# Verify all features work
 ```
 
-#### Metro Bundler Issues
+### Production Deployment
 ```bash
-# Clear Metro cache
-yarn client:start --clear
+# Build client for production
+yarn build
+
+# Deploy worker to production
+yarn worker:deploy
+
+# Deploy client to app stores
+yarn client:android
+yarn client:ios
 ```
 
-#### Worker Development Issues
-```bash
-# Restart worker with fresh database
-yarn worker:dev --compatibility-date=2023-05-18
-```
+## 📊 Monitoring
 
-#### Path Alias Issues
-- Ensure `tsconfig.json` has correct paths configuration
-- For client: check `metro.config.js` has `extraNodeModules`
-- Restart TypeScript server in your IDE
+### Performance Monitoring
+- Monitor worker performance
+- Track client performance metrics
+- Monitor database query performance
+- Track user engagement
 
-### Debugging Tips
-- Use React DevTools for component debugging
-- Use Redux DevTools for state debugging
-- Use Apollo DevTools for GraphQL debugging
-- Use Drizzle Studio for database inspection
+### Error Monitoring
+- Set up error tracking
+- Monitor crash reports
+- Track API errors
+- Monitor database errors
 
-## 📚 Documentation Guidelines
+## 🔄 Maintenance
 
-### Code Documentation
-- **JSDoc Comments**: Document complex functions and components
-- **README Files**: Keep README files up to date
-- **Type Definitions**: Use descriptive type names
-- **Comments**: Add comments for complex logic
+### Regular Tasks
+- Update dependencies regularly
+- Review and update documentation
+- Monitor performance metrics
+- Clean up unused code
 
-### API Documentation
-- **GraphQL Schema**: Document GraphQL schema with descriptions
-- **Resolver Documentation**: Document resolver functions
-- **Error Codes**: Document error codes and messages
-- **Examples**: Provide usage examples
-
-## 🤝 Contributing Guidelines
-
-### Pull Request Process
-1. **Fork Repository**: Fork the repository
-2. **Create Branch**: Create a feature branch
-3. **Make Changes**: Implement your changes
-4. **Test Changes**: Test your changes thoroughly
-5. **Submit PR**: Submit a pull request with description
-
-### Code Review Process
-- **Review Checklist**: Use the code review checklist
-- **Testing**: Ensure all tests pass
-- **Documentation**: Update documentation if needed
-- **Performance**: Consider performance implications
-
-### Commit Message Format
-```
-type(scope): description
-
-feat(auth): add password reset functionality
-fix(ui): resolve button alignment issue
-docs(readme): update installation instructions
-```
-
-## 📋 Development Checklist
-
-### Before Starting Development
-- [ ] Read project documentation
-- [ ] Set up development environment
-- [ ] Understand project architecture
-- [ ] Review coding standards
-
-### During Development
-- [ ] Follow TypeScript guidelines
-- [ ] Implement proper error handling
-- [ ] Add loading states
-- [ ] Test offline functionality
-- [ ] Ensure i18n support
-- [ ] Follow security guidelines
-
-### Before Submitting
-- [ ] Run all tests
-- [ ] Check for linting errors
-- [ ] Test on multiple platforms
-- [ ] Update documentation
-- [ ] Review security implications
-- [ ] Test offline scenarios
-
----
-
-*These guidelines ensure consistent, high-quality development practices across the Safarnak application. Follow these standards to maintain code quality and project consistency.*
+### Database Maintenance
+- Regular migration reviews
+- Performance optimization
+- Backup strategies
+- Schema evolution planning

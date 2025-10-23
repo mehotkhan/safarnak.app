@@ -4,9 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import { db } from '../db/database';
-import { users } from '@drizzle/schemas/client';
-import { eq } from 'drizzle-orm';
+// Drizzle removed from client restore path; rely on AsyncStorage only
 
 const USER_STORAGE_KEY = '@safarnak_user';
 
@@ -30,22 +28,14 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
 
   const checkAuthStatus = async () => {
     try {
-      // First check local Drizzle database
+      // Restore from AsyncStorage only
       const savedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
       if (savedUser) {
         const userData = JSON.parse(savedUser);
-        
-        // Try to find user in local database
-        const localUser = await db.select().from(users).where(eq(users.username, userData.username)).limit(1);
-        
-        if (localUser.length > 0) {
-          dispatch(restoreUser({ 
-            user: localUser[0], 
-            token: userData.token || 'local' 
-          }));
-        } else {
-          dispatch(setLoading(false));
-        }
+        dispatch(restoreUser({ 
+          user: userData.user || null, 
+          token: userData.token || 'local' 
+        }));
       } else {
         dispatch(setLoading(false));
       }

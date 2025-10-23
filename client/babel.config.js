@@ -6,7 +6,6 @@ module.exports = function(api) {
     plugins: [
       ['inline-import', { extensions: ['.sql'] }],
       prod && ['transform-remove-console', { exclude: ['error', 'warn'] }],
-      'react-native-reanimated/plugin',
     ].filter(Boolean),
   };
 };

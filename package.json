@@ -8,40 +8,22 @@
   ],
   "scripts": {
     "dev": "concurrently \"yarn workspace safarnak-worker dev\" \"yarn workspace safarnak start\"",
-    "dev:clean": "concurrently \"yarn workspace safarnak-worker dev\" \"yarn workspace safarnak start --clear\"",
     "build": "yarn workspace safarnak-worker build && yarn workspace safarnak build",
     "worker:dev": "yarn workspace safarnak-worker dev",
     "worker:deploy": "yarn workspace safarnak-worker deploy",
-    "worker:db:generate": "yarn workspace safarnak-worker db:generate",
-    "worker:db:migrate": "yarn workspace safarnak-worker db:migrate",
-    "worker:db:migrate:prod": "yarn workspace safarnak-worker db:migrate:prod",
-    "worker:db:studio": "yarn workspace safarnak-worker db:studio",
     "client:start": "yarn workspace safarnak start",
     "client:android": "yarn workspace safarnak android",
     "client:ios": "yarn workspace safarnak ios",
     "client:web": "yarn workspace safarnak web",
-    "db:load": "node scripts/db-load.js",
-    "db:generate": "yarn db:generate:worker && yarn db:generate:client",
-    "db:generate:worker": "yarn workspace safarnak-worker db:generate",
-    "db:generate:client": "yarn workspace safarnak db:generate",
-    "db:migrate": "yarn db:migrate:worker && yarn db:migrate:client",
-    "db:migrate:worker": "yarn workspace safarnak-worker db:migrate",
-    "db:migrate:client": "echo 'Client migrations are handled automatically by Expo SQLite'",
-    "db:studio": "drizzle-kit studio --config drizzle.config.ts",
-    "db:purge": "yarn db:purge:migrations && yarn db:purge:worker && yarn db:purge:client && yarn db:purge:cache",
-    "db:purge:migrations": "rm -rf drizzle/migrations/client/* drizzle/migrations/worker/* && echo 'All migration files cleared'",
-    "db:purge:worker": "rm -rf worker/.wrangler && echo 'Worker database and cache cleared'",
-    "db:purge:client": "rm -rf client/db.db* && echo 'Client database files cleared'",
-    "db:purge:cache": "rm -rf node_modules/.cache && echo 'Node modules cache cleared'",
-    "db:purge:all": "yarn db:purge && rm -rf client/node_modules/.cache worker/node_modules/.cache && echo 'Complete purge completed - all databases, migrations, and caches cleared'",
-    "hide-git": "node scripts/toggle-git-ignored.js hide",
-    "show-git": "node scripts/toggle-git-ignored.js show",
-    "toggle-git": "node scripts/toggle-git-ignored.js toggle",
-    "git-status": "node scripts/toggle-git-ignored.js status"
+    "db:generate": "yarn workspace safarnak-worker db:generate",
+    "db:migrate": "yarn workspace safarnak-worker db:migrate",
+    "db:migrate:prod": "yarn workspace safarnak-worker db:migrate:prod",
+    "db:studio": "yarn workspace safarnak-worker db:studio",
+    "db:manager": "yarn workspace safarnak-worker db:manager",
+    "clean": "rm -rf worker/.wrangler client/db.db* node_modules/.cache && echo 'Cleared databases and cache'"
   },
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "drizzle-kit": "^0.31.5"
+    "concurrently": "^8.2.2"
   },
   "packageManager": "yarn@1.22.22"
 }

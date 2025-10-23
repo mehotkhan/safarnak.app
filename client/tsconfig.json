@@ -11,9 +11,6 @@
       "@components/*": [
         "./components/*"
       ],
-      "@drizzle/*": [
-        "../drizzle/*"
-      ],
       "@graphql/*": [
         "../graphql/*"
       ]

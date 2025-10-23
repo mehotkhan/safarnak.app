@@ -6,7 +6,7 @@
 **Pattern**: Yarn Workspaces with Shared Code
 **Implementation**: 
 - Root package.json manages workspace dependencies
-- Shared code in `drizzle/` and `graphql/` directories
+- Shared code in `worker/drizzle/` and `graphql/` directories
 - TypeScript path aliases for clean imports (`@drizzle/*`, `@graphql/*`)
 
 **Benefits**:
@@ -18,10 +18,10 @@
 ### 2. Offline-First Architecture Pattern
 **Pattern**: Local-First with Sync Capabilities
 **Implementation**:
-- Local SQLite database (Expo SQLite)
 - Redux Persist for state persistence
 - AsyncStorage for user session data
 - Graceful degradation when offline
+- Background sync when online
 
 **Benefits**:
 - Works without internet connection
@@ -48,232 +48,279 @@
 ### 1. Authentication Pattern
 **Pattern**: Token-Based Authentication with Offline Fallback
 
+**Implementation**:
 ```typescript
-// AuthWrapper.tsx - Authentication Guard Pattern
-export default function AuthWrapper({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
-  
-  useEffect(() => {
-    checkAuthStatus(); // Check local storage + database
-  }, []);
-
-  useEffect(() => {
-    if (!isLoading) {
-      router.replace(isAuthenticated ? '/(tabs)' : '/login');
+// Redux auth slice
+const authSlice = createSlice({
+  name: 'auth',
+  initialState: { isAuthenticated: false, user: null, token: null },
+  reducers: {
+    login: (state, action) => {
+      state.isAuthenticated = true;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+    },
+    logout: (state) => {
+      state.isAuthenticated = false;
+      state.user = null;
+      state.token = null;
     }
-  }, [isAuthenticated, isLoading]);
-
-  return isLoading ? <LoadingScreen /> : <>{children}</>;
-}
+  }
+});
 ```
 
-**Key Components**:
-- `AuthWrapper`: Route protection component
-- `authSlice`: Redux state management
-- `checkAuthStatus()`: Multi-source authentication check
-- Token persistence in AsyncStorage
+**Benefits**:
+- Secure token-based authentication
+- Offline authentication support
+- Centralized auth state management
+- Easy session management
 
 ### 2. State Management Pattern
 **Pattern**: Redux Toolkit with Persistence
 
+**Implementation**:
 ```typescript
-// store.ts - Centralized State Management
-const persistConfig = {
-  key: 'root',
-  storage: AsyncStorage,
-  whitelist: ['auth', 'theme'], // Selective persistence
-};
-
-const rootReducer = combineReducers({
-  auth: authReducer,
-  theme: themeReducer,
-});
-
-export const store = configureStore({
-  reducer: persistReducer(persistConfig, rootReducer),
+// Store configuration
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    theme: themeReducer,
+  },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-      },
-    }).concat(offlineMiddleware),
+    getDefaultMiddleware().concat(offlineMiddleware),
 });
+
+// Persistence configuration
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 ```
 
-**Pattern Benefits**:
+**Benefits**:
 - Predictable state updates
 - Time-travel debugging
-- Middleware support for offline handling
-- Selective persistence for performance
+- State persistence
+- Offline state management
 
-### 3. Database Schema Pattern
-**Pattern**: Shared Schema with Environment Extensions
+### 3. Component Composition Pattern
+**Pattern**: Atomic Design with Custom Components
 
+**Implementation**:
 ```typescript
-// drizzle/schemas/shared/users.ts - Base Schema
-export const usersBase = sqliteTable('users', {
+// Base component
+export const CustomText = ({ children, weight, style }) => (
+  <Text style={[styles.base, styles[weight], style]}>
+    {children}
+  </Text>
+);
+
+// Composed component
+export const Header = ({ title }) => (
+  <View style={styles.header}>
+    <CustomText weight="bold" style={styles.title}>
+      {title}
+    </CustomText>
+  </View>
+);
+```
+
+**Benefits**:
+- Reusable components
+- Consistent design system
+- Easy maintenance
+- Scalable architecture
+
+### 4. Database Access Pattern
+**Pattern**: Drizzle ORM with Type Safety
+
+**Implementation**:
+```typescript
+// Schema definition
+export const users = sqliteTable('users', {
   id: integer('id').primaryKey(),
   name: text('name').notNull(),
   username: text('username').unique().notNull(),
 });
 
-// drizzle/schemas/worker/users.ts - Extended Schema
-export const users = sqliteTable('users', {
-  ...usersBase, // Inherit base fields
-  passwordHash: text('password_hash').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-});
+// Type-safe queries
+const user = await db.select().from(users).where(eq(users.id, userId));
 ```
 
-**Pattern Benefits**:
-- DRY principle (Don't Repeat Yourself)
-- Type safety across environments
-- Consistent data models
-- Easy schema evolution
+**Benefits**:
+- Type-safe database operations
+- Shared schema between client and server
+- Migration support
+- Query optimization
 
-### 4. GraphQL Integration Pattern
-**Pattern**: Apollo Client with Offline Support
+### 5. API Communication Pattern
+**Pattern**: GraphQL with Apollo Client
 
+**Implementation**:
 ```typescript
-// api/client.ts - GraphQL Client Setup
-const client = new ApolloClient({
-  uri: GRAPHQL_ENDPOINT,
-  cache: new InMemoryCache(),
-  defaultOptions: {
-    watchQuery: {
-      errorPolicy: 'all', // Handle partial data
-    },
-  },
+// GraphQL query
+const GET_USER = gql`
+  query GetUser($id: ID!) {
+    user(id: $id) {
+      id
+      name
+      username
+    }
+  }
+`;
+
+// Apollo Client usage
+const { data, loading, error } = useQuery(GET_USER, {
+  variables: { id: userId }
 });
 ```
 
-**Pattern Benefits**:
-- Declarative data fetching
-- Automatic caching
+**Benefits**:
+- Type-safe API calls
+- Efficient data fetching
 - Real-time subscriptions
-- Type-safe queries
+- Error handling
 
-### 5. Component Composition Pattern
-**Pattern**: Atomic Design with Custom Hooks
+## 🔄 Data Flow Patterns
 
-```typescript
-// Custom Hook Pattern
-export function useAuth() {
-  const dispatch = useAppDispatch();
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
-  
-  const login = useCallback((userData: User, token: string) => {
-    dispatch(login({ user: userData, token }));
-  }, [dispatch]);
-  
-  return { isAuthenticated, user, login };
-}
+### 1. Unidirectional Data Flow
+**Pattern**: Redux + React Components
 
-// Component Usage
-function LoginScreen() {
-  const { login } = useAuth();
-  // Component logic...
-}
+**Flow**:
+```
+Action → Reducer → Store → Component → UI
 ```
 
-**Pattern Benefits**:
-- Reusable business logic
-- Clean component separation
-- Easy testing
-- Consistent API across components
+**Implementation**:
+```typescript
+// Action
+const loginUser = (user, token) => ({
+  type: 'auth/login',
+  payload: { user, token }
+});
+
+// Reducer
+const authReducer = (state, action) => {
+  switch (action.type) {
+    case 'auth/login':
+      return { ...state, isAuthenticated: true, user: action.payload.user };
+    default:
+      return state;
+  }
+};
+
+// Component
+const LoginComponent = () => {
+  const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
+  
+  const handleLogin = (user, token) => {
+    dispatch(loginUser(user, token));
+  };
+};
+```
+
+### 2. Offline-First Data Flow
+**Pattern**: Local Storage + Sync
+
+**Flow**:
+```
+User Action → Local Storage → Background Sync → Server
+```
+
+**Implementation**:
+```typescript
+// Offline middleware
+const offlineMiddleware = (store) => (next) => (action) => {
+  if (action.meta?.offline) {
+    // Store locally
+    AsyncStorage.setItem('offlineActions', JSON.stringify(action));
+    // Sync when online
+    NetInfo.addEventListener((state) => {
+      if (state.isConnected) {
+        syncOfflineActions();
+      }
+    });
+  }
+  return next(action);
+};
+```
 
 ## 🎨 UI/UX Patterns
 
-### 1. Theme System Pattern
+### 1. Theme Pattern
 **Pattern**: Context-Based Theme Management
 
+**Implementation**:
 ```typescript
-// ThemeContext.tsx - Theme Provider Pattern
-export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+// Theme context
+const ThemeContext = createContext();
 
-export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+export const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState('light');
   
-  const toggleTheme = useCallback(() => {
+  const toggleTheme = () => {
     setTheme(prev => prev === 'light' ? 'dark' : 'light');
-  }, []);
+  };
   
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       {children}
     </ThemeContext.Provider>
   );
-}
+};
 ```
 
 ### 2. Internationalization Pattern
-**Pattern**: i18next with Dynamic Loading
+**Pattern**: react-i18next with RTL Support
 
+**Implementation**:
 ```typescript
-// i18n.ts - Internationalization Setup
-i18n
-  .use(initReactI18next)
-  .init({
-    resources: {
-      en: { translation: enTranslations },
-      fa: { translation: faTranslations },
-    },
-    lng: 'en',
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false,
-    },
-  });
+// Translation hook
+const { t, i18n } = useTranslation();
+
+// Component usage
+const LoginScreen = () => (
+  <View>
+    <Text>{t('login.title')}</Text>
+    <Text>{t('login.subtitle')}</Text>
+  </View>
+);
 ```
 
 ### 3. Navigation Pattern
-**Pattern**: File-Based Routing with Guards
+**Pattern**: Expo Router File-Based Routing
 
-```typescript
-// app/_layout.tsx - Root Layout Pattern
-export default function RootLayout() {
-  return (
-    <ApolloProvider client={client}>
-      <Provider store={store}>
-        <PersistGate loading={<LoadingScreen />} persistor={persistor}>
-          <ThemeProvider>
-            <LanguageProvider>
-              <AuthWrapper>
-                <Stack>
-                  <Stack.Screen name="login" options={{ headerShown: false }} />
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-                </Stack>
-              </AuthWrapper>
-            </LanguageProvider>
-          </ThemeProvider>
-        </PersistGate>
-      </Provider>
-    </ApolloProvider>
-  );
-}
+**Implementation**:
+```
+app/
+├── _layout.tsx          # Root layout
+├── login.tsx            # Login screen
+└── (tabs)/              # Tab group
+    ├── _layout.tsx      # Tab layout
+    ├── index.tsx        # Home tab
+    ├── profile.tsx      # Profile tab
+    └── tour.tsx         # Tour tab
 ```
 
-## 🔧 Development Patterns
+## 🔧 Error Handling Patterns
 
-### 1. Error Handling Pattern
-**Pattern**: Comprehensive Error Boundaries
+### 1. Error Boundary Pattern
+**Pattern**: React Error Boundaries
 
+**Implementation**:
 ```typescript
-// Error Boundary Component
-class ErrorBoundary extends React.Component<Props, State> {
-  constructor(props: Props) {
+class ErrorBoundary extends React.Component {
+  constructor(props) {
     super(props);
     this.state = { hasError: false };
   }
-
-  static getDerivedStateFromError(error: Error): State {
+  
+  static getDerivedStateFromError(error) {
     return { hasError: true };
   }
-
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  
+  componentDidCatch(error, errorInfo) {
     console.error('Error caught by boundary:', error, errorInfo);
   }
-
+  
   render() {
     if (this.state.hasError) {
       return <ErrorFallback />;
@@ -283,264 +330,152 @@ class ErrorBoundary extends React.Component<Props, State> {
 }
 ```
 
-### 2. Loading State Pattern
-**Pattern**: Consistent Loading Indicators
+### 2. Graceful Degradation Pattern
+**Pattern**: Fallback UI for Offline State
 
+**Implementation**:
 ```typescript
-// Loading Component Pattern
-export function LoadingScreen() {
-  return (
-    <View style={styles.container}>
-      <ActivityIndicator size="large" color="#2f95dc" />
-      <Text style={styles.text}>Loading...</Text>
-    </View>
-  );
-}
-
-// Usage in Components
-function TourScreen() {
-  const { loading, data } = useQuery(GET_TOURS);
+const OfflineWrapper = ({ children }) => {
+  const [isOnline, setIsOnline] = useState(true);
   
-  if (loading) return <LoadingScreen />;
-  if (!data) return <ErrorScreen />;
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener(state => {
+      setIsOnline(state.isConnected);
+    });
+    return unsubscribe;
+  }, []);
   
-  return <TourList tours={data.tours} />;
-}
-```
-
-### 3. Form Handling Pattern
-**Pattern**: Controlled Components with Validation
-
-```typescript
-// Form Hook Pattern
-export function useForm<T>(initialValues: T, validationSchema: Schema<T>) {
-  const [values, setValues] = useState<T>(initialValues);
-  const [errors, setErrors] = useState<Partial<T>>({});
-  
-  const handleChange = useCallback((field: keyof T, value: any) => {
-    setValues(prev => ({ ...prev, [field]: value }));
-    // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
-  }, [errors]);
-  
-  const validate = useCallback(() => {
-    const newErrors = validationSchema.validate(values);
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }, [values, validationSchema]);
-  
-  return { values, errors, handleChange, validate };
-}
-```
-
-## 🗄️ Data Management Patterns
-
-### 1. Database Migration Pattern
-**Pattern**: Version-Controlled Schema Changes
-
-```typescript
-// Migration Generation
-yarn db:generate  // Creates migration files
-yarn db:migrate   // Applies migrations
-
-// Migration File Structure
-export const usersTable = sqliteTable('users', {
-  id: integer('id').primaryKey(),
-  name: text('name').notNull(),
-  username: text('username').unique().notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-});
-```
-
-### 2. Caching Pattern
-**Pattern**: Multi-Level Caching Strategy
-
-```typescript
-// Apollo Client Cache Configuration
-const cache = new InMemoryCache({
-  typePolicies: {
-    User: {
-      fields: {
-        tours: {
-          merge(existing = [], incoming) {
-            return [...existing, ...incoming];
-          },
-        },
-      },
-    },
-  },
-});
-```
-
-### 3. Offline Sync Pattern
-**Pattern**: Optimistic Updates with Conflict Resolution
-
-```typescript
-// Offline Middleware Pattern
-export const offlineMiddleware: Middleware = (store) => (next) => (action) => {
-  const result = next(action);
-  
-  // Queue actions when offline
-  if (!navigator.onLine) {
-    store.dispatch(queueAction(action));
-  } else {
-    // Sync queued actions when online
-    store.dispatch(syncQueuedActions());
+  if (!isOnline) {
+    return <OfflineScreen />;
   }
   
-  return result;
+  return children;
 };
 ```
 
-## 🔒 Security Patterns
+## 📱 Performance Patterns
 
-### 1. Authentication Security Pattern
-**Pattern**: Secure Token Management
+### 1. Lazy Loading Pattern
+**Pattern**: Code Splitting with React.lazy
 
+**Implementation**:
 ```typescript
-// Token Generation (Worker)
-async function generateToken(userId: number, username: string): Promise<string> {
-  const payload = { userId, username, exp: Date.now() + 86400000 }; // 24h
-  return await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(JSON.stringify(payload)));
-}
+const LazyComponent = React.lazy(() => import('./HeavyComponent'));
 
-// Token Validation (Client)
-function validateToken(token: string): boolean {
+const App = () => (
+  <Suspense fallback={<LoadingScreen />}>
+    <LazyComponent />
+  </Suspense>
+);
+```
+
+### 2. Memoization Pattern
+**Pattern**: React.memo and useMemo
+
+**Implementation**:
+```typescript
+const ExpensiveComponent = React.memo(({ data }) => {
+  const processedData = useMemo(() => {
+    return data.map(item => processItem(item));
+  }, [data]);
+  
+  return <View>{processedData}</View>;
+});
+```
+
+### 3. Virtualization Pattern
+**Pattern**: FlatList for Large Lists
+
+**Implementation**:
+```typescript
+const LargeList = ({ data }) => (
+  <FlatList
+    data={data}
+    renderItem={({ item }) => <ListItem item={item} />}
+    keyExtractor={item => item.id}
+    getItemLayout={(data, index) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    })}
+  />
+);
+```
+
+## 🔐 Security Patterns
+
+### 1. Input Validation Pattern
+**Pattern**: Server-Side Validation
+
+**Implementation**:
+```typescript
+// GraphQL resolver with validation
+const createUser = async (parent, args, context) => {
+  // Validate input
+  const { error } = userSchema.validate(args);
+  if (error) {
+    throw new Error(`Validation error: ${error.message}`);
+  }
+  
+  // Process request
+  return await db.insert(users).values(args);
+};
+```
+
+### 2. Authentication Pattern
+**Pattern**: JWT with Refresh Tokens
+
+**Implementation**:
+```typescript
+// Token validation middleware
+const authenticateToken = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.exp > Date.now();
-  } catch {
-    return false;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid token' });
   }
-}
-```
-
-### 2. Input Validation Pattern
-**Pattern**: Comprehensive Input Sanitization
-
-```typescript
-// Validation Schema Pattern
-const userSchema = z.object({
-  username: z.string().min(3).max(20).regex(/^[a-zA-Z0-9_]+$/),
-  password: z.string().min(8).max(100),
-  email: z.string().email(),
-});
-
-// Usage in Resolvers
-const register = async (parent: any, { username, password }: RegisterInput) => {
-  const validatedInput = userSchema.parse({ username, password });
-  // Process validated input...
 };
-```
-
-## 📱 Mobile-Specific Patterns
-
-### 1. Platform Adaptation Pattern
-**Pattern**: Platform-Specific Implementations
-
-```typescript
-// Platform-specific hooks
-export const useColorScheme = Platform.select({
-  ios: () => require('./useColorScheme.ios').useColorScheme,
-  android: () => require('./useColorScheme.android').useColorScheme,
-  web: () => require('./useColorScheme.web').useColorScheme,
-})();
-```
-
-### 2. Performance Optimization Pattern
-**Pattern**: Lazy Loading and Memoization
-
-```typescript
-// Lazy Component Loading
-const TourScreen = lazy(() => import('./TourScreen'));
-const ProfileScreen = lazy(() => import('./ProfileScreen'));
-
-// Memoized Components
-const TourCard = memo(({ tour }: { tour: Tour }) => {
-  return <View>{/* Tour card content */}</View>;
-});
-```
-
-## 🧪 Testing Patterns
-
-### 1. Component Testing Pattern
-**Pattern**: React Testing Library with Mock Providers
-
-```typescript
-// Test Setup Pattern
-function renderWithProviders(ui: React.ReactElement) {
-  return render(
-    <Provider store={store}>
-      <ApolloProvider client={mockClient}>
-        {ui}
-      </ApolloProvider>
-    </Provider>
-  );
-}
-
-// Test Example
-test('renders login form', () => {
-  renderWithProviders(<LoginScreen />);
-  expect(screen.getByText('Login')).toBeInTheDocument();
-});
-```
-
-### 2. Integration Testing Pattern
-**Pattern**: End-to-End Testing with Real Dependencies
-
-```typescript
-// Integration Test Pattern
-describe('Authentication Flow', () => {
-  test('user can login and access protected routes', async () => {
-    // Setup test database
-    await setupTestDatabase();
-    
-    // Perform login
-    await loginUser('testuser', 'password');
-    
-    // Verify navigation
-    expect(screen.getByText('Welcome')).toBeInTheDocument();
-  });
-});
 ```
 
 ## 📊 Monitoring Patterns
 
-### 1. Error Tracking Pattern
-**Pattern**: Comprehensive Error Monitoring
+### 1. Performance Monitoring
+**Pattern**: Custom Performance Hooks
 
+**Implementation**:
 ```typescript
-// Error Tracking Hook
-export function useErrorTracking() {
-  const trackError = useCallback((error: Error, context?: any) => {
-    console.error('Error tracked:', error, context);
-    // Send to error tracking service
-  }, []);
-  
-  return { trackError };
-}
-```
-
-### 2. Performance Monitoring Pattern
-**Pattern**: Real-time Performance Tracking
-
-```typescript
-// Performance Monitoring
-export function usePerformanceMonitoring() {
+const usePerformanceMonitor = (componentName) => {
   useEffect(() => {
-    const startTime = performance.now();
+    const start = performance.now();
     
     return () => {
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-      console.log(`Component render time: ${duration}ms`);
+      const end = performance.now();
+      console.log(`${componentName} render time: ${end - start}ms`);
     };
-  }, []);
-}
+  });
+};
 ```
 
----
+### 2. Error Tracking
+**Pattern**: Centralized Error Logging
 
-*This document outlines the key design patterns and architectural decisions used in the Safarnak application. These patterns ensure maintainability, scalability, and consistency across the codebase.*
+**Implementation**:
+```typescript
+const errorLogger = {
+  log: (error, context) => {
+    console.error('Error:', error);
+    console.error('Context:', context);
+    // Send to error tracking service
+  }
+};
+```
+
+These patterns provide a solid foundation for building scalable, maintainable, and performant applications with the Safarnak architecture.

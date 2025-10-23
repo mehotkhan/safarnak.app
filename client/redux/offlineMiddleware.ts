@@ -1,7 +1,6 @@
 import NetInfo from '@react-native-community/netinfo';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { client } from '../api/client'; // Apollo
-import { db } from '../db/database'; // Drizzle
 
 const queueKey = 'offlineMutations';
 
@@ -9,8 +8,7 @@ async function queueMutation(mutation: any) {
   let queue = JSON.parse(await AsyncStorage.getItem(queueKey) || '[]');
   queue.push(mutation);
   await AsyncStorage.setItem(queueKey, JSON.stringify(queue));
-  // Optional: Perform local Drizzle insert/update for optimism
-  // e.g., if mutation is login, insert to users table
+  // Optionally perform local optimistic updates here via Redux
 }
 
 async function processQueue() {

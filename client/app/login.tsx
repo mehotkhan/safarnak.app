@@ -6,8 +6,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
-import { db } from '../db/database';
-import { users } from '@drizzle/schemas/client';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useMutation } from '@apollo/client';
 import { LOGIN_MUTATION, REGISTER_MUTATION } from '../api/queries';
 
@@ -85,12 +84,8 @@ export default function LoginScreen() {
         const authData = isRegistering ? result.data.register : result.data.login;
         const { user, token } = authData;
         
-        // Store in local Drizzle database
-        await db.insert(users).values({
-          id: parseInt(user.id),
-          name: user.name,
-          username: user.username,
-        });
+        // Persist auth data to AsyncStorage
+        await AsyncStorage.setItem('@safarnak_user', JSON.stringify({ user, token }));
 
         // Update Redux store
         dispatch(login({ user, token }));

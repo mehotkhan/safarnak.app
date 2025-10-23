@@ -128,13 +128,13 @@ android {
     // Split APKs by ABI and density for smaller per-device artifacts
     splits {
         abi {
-            enable true
+            enable false
             reset()
             include 'arm64-v8a', 'armeabi-v7a'
-            universalApk false
+            universalApk true
         }
         density {
-            enable true
+            enable false
         }
     }
     packagingOptions {
@@ -195,4 +195,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+}
+
+// Ensure NODE_ENV is set during JS bundling tasks (use production by default)
+tasks.withType(org.gradle.api.tasks.Exec).configureEach { task ->
+    environment "NODE_ENV", System.getenv("NODE_ENV") ?: "production"
 }

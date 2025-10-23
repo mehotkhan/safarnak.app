@@ -40,9 +40,6 @@
 			"./worker-configuration.d.ts"
 		],
 		"paths": {
-			"@drizzle/*": [
-				"../drizzle/*"
-			],
 			"@graphql/*": [
 				"../graphql/*"
 			]

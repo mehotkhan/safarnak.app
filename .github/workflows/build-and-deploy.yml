@@ -17,6 +17,7 @@ env:
   NODE_VERSION: '20'
   YARN_VERSION: '1.22.22'
   GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx3072m -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.configuration-cache=true"
+  NODE_ENV: 'production'
 
 jobs:
   build-android:

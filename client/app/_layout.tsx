@@ -3,11 +3,9 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import 'react-native-reanimated';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { ApolloProvider } from '@apollo/client';
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { View, Text } from 'react-native';
 
 import AuthWrapper from '@components/AuthWrapper';
@@ -16,8 +14,7 @@ import { ThemeProvider as CustomThemeProvider } from '@components/context/ThemeC
 import { useColorScheme } from '../hooks/useColorScheme';
 import { persistor, store } from '../redux/store';
 import { client } from '../api/client';
-import { db } from '../db/database';
-import migrations from '@drizzle/migrations/client/migrations';
+// Drizzle migrations removed from client UI
 import '../i18n';
 
 export {
@@ -75,23 +72,6 @@ function RootLayoutNav() {
 
 function RootLayoutNavContent() {
   const colorScheme = useColorScheme();
-  const { success, error } = useMigrations(db, migrations);
-
-  if (error) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Migration error: {error.message}</Text>
-      </View>
-    );
-  }
-  
-  if (!success) {
-    return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Migrating...</Text>
-      </View>
-    );
-  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

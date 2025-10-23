@@ -9,7 +9,6 @@ config.resolver.sourceExts.push('sql');
 
 // Watch folders outside the client directory for shared code
 config.watchFolders = [
-  path.resolve(__dirname, '../drizzle'), // Watch drizzle folder
   path.resolve(__dirname, '../graphql'), // Watch graphql folder
 ];
 
@@ -25,14 +24,12 @@ config.resolver.nodeModulesPaths = [
   path.resolve(__dirname, '../node_modules'),
 ];
 
-// Support for path aliases (@/, @drizzle/, @graphql/)
+// Support for path aliases (@/, @graphql/)
 config.resolver.extraNodeModules = {
   '@': path.resolve(__dirname),
-  '@drizzle': path.resolve(__dirname, '../drizzle'),
   '@graphql': path.resolve(__dirname, '../graphql'),
 };
 
-module.exports = config;
 // Enable inline requires for faster cold start in production bundles
 config.transformer = {
   ...config.transformer,
@@ -43,3 +40,5 @@ config.transformer = {
     },
   }),
 };
+
+module.exports = config;
