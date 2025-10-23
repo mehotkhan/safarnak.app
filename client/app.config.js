@@ -3,6 +3,7 @@ import 'dotenv/config';
 const getAppConfig = () => {
   const isDebug = process.env.EAS_BUILD_PROFILE === 'debug';
   const isRelease = process.env.EAS_BUILD_PROFILE === 'release';
+  const isDevelopment = !isDebug && !isRelease; // Development mode (expo run:android)
   
   // Default configuration
   let appName = 'Safarnak';
@@ -24,7 +25,7 @@ const getAppConfig = () => {
     scheme = process.env.APP_SCHEME;
   }
   
-  // Set specific configurations for debug and release
+  // Set specific configurations for different modes
   if (isDebug) {
     appName = 'تسفرناک';
     bundleIdentifier = 'ir.mohet.safarnak_debug';
@@ -35,6 +36,12 @@ const getAppConfig = () => {
     bundleIdentifier = 'ir.mohet.safarnak';
     packageName = 'ir.mohet.safarnak';
     scheme = 'safarnak';
+  } else if (isDevelopment) {
+    // Development mode - use debug configuration for Persian name
+    appName = 'تسفرناک';
+    bundleIdentifier = 'ir.mohet.safarnak_debug';
+    packageName = 'ir.mohet.safarnak_debug';
+    scheme = 'safarnak-debug';
   }
 
   return {

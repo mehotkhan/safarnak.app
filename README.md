@@ -146,19 +146,27 @@ yarn dev
 - `@/*` → `./*` (client-specific files)
 
 ### App Configurations
-The app supports two separate configurations:
+The app supports different configurations based on the build mode:
 
-#### Debug App (تسفرناک)
+#### Development Mode (تسفرناک)
+- **Command**: `yarn client:android`, `yarn client:ios`, `yarn client:web`
+- **App Name**: تسفرناک (Persian)
 - **Package ID**: `ir.mohet.safarnak_debug`
 - **GraphQL URL**: `http://192.168.1.51:8787/graphql` (local development)
-- **Build Command**: `yarn build:debug`
 
-#### Release App (سقرناک)
+#### Debug Build (تسفرناک)
+- **Command**: `yarn build:debug`
+- **App Name**: تسفرناک (Persian)
+- **Package ID**: `ir.mohet.safarnak_debug`
+- **GraphQL URL**: `http://192.168.1.51:8787/graphql` (local development)
+
+#### Release Build (سقرناک)
+- **Command**: `yarn build:release`
+- **App Name**: سقرناک (Persian)
 - **Package ID**: `ir.mohet.safarnak`
 - **GraphQL URL**: `https://safarnak.mohet.ir/graphql` (production)
-- **Build Command**: `yarn build:release`
 
-Both apps can be installed simultaneously on the same device.
+**Note**: Development and Debug builds use the same package ID, so you can only have one installed at a time. Release builds use a different package ID and can coexist with debug builds.
 
 ## 🌐 Deployment
 
