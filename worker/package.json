@@ -25,7 +25,7 @@
 	},
 	"dependencies": {
 		"@graphql-tools/schema": "^10.0.25",
-		"drizzle-orm": "^0.44.6",
+		"drizzle-orm": "^0.44.7",
 		"graphql": "^16.11.0",
 		"graphql-workers-subscriptions": "^0.1.6",
 		"graphql-yoga": "^5.16.0"
