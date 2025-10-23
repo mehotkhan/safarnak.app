@@ -33,3 +33,13 @@ config.resolver.extraNodeModules = {
 };
 
 module.exports = config;
+// Enable inline requires for faster cold start in production bundles
+config.transformer = {
+  ...config.transformer,
+  getTransformOptions: async () => ({
+    transform: {
+      experimentalImportSupport: false,
+      inlineRequires: true,
+    },
+  }),
+};

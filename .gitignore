@@ -156,6 +156,17 @@ worker/.env*
 !worker/.env.example
 worker/.wrangler/
 
-# generated native folders (client specific)
+# Native project folders (track sources, ignore build artifacts)
 client/ios/
-client/android/
+client/android/.gradle/
+client/android/build/
+client/android/app/build/
+client/android/**/build/
+client/android/.cxx/
+client/android/local.properties
+client/android/**/*.iml
+client/android/**/*.hprof
+client/android/**/.idea/
+
+# Ensure gradle.properties is tracked
+!client/android/gradle.properties

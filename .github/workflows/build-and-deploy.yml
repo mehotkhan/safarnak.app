@@ -3,13 +3,20 @@ name: Build Android APK
 on:
   push:
     branches: [master, main]
+    paths:
+      - 'client/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/build-and-deploy.yml'
+      - 'graphql/**'
+      - 'drizzle/**'
   release:
     types: [published]
 
 env:
   NODE_VERSION: '20'
   YARN_VERSION: '1.22.22'
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx3072m -Dkotlin.compiler.execution.strategy=in-process"
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx3072m -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.configuration-cache=true"
 
 jobs:
   build-android:
@@ -46,29 +53,35 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deps-
 
-      - name: Install dependencies
+      - name: Install dependencies (workspaces)
         run: |
           yarn install --frozen-lockfile --network-timeout 100000
-          cd client && yarn install --frozen-lockfile --network-timeout 100000
 
-      - name: Setup Expo and generate Android project  
+      - name: Setup Expo (npx)
         run: |
-          npm install -g @expo/cli@latest --force
+          npx --yes expo --version
+      - name: Expo prebuild (only when native changes)
+        if: |
+          contains(toJson(github.event.commits.*.modified), 'client/app.json') ||
+          contains(toJson(github.event.commits.*.modified), 'client/app.config.') ||
+          contains(toJson(github.event.commits.*.modified), 'client/android/')
+        run: |
           cd client
-          npx expo prebuild --platform android --clean --no-install
+          npx expo prebuild --platform android --no-install
 
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '11076708'
           
-      - name: Cache Gradle
+      - name: Cache Gradle (wrapper and caches)
         uses: actions/cache@v4
         with:
           path: |
@@ -91,7 +104,10 @@ jobs:
             --build-cache \
             --parallel \
             --stacktrace \
-            --info
+            --info \
+            -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
+            -Pandroid.enablePngCrunchInReleaseBuilds=false \
+            -x lint
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
