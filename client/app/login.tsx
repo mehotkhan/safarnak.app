@@ -5,7 +5,7 @@ import { login } from '../redux/authSlice';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { Alert, StyleSheet, TextInput, TouchableOpacity, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
 import { db } from '../db/database';
 import { users } from '@drizzle/schemas/client';
 import { useMutation } from '@apollo/client';
@@ -17,311 +17,338 @@ export default function LoginScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isRegistering, setIsRegistering] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const [loginMutation, { loading: loginLoading }] = useMutation(LOGIN_MUTATION);
   const [registerMutation, { loading: registerLoading }] = useMutation(REGISTER_MUTATION);
 
   const loading = loginLoading || registerLoading;
 
-  const testConnection = async () => {
-    console.log('🧪 Testing network connection...');
-    console.log('🌐 Testing URL: http://192.168.1.51:8787/graphql');
-    
-    try {
-      const response = await fetch('http://192.168.1.51:8787/graphql', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: 'query { __typename }'
-        })
-      });
-      
-      console.log('📡 Response status:', response.status);
-      console.log('📡 Response headers:', response.headers);
-      
-      const data = await response.text();
-      console.log('📊 Response data:', data);
-      
-      if (response.ok) {
-        Alert.alert('Connection Test', `✅ Success!\nStatus: ${response.status}\nData: ${data}`);
-      } else {
-        Alert.alert('Connection Test', `❌ Failed!\nStatus: ${response.status}\nData: ${data}`);
-      }
-    } catch (error) {
-      console.log('💥 Connection test failed:', error);
-      Alert.alert('Connection Test', `❌ Error!\n${error.message}`);
-    }
-  };
-
   const handleAuth = async () => {
-    console.log('🚀 Starting authentication process...');
-    console.log('📱 Username:', username);
-    console.log('🔒 Password length:', password.length);
-    console.log('📝 Mode:', isRegistering ? 'REGISTER' : 'LOGIN');
+    setErrorMessage('');
     
     if (username.trim().length === 0 || password.trim().length === 0) {
-      console.log('❌ Validation failed: Empty fields');
-      Alert.alert(t('login.errors.title'), t('login.errors.fieldsRequired'));
+      setErrorMessage(t('login.errors.fieldsRequired'));
       return;
     }
-
-    console.log('✅ Validation passed, attempting GraphQL request...');
-    console.log('🌐 GraphQL URI:', __DEV__ ? 'http://192.168.1.51:8787/graphql' : 'Production URL');
 
     try {
       let result;
       
       if (isRegistering) {
-        console.log('📝 Attempting REGISTER mutation...');
         result = await registerMutation({
           variables: {
             username: username.trim(),
             password: password.trim(),
           },
+          errorPolicy: 'all',
         });
-        console.log('✅ Register mutation completed:', result);
       } else {
-        console.log('🔑 Attempting LOGIN mutation...');
         result = await loginMutation({
           variables: {
             username: username.trim(),
             password: password.trim(),
           },
+          errorPolicy: 'all',
         });
-        console.log('✅ Login mutation completed:', result);
+      }
+
+      // Check for GraphQL errors in the result
+      if (result.errors && result.errors.length > 0) {
+        const error = result.errors[0];
+        
+        let errorMsg = '';
+        
+        // Check for original error message in extensions
+        const originalError = (error.extensions as any)?.originalError?.message;
+        if (originalError) {
+          if (originalError.includes('Invalid username or password')) {
+            errorMsg = t('login.errors.invalidCredentials');
+          } else if (originalError.includes('already exists')) {
+            errorMsg = t('login.errors.userExists');
+          } else {
+            errorMsg = originalError;
+          }
+        } else if (error.message.includes('Invalid username or password')) {
+          errorMsg = t('login.errors.invalidCredentials');
+        } else if (error.message.includes('already exists')) {
+          errorMsg = t('login.errors.userExists');
+        } else {
+          errorMsg = error.message;
+        }
+        
+        setErrorMessage(errorMsg);
+        return;
       }
 
       if (result.data) {
-        console.log('📊 GraphQL response data:', JSON.stringify(result.data, null, 2));
         const authData = isRegistering ? result.data.register : result.data.login;
         const { user, token } = authData;
         
-        console.log('👤 User data:', JSON.stringify(user, null, 2));
-        console.log('🎫 Token received:', token ? 'YES' : 'NO');
-        
         // Store in local Drizzle database
-        console.log('💾 Storing user in local database...');
         await db.insert(users).values({
           id: parseInt(user.id),
           name: user.name,
           username: user.username,
         });
-        console.log('✅ User stored in local database');
 
         // Update Redux store
-        console.log('🔄 Updating Redux store...');
         dispatch(login({ user, token }));
-        console.log('✅ Redux store updated');
         
-        console.log('🏠 Navigating to main app...');
         router.replace('/(tabs)');
         
         Alert.alert(
           t('login.success.title'), 
           isRegistering ? t('login.success.registerSuccess') : t('login.success.loginSuccess')
         );
-        console.log('🎉 Authentication completed successfully!');
       } else {
-        console.log('❌ No data in GraphQL response:', result);
+        setErrorMessage(t('login.errors.databaseError'));
       }
     } catch (error: any) {
-      console.log('💥 GraphQL request failed!');
-      console.log('🔍 Error type:', typeof error);
-      console.log('📋 Error message:', error.message);
-      console.log('🌐 Network error:', error.networkError);
-      console.log('📊 GraphQL errors:', error.graphQLErrors);
-      console.log('🔗 Error details:', JSON.stringify(error, null, 2));
+      let errorMsg = '';
       
-      // Check if it's a user not found error
-      if (error.message && error.message.includes('Invalid username or password')) {
-        console.log('👤 User not found error detected');
-        Alert.alert(t('login.errors.title'), t('login.errors.userNotFound'));
-        return;
-      }
-      
-      // Check if it's a user already exists error
-      if (error.message && error.message.includes('already exists')) {
-        console.log('👤 User already exists error detected');
-        Alert.alert(t('login.errors.title'), t('login.errors.userExists'));
-        return;
-      }
-      
-      // Check if it's a network error
-      if (error.networkError || error.message.includes('Network')) {
-        console.log('🌐 Network error detected');
-        Alert.alert(t('login.errors.title'), t('login.errors.networkError'));
-        return;
-      }
-      
-      // For other errors, try offline mode
-      console.log('🔄 Attempting offline fallback...');
-      const localUser = {
-        id: Date.now(), // Simple ID generation
-        name: username.trim(),
-        username: username.trim(),
-      };
-      console.log('👤 Creating local user:', localUser);
-
-      try {
-        // Insert into local database
-        console.log('💾 Inserting local user into database...');
-        await db.insert(users).values(localUser);
-        console.log('✅ Local user inserted successfully');
+      // Handle GraphQL errors
+      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
+        const graphQLError = error.graphQLErrors[0];
         
-        // Update Redux store with local token
-        console.log('🔄 Updating Redux store with local token...');
-        dispatch(login({ user: localUser, token: 'local' }));
-        console.log('✅ Redux store updated with local data');
-        
-        console.log('🏠 Navigating to main app (offline mode)...');
-        router.replace('/(tabs)');
-        
-        Alert.alert(t('login.success.offlineMode'), t('login.success.offlineMessage'));
-        console.log('🎉 Offline authentication completed!');
-      } catch (dbError) {
-        console.log('💥 Database error in offline mode!');
-        console.log('📋 Database error:', dbError);
-        Alert.alert(t('login.errors.title'), t('login.errors.offlineError'));
+        // Check for original error message in extensions
+        const originalError = (graphQLError.extensions as any)?.originalError?.message;
+        if (originalError) {
+          if (originalError.includes('Invalid username or password')) {
+            errorMsg = t('login.errors.invalidCredentials');
+          } else if (originalError.includes('already exists')) {
+            errorMsg = t('login.errors.userExists');
+          } else {
+            errorMsg = originalError;
+          }
+        } else if (graphQLError.message.includes('Invalid username or password')) {
+          errorMsg = t('login.errors.invalidCredentials');
+        } else if (graphQLError.message.includes('already exists')) {
+          errorMsg = t('login.errors.userExists');
+        } else {
+          errorMsg = graphQLError.message;
+        }
       }
+      // Handle network errors
+      else if (error.networkError) {
+        errorMsg = t('login.errors.networkError');
+      }
+      // Handle general errors
+      else if (error.message) {
+        if (error.message.includes('Invalid username or password')) {
+          errorMsg = t('login.errors.invalidCredentials');
+        } else if (error.message.includes('already exists')) {
+          errorMsg = t('login.errors.userExists');
+        } else {
+          errorMsg = error.message;
+        }
+      }
+      // Fallback error message
+      else {
+        errorMsg = t('login.errors.databaseError');
+      }
+      
+      setErrorMessage(errorMsg);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.content}>
-        <CustomText weight="bold" style={styles.title}>{t('login.title')}</CustomText>
-        <CustomText style={styles.subtitle}>{t('login.subtitle')}</CustomText>
+        <View style={styles.header}>
+          <CustomText weight="bold" style={styles.title}>{t('login.title')}</CustomText>
+          <CustomText style={styles.subtitle}>{t('login.subtitle')}</CustomText>
+        </View>
         
-        <View style={styles.inputContainer}>
-          <CustomText weight="medium" style={styles.label}>{t('login.usernameLabel')}</CustomText>
-          <TextInput
-            style={styles.input}
-            value={username}
-            onChangeText={setUsername}
-            placeholder={t('login.usernamePlaceholder')}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="next"
-          />
+        <View style={styles.form}>
+          <View style={styles.inputContainer}>
+            <CustomText weight="medium" style={styles.label}>{t('login.usernameLabel')}</CustomText>
+            <TextInput
+              style={[styles.input, errorMessage && styles.inputError]}
+              value={username}
+              onChangeText={(text) => {
+                setUsername(text);
+                if (errorMessage) setErrorMessage('');
+              }}
+              placeholder={t('login.usernamePlaceholder')}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="next"
+              editable={!loading}
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <CustomText weight="medium" style={styles.label}>{t('login.passwordLabel')}</CustomText>
+            <TextInput
+              style={[styles.input, errorMessage && styles.inputError]}
+              value={password}
+              onChangeText={(text) => {
+                setPassword(text);
+                if (errorMessage) setErrorMessage('');
+              }}
+              placeholder={t('login.passwordPlaceholder')}
+              secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={handleAuth}
+              editable={!loading}
+            />
+          </View>
+
+          {errorMessage ? (
+            <View style={styles.errorContainer}>
+              <CustomText style={styles.errorText}>{errorMessage}</CustomText>
+            </View>
+          ) : null}
+
+          <TouchableOpacity 
+            style={[styles.button, loading && styles.buttonDisabled]} 
+            onPress={handleAuth}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <CustomText weight="medium" style={styles.buttonText}>
+                {isRegistering ? t('login.registerButton') : t('login.loginButton')}
+              </CustomText>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.toggleButton} 
+            onPress={() => {
+              setIsRegistering(!isRegistering);
+              setErrorMessage('');
+            }}
+            disabled={loading}
+          >
+            <CustomText style={[styles.toggleButtonText, loading && styles.toggleButtonDisabled]}>
+              {isRegistering ? t('login.toggleToLogin') : t('login.toggleToRegister')}
+            </CustomText>
+          </TouchableOpacity>
         </View>
-
-        <View style={styles.inputContainer}>
-          <CustomText weight="medium" style={styles.label}>{t('login.passwordLabel')}</CustomText>
-          <TextInput
-            style={styles.input}
-            value={password}
-            onChangeText={setPassword}
-            placeholder={t('login.passwordPlaceholder')}
-            secureTextEntry
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="done"
-            onSubmitEditing={handleAuth}
-          />
-        </View>
-
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]} 
-          onPress={handleAuth}
-          disabled={loading}
-        >
-          <CustomText weight="medium" style={styles.buttonText}>
-            {loading ? t('login.processing') : (isRegistering ? t('login.registerButton') : t('login.loginButton'))}
-          </CustomText>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.toggleButton} 
-          onPress={() => setIsRegistering(!isRegistering)}
-        >
-          <CustomText style={styles.toggleButtonText}>
-            {isRegistering ? t('login.toggleToLogin') : t('login.toggleToRegister')}
-          </CustomText>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.button, styles.testButton]} 
-          onPress={testConnection}
-        >
-          <CustomText weight="medium" style={styles.buttonText}>
-            🧪 Test Connection
-          </CustomText>
-        </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f8f9fa',
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 30,
+    paddingHorizontal: 24,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 48,
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 10,
-    color: '#333',
+    marginBottom: 12,
+    color: '#1a1a1a',
   },
   subtitle: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
-    lineHeight: 22,
+    color: '#6b7280',
+    lineHeight: 24,
+    paddingHorizontal: 16,
+  },
+  form: {
+    width: '100%',
   },
   inputContainer: {
-    marginBottom: 30,
+    marginBottom: 20,
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    color: '#333',
+    color: '#374151',
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
     fontSize: 16,
-    color: '#333',
+    color: '#1f2937',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  inputError: {
+    borderColor: '#ef4444',
+    backgroundColor: '#fef2f2',
+  },
+  errorContainer: {
+    backgroundColor: '#fef2f2',
+    borderWidth: 1,
+    borderColor: '#fecaca',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 16,
+  },
+  errorText: {
+    color: '#dc2626',
+    fontSize: 14,
+    textAlign: 'center',
   },
   button: {
-    backgroundColor: '#2f95dc',
-    borderRadius: 8,
+    backgroundColor: '#3b82f6',
+    borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: '#3b82f6',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: '#ccc',
+    backgroundColor: '#9ca3af',
+    shadowOpacity: 0,
+    elevation: 0,
   },
   buttonText: {
-    color: '#fff',
-    fontSize: 18,
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '600',
   },
   toggleButton: {
-    marginTop: 20,
     alignItems: 'center',
+    paddingVertical: 8,
   },
   toggleButtonText: {
-    color: '#2f95dc',
-    fontSize: 16,
-    textDecorationLine: 'underline',
+    color: '#3b82f6',
+    fontSize: 14,
+    fontWeight: '500',
   },
-  testButton: {
-    backgroundColor: '#ff6b6b',
-    marginTop: 10,
+  toggleButtonDisabled: {
+    color: '#9ca3af',
   },
 });
