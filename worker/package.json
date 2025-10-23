@@ -7,10 +7,10 @@
 		"dev": "wrangler dev",
 		"types": "wrangler types",
 		"cf-typegen": "wrangler types",
-		"db:generate": "drizzle-kit generate",
+		"db:generate": "drizzle-kit generate --config drizzle.config.ts",
 		"db:migrate": "wrangler d1 migrations apply my-d1-db --local",
 		"db:migrate:prod": "wrangler d1 migrations apply my-d1-db",
-		"db:studio": "drizzle-kit studio --port 4983"
+		"db:studio": "drizzle-kit studio --config drizzle.config.ts --port 4983"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20251011.0",

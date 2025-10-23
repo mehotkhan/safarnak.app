@@ -8,7 +8,7 @@ import {
   createDefaultPublishableContext,
 } from 'graphql-workers-subscriptions';
 import { drizzle } from 'drizzle-orm/d1';
-import { messages, users } from './schema';
+import { messages, users } from '../drizzle/schemas/worker';
 import { eq } from 'drizzle-orm';
 
 export interface Env {

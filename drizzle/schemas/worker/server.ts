@@ -1,13 +1,6 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey(),
-  name: text('name').notNull(),
-  email: text('email').unique().notNull(),
-  passwordHash: text('password_hash').notNull(),
-  createdAt: text('created_at').default('CURRENT_TIMESTAMP'),
-});
-
+// Server-specific tables
 export const messages = sqliteTable('messages', {
   id: text('id').primaryKey(),
   content: text('content').notNull(),
