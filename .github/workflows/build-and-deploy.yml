@@ -123,21 +123,49 @@ jobs:
           APP_SCHEME: "safarnak"
           GRAPHQL_URL: "https://safarnak.mohet.ir/graphql"
 
+      - name: Create GitHub Release
+        if: github.event_name != 'release'
+        id: create_release
+        uses: actions/github-script@v7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          script: |
+            const release = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag_name: `v${context.runNumber}`,
+              name: `Safarnak Android v${context.runNumber}`,
+              body: `## Safarnak Android APK
+              
+              **Build Number**: ${context.runNumber}
+              **Commit**: ${context.sha}
+              **Branch**: ${context.ref.replace('refs/heads/', '')}
+              
+              ### Download
+              Download the APK file below to install on your Android device.
+              
+              ### Installation
+              1. Download the APK file
+              2. Enable "Install from unknown sources" in Android settings
+              3. Install the APK
+              
+              ### Features
+              - GraphQL API integration
+              - Offline-first architecture
+              - Persian/English language support`,
+              draft: false,
+              prerelease: false
+            });
+            
+            return release.data.upload_url;
+
       - name: Upload APK to GitHub Release
-        if: github.event_name == 'release'
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ github.event.release.upload_url }}
+          upload_url: ${{ steps.create_release.outputs.result }}
           asset_path: ./client/android/app/build/outputs/apk/release/app-release.apk
-          asset_name: safarnak-android-${{ github.event.release.tag_name }}.apk
+          asset_name: safarnak-android-v${{ github.run_number }}.apk
           asset_content_type: application/vnd.android.package-archive
-
-      - name: Upload APK as Artifact
-        if: github.event_name != 'release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-apk
-          path: client/android/app/build/outputs/apk/release/app-release.apk
-          retention-days: 30
