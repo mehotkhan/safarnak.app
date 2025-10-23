@@ -1,0 +1,27 @@
+{
+  "name": "safarnak-app",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "worker",
+    "client"
+  ],
+  "scripts": {
+    "dev": "concurrently \"yarn workspace safarnak-worker dev\" \"yarn workspace safarnak start\"",
+    "build": "yarn workspace safarnak-worker build && yarn workspace safarnak build",
+    "worker:dev": "yarn workspace safarnak-worker dev",
+    "worker:deploy": "yarn workspace safarnak-worker deploy",
+    "worker:db:generate": "yarn workspace safarnak-worker db:generate",
+    "worker:db:migrate": "yarn workspace safarnak-worker db:migrate",
+    "worker:db:migrate:prod": "yarn workspace safarnak-worker db:migrate:prod",
+    "worker:db:studio": "yarn workspace safarnak-worker db:studio",
+    "client:start": "yarn workspace safarnak start",
+    "client:android": "yarn workspace safarnak android",
+    "client:ios": "yarn workspace safarnak ios",
+    "client:web": "yarn workspace safarnak web"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "packageManager": "yarn@1.22.22"
+}

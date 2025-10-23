@@ -1,0 +1,49 @@
+{
+  "common": {
+    "home": "Home",
+    "tour": "Tour",
+    "profile": "Profile",
+    "loading": "Loading...",
+    "error": "Error",
+    "save": "Save",
+    "cancel": "Cancel",
+    "ok": "OK"
+  },
+  "home": {
+    "title": "Home",
+    "welcome": "Welcome to SafarNak",
+    "description": "Explore the world with our interactive map"
+  },
+  "tour": {
+    "title": "Tour",
+    "description": "Discover amazing tours and experiences around the world. Plan your next adventure with our curated tour recommendations.",
+    "featured": "Featured Tours",
+    "popular": "Popular Destinations",
+    "bookNow": "Book Now"
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your account settings, preferences, and personal information. View your travel history and saved locations.",
+    "settings": "Settings",
+    "history": "Travel History",
+    "saved": "Saved Locations",
+    "language": "Language",
+    "theme": "Theme",
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?",
+    "welcome": "Welcome, {{name}}!"
+  },
+  "login": {
+    "title": "Welcome to SafarNak",
+    "subtitle": "Enter your name to get started",
+    "nameLabel": "Your Name",
+    "namePlaceholder": "Enter your name",
+    "button": "Login",
+    "error": "Error",
+    "nameRequired": "Please enter your name"
+  }
+}
