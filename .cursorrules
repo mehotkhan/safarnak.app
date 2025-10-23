@@ -1,0 +1,239 @@
+# Safarnak App - Cursor AI Configuration
+
+## Project Context
+You are working on **Safarnak**, a full-stack travel application with offline-first capabilities. This is a monorepo with:
+- **Client**: Expo React Native app (iOS/Android/Web)
+- **Worker**: Cloudflare Worker backend with GraphQL API
+- **Shared**: Database schemas and GraphQL definitions
+
+## Architecture Overview
+- **Frontend**: Expo Router + Redux Toolkit + Apollo Client + Drizzle ORM
+- **Backend**: Cloudflare Workers + GraphQL Yoga + D1 Database + Drizzle ORM
+- **Database**: SQLite (Expo SQLite locally, Cloudflare D1 in production)
+- **State**: Redux with persistence, offline-first approach
+- **Auth**: Token-based with offline fallback
+- **Languages**: English + Persian (Farsi) with RTL support
+
+## Key Technologies
+- React Native 0.81.5 + Expo 54
+- TypeScript with strict mode
+- Redux Toolkit + Redux Persist
+- Apollo Client + GraphQL
+- Drizzle ORM + SQLite
+- Cloudflare Workers + D1
+- react-i18next for i18n
+
+## Project Structure
+```
+safarnak.app/
+├── client/           # Expo React Native app
+├── worker/           # Cloudflare Worker backend
+├── drizzle/          # Shared database schemas
+├── graphql/          # Shared GraphQL definitions
+└── package.json      # Root workspace config
+```
+
+## Path Aliases
+- `@drizzle/*` → `../drizzle/*` (shared database schemas)
+- `@graphql/*` → `../graphql/*` (shared GraphQL definitions)
+- `@/*` → `./*` (client-specific files, client only)
+
+## Coding Standards
+
+### TypeScript
+- Use strict TypeScript configuration
+- Prefer interfaces over types for object shapes
+- Use path aliases instead of relative imports
+- Always type function parameters and return values
+- Use `any` only when absolutely necessary
+
+### React/React Native
+- Use functional components with hooks
+- Prefer `useCallback` and `useMemo` for performance
+- Use TypeScript for all component props
+- Follow Expo Router conventions for navigation
+- Use Redux Toolkit patterns for state management
+
+### Database
+- Use Drizzle ORM for all database operations
+- Follow shared schema patterns in `drizzle/schemas/`
+- Use migrations for schema changes
+- Prefer type-safe queries over raw SQL
+
+### GraphQL
+- Use shared GraphQL definitions from `graphql/` directory
+- Follow Apollo Client patterns for data fetching
+- Use error policies for graceful error handling
+- Implement proper loading states
+
+## Authentication Patterns
+- Token-based authentication with offline fallback
+- Use `AuthWrapper` component for route protection
+- Store user data in both AsyncStorage and local database
+- Implement proper error handling for auth failures
+
+## State Management
+- Use Redux Toolkit with persistence
+- Implement offline middleware for network handling
+- Use selective persistence (whitelist specific slices)
+- Follow Redux best practices for actions and reducers
+
+## Database Patterns
+- Use shared base schemas with environment extensions
+- Implement proper migration strategies
+- Use type-safe Drizzle queries
+- Handle offline/online sync gracefully
+
+## UI/UX Guidelines
+- Follow atomic design principles
+- Use custom components from `components/ui/`
+- Implement proper loading and error states
+- Support both light and dark themes
+- Ensure RTL support for Persian language
+
+## Error Handling
+- Use comprehensive error boundaries
+- Implement proper error messages with i18n
+- Handle network errors gracefully
+- Use Apollo Client error policies
+
+## Performance
+- Use lazy loading for routes and components
+- Implement proper memoization with React.memo
+- Use Redux selectors for efficient state access
+- Optimize images and assets
+
+## Testing
+- Write unit tests for utility functions
+- Test components with React Testing Library
+- Mock external dependencies properly
+- Test offline scenarios
+
+## Common Commands
+```bash
+# Development
+yarn dev                    # Start both client and worker
+yarn client:start          # Start Expo dev server
+yarn worker:dev            # Start worker dev server
+
+# Database
+yarn db:generate           # Generate migrations
+yarn db:migrate            # Apply migrations
+yarn db:studio             # Open Drizzle Studio
+
+# Deployment
+yarn worker:deploy         # Deploy worker to Cloudflare
+yarn client:android        # Build Android app
+yarn client:ios            # Build iOS app
+```
+
+## File Naming Conventions
+- Components: PascalCase (e.g., `AuthWrapper.tsx`)
+- Hooks: camelCase starting with 'use' (e.g., `useAuth.ts`)
+- Utilities: camelCase (e.g., `formatDate.ts`)
+- Constants: SCREAMING_SNAKE_CASE (e.g., `API_ENDPOINTS.ts`)
+- Types: PascalCase (e.g., `UserTypes.ts`)
+
+## Import Order
+1. React and React Native imports
+2. Third-party library imports
+3. Internal imports (using path aliases)
+4. Relative imports
+5. Type-only imports (with `type` keyword)
+
+## Code Organization
+- Group related functionality in feature folders
+- Use index files for clean exports
+- Keep components small and focused
+- Extract reusable logic into custom hooks
+- Use proper separation of concerns
+
+## Security Considerations
+- Validate all user inputs
+- Use proper password hashing (PBKDF2)
+- Implement secure token generation
+- Handle sensitive data appropriately
+- Follow OWASP security guidelines
+
+## Accessibility
+- Use proper semantic HTML elements
+- Implement proper ARIA labels
+- Ensure keyboard navigation works
+- Test with screen readers
+- Maintain proper color contrast
+
+## Internationalization
+- Use react-i18next for all text content
+- Support both LTR and RTL layouts
+- Use proper date and number formatting
+- Test with different languages
+- Provide fallback translations
+
+## When Making Changes
+1. Follow existing patterns and conventions
+2. Update types when changing interfaces
+3. Add proper error handling
+4. Include loading states where appropriate
+5. Test both online and offline scenarios
+6. Ensure i18n support for new text
+7. Update documentation if needed
+
+## Common Patterns to Follow
+
+### Component Pattern
+```typescript
+interface ComponentProps {
+  // Define props with proper types
+}
+
+export default function Component({ prop1, prop2 }: ComponentProps) {
+  // Use hooks at the top
+  const { data, loading, error } = useQuery(QUERY);
+  
+  // Early returns for loading/error states
+  if (loading) return <LoadingScreen />;
+  if (error) return <ErrorScreen error={error} />;
+  
+  // Main component logic
+  return (
+    <View>
+      {/* Component JSX */}
+    </View>
+  );
+}
+```
+
+### Hook Pattern
+```typescript
+export function useCustomHook(param: string) {
+  const [state, setState] = useState<StateType>(initialState);
+  
+  const handleAction = useCallback((value: string) => {
+    // Action logic
+  }, []);
+  
+  return { state, handleAction };
+}
+```
+
+### Redux Slice Pattern
+```typescript
+interface SliceState {
+  // Define state shape
+}
+
+const slice = createSlice({
+  name: 'sliceName',
+  initialState,
+  reducers: {
+    actionName: (state, action: PayloadAction<PayloadType>) => {
+      // Reducer logic
+    },
+  },
+});
+
+export const { actionName } = slice.actions;
+export default slice.reducer;
+```
+
+Remember: Always prioritize type safety, offline functionality, and user experience in this travel application.

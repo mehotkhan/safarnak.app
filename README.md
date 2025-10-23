@@ -1,15 +1,18 @@
 # Safarnak App
 
-A full-stack travel application with a Cloudflare Worker backend and Expo React Native client, featuring unified database schema management and offline-first capabilities.
+A modern full-stack travel application built with Expo React Native and Cloudflare Workers, featuring offline-first capabilities, real-time updates, and cross-platform support. The name "Safarnak" derives from Persian/Farsi, meaning "travel" or "journey."
 
-## ✨ Features
+## ✨ Key Features
 
-- 🚀 **Cloudflare Worker Backend** - Serverless GraphQL API with real-time subscriptions
-- 📱 **Expo React Native Client** - Cross-platform mobile app with offline support
-- 🗄️ **Unified Database Schema** - Shared Drizzle ORM setup across client and server
-- 🔐 **Authentication System** - Login/register with offline fallback
-- 🌐 **Real-time Updates** - GraphQL subscriptions for live data
-- 📦 **Monorepo Structure** - Yarn workspaces with shared code
+- 🚀 **Serverless Backend** - Cloudflare Workers with GraphQL API and real-time subscriptions
+- 📱 **Cross-Platform Client** - Expo React Native app for iOS, Android, and Web
+- 🔐 **Secure Authentication** - PBKDF2 password hashing with offline fallback
+- 💾 **Offline-First Design** - Local SQLite database with automatic sync
+- 🌐 **Real-time Updates** - GraphQL subscriptions for live data synchronization
+- 🗄️ **Unified Database Schema** - Shared Drizzle ORM across client and server
+- 🌍 **Internationalization** - English and Persian (Farsi) with RTL support
+- 🎨 **Modern UI** - Custom components with theme support
+- 📦 **Monorepo Architecture** - Yarn workspaces with shared code and types
 - 🎯 **TypeScript Path Aliases** - Clean imports with `@drizzle/*` and `@graphql/*`
 
 ## 🏗️ Project Structure
@@ -46,24 +49,49 @@ safarnak.app/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
+Before you begin, ensure you have the following installed:
+
 - **Node.js 18+** - Required for all development
 - **Yarn** - Package manager for workspace management
 - **Expo CLI** - For React Native development (`npm install -g @expo/cli`)
 - **Wrangler CLI** - For Cloudflare Worker deployment (`npm install -g wrangler`)
 
 ### Installation & Setup
-```bash
-# Clone and install dependencies
-git clone <repository-url>
-cd safarnak.app
-yarn install
 
-# Start development servers
-yarn dev  # Starts both client and worker concurrently
-```
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd safarnak.app
+   ```
+
+2. **Install dependencies**
+   ```bash
+   yarn install
+   ```
+
+3. **Set up databases**
+   ```bash
+   # Generate database migrations
+   yarn db:generate
+   
+   # Apply migrations to both databases
+   yarn db:migrate
+   ```
+
+4. **Start development servers**
+   ```bash
+   yarn dev  # Starts both client and worker concurrently
+   ```
 
 ### First Time Setup
+
+For a complete fresh setup:
+
 ```bash
+# Clear everything and start fresh
+yarn db:purge:all
+
 # Generate database migrations
 yarn db:generate
 
@@ -93,16 +121,29 @@ yarn client:ios      # Run on iOS device/simulator
 yarn client:web      # Run in web browser
 ```
 
-### Authentication Flow
-- **Not logged in**: Shows login screen with register option
-- **Logged in**: Shows tabs (Home, Tour, Profile) with user data
-- **Offline mode**: Works without internet connection
-- **State management**: Redux store with persistence
+### App Navigation Flow
+
+**Unauthenticated State:**
+- Shows login screen with register option
+- Secure authentication with PBKDF2 password hashing
+- Offline fallback for authentication
+
+**Authenticated State:**
+- **Home Tab**: Interactive map with GPS location services using Leaflet
+- **Tour Tab**: Placeholder for tour discovery (in development)
+- **Profile Tab**: Placeholder for user profile management (in development)
+
+**Offline Capabilities:**
+- Works without internet connection
+- Local SQLite database for data persistence
+- Automatic sync when online
+- Redux store with persistence
 
 ### Database
 - **Type**: SQLite (Expo SQLite)
-- **Schema**: Users table (id, name, email)
+- **Schema**: Users table (id, name, username)
 - **Migrations**: Handled automatically by Expo SQLite
+- **Offline Sync**: Automatic synchronization when online
 
 ## ⚡ Worker (Cloudflare Backend)
 
@@ -121,7 +162,7 @@ yarn worker:db:studio    # Open Drizzle Studio
 ### Database
 - **Type**: Cloudflare D1 (SQLite-compatible)
 - **Schema**: Users (with auth), Messages, Subscriptions
-- **Features**: Password hashing, real-time subscriptions
+- **Features**: PBKDF2 password hashing, real-time subscriptions, secure token generation
 
 ## 🎯 TypeScript Path Aliases
 
@@ -208,35 +249,75 @@ yarn db:purge:cache       # Clear only node modules cache
 ## 🛠️ Development Workflow
 
 ### Starting Development
-```bash
-# Start both client and worker
-yarn dev
 
-# Or start individually
-yarn worker:dev    # Backend only
-yarn client:start   # Frontend only
+**Start both services:**
+```bash
+yarn dev  # Starts both client and worker concurrently
+```
+
+**Start individually:**
+```bash
+yarn worker:dev    # Backend only (GraphQL API)
+yarn client:start  # Frontend only (Expo app)
 ```
 
 ### Database Changes
-```bash
-# 1. Make schema changes in drizzle/schemas/
-# 2. Generate migrations
-yarn db:generate
 
-# 3. Apply migrations
-yarn db:migrate
+When modifying database schemas:
 
-# 4. Inspect database (optional)
-yarn db:studio
-```
+1. **Make schema changes** in `drizzle/schemas/`
+2. **Generate migrations**: `yarn db:generate`
+3. **Apply migrations**: `yarn db:migrate`
+4. **Inspect database** (optional): `yarn db:studio`
 
 ### Clean Slate Development
+
+For a fresh start:
 ```bash
 # Clear everything and start fresh
 yarn db:purge:all
 yarn db:generate
 yarn db:migrate
+yarn dev
 ```
+
+### Testing Authentication Flow
+
+1. **Start the app**: `yarn dev`
+2. **Open client**: Navigate to `http://localhost:8081` (Expo)
+3. **Test registration**: Create a new account
+4. **Test login**: Login with existing credentials
+5. **Test offline**: Disconnect network and verify offline functionality
+
+## 📊 Current Implementation Status
+
+### ✅ Completed Features
+
+- **Authentication System** - Complete login/register with offline support
+- **Database Architecture** - Unified Drizzle ORM setup with migrations
+- **GraphQL API** - Full backend with subscriptions and real-time messaging
+- **State Management** - Redux Toolkit with persistence and offline middleware
+- **Internationalization** - English and Persian (Farsi) with RTL support
+- **Location Services** - Interactive map with Leaflet and GPS integration
+- **Theme System** - Light/dark mode with custom components
+- **Offline-First Design** - Local SQLite with automatic sync
+- **Security** - PBKDF2 password hashing and secure token generation
+
+### 🔄 In Progress / Placeholder
+
+- **Tour Discovery** - Tour tab is currently a placeholder
+- **Profile Management** - Profile tab needs implementation
+- **Real-time Messaging** - Basic implementation exists, needs enhancement
+- **Payment Integration** - Not yet implemented
+- **Push Notifications** - Not yet implemented
+
+### 🚀 Planned Features
+
+- **Enhanced Tour Features** - Advanced tour discovery and booking
+- **Social Features** - User reviews and recommendations
+- **AI Recommendations** - Machine learning-powered suggestions
+- **AR Integration** - Augmented reality tour previews
+- **Multi-language Expansion** - Support for additional languages
 
 ## 📦 Workspace Commands
 
@@ -283,16 +364,17 @@ yarn client:web      # Run on web
 - **Database**: Cloudflare D1 (SQLite-compatible)
 - **ORM**: Drizzle ORM with type-safe queries
 - **Subscriptions**: GraphQL Workers Subscriptions
-- **Authentication**: Password hashing with bcrypt
+- **Authentication**: PBKDF2 password hashing with Web Crypto API
 
 ### Frontend (Client)
-- **Framework**: Expo React Native (cross-platform)
+- **Framework**: Expo React Native v54 (cross-platform)
 - **Navigation**: Expo Router (file-based routing)
 - **State**: Redux Toolkit with persistence
 - **Database**: Expo SQLite (offline-first)
 - **ORM**: Drizzle ORM (shared with backend)
 - **UI**: Custom components with theme support
-- **Internationalization**: react-i18next
+- **Internationalization**: react-i18next (English/Persian)
+- **Location**: Expo Location with Leaflet maps
 
 ### Shared Architecture
 - **Database**: Drizzle ORM with SQLite (unified schema)
@@ -351,20 +433,89 @@ yarn db:migrate
 ```bash
 # Clear Metro cache
 yarn client:start --clear
+
+# Or restart with clean cache
+yarn dev:clean
 ```
 
 **Worker Development Issues**
 ```bash
 # Restart worker with fresh database
 yarn worker:dev --compatibility-date=2023-05-18
+
+# Check worker logs
+yarn worker:dev --local
 ```
 
 **Path Alias Not Working**
 - Ensure `tsconfig.json` has correct paths configuration
 - For client: check `metro.config.js` has `extraNodeModules`
 - Restart TypeScript server in your IDE
+- Clear Metro cache: `yarn client:start --clear`
+
+**Authentication Issues**
+- Check if both client and worker are running
+- Verify database migrations are applied: `yarn db:migrate`
+- Test with fresh user registration
+- Check network connectivity for GraphQL requests
+
+**Location Services Not Working**
+- Ensure location permissions are granted
+- Test on physical device (location services don't work in simulator)
+- Check Expo Location configuration in `app.json`
 
 ### Getting Help
-- Check the [Issues](https://github.com/your-repo/issues) page
-- Review the database schema in `drizzle/schemas/`
-- Test with `yarn db:studio` to inspect database state
+
+- **Database Issues**: Use `yarn db:studio` to inspect database state
+- **Schema Problems**: Review `drizzle/schemas/` for schema definitions
+- **GraphQL Issues**: Check `graphql/schema/schema.ts` for API definitions
+- **Client Issues**: Review `client/app/` for navigation structure
+- **Worker Issues**: Check `worker/src/index.ts` for API implementation
+
+## 🏆 Architecture Highlights
+
+### Offline-First Design
+- **Local SQLite Database**: Full offline functionality with Expo SQLite
+- **Redux Persistence**: State persistence across app restarts
+- **Automatic Sync**: Seamless synchronization when online
+- **Graceful Degradation**: App works without internet connection
+
+### Security & Performance
+- **PBKDF2 Password Hashing**: 100,000 iterations with secure salt
+- **Web Crypto API**: Native browser/Node.js crypto for token generation
+- **Serverless Architecture**: Auto-scaling Cloudflare Workers
+- **Edge Computing**: Global CDN distribution for optimal performance
+
+### Developer Experience
+- **TypeScript Path Aliases**: Clean imports with `@drizzle/*` and `@graphql/*`
+- **Unified Schema**: Shared Drizzle ORM across client and server
+- **Monorepo Structure**: Yarn workspaces with shared code
+- **Hot Reloading**: Fast development with Expo and Wrangler
+
+### Modern Tech Stack
+- **React Native 0.81.5**: Latest stable version with Expo 54
+- **GraphQL**: Type-safe API with real-time subscriptions
+- **Drizzle ORM**: Type-safe database operations
+- **Redux Toolkit**: Modern state management patterns
+
+---
+
+## 🎯 Project Vision
+
+**Safarnak** aims to revolutionize travel discovery by providing a seamless, offline-first experience that works anywhere in the world. Built with modern technologies and a focus on user experience, the app combines the power of serverless architecture with the reliability of local data storage.
+
+### Core Principles
+- **Offline-First**: Works without internet connection
+- **Cross-Platform**: Native experience on iOS, Android, and Web
+- **Real-time**: Live updates and notifications
+- **Secure**: Enterprise-grade security and privacy
+- **Scalable**: Serverless architecture that grows with users
+
+### Target Users
+- **Travelers**: Discover and book tours worldwide
+- **Tour Operators**: Manage and promote their services
+- **Travel Enthusiasts**: Share experiences and recommendations
+
+---
+
+*Built with ❤️ using Expo React Native, Cloudflare Workers, and modern web technologies.*
