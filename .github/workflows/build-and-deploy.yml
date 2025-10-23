@@ -1,9 +1,7 @@
-name: Build and Deploy
+name: Build Android APK
 
 on:
   push:
-    branches: [master, main]
-  pull_request:
     branches: [master, main]
   release:
     types: [published]
@@ -13,11 +11,9 @@ env:
   YARN_VERSION: '1.22.22'
 
 jobs:
-  # Build Android APK
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     
     steps:
       - name: Checkout code
@@ -34,19 +30,49 @@ jobs:
           corepack enable
           corepack prepare yarn@${{ env.YARN_VERSION }} --activate
 
-      - name: Cache dependencies
+      - name: Cache everything for maximum speed
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             client/node_modules
-            worker/node_modules
             ~/.cache/yarn
             ~/.gradle/caches
+            ~/.gradle/wrapper
             ~/.android
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+            ~/.npm
+            ~/.expo
+            client/android/.gradle
+            client/android/app/build
+            client/android/build
+            client/android/.idea
+            client/android/local.properties
+          key: ${{ runner.os }}-cache-${{ hashFiles('**/yarn.lock', '**/package-lock.json', 'client/android/gradle/wrapper/gradle-wrapper.properties', 'client/android/app/build.gradle') }}
           restore-keys: |
+            ${{ runner.os }}-cache-
             ${{ runner.os }}-yarn-
+            ${{ runner.os }}-gradle-
+
+      - name: Cache Android SDK and NDK
+        uses: actions/cache@v4
+        with:
+          path: |
+            ${{ env.ANDROID_HOME }}
+            ${{ env.ANDROID_SDK_ROOT }}
+          key: ${{ runner.os }}-android-sdk-${{ hashFiles('client/android/app/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-android-sdk-
+
+      - name: Cache Expo CLI and dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ~/.expo
+            ~/.cache/expo
+          key: ${{ runner.os }}-expo-${{ hashFiles('client/package.json', 'client/app.json') }}
+          restore-keys: |
+            ${{ runner.os }}-expo-
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -62,7 +88,10 @@ jobs:
 
       - name: Setup Expo CLI
         run: |
+          echo "Installing Expo CLI..."
           npm install -g @expo/cli@latest
+          echo "Expo CLI installed successfully"
+          expo --version
 
       - name: Install Expo dependencies
         run: |
@@ -74,23 +103,14 @@ jobs:
           cd client
           expo prebuild --platform android --clean
 
-      - name: Cache Gradle dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            client/android/.gradle
-            client/android/app/build
-          key: ${{ runner.os }}-gradle-${{ hashFiles('client/android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
-
       - name: Build Android APK
         run: |
           cd client/android
-          ./gradlew assembleRelease
+          ./gradlew assembleRelease --build-cache --parallel --daemon
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
 
       - name: Upload APK to GitHub Release
         if: github.event_name == 'release'
@@ -110,24 +130,3 @@ jobs:
           name: android-apk
           path: client/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
-
-  # Build summary
-  build-summary:
-    name: Build Summary
-    runs-on: ubuntu-latest
-    needs: [build-android]
-    if: always() && (github.event_name == 'release' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
-    
-    steps:
-      - name: Build Summary
-        run: |
-          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Android Build | ${{ needs.build-android.result }} |" >> $GITHUB_STEP_SUMMARY
-          
-          if [ "${{ needs.build-android.result }}" = "success" ]; then
-            echo "✅ Android build completed successfully!" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "❌ Android build failed. Check the logs above." >> $GITHUB_STEP_SUMMARY
-          fi
