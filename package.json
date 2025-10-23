@@ -20,6 +20,7 @@
     "client:android": "yarn workspace safarnak android",
     "client:ios": "yarn workspace safarnak ios",
     "client:web": "yarn workspace safarnak web",
+    "db:load": "node scripts/db-load.js",
     "db:generate": "yarn db:generate:worker && yarn db:generate:client",
     "db:generate:worker": "yarn workspace safarnak-worker db:generate",
     "db:generate:client": "yarn workspace safarnak db:generate",

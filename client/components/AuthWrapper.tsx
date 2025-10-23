@@ -1,4 +1,4 @@
-import { useAppDispatch, useAppSelector } from '../redux/store';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { restoreUser, setLoading } from '../redux/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -36,7 +36,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
         const userData = JSON.parse(savedUser);
         
         // Try to find user in local database
-        const localUser = await db.select().from(users).where(eq(users.email, userData.email)).limit(1);
+        const localUser = await db.select().from(users).where(eq(users.username, userData.username)).limit(1);
         
         if (localUser.length > 0) {
           dispatch(restoreUser({ 

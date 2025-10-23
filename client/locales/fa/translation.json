@@ -39,11 +39,32 @@
   },
   "login": {
     "title": "به سفارنک خوش آمدید",
-    "subtitle": "نام خود را وارد کنید تا شروع کنید",
-    "nameLabel": "نام شما",
-    "namePlaceholder": "نام خود را وارد کنید",
-    "button": "ورود",
-    "error": "خطا",
-    "nameRequired": "لطفاً نام خود را وارد کنید"
+    "subtitle": "وارد حساب کاربری خود شوید یا حساب جدیدی ایجاد کنید",
+    "usernameLabel": "نام کاربری",
+    "usernamePlaceholder": "نام کاربری خود را وارد کنید",
+    "passwordLabel": "رمز عبور",
+    "passwordPlaceholder": "رمز عبور خود را وارد کنید",
+    "loginButton": "ورود",
+    "registerButton": "ثبت نام",
+    "processing": "در حال پردازش...",
+    "toggleToLogin": "قبلاً حساب دارید؟ وارد شوید",
+    "toggleToRegister": "حساب ندارید؟ ثبت نام کنید",
+    "errors": {
+      "title": "خطا",
+      "fieldsRequired": "نام کاربری و رمز عبور الزامی است",
+      "userNotFound": "کاربر یافت نشد. لطفاً نام کاربری خود را بررسی کنید یا حساب جدیدی ایجاد کنید.",
+      "invalidCredentials": "نام کاربری یا رمز عبور اشتباه است",
+      "userExists": "کاربری با این نام کاربری قبلاً وجود دارد",
+      "networkError": "خطای شبکه. لطفاً اتصال خود را بررسی کنید.",
+      "databaseError": "خطای پایگاه داده. لطفاً دوباره تلاش کنید.",
+      "offlineError": "ورود آفلاین ناموفق بود"
+    },
+    "success": {
+      "title": "موفقیت",
+      "loginSuccess": "با موفقیت وارد شدید!",
+      "registerSuccess": "حساب با موفقیت ایجاد شد!",
+      "offlineMode": "حالت آفلاین",
+      "offlineMessage": "آفلاین وارد شدید. داده‌ها هنگام بازگشت اتصال همگام‌سازی خواهند شد."
+    }
   }
 }

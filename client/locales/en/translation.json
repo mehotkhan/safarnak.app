@@ -39,11 +39,32 @@
   },
   "login": {
     "title": "Welcome to SafarNak",
-    "subtitle": "Enter your name to get started",
-    "nameLabel": "Your Name",
-    "namePlaceholder": "Enter your name",
-    "button": "Login",
-    "error": "Error",
-    "nameRequired": "Please enter your name"
+    "subtitle": "Sign in to your account or create a new one",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter your username",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "loginButton": "Login",
+    "registerButton": "Register",
+    "processing": "Processing...",
+    "toggleToLogin": "Already have an account? Login",
+    "toggleToRegister": "Don't have an account? Register",
+    "errors": {
+      "title": "Error",
+      "fieldsRequired": "Username and password are required",
+      "userNotFound": "User not found. Please check your username or register a new account.",
+      "invalidCredentials": "Invalid username or password",
+      "userExists": "User with this username already exists",
+      "networkError": "Network error. Please check your connection.",
+      "databaseError": "Database error. Please try again.",
+      "offlineError": "Failed to login offline"
+    },
+    "success": {
+      "title": "Success",
+      "loginSuccess": "Logged in successfully!",
+      "registerSuccess": "Account created successfully!",
+      "offlineMode": "Offline Mode",
+      "offlineMessage": "Logged in offline. Data will sync when connection is restored."
+    }
   }
 }

@@ -2,12 +2,12 @@
 // The worker only needs the schema, not these queries
 
 export const REGISTER_MUTATION = /* GraphQL */ `
-  mutation Register($name: String!, $email: String!, $password: String!) {
-    register(name: $name, email: $email, password: $password) {
+  mutation Register($username: String!, $password: String!) {
+    register(username: $username, password: $password) {
       user {
         id
         name
-        email
+        username
         createdAt
       }
       token
@@ -16,12 +16,12 @@ export const REGISTER_MUTATION = /* GraphQL */ `
 `;
 
 export const LOGIN_MUTATION = /* GraphQL */ `
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
+  mutation Login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
       user {
         id
         name
-        email
+        username
         createdAt
       }
       token
@@ -54,7 +54,7 @@ export const ME_QUERY = /* GraphQL */ `
     me {
       id
       name
-      email
+      username
       createdAt
     }
   }

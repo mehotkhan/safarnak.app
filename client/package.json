@@ -11,7 +11,7 @@
     "db:studio": "drizzle-kit studio --config drizzle.config.ts"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.7",
+    "@apollo/client": "3.8.0",
     "@expo/vector-icons": "^15.0.3",
     "@gluestack-style/react": "^1.0.57",
     "@gluestack-ui/icon": "^0.1.27",

@@ -17,7 +17,7 @@ import { useColorScheme } from '../hooks/useColorScheme';
 import { persistor, store } from '../redux/store';
 import { client } from '../api/client';
 import { db } from '../db/database';
-import migrations from '../db/migrations';
+import migrations from '../db/migrations/migrations';
 import '../i18n';
 
 export {

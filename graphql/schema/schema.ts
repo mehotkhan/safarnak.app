@@ -5,8 +5,8 @@ export const typeDefs = /* GraphQL */ `
   }
   type Mutation {
     addMessage(content: String!): Message!
-    register(name: String!, email: String!, password: String!): AuthPayload!
-    login(email: String!, password: String!): AuthPayload!
+    register(username: String!, password: String!): AuthPayload!
+    login(username: String!, password: String!): AuthPayload!
   }
   type Subscription {
     newMessages: Message!
@@ -19,7 +19,7 @@ export const typeDefs = /* GraphQL */ `
   type User {
     id: ID!
     name: String!
-    email: String!
+    username: String!
     createdAt: String!
   }
   type AuthPayload {

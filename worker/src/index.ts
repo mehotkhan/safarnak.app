@@ -100,8 +100,8 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
   }
 }
 
-async function generateToken(userId: number, email: string): Promise<string> {
-  const data = new TextEncoder().encode(`${userId}-${email}-${Date.now()}`);
+async function generateToken(userId: number, username: string): Promise<string> {
+  const data = new TextEncoder().encode(`${userId}-${username}-${Date.now()}`);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = new Uint8Array(hashBuffer);
   return Array.from(hashArray).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -132,13 +132,13 @@ export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
 
         return newMsg;
       },
-      register: async (_parent, { name, email, password }, context) => {
+      register: async (_parent, { username, password }, context) => {
         const db = drizzle(context.env.DB);
         
         // Check if user already exists
-        const existingUser = await db.select().from(users).where(eq(users.email, email)).get();
+        const existingUser = await db.select().from(users).where(eq(users.username, username)).get();
         if (existingUser) {
-          throw new Error('User with this email already exists');
+          throw new Error('User with this username already exists');
         }
 
         // Hash password using PBKDF2
@@ -150,50 +150,54 @@ export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
         // Insert user
         await db.insert(users).values({
           id: userId,
-          name,
-          email,
+          name: username, // Use username as name for simplicity
+          username,
           passwordHash,
         }).run();
 
         // Get the created user
         const user = await db.select().from(users).where(eq(users.id, userId)).get();
         
+        if (!user) {
+          throw new Error('Failed to create user');
+        }
+        
         // Generate secure token
-        const token = await generateToken(userId, email);
+        const token = await generateToken(userId, username);
 
         return {
           user: {
             id: user.id.toString(),
             name: user.name,
-            email: user.email,
+            username: user.username,
             createdAt: user.createdAt,
           },
           token,
         };
       },
-      login: async (_parent, { email, password }, context) => {
+      login: async (_parent, { username, password }, context) => {
         const db = drizzle(context.env.DB);
         
-        // Find user by email
-        const user = await db.select().from(users).where(eq(users.email, email)).get();
+        // Find user by username
+        const user = await db.select().from(users).where(eq(users.username, username)).get();
         if (!user) {
-          throw new Error('Invalid email or password');
+          throw new Error('Invalid username or password');
         }
 
         // Verify password using PBKDF2
         const isValidPassword = await verifyPassword(password, user.passwordHash);
         if (!isValidPassword) {
-          throw new Error('Invalid email or password');
+          throw new Error('Invalid username or password');
         }
 
         // Generate secure token
-        const token = await generateToken(user.id, email);
+        const token = await generateToken(user.id, username);
 
         return {
           user: {
             id: user.id.toString(),
             name: user.name,
-            email: user.email,
+            username: user.username,
             createdAt: user.createdAt,
           },
           token,
