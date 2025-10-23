@@ -9,14 +9,24 @@ on:
       - 'yarn.lock'
       - '.github/workflows/build-and-deploy.yml'
       - 'graphql/**'
-      - 'drizzle/**'
+      - 'worker/drizzle/**'
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
 
 env:
   NODE_VERSION: '20'
-  YARN_VERSION: '1.22.22'
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx3072m -Dkotlin.compiler.execution.strategy=in-process -Dorg.gradle.configuration-cache=true"
+  JAVA_VERSION: '17'
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dkotlin.compiler.execution.strategy=in-process"
   NODE_ENV: 'production'
 
 jobs:
@@ -74,7 +84,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: ${{ env.JAVA_VERSION }}
           cache: 'gradle'
 
       - name: Setup Android SDK
@@ -93,6 +103,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Cache Metro bundler
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/android/app/build/generated/assets
+            client/android/app/build/intermediates/sourcemaps
+            /tmp/metro-*
+          key: ${{ runner.os }}-metro-${{ hashFiles('client/app/**', 'client/components/**') }}
+          restore-keys: |
+            ${{ runner.os }}-metro-
+
       - name: Make Gradle wrapper executable
         run: chmod +x client/android/gradlew
 
@@ -101,20 +122,32 @@ jobs:
           cd client/android
           ./gradlew assembleRelease \
             --no-daemon \
-            --max-workers=2 \
+            --max-workers=4 \
             --build-cache \
             --parallel \
+            --configure-on-demand \
             --stacktrace \
-            --info \
-            -PreactNativeArchitectures=arm64-v8a,armeabi-v7a \
             -Pandroid.enablePngCrunchInReleaseBuilds=false \
-            -x lint
+            -Pandroid.enableMinifyInReleaseBuilds=false \
+            -Pandroid.enableShrinkResourcesInReleaseBuilds=false \
+            -x lint \
+            -x lintVitalAnalyzeRelease \
+            -x lintVitalReportRelease
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           APP_NAME: "Safarnak"
           APP_SCHEME: "safarnak"
           GRAPHQL_URL: "https://safarnak.mohet.ir/graphql"
+
+      - name: List APK files
+        working-directory: client/android/app/build/outputs/apk/release
+        run: |
+          echo "=== Generated APK files ==="
+          ls -lh *.apk || echo "No APK files found"
+          echo ""
+          echo "=== APK sizes ==="
+          du -h *.apk 2>/dev/null || echo "No APK files to measure"
 
       - name: Create GitHub Release
         if: github.event_name != 'release'
@@ -153,12 +186,47 @@ jobs:
             
             return release.data.upload_url;
 
+      - name: Find and rename APK
+        id: find_apk
+        working-directory: client/android/app/build/outputs/apk/release
+        run: |
+          # Find the main APK file (universal or first one found)
+          APK_FILE=$(ls app-universal-release.apk 2>/dev/null || ls app-release.apk 2>/dev/null || ls *.apk | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            NEW_NAME="safarnak-android-v${{ github.run_number }}.apk"
+            cp "$APK_FILE" "$NEW_NAME"
+            echo "apk_path=./client/android/app/build/outputs/apk/release/$NEW_NAME" >> $GITHUB_OUTPUT
+            echo "apk_name=$NEW_NAME" >> $GITHUB_OUTPUT
+            echo "Found and renamed: $APK_FILE -> $NEW_NAME"
+            ls -lh "$NEW_NAME"
+          else
+            echo "No APK file found!"
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk-${{ github.run_number }}
+          path: ${{ steps.find_apk.outputs.apk_path }}
+          retention-days: 30
+          compression-level: 0
+
       - name: Upload APK to GitHub Release
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.result }}
-          asset_path: ./client/android/app/build/outputs/apk/release/app-release.apk
-          asset_name: safarnak-android-v${{ github.run_number }}.apk
+          asset_path: ${{ steps.find_apk.outputs.apk_path }}
+          asset_name: ${{ steps.find_apk.outputs.apk_name }}
           asset_content_type: application/vnd.android.package-archive
+
+      - name: Cleanup Gradle cache
+        if: always()
+        working-directory: client/android
+        run: |
+          ./gradlew --stop || true
+          rm -rf ~/.gradle/caches/transforms-* || true
+          rm -rf ~/.gradle/caches/*/generated-gradle-jars || true
+          find ~/.gradle/caches/ -name "*.lock" -type f -delete || true
