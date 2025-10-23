@@ -22,8 +22,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -44,6 +42,8 @@ jobs:
             client/node_modules
             worker/node_modules
             ~/.cache/yarn
+            ~/.gradle/caches
+            ~/.android
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-
@@ -51,56 +51,46 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Expo CLI
         run: |
           npm install -g @expo/cli@latest
+
+      - name: Install Expo dependencies
+        run: |
+          cd client
           expo install --fix
 
-      - name: Setup EAS CLI
+      - name: Generate Android project
         run: |
-          npm install -g eas-cli@latest
-          echo "EAS CLI installed successfully"
+          cd client
+          expo prebuild --platform android --clean
 
-      - name: Configure EAS
-        run: |
-          eas login --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/android/.gradle
+            client/android/app/build
+          key: ${{ runner.os }}-gradle-${{ hashFiles('client/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Build Android APK
         run: |
-          cd client
-          eas build --platform android --profile preview --non-interactive --no-wait
+          cd client/android
+          ./gradlew assembleRelease
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Wait for build completion
-        run: |
-          cd client
-          eas build:list --platform android --limit 1 --json > build-info.json
-          BUILD_ID=$(cat build-info.json | jq -r '.[0].id')
-          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
-          
-          # Wait for build to complete
-          while true; do
-            eas build:view $BUILD_ID --json > build-status.json
-            STATUS=$(cat build-status.json | jq -r '.status')
-            echo "Build status: $STATUS"
-            
-            if [ "$STATUS" = "finished" ]; then
-              break
-            elif [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
-              echo "Build failed with status: $STATUS"
-              exit 1
-            fi
-            
-            sleep 30
-          done
-
-      - name: Download APK
-        run: |
-          cd client
-          eas build:download $BUILD_ID --output ./build.apk
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: Upload APK to GitHub Release
         if: github.event_name == 'release'
@@ -109,7 +99,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ github.event.release.upload_url }}
-          asset_path: ./client/build.apk
+          asset_path: ./client/android/app/build/outputs/apk/release/app-release.apk
           asset_name: safarnak-android-${{ github.event.release.tag_name }}.apk
           asset_content_type: application/vnd.android.package-archive
 
@@ -118,121 +108,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-apk
-          path: client/build.apk
+          path: client/android/app/build/outputs/apk/release/app-release.apk
           retention-days: 30
-
-  # Deploy Cloudflare Worker
-  deploy-worker:
-    name: Deploy Cloudflare Worker
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
-
-      - name: Setup Yarn
-        run: |
-          corepack enable
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            worker/node_modules
-            ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-worker-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-worker-
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Setup Wrangler CLI
-        run: |
-          cd worker
-          npm install -g wrangler@latest
-
-      - name: Configure Cloudflare
-        run: |
-          cd worker
-          wrangler auth login --api-token
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Run database migrations
-        run: |
-          cd worker
-          yarn db:migrate:prod
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Deploy Worker
-        run: |
-          cd worker
-          wrangler deploy
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-  # Run tests (optional)
-  test:
-    name: Run Tests
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
-
-      - name: Setup Yarn
-        run: |
-          corepack enable
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            client/node_modules
-            worker/node_modules
-            ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-test-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-test-
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Run TypeScript checks
-        run: |
-          cd client && yarn tsc --noEmit
-          cd ../worker && yarn tsc --noEmit
-
-      - name: Run linting (if available)
-        run: |
-          # Add linting commands here when available
-          echo "Linting checks would go here"
 
   # Build summary
   build-summary:
     name: Build Summary
     runs-on: ubuntu-latest
-    needs: [build-android, deploy-worker]
+    needs: [build-android]
     if: always() && (github.event_name == 'release' || github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main')
     
     steps:
@@ -242,10 +125,9 @@ jobs:
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Android Build | ${{ needs.build-android.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Worker Deploy | ${{ needs.deploy-worker.result }} |" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ needs.build-android.result }}" = "success" ] && [ "${{ needs.deploy-worker.result }}" = "success" ]; then
-            echo "✅ All builds completed successfully!" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.build-android.result }}" = "success" ]; then
+            echo "✅ Android build completed successfully!" >> $GITHUB_STEP_SUMMARY
           else
-            echo "❌ Some builds failed. Check the logs above." >> $GITHUB_STEP_SUMMARY
+            echo "❌ Android build failed. Check the logs above." >> $GITHUB_STEP_SUMMARY
           fi

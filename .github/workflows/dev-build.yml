@@ -38,6 +38,8 @@ jobs:
             node_modules
             client/node_modules
             ~/.cache/yarn
+            ~/.gradle/caches
+            ~/.android
           key: ${{ runner.os }}-yarn-dev-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-yarn-dev-
@@ -45,122 +47,53 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Expo CLI
         run: |
           npm install -g @expo/cli@latest
 
-      - name: Setup EAS CLI
+      - name: Install Expo dependencies
         run: |
-          npm install -g eas-cli@latest
+          cd client
+          expo install --fix
 
-      - name: Configure EAS
+      - name: Generate Android project
         run: |
-          eas login --non-interactive
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          cd client
+          expo prebuild --platform android --clean
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/android/.gradle
+            client/android/app/build
+          key: ${{ runner.os }}-gradle-dev-${{ hashFiles('client/android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-dev-
 
       - name: Build Android APK (Development)
         run: |
-          cd client
-          eas build --platform android --profile preview3 --non-interactive --no-wait
+          cd client/android
+          ./gradlew assembleDebug
         env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Wait for build completion
-        run: |
-          cd client
-          eas build:list --platform android --limit 1 --json > build-info.json
-          BUILD_ID=$(cat build-info.json | jq -r '.[0].id')
-          echo "BUILD_ID=$BUILD_ID" >> $GITHUB_ENV
-          
-          # Wait for build to complete (shorter timeout for dev builds)
-          timeout=1800  # 30 minutes
-          elapsed=0
-          while [ $elapsed -lt $timeout ]; do
-            eas build:view $BUILD_ID --json > build-status.json
-            STATUS=$(cat build-status.json | jq -r '.status')
-            echo "Build status: $STATUS"
-            
-            if [ "$STATUS" = "finished" ]; then
-              break
-            elif [ "$STATUS" = "errored" ] || [ "$STATUS" = "canceled" ]; then
-              echo "Build failed with status: $STATUS"
-              exit 1
-            fi
-            
-            sleep 30
-            elapsed=$((elapsed + 30))
-          done
-          
-          if [ $elapsed -ge $timeout ]; then
-            echo "Build timed out after $timeout seconds"
-            exit 1
-          fi
-
-      - name: Download APK
-        run: |
-          cd client
-          eas build:download $BUILD_ID --output ./build-dev.apk
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
       - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: android-apk-dev
-          path: client/build-dev.apk
+          path: client/android/app/build/outputs/apk/debug/app-debug.apk
           retention-days: 7
-
-  # Quick worker deployment for development
-  deploy-worker-dev:
-    name: Deploy Worker (Dev)
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'yarn'
-
-      - name: Setup Yarn
-        run: |
-          corepack enable
-          corepack prepare yarn@${{ env.YARN_VERSION }} --activate
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            worker/node_modules
-            ~/.cache/yarn
-          key: ${{ runner.os }}-yarn-worker-dev-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-worker-dev-
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Setup Wrangler CLI
-        run: |
-          cd worker
-          npm install -g wrangler@latest
-
-      - name: Configure Cloudflare
-        run: |
-          cd worker
-          wrangler auth login --api-token
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-
-      - name: Deploy Worker (Development)
-        run: |
-          cd worker
-          wrangler deploy --env development
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
   # Quick type checking
   type-check:
@@ -188,7 +121,6 @@ jobs:
           path: |
             node_modules
             client/node_modules
-            worker/node_modules
             ~/.cache/yarn
           key: ${{ runner.os }}-yarn-typecheck-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
@@ -201,6 +133,4 @@ jobs:
         run: |
           echo "Checking client types..."
           cd client && yarn tsc --noEmit
-          echo "Checking worker types..."
-          cd ../worker && yarn tsc --noEmit
           echo "All type checks passed! ✅"

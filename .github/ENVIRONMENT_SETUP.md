@@ -2,27 +2,13 @@
 
 ## Required Secrets Configuration
 
-### 1. Expo Token (for Android builds)
-- **Secret Name**: `EXPO_TOKEN`
-- **How to get**: 
-  1. Go to https://expo.dev/accounts/[your-username]/settings/access-tokens
-  2. Create a new token with appropriate permissions
-  3. Copy the token value
-- **Required Permissions**: 
-  - `build:read` - to check build status
-  - `build:write` - to create builds
-  - `project:read` - to access project settings
+**No external secrets required for Android builds!**
 
-### 2. Cloudflare API Token (for Worker deployment)
-- **Secret Name**: `CLOUDFLARE_API_TOKEN`
-- **How to get**:
-  1. Go to https://dash.cloudflare.com/profile/api-tokens
-  2. Create a custom token with the following permissions:
-     - **Account**: `Cloudflare Workers:Edit`
-     - **Zone**: `Zone:Read` (if using custom domain)
-     - **Zone**: `Zone Settings:Edit` (if using custom domain)
-  3. Include your account and zone resources
-  4. Copy the token value
+The workflows use native GitHub Actions with:
+- **Java 17**: Provided by GitHub Actions
+- **Android SDK**: Installed via `android-actions/setup-android`
+- **Gradle**: Uses project's Gradle wrapper
+- **Expo Prebuild**: Generates native Android project locally
 
 ## Environment Variables (Optional)
 
@@ -31,8 +17,8 @@
 - `WRANGLER_LOG_LEVEL`: Set to `debug` for verbose Wrangler output
 
 ### For Custom Build Configurations
-- `ANDROID_BUILD_PROFILE`: Override default build profile (default: `preview`)
-- `WORKER_ENVIRONMENT`: Override worker environment (default: `production`)
+- `ANDROID_BUILD_TYPE`: Override build type (default: `release` for production, `debug` for dev)
+- `GRADLE_OPTS`: Additional Gradle options for build optimization
 
 ## Repository Settings
 
@@ -86,16 +72,15 @@ Ensure the following permissions are enabled:
 
 ## Build Profiles Configuration
 
-### Android Build Profiles (in `client/eas.json`)
-- **`preview`**: Production-ready APK for testing
-- **`preview2`**: Alternative production build
-- **`preview3`**: Development client build
-- **`preview4`**: Internal distribution build
-- **`production`**: App store release build
+### Android Build Types (Native Gradle)
+- **`release`**: Production-ready APK for releases
+- **`debug`**: Development APK for testing
+- **Build profiles**: Configured in `client/android/app/build.gradle`
+- **Signing**: Uses debug keystore for development, release keystore for production
 
-### Worker Environments (in `worker/wrangler.toml`)
-- **Production**: Default environment for live deployment
-- **Development**: Separate environment for testing (configure separately)
+### Worker Environments (Currently Disabled)
+- **Worker deployment is currently disabled**
+- **Configuration**: Stored in `worker/wrangler.toml` for future use
 
 ## Monitoring and Alerts
 
@@ -104,55 +89,38 @@ Ensure the following permissions are enabled:
 - Monitor build times and optimize if needed
 - Track artifact download counts
 
-### 2. Deployment Monitoring
-- Monitor Cloudflare Worker deployment success
-- Set up alerts for deployment failures
-- Track worker performance metrics
+### 2. Deployment Monitoring (Currently Disabled)
+- Worker deployment monitoring is currently disabled
+- Will be re-enabled when worker builds are restored
 
-### 3. Database Migration Monitoring
-- Monitor migration execution times
-- Set up alerts for migration failures
-- Track database schema changes
+### 3. Database Migration Monitoring (Currently Disabled)
+- Database migration monitoring is currently disabled
+- Will be re-enabled when worker builds are restored
 
 ## Troubleshooting Common Issues
 
 ### Android Build Issues
 ```bash
-# Test EAS authentication
-eas whoami
-
-# Test build locally
+# Test native Android build locally
 cd client
-eas build --platform android --profile preview --local
+expo prebuild --platform android --clean
+cd android
+./gradlew assembleRelease
 
-# Check build status
-eas build:list --platform android --limit 5
+# For debug builds
+./gradlew assembleDebug
 ```
 
-### Worker Deployment Issues
+### Worker Deployment Issues (Currently Disabled)
 ```bash
-# Test Wrangler authentication
-cd worker
-wrangler whoami
-
-# Test deployment locally
-wrangler dev
-
-# Check deployment status
-wrangler deployments list
+# Worker deployment is currently disabled
+# This section will be updated when worker builds are re-enabled
 ```
 
-### Database Migration Issues
+### Database Migration Issues (Currently Disabled)
 ```bash
-# Check migration files
-ls -la drizzle/migrations/worker/
-
-# Test migrations locally
-cd worker
-yarn db:migrate
-
-# Check database status
-wrangler d1 info my-d1-db
+# Database migrations are currently disabled
+# This section will be updated when worker builds are re-enabled
 ```
 
 ## Performance Optimization Tips
@@ -163,22 +131,20 @@ wrangler d1 info my-d1-db
 - Use separate caches for different job types
 
 ### 2. Build Optimization
-- Use parallel jobs where possible
-- Optimize Docker images if using containerized builds
-- Consider using self-hosted runners for faster builds
+- Use parallel jobs where possible (currently Android-only)
+- Optimize Gradle build configuration
+- Monitor build times and optimize accordingly
 
-### 3. Deployment Optimization
-- Use incremental deployments where possible
-- Implement blue-green deployments for zero downtime
-- Monitor deployment times and optimize accordingly
+### 3. Deployment Optimization (Currently Disabled)
+- Deployment optimization is currently disabled
+- Will be re-enabled when worker builds are restored
 
 ## Security Best Practices
 
-### 1. Secret Management
-- Rotate API tokens regularly
-- Use minimal required permissions
-- Never log secret values
-- Use environment-specific secrets when possible
+### 1. Secret Management (Currently Not Applicable)
+- **No external secrets required** for Android builds
+- Uses GitHub Actions built-in authentication
+- No API tokens to manage or rotate
 
 ### 2. Access Control
 - Limit workflow permissions to minimum required
@@ -200,10 +166,10 @@ wrangler d1 info my-d1-db
 - Monitor build performance metrics
 
 ### Monthly
-- Rotate API tokens
 - Review and update workflow configurations
 - Clean up old build artifacts
 - Update documentation
+- Monitor build performance metrics
 
 ### Quarterly
 - Review and optimize caching strategies
