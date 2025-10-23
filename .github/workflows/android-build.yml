@@ -138,7 +138,7 @@ jobs:
       # 5. VALIDATE GRADLE WRAPPER
       # ============================================
       - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/wrapper-validation-action@v3
 
       # ============================================
       # 6. SETUP GRADLE
