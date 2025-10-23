@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { db } from '../db/database';
-import { users } from '../db/schema';
+import { users } from '@drizzle/schemas/client';
 import { useMutation } from '@apollo/client';
 import { LOGIN_MUTATION, REGISTER_MUTATION } from '../api/queries';
 

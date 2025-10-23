@@ -1,0 +1,12 @@
+# Shared GraphQL Definitions
+
+This folder contains shared GraphQL schema, queries, and types used by both:
+- Client (React Native/Expo)
+- Worker (Cloudflare Workers)
+
+## Structure
+- schema/ - GraphQL schema definitions (typeDefs)
+- queries/ - GraphQL queries and mutations (for Apollo Client)
+- types/ - TypeScript type definitions
+- index.ts - Main export file
+

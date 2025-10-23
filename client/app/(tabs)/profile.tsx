@@ -1,8 +1,8 @@
-import { LanguageSwitcher } from '@/components/context/LanguageSwitcher';
-import { Text, View } from '@/components/ui/Themed';
-import { ThemeToggle } from '@/components/ui/ThemeToggle';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { logout } from '@/store/slices/userSlice';
+import { LanguageSwitcher } from '../../components/context/LanguageSwitcher';
+import { Text, View } from '../../components/ui/Themed';
+import { ThemeToggle } from '../../components/ui/ThemeToggle';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { logout } from '../../redux/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +13,7 @@ const USER_STORAGE_KEY = '@safarnak_user';
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
-  const { userName } = useAppSelector((state) => state.user);
+  const { user } = useAppSelector((state: any) => state.auth);
 
   const handleLogout = () => {
     Alert.alert(
@@ -46,9 +46,9 @@ export default function ProfileScreen() {
       <Text style={styles.title}>{t('profile.title')}</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
       
-      {userName && (
+      {user && (
         <Text style={styles.welcome}>
-          {t('profile.welcome', { name: userName })}
+          {t('profile.welcome', { name: user.name })}
         </Text>
       )}
       

@@ -38,7 +38,15 @@
 		"skipLibCheck": true,
 		"types": [
 			"./worker-configuration.d.ts"
-		]
+		],
+		"paths": {
+			"@drizzle/*": [
+				"../drizzle/*"
+			],
+			"@graphql/*": [
+				"../graphql/*"
+			]
+		}
 	},
 	"exclude": ["test"],
 	"include": ["worker-configuration.d.ts", "src/**/*.ts"]

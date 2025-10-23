@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { db } from '../db/database';
-import { users } from '../db/schema';
+import { users } from '@drizzle/schemas/client';
 import { eq } from 'drizzle-orm';
 
 const USER_STORAGE_KEY = '@safarnak_user';
@@ -23,7 +23,7 @@ export default function AuthWrapper({ children }: { children: React.ReactNode })
       if (isAuthenticated) {
         router.replace('/(tabs)');
       } else {
-        router.replace('/login' as any);
+        router.replace('/login');
       }
     }
   }, [isAuthenticated, isLoading]);

@@ -25,7 +25,7 @@ export {
 } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: '(tabs)',
+  initialRouteName: 'login',
 };
 
 SplashScreen.preventAutoHideAsync();

@@ -1,60 +1,15 @@
 import { gql } from '@apollo/client';
+import {
+  REGISTER_MUTATION as REGISTER_MUTATION_STRING,
+  LOGIN_MUTATION as LOGIN_MUTATION_STRING,
+  GET_MESSAGES_QUERY as GET_MESSAGES_QUERY_STRING,
+  ADD_MESSAGE_MUTATION as ADD_MESSAGE_MUTATION_STRING,
+  ME_QUERY as ME_QUERY_STRING,
+} from '@graphql/queries/queries';
 
-export const REGISTER_MUTATION = gql`
-  mutation Register($name: String!, $email: String!, $password: String!) {
-    register(name: $name, email: $email, password: $password) {
-      user {
-        id
-        name
-        email
-        createdAt
-      }
-      token
-    }
-  }
-`;
-
-export const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      user {
-        id
-        name
-        email
-        createdAt
-      }
-      token
-    }
-  }
-`;
-
-export const GET_MESSAGES_QUERY = gql`
-  query GetMessages {
-    getMessages {
-      id
-      content
-      createdAt
-    }
-  }
-`;
-
-export const ADD_MESSAGE_MUTATION = gql`
-  mutation AddMessage($content: String!) {
-    addMessage(content: $content) {
-      id
-      content
-      createdAt
-    }
-  }
-`;
-
-export const ME_QUERY = gql`
-  query Me {
-    me {
-      id
-      name
-      email
-      createdAt
-    }
-  }
-`;
+// Wrap shared GraphQL strings with Apollo's gql tag
+export const REGISTER_MUTATION = gql(REGISTER_MUTATION_STRING);
+export const LOGIN_MUTATION = gql(LOGIN_MUTATION_STRING);
+export const GET_MESSAGES_QUERY = gql(GET_MESSAGES_QUERY_STRING);
+export const ADD_MESSAGE_MUTATION = gql(ADD_MESSAGE_MUTATION_STRING);
+export const ME_QUERY = gql(ME_QUERY_STRING);

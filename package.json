@@ -8,6 +8,7 @@
   ],
   "scripts": {
     "dev": "concurrently \"yarn workspace safarnak-worker dev\" \"yarn workspace safarnak start\"",
+    "dev:clean": "concurrently \"yarn workspace safarnak-worker dev\" \"yarn workspace safarnak start --clear\"",
     "build": "yarn workspace safarnak-worker build && yarn workspace safarnak build",
     "worker:dev": "yarn workspace safarnak-worker dev",
     "worker:deploy": "yarn workspace safarnak-worker deploy",

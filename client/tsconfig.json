@@ -7,6 +7,12 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "@drizzle/*": [
+        "../drizzle/*"
+      ],
+      "@graphql/*": [
+        "../graphql/*"
       ]
     }
   },

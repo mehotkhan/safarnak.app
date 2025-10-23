@@ -8,8 +8,9 @@ import {
   createDefaultPublishableContext,
 } from 'graphql-workers-subscriptions';
 import { drizzle } from 'drizzle-orm/d1';
-import { messages, users } from '../drizzle/schemas/worker';
+import { messages, users } from '@drizzle/schemas/worker';
 import { eq } from 'drizzle-orm';
+import { typeDefs } from '@graphql/schema/schema';
 
 export interface Env {
   DB: D1Database;
@@ -86,8 +87,13 @@ async function verifyPassword(password: string, hashedPassword: string): Promise
     
     const derivedHash = new Uint8Array(derivedBits);
     
-    // Use timing-safe comparison
-    return crypto.subtle.timingSafeEqual(storedHash, derivedHash);
+    // Timing-safe comparison
+    if (storedHash.length !== derivedHash.length) return false;
+    let result = 0;
+    for (let i = 0; i < storedHash.length; i++) {
+      result |= storedHash[i] ^ derivedHash[i];
+    }
+    return result === 0;
   } catch (error) {
     console.error('Password verification error:', error);
     return false;
@@ -102,35 +108,7 @@ async function generateToken(userId: number, email: string): Promise<string> {
 }
 
 export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
-  typeDefs: /* GraphQL */ `
-    type Query {
-      getMessages: [Message!]!
-      me: User
-    }
-    type Mutation {
-      addMessage(content: String!): Message!
-      register(name: String!, email: String!, password: String!): AuthPayload!
-      login(email: String!, password: String!): AuthPayload!
-    }
-    type Subscription {
-      newMessages: Message!
-    }
-    type Message {
-      id: ID!
-      content: String!
-      createdAt: String!
-    }
-    type User {
-      id: ID!
-      name: String!
-      email: String!
-      createdAt: String!
-    }
-    type AuthPayload {
-      user: User!
-      token: String!
-    }
-  `,
+  typeDefs,
   resolvers: {
     Query: {
       getMessages: async (_parent, _args, context) => {

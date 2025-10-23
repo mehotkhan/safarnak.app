@@ -1,4 +1,4 @@
-import { Text, View } from '@/components/ui/Themed';
+import { Text, View } from '../../components/ui/Themed';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
