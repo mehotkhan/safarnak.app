@@ -4,17 +4,36 @@
     "appVersionSource": "remote"
   },
   "build": {
-    "development": {
+    "debug": {
       "developmentClient": true,
       "distribution": "internal",
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
       },
+      "ios": {
+        "buildConfiguration": "Debug"
+      },
       "env": {
-        "APP_NAME": "Safarnak Dev",
-        "APP_SCHEME": "safarnak-dev",
-        "GRAPHQL_URL": "http://192.168.1.51:8787/graphql"
+        "APP_NAME": "تسفرناک",
+        "APP_SCHEME": "safarnak-debug",
+        "GRAPHQL_URL": "http://192.168.1.51:8787/graphql",
+        "BUNDLE_IDENTIFIER": "ir.mohet.safarnak_debug"
+      }
+    },
+    "release": {
+      "android": {
+        "buildType": "apk",
+        "gradleCommand": ":app:assembleRelease"
+      },
+      "ios": {
+        "buildConfiguration": "Release"
+      },
+      "env": {
+        "APP_NAME": "سقرناک",
+        "APP_SCHEME": "safarnak",
+        "GRAPHQL_URL": "https://safarnak.mohet.ir/graphql",
+        "BUNDLE_IDENTIFIER": "ir.mohet.safarnak"
       }
     },
     "preview": {
@@ -27,20 +46,9 @@
         "APP_SCHEME": "safarnak-preview",
         "GRAPHQL_URL": "https://safarnak-worker.mehot1.workers.dev/graphql"
       }
-    },
-    "production": {
-      "android": {
-        "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
-      },
-      "env": {
-        "APP_NAME": "Safarnak",
-        "APP_SCHEME": "safarnak",
-        "GRAPHQL_URL": "https://safarnak.mohet.ir/graphql"
-      }
     }
   },
   "submit": {
-    "production": {}
+    "release": {}
   }
 }

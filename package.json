@@ -7,20 +7,22 @@
     "client"
   ],
   "scripts": {
-    "dev": "concurrently \"yarn workspace safarnak-worker dev\" \"yarn workspace safarnak start\"",
-    "build": "yarn workspace safarnak-worker build && yarn workspace safarnak build",
+    "dev": "concurrently \"yarn worker:dev\" \"yarn client:start\"",
     "worker:dev": "yarn workspace safarnak-worker dev",
     "worker:deploy": "yarn workspace safarnak-worker deploy",
     "client:start": "yarn workspace safarnak start",
     "client:android": "yarn workspace safarnak android",
     "client:ios": "yarn workspace safarnak ios",
     "client:web": "yarn workspace safarnak web",
+    "build:debug": "yarn workspace safarnak build:debug",
+    "build:release": "yarn workspace safarnak build:release",
+    "build:debug:ios": "yarn workspace safarnak build:debug:ios",
+    "build:release:ios": "yarn workspace safarnak build:release:ios",
     "db:generate": "yarn workspace safarnak-worker db:generate",
     "db:migrate": "yarn workspace safarnak-worker db:migrate",
-    "db:migrate:prod": "yarn workspace safarnak-worker db:migrate:prod",
     "db:studio": "yarn workspace safarnak-worker db:studio",
-    "db:manager": "yarn workspace safarnak-worker db:manager",
-    "clean": "rm -rf worker/.wrangler client/db.db* node_modules/.cache && echo 'Cleared databases and cache'"
+    "clean": "rm -rf worker/.wrangler client/db.db* node_modules/.cache client/android/.gradle client/android/build client/android/app/build client/.expo && echo 'Cleared databases, cache, and build artifacts'",
+    "clean:all": "yarn clean && rm -rf ~/.gradle/caches ~/.android/build-cache && echo 'Cleared all caches including global Gradle cache'"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

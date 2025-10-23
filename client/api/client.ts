@@ -6,7 +6,7 @@ import Constants from 'expo-constants';
 // Get GraphQL URL from environment variables or fallback to defaults
 const getGraphQLURI = (): string => {
   // Check if we have environment variables from EAS build
-  const envGraphQLUrl = Constants.expoConfig?.extra?.GRAPHQL_URL;
+  const envGraphQLUrl = Constants.expoConfig?.extra?.graphqlUrl;
   if (envGraphQLUrl) {
     return envGraphQLUrl;
   }
