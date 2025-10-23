@@ -87,17 +87,18 @@ jobs:
           echo "Installing Expo CLI..."
           npm install -g @expo/cli@latest
           echo "Expo CLI installed successfully"
-          expo --version
+          # Verify installation using npx
+          npx expo --version
 
       - name: Install Expo dependencies
         run: |
           cd client
-          expo install --fix
+          npx expo install --fix
 
       - name: Generate Android project
         run: |
           cd client
-          expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean
 
       - name: Cache Android project build artifacts
         uses: actions/cache@v4
