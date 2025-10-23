@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "safarNak",
-    "slug": "safarNak",
+    "name": "Safarnak",
+    "slug": "safarnak",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.mehotkhan.safarNak"
+      "bundleIdentifier": "com.mehotkhan.safarnak"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.mehotkhan.safarNak"
+      "package": "com.mehotkhan.safarnak"
     },
     "web": {
       "bundler": "metro",

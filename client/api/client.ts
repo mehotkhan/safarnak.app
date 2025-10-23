@@ -1,11 +1,29 @@
 import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 
-// GraphQL endpoint
-const GRAPHQL_URI = __DEV__ 
-  ? 'http://192.168.1.51:8787/graphql'  // Development - use your local network IP
-  : 'https://your-production-worker.workers.dev/graphql'; // Production
+// Get GraphQL URL from environment variables or fallback to defaults
+const getGraphQLURI = (): string => {
+  // Check if we have environment variables from EAS build
+  const envGraphQLUrl = Constants.expoConfig?.extra?.GRAPHQL_URL;
+  if (envGraphQLUrl) {
+    return envGraphQLUrl;
+  }
+  
+  // Fallback to development/production detection
+  if (__DEV__) {
+    // Development - use your local network IP
+    return 'http://192.168.1.51:8787/graphql';
+  } else {
+    // Production - use your custom domain
+    return 'https://safarnak.mohet.ir/graphql';
+  }
+};
+
+const GRAPHQL_URI = getGraphQLURI();
+
+console.log('GraphQL URI:', GRAPHQL_URI);
 
 const httpLink = createHttpLink({
   uri: GRAPHQL_URI,

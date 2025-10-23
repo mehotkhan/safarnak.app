@@ -21,4 +21,4 @@ bindings = [
 
 [[migrations]]
 tag = "v1"
-new_classes = ["SubscriptionPool"]
+new_sqlite_classes = ["SubscriptionPool"]

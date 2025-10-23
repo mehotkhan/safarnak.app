@@ -119,6 +119,9 @@ jobs:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           GRADLE_OPTS: "-Dorg.gradle.daemon=true -Dorg.gradle.parallel=true -Dorg.gradle.caching=true"
+          APP_NAME: "Safarnak"
+          APP_SCHEME: "safarnak"
+          GRAPHQL_URL: "https://safarnak.mohet.ir/graphql"
 
       - name: Upload APK to GitHub Release
         if: github.event_name == 'release'
