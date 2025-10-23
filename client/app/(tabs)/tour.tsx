@@ -1,4 +1,4 @@
-import { Text, View } from '@/components/ui/Themed';
+import { Text, View } from '@components/ui/Themed';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet } from 'react-native';
 

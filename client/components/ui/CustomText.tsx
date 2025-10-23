@@ -1,4 +1,4 @@
-import { useLanguage } from '@/components/context/LanguageContext';
+import { useLanguage } from '@components/context/LanguageContext';
 import { Text as RNText, TextProps as RNTextProps, TextStyle } from 'react-native';
 
 interface CustomTextProps extends RNTextProps {

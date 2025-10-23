@@ -1,5 +1,5 @@
-import { useTheme } from '@/components/context/ThemeContext';
-import { Text, View } from '@/components/ui/Themed';
+import { useTheme } from '@components/context/ThemeContext';
+import { Text, View } from '@components/ui/Themed';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 

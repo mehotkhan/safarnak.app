@@ -1,6 +1,6 @@
-import { LanguageSwitcher } from '../../components/context/LanguageSwitcher';
-import { Text, View } from '../../components/ui/Themed';
-import { ThemeToggle } from '../../components/ui/ThemeToggle';
+import { LanguageSwitcher } from '@components/context/LanguageSwitcher';
+import { Text, View } from '@components/ui/Themed';
+import { ThemeToggle } from '@components/ui/ThemeToggle';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { logout } from '../../redux/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';

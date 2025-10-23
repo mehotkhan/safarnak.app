@@ -1,0 +1,12 @@
+[
+  {
+    "key": "ctrl+shift+h",
+    "command": "workbench.action.toggleFilesExclude",
+    "when": "!terminalFocus"
+  },
+  {
+    "key": "ctrl+shift+g",
+    "command": "workbench.action.toggleSearchExclude",
+    "when": "!terminalFocus"
+  }
+]

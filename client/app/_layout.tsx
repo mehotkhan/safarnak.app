@@ -10,9 +10,9 @@ import { ApolloProvider } from '@apollo/client';
 import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import { View, Text } from 'react-native';
 
-import AuthWrapper from '../components/AuthWrapper';
-import { LanguageProvider } from '../components/context/LanguageContext';
-import { ThemeProvider as CustomThemeProvider } from '../components/context/ThemeContext';
+import AuthWrapper from '@components/AuthWrapper';
+import { LanguageProvider } from '@components/context/LanguageContext';
+import { ThemeProvider as CustomThemeProvider } from '@components/context/ThemeContext';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { persistor, store } from '../redux/store';
 import { client } from '../api/client';

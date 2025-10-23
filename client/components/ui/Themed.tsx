@@ -5,8 +5,8 @@
 
 import { Text as DefaultText, View as DefaultView } from 'react-native';
 
-import { useLanguage } from '@/components/context/LanguageContext';
-import { useTheme } from '@/components/context/ThemeContext';
+import { useLanguage } from '@components/context/LanguageContext';
+import { useTheme } from '@components/context/ThemeContext';
 import Colors from '@/constants/Colors';
 
 type ThemeProps = {

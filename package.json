@@ -33,7 +33,11 @@
     "db:purge:worker": "rm -rf worker/.wrangler && echo 'Worker database and cache cleared'",
     "db:purge:client": "rm -rf client/db.db* && echo 'Client database files cleared'",
     "db:purge:cache": "rm -rf node_modules/.cache && echo 'Node modules cache cleared'",
-    "db:purge:all": "yarn db:purge && rm -rf client/node_modules/.cache worker/node_modules/.cache && echo 'Complete purge completed - all databases, migrations, and caches cleared'"
+    "db:purge:all": "yarn db:purge && rm -rf client/node_modules/.cache worker/node_modules/.cache && echo 'Complete purge completed - all databases, migrations, and caches cleared'",
+    "hide-git": "node scripts/toggle-git-ignored.js hide",
+    "show-git": "node scripts/toggle-git-ignored.js show",
+    "toggle-git": "node scripts/toggle-git-ignored.js toggle",
+    "git-status": "node scripts/toggle-git-ignored.js status"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",

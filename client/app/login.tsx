@@ -1,5 +1,5 @@
-import { CustomText } from '../components/ui/CustomText';
-import { View } from '../components/ui/Themed';
+import { CustomText } from '@components/ui/CustomText';
+import { View } from '@components/ui/Themed';
 import { useAppDispatch } from '../store/hooks';
 import { login } from '../redux/authSlice';
 import { router } from 'expo-router';
