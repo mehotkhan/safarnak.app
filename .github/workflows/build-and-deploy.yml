@@ -30,46 +30,42 @@ jobs:
           corepack enable
           corepack prepare yarn@${{ env.YARN_VERSION }} --activate
 
-      - name: Cache everything for maximum speed
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
             node_modules
             client/node_modules
             ~/.cache/yarn
+          key: ${{ runner.os }}-deps-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            ~/.android
-            ~/.npm
-            ~/.expo
-            client/android/.gradle
-            client/android/app/build
-            client/android/build
-            client/android/.idea
-            client/android/local.properties
-          key: ${{ runner.os }}-cache-${{ hashFiles('**/yarn.lock', '**/package-lock.json', 'client/android/gradle/wrapper/gradle-wrapper.properties', 'client/android/app/build.gradle') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('client/android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
-            ${{ runner.os }}-cache-
-            ${{ runner.os }}-yarn-
             ${{ runner.os }}-gradle-
 
-      - name: Cache Android SDK and NDK
+      - name: Cache Android SDK
         uses: actions/cache@v4
         with:
           path: |
-            ${{ env.ANDROID_HOME }}
-            ${{ env.ANDROID_SDK_ROOT }}
-          key: ${{ runner.os }}-android-sdk-${{ hashFiles('client/android/app/build.gradle') }}
+            ~/.android
+          key: ${{ runner.os }}-android-sdk
           restore-keys: |
-            ${{ runner.os }}-android-sdk-
+            ${{ runner.os }}-android-sdk
 
-      - name: Cache Expo CLI and dependencies
+      - name: Cache NPM and Expo
         uses: actions/cache@v4
         with:
           path: |
             ~/.npm
             ~/.expo
-            ~/.cache/expo
           key: ${{ runner.os }}-expo-${{ hashFiles('client/package.json', 'client/app.json') }}
           restore-keys: |
             ${{ runner.os }}-expo-
@@ -102,6 +98,17 @@ jobs:
         run: |
           cd client
           expo prebuild --platform android --clean
+
+      - name: Cache Android project build artifacts
+        uses: actions/cache@v4
+        with:
+          path: |
+            client/android/.gradle
+            client/android/app/build
+            client/android/build
+          key: ${{ runner.os }}-android-build-${{ hashFiles('client/android/gradle/wrapper/gradle-wrapper.properties', 'client/android/app/build.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-android-build-
 
       - name: Build Android APK
         run: |
