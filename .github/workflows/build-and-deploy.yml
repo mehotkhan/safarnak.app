@@ -4,12 +4,14 @@ on:
   push:
     branches: [master, main]
     paths:
-      - 'client/**'
+      - 'app/**'
+      - 'components/**'
+      - 'android/**'
       - 'package.json'
       - 'yarn.lock'
       - '.github/workflows/build-and-deploy.yml'
       - 'graphql/**'
-      - 'worker/drizzle/**'
+      - 'drizzle/**'
   release:
     types: [published]
   workflow_dispatch:
@@ -58,7 +60,6 @@ jobs:
         with:
           path: |
             node_modules
-            client/node_modules
             ~/.cache/yarn
           key: ${{ runner.os }}-deps-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
@@ -73,11 +74,9 @@ jobs:
           npx --yes expo --version
       - name: Expo prebuild (only when native changes)
         if: |
-          contains(toJson(github.event.commits.*.modified), 'client/app.json') ||
-          contains(toJson(github.event.commits.*.modified), 'client/app.config.') ||
-          contains(toJson(github.event.commits.*.modified), 'client/android/')
+          contains(toJson(github.event.commits.*.modified), 'app.config.js') ||
+          contains(toJson(github.event.commits.*.modified), 'android/')
         run: |
-          cd client
           npx expo prebuild --platform android --no-install
 
       - name: Setup Java
@@ -98,8 +97,8 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-            client/android/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('client/android/**/*.gradle*', 'client/android/gradle/wrapper/gradle-wrapper.properties') }}
+            android/.gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
@@ -107,19 +106,19 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            client/android/app/build/generated/assets
-            client/android/app/build/intermediates/sourcemaps
+            android/app/build/generated/assets
+            android/app/build/intermediates/sourcemaps
             /tmp/metro-*
-          key: ${{ runner.os }}-metro-${{ hashFiles('client/app/**', 'client/components/**') }}
+          key: ${{ runner.os }}-metro-${{ hashFiles('app/**', 'components/**') }}
           restore-keys: |
             ${{ runner.os }}-metro-
 
       - name: Make Gradle wrapper executable
-        run: chmod +x client/android/gradlew
+        run: chmod +x android/gradlew
 
       - name: Build Android APK
         run: |
-          cd client/android
+          cd android
           ./gradlew assembleRelease \
             --no-daemon \
             --max-workers=4 \
@@ -141,7 +140,7 @@ jobs:
           GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
 
       - name: List APK files
-        working-directory: client/android/app/build/outputs/apk/release
+        working-directory: android/app/build/outputs/apk/release
         run: |
           echo "=== Generated APK files ==="
           ls -lh *.apk || echo "No APK files found"
@@ -188,14 +187,14 @@ jobs:
 
       - name: Find and rename APK
         id: find_apk
-        working-directory: client/android/app/build/outputs/apk/release
+        working-directory: android/app/build/outputs/apk/release
         run: |
           # Find the main APK file (universal or first one found)
           APK_FILE=$(ls app-universal-release.apk 2>/dev/null || ls app-release.apk 2>/dev/null || ls *.apk | head -n 1)
           if [ -n "$APK_FILE" ]; then
             NEW_NAME="safarnak-android-v${{ github.run_number }}.apk"
             cp "$APK_FILE" "$NEW_NAME"
-            echo "apk_path=./client/android/app/build/outputs/apk/release/$NEW_NAME" >> $GITHUB_OUTPUT
+            echo "apk_path=./android/app/build/outputs/apk/release/$NEW_NAME" >> $GITHUB_OUTPUT
             echo "apk_name=$NEW_NAME" >> $GITHUB_OUTPUT
             echo "Found and renamed: $APK_FILE -> $NEW_NAME"
             ls -lh "$NEW_NAME"
@@ -224,7 +223,7 @@ jobs:
 
       - name: Cleanup Gradle cache
         if: always()
-        working-directory: client/android
+        working-directory: android
         run: |
           ./gradlew --stop || true
           rm -rf ~/.gradle/caches/transforms-* || true

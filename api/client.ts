@@ -8,15 +8,18 @@ const getGraphQLURI = (): string => {
   // Check if we have environment variables from EAS build
   const envGraphQLUrl = Constants.expoConfig?.extra?.graphqlUrl;
   if (envGraphQLUrl) {
+    console.log('Using EAS GraphQL URL:', envGraphQLUrl);
     return envGraphQLUrl;
   }
 
   // Fallback to development/production detection
   if (process.env.NODE_ENV === 'development') {
     // Development - use your local network IP
+    console.log('Using development GraphQL URL');
     return 'http://192.168.1.51:8787/graphql';
   } else {
     // Production - use your custom domain
+    console.log('Using production GraphQL URL');
     return 'https://safarnak.mohet.ir/graphql';
   }
 };
@@ -27,6 +30,18 @@ console.log('GraphQL URI:', GRAPHQL_URI);
 
 const httpLink = createHttpLink({
   uri: GRAPHQL_URI,
+  // Add timeout and error handling for production
+  fetchOptions: {
+    timeout: 30000, // 30 second timeout
+  },
+  // Add error handling
+  fetch: (uri, options) => {
+    console.log('GraphQL Request:', { uri, options });
+    return fetch(uri, options).catch(error => {
+      console.error('GraphQL Network Error:', error);
+      throw error;
+    });
+  },
 });
 
 const authLink = setContext(async (_, { headers }) => {
@@ -56,9 +71,11 @@ export const client = new ApolloClient({
   defaultOptions: {
     watchQuery: {
       errorPolicy: 'all',
+      fetchPolicy: 'network-only', // Always try network first
     },
     query: {
       errorPolicy: 'all',
+      fetchPolicy: 'network-only', // Always try network first
     },
     mutate: {
       errorPolicy: 'all',
