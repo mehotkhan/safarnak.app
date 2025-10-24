@@ -1,10 +1,10 @@
 # Safarnak App - Cursor AI Configuration
 
 ## Project Context
-You are working on **Safarnak**, a full-stack travel application with offline-first capabilities. This is a monorepo with:
-- **Client**: Expo React Native app (iOS/Android/Web)
-- **Worker**: Cloudflare Worker backend with GraphQL API
-- **Shared**: Database schemas and GraphQL definitions
+You are working on **Safarnak**, a full-stack travel application with offline-first capabilities. This is a unified single-root monorepo with:
+- **Client**: Expo React Native app (iOS/Android/Web) at root level
+- **Worker**: Cloudflare Worker backend (`worker.ts`) at root level
+- **Shared**: Database schemas (`drizzle/`) and GraphQL definitions (`graphql/`) at root level
 
 ## Architecture Overview
 - **Frontend**: Expo Router + Redux Toolkit + Apollo Client + Drizzle ORM
@@ -13,6 +13,7 @@ You are working on **Safarnak**, a full-stack travel application with offline-fi
 - **State**: Redux with persistence, offline-first approach
 - **Auth**: Token-based with offline fallback
 - **Languages**: English + Persian (Farsi) with RTL support
+- **Code Quality**: ESLint 9 (flat config) + Prettier + TypeScript strict mode
 
 ## Key Technologies
 - React Native 0.81.5 + Expo 54
@@ -22,21 +23,36 @@ You are working on **Safarnak**, a full-stack travel application with offline-fi
 - Drizzle ORM + SQLite
 - Cloudflare Workers + D1
 - react-i18next for i18n
+- ESLint 9 + Prettier for code quality
 
 ## Project Structure
 ```
 safarnak.app/
-├── client/           # Expo React Native app
-├── worker/           # Cloudflare Worker backend
-├── drizzle/          # Shared database schemas
-├── graphql/          # Shared GraphQL definitions
-└── package.json      # Root workspace config
+├── app/                   # Expo Router pages
+├── components/            # UI components
+├── api/                   # GraphQL client utilities
+├── hooks/                 # Custom React hooks
+├── store/                 # Redux store
+├── redux/                 # Redux slices
+├── assets/                # Images, fonts, etc.
+├── android/               # Android native code
+├── ios/                   # iOS native code
+├── worker.ts              # Cloudflare Worker entry
+├── drizzle/               # Database schemas & migrations
+├── graphql/               # Shared GraphQL definitions
+├── app.config.js          # Dynamic app configuration
+├── eas.json               # EAS build profiles
+├── wrangler.toml          # Cloudflare Worker config
+├── drizzle.config.ts      # Database config
+├── eslint.config.js       # ESLint flat config
+├── .prettierrc            # Prettier config
+└── package.json           # Root package config
 ```
 
 ## Path Aliases
-- `@drizzle/*` → `../drizzle/*` (shared database schemas)
-- `@graphql/*` → `../graphql/*` (shared GraphQL definitions)
-- `@/*` → `./*` (client-specific files, client only)
+- `@/*` → `./*` (root files)
+- `@components/*` → `./components/*` (UI components)
+- `@graphql/*` → `./graphql/*` (shared GraphQL definitions)
 
 ## Coding Standards
 
@@ -46,6 +62,7 @@ safarnak.app/
 - Use path aliases instead of relative imports
 - Always type function parameters and return values
 - Use `any` only when absolutely necessary
+- Use `unknown` for truly unknown types
 
 ### React/React Native
 - Use functional components with hooks
@@ -53,36 +70,49 @@ safarnak.app/
 - Use TypeScript for all component props
 - Follow Expo Router conventions for navigation
 - Use Redux Toolkit patterns for state management
+- Implement proper error boundaries
 
 ### Database
 - Use Drizzle ORM for all database operations
-- Follow shared schema patterns in `drizzle/schemas/`
+- Follow shared schema patterns in `drizzle/schema.ts`
 - Use migrations for schema changes
 - Prefer type-safe queries over raw SQL
+- Handle offline/online sync gracefully
 
 ### GraphQL
 - Use shared GraphQL definitions from `graphql/` directory
 - Follow Apollo Client patterns for data fetching
 - Use error policies for graceful error handling
 - Implement proper loading states
+- Use subscriptions for real-time updates
+
+### Code Quality
+- Follow ESLint flat config rules
+- Use Prettier for consistent formatting
+- Run `yarn lint:fix` before committing
+- Run `yarn format` for code formatting
+- Use `yarn type-check` to verify TypeScript
 
 ## Authentication Patterns
 - Token-based authentication with offline fallback
 - Use `AuthWrapper` component for route protection
 - Store user data in both AsyncStorage and local database
 - Implement proper error handling for auth failures
+- Use PBKDF2 for password hashing
 
 ## State Management
 - Use Redux Toolkit with persistence
 - Implement offline middleware for network handling
 - Use selective persistence (whitelist specific slices)
 - Follow Redux best practices for actions and reducers
+- Use proper selectors for efficient state access
 
 ## Database Patterns
 - Use shared base schemas with environment extensions
 - Implement proper migration strategies
 - Use type-safe Drizzle queries
 - Handle offline/online sync gracefully
+- Use proper indexing for performance
 
 ## UI/UX Guidelines
 - Follow atomic design principles
@@ -90,41 +120,51 @@ safarnak.app/
 - Implement proper loading and error states
 - Support both light and dark themes
 - Ensure RTL support for Persian language
+- Use proper accessibility features
 
 ## Error Handling
 - Use comprehensive error boundaries
 - Implement proper error messages with i18n
 - Handle network errors gracefully
 - Use Apollo Client error policies
+- Log errors appropriately
 
 ## Performance
 - Use lazy loading for routes and components
 - Implement proper memoization with React.memo
 - Use Redux selectors for efficient state access
 - Optimize images and assets
+- Use proper bundle splitting
 
 ## Testing
 - Write unit tests for utility functions
 - Test components with React Testing Library
 - Mock external dependencies properly
 - Test offline scenarios
+- Test both online and offline functionality
 
 ## Common Commands
 ```bash
 # Development
 yarn dev                    # Start both client and worker
-yarn client:start          # Start Expo dev server
-yarn worker:dev            # Start worker dev server
+yarn start                  # Start Expo dev server
+yarn wrangler:dev          # Start worker dev server
 
 # Database
 yarn db:generate           # Generate migrations
 yarn db:migrate            # Apply migrations
 yarn db:studio             # Open Drizzle Studio
 
+# Code Quality
+yarn lint                  # Run ESLint
+yarn lint:fix              # Fix ESLint issues
+yarn format                # Format with Prettier
+yarn type-check            # TypeScript type checking
+
 # Deployment
-yarn worker:deploy         # Deploy worker to Cloudflare
-yarn client:android        # Build Android app
-yarn client:ios            # Build iOS app
+yarn wrangler:deploy       # Deploy worker to Cloudflare
+yarn build:debug           # Build debug Android app
+yarn build:release         # Build release Android app
 ```
 
 ## File Naming Conventions
@@ -133,6 +173,7 @@ yarn client:ios            # Build iOS app
 - Utilities: camelCase (e.g., `formatDate.ts`)
 - Constants: SCREAMING_SNAKE_CASE (e.g., `API_ENDPOINTS.ts`)
 - Types: PascalCase (e.g., `UserTypes.ts`)
+- Worker files: camelCase (e.g., `worker.ts`)
 
 ## Import Order
 1. React and React Native imports
@@ -147,6 +188,7 @@ yarn client:ios            # Build iOS app
 - Keep components small and focused
 - Extract reusable logic into custom hooks
 - Use proper separation of concerns
+- Keep worker code in `worker.ts`
 
 ## Security Considerations
 - Validate all user inputs
@@ -154,6 +196,7 @@ yarn client:ios            # Build iOS app
 - Implement secure token generation
 - Handle sensitive data appropriately
 - Follow OWASP security guidelines
+- Use HTTPS in production
 
 ## Accessibility
 - Use proper semantic HTML elements
@@ -161,6 +204,7 @@ yarn client:ios            # Build iOS app
 - Ensure keyboard navigation works
 - Test with screen readers
 - Maintain proper color contrast
+- Support RTL layouts
 
 ## Internationalization
 - Use react-i18next for all text content
@@ -168,6 +212,7 @@ yarn client:ios            # Build iOS app
 - Use proper date and number formatting
 - Test with different languages
 - Provide fallback translations
+- Use proper Persian text handling
 
 ## When Making Changes
 1. Follow existing patterns and conventions
@@ -176,7 +221,8 @@ yarn client:ios            # Build iOS app
 4. Include loading states where appropriate
 5. Test both online and offline scenarios
 6. Ensure i18n support for new text
-7. Update documentation if needed
+7. Run linting and formatting
+8. Update documentation if needed
 
 ## Common Patterns to Follow
 
@@ -236,4 +282,34 @@ export const { actionName } = slice.actions;
 export default slice.reducer;
 ```
 
-Remember: Always prioritize type safety, offline functionality, and user experience in this travel application.
+### Worker Pattern
+```typescript
+export interface Env {
+  DB: D1Database;
+  SUBSCRIPTION_POOL: DurableObjectNamespace;
+}
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+    // Worker logic
+  },
+};
+```
+
+## Environment-Specific Considerations
+
+### Client (React Native)
+- Use Expo APIs for platform-specific functionality
+- Handle offline scenarios gracefully
+- Implement proper error boundaries
+- Use Redux for state management
+- Support both iOS and Android
+
+### Worker (Cloudflare Workers)
+- Use Cloudflare-specific APIs
+- Handle D1 database operations
+- Implement GraphQL subscriptions
+- Use proper error handling
+- Optimize for edge computing
+
+Remember: Always prioritize type safety, offline functionality, code quality, and user experience in this travel application.

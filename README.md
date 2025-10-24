@@ -1,6 +1,6 @@
 # Safarnak App
 
-A full-stack travel application with offline-first capabilities, built with Expo React Native and Cloudflare Workers.
+A full-stack travel application with offline-first capabilities, built with Expo React Native and Cloudflare Workers in a unified single-root architecture.
 
 ## 🚀 Quick Start
 
@@ -12,7 +12,7 @@ yarn install
 yarn dev
 
 # Run on Android device
-yarn client:android
+yarn android
 
 # Build Persian apps
 yarn build:debug      # تسفرناک (debug APK)
@@ -49,29 +49,32 @@ yarn build:release     # سقرناک (release APK)
 
 ### Shared
 - **TypeScript** - Full type safety
-- **Yarn Workspaces** - Monorepo management
+- **ESLint + Prettier** - Code quality and formatting
 - **Drizzle ORM** - Unified database schema
 
 ## 📁 Project Structure
 
 ```
 safarnak.app/
-├── client/                 # 📱 Expo React Native app
-│   ├── app/               # Expo Router pages
-│   ├── components/         # UI components
-│   ├── redux/             # Redux store
-│   ├── api/               # GraphQL client
-│   ├── app.config.js      # Dynamic app configuration
-│   ├── eas.json           # EAS build profiles
-│   └── android/           # Android native code
-├── worker/                # ⚡ Cloudflare Worker
-│   ├── src/               # Worker source
-│   ├── drizzle/           # Database schemas & migrations
-│   ├── drizzle.config.ts  # Worker DB config
-│   └── wrangler.toml      # Cloudflare config
+├── app/                   # 📱 Expo Router pages
+├── components/            # UI components
+├── api/                   # GraphQL client utilities
+├── hooks/                 # Custom React hooks
+├── store/                 # Redux store
+├── redux/                 # Redux slices
+├── assets/                # Images, fonts, etc.
+├── android/               # Android native code
+├── ios/                   # iOS native code
+├── worker.ts              # ⚡ Cloudflare Worker entry
+├── drizzle/               # 🗄️ Database schemas & migrations
 ├── graphql/               # 📡 Shared GraphQL definitions
-├── drizzle/               # 🗄️ Shared database schemas
-└── package.json           # Root workspace config
+├── app.config.js          # Dynamic app configuration
+├── eas.json               # EAS build profiles
+├── wrangler.toml          # Cloudflare Worker config
+├── drizzle.config.ts      # Database config
+├── eslint.config.js       # ESLint flat config
+├── .prettierrc            # Prettier config
+└── package.json           # Root package config
 ```
 
 ## 🎯 Key Features
@@ -82,50 +85,69 @@ safarnak.app/
 - **Internationalization**: English and Persian (RTL)
 - **Type Safety**: Full TypeScript coverage
 - **Modern UI**: Custom components with theme support
+- **Unified Architecture**: Single-root monorepo structure
 
 ## 📋 Available Scripts
 
 ### 🚀 Development Commands
-| Command | Description |
-|---------|-------------|
-| `yarn dev` | Start both worker and client (full development) |
-| `yarn client:start` | Start Expo dev server only |
-| `yarn client:android` | Run on Android device/emulator |
-| `yarn client:ios` | Run on iOS device/simulator |
-| `yarn client:web` | Run in web browser |
+
+| Command               | Description                                     |
+| --------------------- | ----------------------------------------------- |
+| `yarn dev`            | Start both worker and client (full development) |
+| `yarn start`          | Start Expo dev server only                      |
+| `yarn android`        | Run on Android device/emulator                  |
+| `yarn ios`            | Run on iOS device/simulator                     |
+| `yarn web`            | Run in web browser                              |
 
 ### 📱 Build Commands (Persian Apps)
-| Command | Description |
-|---------|-------------|
-| `yarn build:debug` | Build debug APK (تسفرناک) |
-| `yarn build:release` | Build release APK (سقرناک) |
-| `yarn build:debug:ios` | Build debug iOS (تسفرناک) |
+
+| Command                  | Description                |
+| ------------------------ | -------------------------- |
+| `yarn build:debug`       | Build debug APK (تسفرناک)  |
+| `yarn build:release`     | Build release APK (سقرناک) |
+| `yarn build:debug:ios`   | Build debug iOS (تسفرناک)  |
 | `yarn build:release:ios` | Build release iOS (سقرناک) |
 
 ### 🔧 Worker & Database Commands
-| Command | Description |
-|---------|-------------|
-| `yarn worker:dev` | Start Cloudflare Worker dev server |
-| `yarn worker:deploy` | Deploy worker to Cloudflare |
-| `yarn db:generate` | Generate database migrations |
-| `yarn db:migrate` | Run database migrations |
-| `yarn db:studio` | Open Drizzle Studio |
+
+| Command              | Description                        |
+| -------------------- | ---------------------------------- |
+| `yarn wrangler:dev` | Start Cloudflare Worker dev server |
+| `yarn wrangler:deploy` | Deploy worker to Cloudflare        |
+| `yarn db:generate`  | Generate database migrations       |
+| `yarn db:migrate`   | Run database migrations            |
+| `yarn db:studio`    | Open Drizzle Studio                |
+
+### 🔍 Code Quality Commands
+
+| Command              | Description                        |
+| -------------------- | ---------------------------------- |
+| `yarn lint`          | Run ESLint on all files           |
+| `yarn lint:fix`      | Fix ESLint issues automatically   |
+| `yarn lint:worker`   | Lint worker code only             |
+| `yarn lint:client`   | Lint client code only             |
+| `yarn format`        | Format code with Prettier         |
+| `yarn format:check`  | Check code formatting             |
+| `yarn type-check`    | Run TypeScript type checking      |
 
 ### 🧹 Utility Commands
-| Command | Description |
-|---------|-------------|
-| `yarn clean` | Clear databases, cache, and build artifacts |
+
+| Command          | Description                                    |
+| ---------------- | ---------------------------------------------- |
+| `yarn clean`     | Clear databases, cache, and build artifacts    |
 | `yarn clean:all` | Clear everything including global Gradle cache |
 
 ## 🔧 Development
 
 ### Prerequisites
+
 - Node.js 18+
 - Yarn
 - Expo CLI (`npm install -g @expo/cli`)
 - Wrangler CLI (`npm install -g wrangler`)
 
 ### Setup
+
 ```bash
 # Install dependencies
 yarn install
@@ -141,15 +163,17 @@ yarn dev
 ```
 
 ### Path Aliases
-- `@drizzle/*` → `../drizzle/*` (shared database schemas)
-- `@graphql/*` → `../graphql/*` (shared GraphQL definitions)
-- `@/*` → `./*` (client-specific files)
+
+- `@/*` → `./*` (root files)
+- `@components/*` → `./components/*` (UI components)
+- `@graphql/*` → `./graphql/*` (shared GraphQL definitions)
 
 ### App Configurations
+
 The app supports different configurations based on the build mode:
 
 #### Development Mode (تسفرناک)
-- **Command**: `yarn client:android`, `yarn client:ios`, `yarn client:web`
+- **Command**: `yarn android`, `yarn ios`, `yarn web`
 - **App Name**: تسفرناک (Persian)
 - **Package ID**: `ir.mohet.safarnak_debug`
 - **GraphQL URL**: `http://192.168.1.51:8787/graphql` (local development)
@@ -171,11 +195,13 @@ The app supports different configurations based on the build mode:
 ## 🌐 Deployment
 
 ### Worker (Backend)
+
 ```bash
-yarn worker:deploy
+yarn wrangler:deploy
 ```
 
 ### Client Apps (Persian Names)
+
 ```bash
 # Build debug APK (تسفرناک)
 yarn build:debug
@@ -189,20 +215,22 @@ yarn build:release:ios
 ```
 
 ### Development Testing
+
 ```bash
 # Run on Android device/emulator
-yarn client:android
+yarn android
 
 # Run on iOS device/simulator
-yarn client:ios
+yarn ios
 
 # Run in web browser
-yarn client:web
+yarn web
 ```
 
 ## 🔧 Troubleshooting
 
 ### Build Issues
+
 ```bash
 # Clear all caches and build artifacts
 yarn clean:all
@@ -212,6 +240,7 @@ yarn build:debug
 ```
 
 ### Development Issues
+
 ```bash
 # Clear project cache
 yarn clean
@@ -221,25 +250,21 @@ yarn dev
 ```
 
 ### Common Problems
+
 - **Build fails**: Run `yarn clean:all` before building
 - **App won't install**: Check if both debug/release apps are installed (different package IDs)
-- **GraphQL connection issues**: Verify worker is running with `yarn worker:dev`
+- **GraphQL connection issues**: Verify worker is running with `yarn wrangler:dev`
 - **Metro bundler issues**: Clear cache with `yarn clean` and restart
-
-## 📚 Documentation
-
-- [Commands Reference](./COMMANDS.md) - Complete command reference
-- [Project Specifications](./PROJECT_SPECIFICATIONS.md) - Detailed project overview
-- [Development Guidelines](./DEVELOPMENT_GUIDELINES.md) - Development setup and practices
-- [Design Patterns](./DESIGN_PATTERNS.md) - Architecture patterns and best practices
+- **Linting issues**: Run `yarn lint:fix` to auto-fix problems
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+4. Run `yarn lint:fix` and `yarn format` to ensure code quality
+5. Test thoroughly
+6. Submit a pull request
 
 ## 📄 License
 

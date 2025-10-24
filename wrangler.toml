@@ -1,0 +1,26 @@
+name = "safarnak-worker"
+main = "worker.ts"
+compatibility_date = "2025-10-20"
+workers_dev = true
+
+# Development server configuration
+[dev]
+port = 8787
+host = "0.0.0.0"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "my-d1-db"
+database_id = "e4dd65e6-4417-4c6e-b1f8-5e96f3d22643"
+migrations_dir = "drizzle/migrations"
+
+[durable_objects]
+bindings = [
+  { name = "SUBSCRIPTION_POOL", class_name = "SubscriptionPool" }
+]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SubscriptionPool"]
+
+

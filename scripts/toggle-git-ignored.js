@@ -4,28 +4,33 @@ const fs = require('fs');
 const path = require('path');
 
 const SETTINGS_FILE = path.join(__dirname, '..', '.vscode', 'settings.json');
-const BACKUP_FILE = path.join(__dirname, '..', '.vscode', 'settings.backup.json');
+const BACKUP_FILE = path.join(
+  __dirname,
+  '..',
+  '.vscode',
+  'settings.backup.json'
+);
 
 // Git-ignored patterns to hide/show
 const GIT_IGNORED_PATTERNS = {
-  "**/node_modules": true,
-  "**/.expo": true,
-  "**/.wrangler": true,
-  "**/android/build": true,
-  "**/ios/build": true,
-  "**/drizzle/migrations": true,
-  "**/.git": true,
-  "**/dist": true,
-  "**/build": true,
-  "**/.next": true,
-  "**/coverage": true,
-  "**/.nyc_output": true,
-  "**/client/db.db*": true,
-  "**/worker/.wrangler": true,
-  "**/yarn-error.log": true,
-  "**/npm-debug.log*": true,
-  "**/.DS_Store": true,
-  "**/Thumbs.db": true
+  '**/node_modules': true,
+  '**/.expo': true,
+  '**/.wrangler': true,
+  '**/android/build': true,
+  '**/ios/build': true,
+  '**/drizzle/migrations': true,
+  '**/.git': true,
+  '**/dist': true,
+  '**/build': true,
+  '**/.next': true,
+  '**/coverage': true,
+  '**/.nyc_output': true,
+  '**/client/db.db*': true,
+  '**/worker/.wrangler': true,
+  '**/yarn-error.log': true,
+  '**/npm-debug.log*': true,
+  '**/.DS_Store': true,
+  '**/Thumbs.db': true,
 };
 
 function loadSettings() {
@@ -46,7 +51,7 @@ function saveSettings(settings) {
     if (!fs.existsSync(vscodeDir)) {
       fs.mkdirSync(vscodeDir, { recursive: true });
     }
-    
+
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(settings, null, 2));
     console.log('✅ Settings updated successfully');
   } catch (error) {
@@ -65,63 +70,75 @@ function backupSettings(settings) {
 
 function toggleGitIgnoredFiles() {
   const settings = loadSettings();
-  
+
   // Check if git-ignored files are currently hidden
   const filesExclude = settings['files.exclude'] || {};
-  const isCurrentlyHidden = Object.keys(GIT_IGNORED_PATTERNS).some(pattern => 
-    filesExclude[pattern] === true
+  const isCurrentlyHidden = Object.keys(GIT_IGNORED_PATTERNS).some(
+    pattern => filesExclude[pattern] === true
   );
-  
+
   if (isCurrentlyHidden) {
     // Show git-ignored files
     console.log('👁️  Showing git-ignored files...');
-    
+
     // Remove git-ignored patterns from exclusions
     const newFilesExclude = { ...filesExclude };
     const newSearchExclude = { ...(settings['search.exclude'] || {}) };
     const newWatcherExclude = { ...(settings['files.watcherExclude'] || {}) };
-    
+
     Object.keys(GIT_IGNORED_PATTERNS).forEach(pattern => {
       delete newFilesExclude[pattern];
       delete newSearchExclude[pattern];
       delete newWatcherExclude[pattern];
     });
-    
+
     settings['files.exclude'] = newFilesExclude;
     settings['search.exclude'] = newSearchExclude;
     settings['files.watcherExclude'] = newWatcherExclude;
-    
   } else {
     // Hide git-ignored files
     console.log('🙈 Hiding git-ignored files...');
-    
+
     // Add git-ignored patterns to exclusions
-    settings['files.exclude'] = { ...(settings['files.exclude'] || {}), ...GIT_IGNORED_PATTERNS };
-    settings['search.exclude'] = { ...(settings['search.exclude'] || {}), ...GIT_IGNORED_PATTERNS };
-    settings['files.watcherExclude'] = { ...(settings['files.watcherExclude'] || {}), ...GIT_IGNORED_PATTERNS };
+    settings['files.exclude'] = {
+      ...(settings['files.exclude'] || {}),
+      ...GIT_IGNORED_PATTERNS,
+    };
+    settings['search.exclude'] = {
+      ...(settings['search.exclude'] || {}),
+      ...GIT_IGNORED_PATTERNS,
+    };
+    settings['files.watcherExclude'] = {
+      ...(settings['files.watcherExclude'] || {}),
+      ...GIT_IGNORED_PATTERNS,
+    };
   }
-  
+
   // Backup current settings before changing
   backupSettings(settings);
-  
+
   // Save new settings
   saveSettings(settings);
-  
-  console.log(`\n${isCurrentlyHidden ? '👁️  Git-ignored files are now VISIBLE' : '🙈 Git-ignored files are now HIDDEN'}`);
+
+  console.log(
+    `\n${isCurrentlyHidden ? '👁️  Git-ignored files are now VISIBLE' : '🙈 Git-ignored files are now HIDDEN'}`
+  );
   console.log('🔄 Please reload Cursor/VS Code window to see changes');
 }
 
 function showStatus() {
   const settings = loadSettings();
   const filesExclude = settings['files.exclude'] || {};
-  
-  const isHidden = Object.keys(GIT_IGNORED_PATTERNS).some(pattern => 
-    filesExclude[pattern] === true
+
+  const isHidden = Object.keys(GIT_IGNORED_PATTERNS).some(
+    pattern => filesExclude[pattern] === true
   );
-  
+
   console.log(`\n📊 Current Status:`);
-  console.log(`Git-ignored files are: ${isHidden ? '🙈 HIDDEN' : '👁️  VISIBLE'}`);
-  
+  console.log(
+    `Git-ignored files are: ${isHidden ? '🙈 HIDDEN' : '👁️  VISIBLE'}`
+  );
+
   if (isHidden) {
     console.log('\nHidden patterns:');
     Object.keys(GIT_IGNORED_PATTERNS).forEach(pattern => {
@@ -166,17 +183,17 @@ switch (command.toLowerCase()) {
     const filesExclude = { ...(settings['files.exclude'] || {}) };
     const searchExclude = { ...(settings['search.exclude'] || {}) };
     const watcherExclude = { ...(settings['files.watcherExclude'] || {}) };
-    
+
     Object.keys(GIT_IGNORED_PATTERNS).forEach(pattern => {
       delete filesExclude[pattern];
       delete searchExclude[pattern];
       delete watcherExclude[pattern];
     });
-    
+
     settings['files.exclude'] = filesExclude;
     settings['search.exclude'] = searchExclude;
     settings['files.watcherExclude'] = watcherExclude;
-    
+
     backupSettings(settings);
     saveSettings(settings);
     console.log('✅ Git-ignored files are now VISIBLE');
@@ -184,10 +201,19 @@ switch (command.toLowerCase()) {
   case 'hide':
     console.log('🙈 Hiding git-ignored files...');
     const hideSettings = loadSettings();
-    hideSettings['files.exclude'] = { ...(hideSettings['files.exclude'] || {}), ...GIT_IGNORED_PATTERNS };
-    hideSettings['search.exclude'] = { ...(hideSettings['search.exclude'] || {}), ...GIT_IGNORED_PATTERNS };
-    hideSettings['files.watcherExclude'] = { ...(hideSettings['files.watcherExclude'] || {}), ...GIT_IGNORED_PATTERNS };
-    
+    hideSettings['files.exclude'] = {
+      ...(hideSettings['files.exclude'] || {}),
+      ...GIT_IGNORED_PATTERNS,
+    };
+    hideSettings['search.exclude'] = {
+      ...(hideSettings['search.exclude'] || {}),
+      ...GIT_IGNORED_PATTERNS,
+    };
+    hideSettings['files.watcherExclude'] = {
+      ...(hideSettings['files.watcherExclude'] || {}),
+      ...GIT_IGNORED_PATTERNS,
+    };
+
     backupSettings(hideSettings);
     saveSettings(hideSettings);
     console.log('✅ Git-ignored files are now HIDDEN');
