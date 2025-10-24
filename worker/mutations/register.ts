@@ -64,11 +64,7 @@ export const register = async (
   const userId = result.id;
 
   // Get the created user
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .get();
+  const user = await db.select().from(users).where(eq(users.id, userId)).get();
 
   if (!user) {
     throw new Error('Failed to retrieve created user');

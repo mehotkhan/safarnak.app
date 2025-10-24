@@ -87,7 +87,7 @@ export async function verifyPassword(
 
     // Compare hashes using constant-time comparison
     const derivedHash = new Uint8Array(derivedBits);
-    
+
     if (derivedHash.length !== storedHashBytes.length) {
       return false;
     }
@@ -116,10 +116,10 @@ export async function generateToken(
 ): Promise<string> {
   const timestamp = Date.now();
   const data = new TextEncoder().encode(`${userId}-${username}-${timestamp}`);
-  
+
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = new Uint8Array(hashBuffer);
-  
+
   return Array.from(hashArray)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');

@@ -28,11 +28,7 @@ export const resolvers = {
   Subscription,
 };
 
-// Re-export individual resolvers for direct access
-export { Query, getMessages, me } from './queries';
-export { Mutation, addMessage, register, login } from './mutations';
-export { Subscription, newMessages } from './subscriptions';
-export { hashPassword, verifyPassword, generateToken } from './utilities/utils';
+// Re-export types for external use (if needed)
 export type { Env, ResolverContext } from './types';
 
 // ============================================================================
@@ -90,11 +86,7 @@ const subscriptionsFetch = handleSubscriptions({
 });
 
 // Redirect root path to GraphQL endpoint for convenience
-const fetch = (
-  request: Request,
-  env: Env,
-  executionCtx: ExecutionContext
-) => {
+const fetch = (request: Request, env: Env, executionCtx: ExecutionContext) => {
   const url = new URL(request.url);
   if (url.pathname === '/' || url.pathname === '') {
     return Response.redirect(url.origin + '/graphql', 302);

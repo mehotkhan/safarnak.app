@@ -38,7 +38,7 @@ export const login = async (
 
   // Verify password using PBKDF2
   const isValidPassword = await verifyPassword(password, user.passwordHash);
-  
+
   if (!isValidPassword) {
     throw new Error('Invalid username or password');
   }

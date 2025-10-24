@@ -24,4 +24,3 @@ export type ResolverFn<TArgs = unknown, TResult = unknown> = (
   args: TArgs,
   context: ResolverContext
 ) => Promise<TResult> | TResult;
-

@@ -18,9 +18,9 @@ export const addMessage = async (
 ) => {
   const db = drizzle(context.env.DB);
   const id = crypto.randomUUID();
-  
+
   await db.insert(messages).values({ id, content }).run();
-  
+
   const newMsg = await db
     .select()
     .from(messages)
