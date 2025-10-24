@@ -28,7 +28,7 @@ on:
 env:
   NODE_VERSION: '20'
   JAVA_VERSION: '17'
-  GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dkotlin.compiler.execution.strategy=in-process'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=true -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dkotlin.compiler.execution.strategy=in-process'
   NODE_ENV: 'production'
   # Environment variables for the app
   GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
@@ -41,10 +41,15 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Free disk space
         run: |
@@ -60,19 +65,9 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'yarn'
 
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            node_modules
-            ~/.cache/yarn
-          key: ${{ runner.os }}-deps-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
-
       - name: Install dependencies (workspaces)
         run: |
-          yarn install --frozen-lockfile --network-timeout 100000
+          yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
 
       - name: Expo prebuild (only when native changes)
         if: |
@@ -97,19 +92,14 @@ jobs:
           # Skip emulator to speed up build
           skip-emulator: true
           # Only install essential components for APK building
-          api-level: 34
-          build-tools: 34.0.0
+          api-level: 36
+          build-tools: 36.0.0
 
-      - name: Cache Gradle (wrapper and caches)
-        uses: actions/cache@v4
+      - name: Setup Gradle (build cache & config cache)
+        uses: gradle/actions/setup-gradle@v3
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-            android/.gradle
-          key: ${{ runner.os }}-gradle-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-
+          cache-read-only: false
+          add-job-summary: false
 
       - name: Cache Metro bundler
         uses: actions/cache@v4
@@ -130,20 +120,13 @@ jobs:
           cd android
           ./gradlew --version --no-daemon
 
-      - name: Clean Android build
-        run: |
-          cd android
-          ./gradlew clean --no-daemon
-
       - name: Build Android APK
         run: |
           cd android
           ./gradlew assembleRelease \
-            --no-daemon \
             --max-workers=4 \
             --build-cache \
             --parallel \
-            --configure-on-demand \
             --stacktrace \
             -Pandroid.enablePngCrunchInReleaseBuilds=false \
             -Pandroid.enableMinifyInReleaseBuilds=false \
