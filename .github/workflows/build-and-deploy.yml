@@ -100,7 +100,7 @@ jobs:
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: false
+          cache-read-only: true
           add-job-summary: never
 
       - name: Cache Metro bundler
@@ -156,6 +156,7 @@ jobs:
         id: create_release
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.RELEASE_TOKEN && secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
           script: |
             const release = await github.rest.repos.createRelease({
               owner: context.repo.owner,
@@ -214,6 +215,8 @@ jobs:
 
       - name: Upload APK to GitHub Release
         uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN && secrets.RELEASE_TOKEN || secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.result }}
           asset_path: ${{ steps.find_apk.outputs.apk_path }}
