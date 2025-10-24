@@ -4,7 +4,6 @@ module.exports = function(api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      ['babel-plugin-inline-import', { extensions: ['.sql'] }],
       prod && ['transform-remove-console', { exclude: ['error', 'warn'] }],
     ].filter(Boolean),
   };
