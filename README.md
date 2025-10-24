@@ -17,6 +17,28 @@
 - **🎨 Modern UI** - Custom components with dark mode support
 - **📊 Type-Safe** - Full TypeScript coverage across client and server
 
+## 🔧 Environment Variables
+
+The app uses environment variables for configuration. Copy `.env.example` to `.env` and customize:
+
+```bash
+cp .env.example .env
+```
+
+### Available Variables
+
+- `GRAPHQL_URL` - Production GraphQL endpoint (default: `https://safarnak.mohet.ir/graphql`)
+- `GRAPHQL_URL_DEV` - Development GraphQL endpoint (default: `http://192.168.1.51:8787/graphql`)
+- `APP_NAME` - Application name
+- `APP_SCHEME` - Deep linking scheme
+- `BUNDLE_IDENTIFIER` - App bundle identifier
+
+### Environment Priority
+
+1. **EAS Build Variables** - Set in `eas.json` for builds
+2. **Process Environment** - From `.env` file
+3. **Hardcoded Fallbacks** - Development/production defaults
+
 ## 🚀 Quick Start
 
 ```bash

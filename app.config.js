@@ -98,8 +98,10 @@ const getAppConfig = () => {
         eas: {
           projectId: '90632384-6918-4b7a-bbab-e0998b4a4b63',
         },
-        graphqlUrl:
-          process.env.GRAPHQL_URL || 'http://192.168.1.51:8787/graphql',
+        graphqlUrl: process.env.GRAPHQL_URL || 'https://safarnak.mohet.ir/graphql',
+        appName: process.env.APP_NAME || appName,
+        appScheme: process.env.APP_SCHEME || scheme,
+        bundleIdentifier: process.env.BUNDLE_IDENTIFIER || bundleIdentifier,
       },
     },
   };

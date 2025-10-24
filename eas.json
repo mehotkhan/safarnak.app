@@ -18,6 +18,7 @@
         "APP_NAME": "تسفرناک",
         "APP_SCHEME": "safarnak-debug",
         "GRAPHQL_URL": "http://192.168.1.51:8787/graphql",
+        "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql",
         "BUNDLE_IDENTIFIER": "ir.mohet.safarnak_debug"
       }
     },
@@ -33,6 +34,7 @@
         "APP_NAME": "سقرناک",
         "APP_SCHEME": "safarnak",
         "GRAPHQL_URL": "https://safarnak.mohet.ir/graphql",
+        "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql",
         "BUNDLE_IDENTIFIER": "ir.mohet.safarnak"
       }
     },
@@ -44,7 +46,8 @@
       "env": {
         "APP_NAME": "Safarnak Preview",
         "APP_SCHEME": "safarnak-preview",
-        "GRAPHQL_URL": "https://safarnak-worker.mehot1.workers.dev/graphql"
+        "GRAPHQL_URL": "https://safarnak-worker.mehot1.workers.dev/graphql",
+        "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql"
       }
     }
   },

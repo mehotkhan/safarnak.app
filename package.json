@@ -18,7 +18,7 @@
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",
     "format": "prettier --write .",
-    "clean": "rm -rf .wrangler db.db* node_modules/.cache android/.gradle android/build android/app/build .expo && echo 'Cleared databases, cache, and build artifacts'"
+    "clean": "rm -rf .wrangler db.db* nodemm_modules/.cache android/.gradle android/build android/app/build .expo && echo 'Cleared databases, cache, and build artifacts'"
   },
   "dependencies": {
     "@apollo/client": "3.8.0",

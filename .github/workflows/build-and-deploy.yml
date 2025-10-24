@@ -30,6 +30,11 @@ env:
   JAVA_VERSION: '17'
   GRADLE_OPTS: '-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dkotlin.compiler.execution.strategy=in-process'
   NODE_ENV: 'production'
+  # Environment variables for the app
+  GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
+  APP_NAME: 'سقرناک'
+  APP_SCHEME: 'safarnak'
+  BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
 
 jobs:
   build-android:

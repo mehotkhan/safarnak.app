@@ -5,21 +5,34 @@ import Constants from 'expo-constants';
 
 // Get GraphQL URL from environment variables or fallback to defaults
 const getGraphQLURI = (): string => {
-  // Check if we have environment variables from EAS build
+  // Priority 1: Check EAS build environment variables
   const envGraphQLUrl = Constants.expoConfig?.extra?.graphqlUrl;
   if (envGraphQLUrl) {
     console.log('Using EAS GraphQL URL:', envGraphQLUrl);
     return envGraphQLUrl;
   }
 
-  // Fallback to development/production detection
+  // Priority 2: Check process.env variables (from .env file)
+  const processEnvGraphQLUrl = process.env.GRAPHQL_URL;
+  if (processEnvGraphQLUrl) {
+    console.log('Using process.env GraphQL URL:', processEnvGraphQLUrl);
+    return processEnvGraphQLUrl;
+  }
+
+  // Priority 3: Fallback to development/production detection
   if (process.env.NODE_ENV === 'development') {
-    // Development - use your local network IP
-    console.log('Using development GraphQL URL');
+    // Check for development-specific URL
+    const devUrl = process.env.GRAPHQL_URL_DEV;
+    if (devUrl) {
+      console.log('Using development GraphQL URL from env:', devUrl);
+      return devUrl;
+    }
+    // Fallback to hardcoded development URL
+    console.log('Using hardcoded development GraphQL URL');
     return 'http://192.168.1.51:8787/graphql';
   } else {
     // Production - use your custom domain
-    console.log('Using production GraphQL URL');
+    console.log('Using hardcoded production GraphQL URL');
     return 'https://safarnak.mohet.ir/graphql';
   }
 };
