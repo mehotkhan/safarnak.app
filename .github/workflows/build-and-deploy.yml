@@ -145,9 +145,7 @@ jobs:
             -Pandroid.enableMinifyInReleaseBuilds=false \
             -Pandroid.enableShrinkResourcesInReleaseBuilds=false \
             -x lint \
-            -x lintVitalAnalyzeRelease \
-            -x lintVitalReportRelease \
-            -x lintVitalRelease
+            -x lintVitalAnalyzeRelease
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
