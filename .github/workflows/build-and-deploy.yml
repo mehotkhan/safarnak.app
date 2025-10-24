@@ -92,10 +92,7 @@ jobs:
           accept-android-sdk-licenses: true
           log-accepted-android-sdk-licenses: false
           # Only install essential components for APK building (no emulator)
-          packages: |
-            platforms;android-36
-            build-tools;36.0.0
-            platform-tools
+          packages: 'platforms;android-36 build-tools;36.0.0 platform-tools'
 
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
