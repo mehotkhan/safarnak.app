@@ -101,6 +101,7 @@ jobs:
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
         with:
+          cache-disabled: true
           cache-read-only: ${{ github.event_name == 'pull_request' }}
           add-job-summary: never
         continue-on-error: true
