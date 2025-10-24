@@ -53,7 +53,10 @@ const getAppConfig = () => {
       icon: './assets/images/icon.png',
       scheme: scheme,
       userInterfaceStyle: 'automatic',
-      newArchEnabled: false,
+      // Enable New Architecture for debug and local development builds, or when explicitly overridden
+      // Set NEW_ARCH=1 (or 'true') to force-enable in any profile
+      newArchEnabled:
+        (process.env.NEW_ARCH === '1' || process.env.NEW_ARCH === 'true') || isDebug || isDevelopment,
       splash: {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',

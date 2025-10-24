@@ -89,13 +89,13 @@ Safarnak uses a **unified single-root monorepo** architecture where both client 
 
 ```
 safarnak.app/
-├── worker.ts              # ⚡ Cloudflare Worker entry point
-├── resolvers/             # 🔧 GraphQL resolvers (server-side only)
-│   ├── queries.ts         # Query resolvers (getMessages, me)
-│   ├── mutations.ts       # Mutation resolvers (register, login, addMessage)
-│   ├── subscriptions.ts   # Subscription resolvers (newMessages)
-│   ├── utils.ts           # Password hashing, token generation
-│   └── index.ts           # Combined resolver exports
+├── worker/                # ⚡ Cloudflare Worker (server-side only)
+│   ├── index.ts           # Worker entry point + resolver exports
+│   ├── types.ts           # Shared resolver types
+│   ├── queries/           # Query resolvers (getMessages, me)
+│   ├── mutations/         # Mutation resolvers (register, login, addMessage)
+│   ├── subscriptions/     # Subscription resolvers (newMessages)
+│   └── utilities/         # Password hashing, token generation
 ├── graphql/               # 📡 Shared GraphQL (client & worker)
 │   ├── schema.ts          # GraphQL type definitions
 │   ├── queries.ts         # Client-side query strings
@@ -208,6 +208,8 @@ TypeScript and Metro are configured with the following path aliases:
 "@/*"           → "./*"              // Root files
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL
+"@drizzle/*"    → "./drizzle/*"      // Database schema
+"@worker/*"     → "./worker/*"       // Worker resolvers
 ```
 
 ### Environment Variables

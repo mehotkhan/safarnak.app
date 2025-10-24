@@ -84,10 +84,24 @@ const baseFetch = (
     })
   );
 
-const fetch = handleSubscriptions({
+const subscriptionsFetch = handleSubscriptions({
   fetch: baseFetch,
   ...settings,
 });
+
+// Redirect root path to GraphQL endpoint for convenience
+const fetch = (
+  request: Request,
+  env: Env,
+  executionCtx: ExecutionContext
+) => {
+  const url = new URL(request.url);
+  if (url.pathname === '/' || url.pathname === '') {
+    return Response.redirect(url.origin + '/graphql', 302);
+  }
+
+  return subscriptionsFetch(request, env, executionCtx);
+};
 
 // ============================================================================
 // Cloudflare Worker Exports
