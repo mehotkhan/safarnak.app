@@ -1,23 +1,26 @@
-# 🌍 Safarnak App
+# 🌍 Safarnak
 
-> A full-stack offline-first travel application built with Expo React Native and Cloudflare Workers
+> **سفرناک** - A modern offline-first travel companion built with Expo React Native and Cloudflare Workers
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
 [![React Native](https://img.shields.io/badge/React%20Native-0.81.5-green)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-~54-purple)](https://expo.dev/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
-## ✨ Features
+**Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
+
+## ✨ Key Features
 
 - **🌐 Offline-First** - Works seamlessly without internet connection
-- **⚡ Real-Time** - GraphQL subscriptions for live updates
+- **⚡ Real-Time** - GraphQL subscriptions for live updates  
 - **📱 Cross-Platform** - iOS, Android, and Web support
-- **🌍 i18n** - English and Persian (Farsi) with RTL support
-- **🔐 Secure Auth** - PBKDF2 password hashing with token-based authentication
+- **🌍 Bilingual** - English and Persian (Farsi) with RTL support
+- **🔐 Secure** - PBKDF2 password hashing with token-based authentication
 - **🎨 Modern UI** - Custom components with dark mode support
 - **📊 Type-Safe** - Full TypeScript coverage across client and server
-- **🚀 New Architecture** - React Native Fabric + TurboModules for better performance
+- **🚀 Performance** - React Native New Architecture (Fabric + TurboModules)
 
 ## 🔧 Environment Variables
 
@@ -44,7 +47,19 @@ cp .env.example .env
 
 ## 🚀 Quick Start
 
+### Prerequisites
+- Node.js 20+
+- Yarn package manager
+- Android Studio (for Android development)
+- Xcode (for iOS development, macOS only)
+
+### Installation
+
 ```bash
+# Clone the repository
+git clone https://github.com/mehotkhan/safarnak.app.git
+cd safarnak.app
+
 # Install dependencies
 yarn install
 
@@ -53,26 +68,20 @@ yarn db:migrate
 
 # Start development server (both client & worker)
 yarn dev
-
-# Or start separately:
-yarn worker:dev  # Start Cloudflare Worker (port 8787)
-yarn start       # Start Expo dev server (port 8081)
 ```
 
-### Run on Device
+### Development Commands
 
 ```bash
-# Android (Legacy Architecture)
-yarn android
+# Start services separately
+yarn worker:dev  # Cloudflare Worker (port 8787)
+yarn start       # Expo dev server (port 8081)
 
-# Android (New Architecture)
-yarn android:newarch
-
-# iOS  
-yarn ios
-
-# Web
-yarn web
+# Run on devices
+yarn android     # Android (Legacy Architecture)
+yarn android:newarch  # Android (New Architecture)
+yarn ios         # iOS (macOS only)
+yarn web         # Web browser
 ```
 
 ## 🏗️ Architecture
@@ -304,6 +313,18 @@ await i18n.changeLanguage('fa'); // or 'en'
 3. **Offline Queue** - Mutations queued when offline
 4. **Sync on Reconnect** - Automatic sync when connection restored
 
+## 📱 Download APK
+
+Get the latest release directly from GitHub:
+
+[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge)](https://github.com/mehotkhan/safarnak.app/releases/latest)
+
+### Installation Instructions
+1. Download the APK from the latest release
+2. Enable "Install from unknown sources" in Android settings
+3. Install the APK file
+4. Launch Safarnak and start exploring!
+
 ## 🚀 Deployment
 
 ### Deploy Worker
@@ -320,6 +341,11 @@ eas build:configure
 # Build for Android
 yarn build:release
 ```
+
+### Automated Builds
+- **GitHub Actions**: Automatically builds APK on every push to master
+- **Releases**: APK automatically uploaded to GitHub Releases
+- **Artifacts**: Build artifacts available for 30 days
 
 ## 🧪 Development Tips
 
@@ -339,12 +365,29 @@ yarn build:release
 
 ## 🤝 Contributing
 
-1. Follow the existing code style
-2. Use path aliases (`@/`, `@components/`, `@graphql/`)
-3. Run `yarn lint:fix` before committing
-4. Ensure TypeScript types are correct
-5. Test both online and offline scenarios
-6. Test both Legacy and New Architecture
+We welcome contributions! Please follow these guidelines:
+
+### Development Setup
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/safarnak.app.git`
+3. Install dependencies: `yarn install`
+4. Apply migrations: `yarn db:migrate`
+5. Start development: `yarn dev`
+
+### Code Standards
+- Follow existing code style and patterns
+- Use path aliases (`@/`, `@components/`, `@graphql/`)
+- Run `yarn lint:fix` before committing
+- Ensure TypeScript types are correct
+- Test both online and offline scenarios
+- Test both Legacy and New Architecture
+
+### Pull Request Process
+1. Create a feature branch from `master`
+2. Make your changes with clear commit messages
+3. Test thoroughly on both platforms
+4. Submit a pull request with a clear description
+5. Ensure all CI checks pass
 
 ## 📄 License
 
