@@ -44,6 +44,9 @@ jobs:
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: true
+    permissions:
+      contents: write
+      packages: write
 
     steps:
       - name: Checkout code
@@ -98,7 +101,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
         with:
           cache-read-only: false
-          add-job-summary: false
+          add-job-summary: never
 
       - name: Cache Metro bundler
         uses: actions/cache@v4
@@ -152,8 +155,6 @@ jobs:
         if: github.event_name != 'release'
         id: create_release
         uses: actions/github-script@v7
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           script: |
             const release = await github.rest.repos.createRelease({
@@ -213,8 +214,6 @@ jobs:
 
       - name: Upload APK to GitHub Release
         uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.result }}
           asset_path: ${{ steps.find_apk.outputs.apk_path }}
