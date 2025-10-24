@@ -89,11 +89,13 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '11076708'
-          # Skip emulator to speed up build
-          skip-emulator: true
-          # Only install essential components for APK building
-          api-level: 36
-          build-tools: 36.0.0
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+          # Only install essential components for APK building (no emulator)
+          packages: |
+            platforms;android-36
+            build-tools;36.0.0
+            platform-tools
 
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
