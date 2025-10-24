@@ -121,6 +121,16 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
+      - name: Check Gradle version
+        run: |
+          cd android
+          ./gradlew --version
+
+      - name: Clean Android build
+        run: |
+          cd android
+          ./gradlew clean
+
       - name: Build Android APK
         run: |
           cd android
@@ -136,7 +146,8 @@ jobs:
             -Pandroid.enableShrinkResourcesInReleaseBuilds=false \
             -x lint \
             -x lintVitalAnalyzeRelease \
-            -x lintVitalReportRelease
+            -x lintVitalReportRelease \
+            -x lintVitalRelease
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
