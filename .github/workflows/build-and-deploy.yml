@@ -147,74 +147,13 @@ jobs:
           echo "=== APK sizes ==="
           du -h *.apk 2>/dev/null || echo "No APK files to measure"
 
-      - name: Create GitHub Release
-        if: github.event_name != 'release'
-        id: create_release
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const release = await github.rest.repos.createRelease({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              tag_name: `v${context.runNumber}`,
-              name: `Safarnak Android v${context.runNumber}`,
-              body: `## Safarnak Android APK
-              
-              **Build Number**: ${context.runNumber}
-              **Commit**: ${context.sha}
-              **Branch**: ${context.ref.replace('refs/heads/', '')}
-              
-              ### Download
-              Download the APK file below to install on your Android device.
-              
-              ### Installation
-              1. Download the APK file
-              2. Enable "Install from unknown sources" in Android settings
-              3. Install the APK
-              
-              ### Features
-              - GraphQL API integration
-              - Offline-first architecture
-              - Persian/English language support`,
-              draft: false,
-              prerelease: false
-            });
-
-            return release.data.upload_url;
-
-      - name: Find and rename APK
-        id: find_apk
-        working-directory: android/app/build/outputs/apk/release
-        run: |
-          # Find the main APK file (universal or first one found)
-          APK_FILE=$(ls app-universal-release.apk 2>/dev/null || ls app-release.apk 2>/dev/null || ls *.apk | head -n 1)
-          if [ -n "$APK_FILE" ]; then
-            NEW_NAME="safarnak-android-v${{ github.run_number }}.apk"
-            cp "$APK_FILE" "$NEW_NAME"
-            echo "apk_path=./android/app/build/outputs/apk/release/$NEW_NAME" >> $GITHUB_OUTPUT
-            echo "apk_name=$NEW_NAME" >> $GITHUB_OUTPUT
-            echo "Found and renamed: $APK_FILE -> $NEW_NAME"
-            ls -lh "$NEW_NAME"
-          else
-            echo "No APK file found!"
-            exit 1
-          fi
-
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk-${{ github.run_number }}
-          path: ${{ steps.find_apk.outputs.apk_path }}
+          name: safarnak-android-v${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/*.apk
           retention-days: 30
           compression-level: 0
-
-      - name: Upload APK to GitHub Release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create_release.outputs.result }}
-          asset_path: ${{ steps.find_apk.outputs.apk_path }}
-          asset_name: ${{ steps.find_apk.outputs.apk_name }}
-          asset_content_type: application/vnd.android.package-archive
 
       - name: Cleanup Gradle cache
         if: always()
