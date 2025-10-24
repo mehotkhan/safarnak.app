@@ -10,6 +10,7 @@
     "web": "expo start --web",
     "build:debug": "eas build --profile debug --platform android",
     "build:release": "eas build --profile release --platform android",
+    "build:local": "cd android && ./gradlew clean assembleRelease --no-daemon --max-workers=2 --build-cache --parallel --stacktrace --info",
     "worker:dev": "wrangler dev --config wrangler.toml --ip 0.0.0.0",
     "worker:deploy": "wrangler deploy --config wrangler.toml",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",

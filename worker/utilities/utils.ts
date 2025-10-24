@@ -1,26 +1,37 @@
 // Resolver utilities
-// Password hashing and token generation utilities
+// Password hashing and token generation utilities using Web Crypto API
 
-// Password hashing utilities using Cloudflare Web Crypto API
+const PBKDF2_ITERATIONS = 100000;
+const SALT_LENGTH = 16;
+const HASH_LENGTH = 256; // bits
+
+/**
+ * Hash a password using PBKDF2
+ * @param password - Plain text password to hash
+ * @returns Base64 encoded salt + hash
+ */
 export async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
 
-  // Use PBKDF2 for password hashing (more secure than SHA-256)
+  // Import password as key material
   const key = await crypto.subtle.importKey('raw', data, 'PBKDF2', false, [
     'deriveBits',
   ]);
 
-  const salt = crypto.getRandomValues(new Uint8Array(16));
+  // Generate random salt
+  const salt = crypto.getRandomValues(new Uint8Array(SALT_LENGTH));
+
+  // Derive hash using PBKDF2
   const derivedBits = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
       salt: salt,
-      iterations: 100000, // High iteration count for security
+      iterations: PBKDF2_ITERATIONS,
       hash: 'SHA-256',
     },
     key,
-    256 // 256 bits = 32 bytes
+    HASH_LENGTH
   );
 
   // Combine salt and hash for storage
@@ -32,7 +43,12 @@ export async function hashPassword(password: string): Promise<string> {
   return btoa(String.fromCharCode(...combined));
 }
 
-// Password verification using PBKDF2
+/**
+ * Verify a password against a stored hash
+ * @param password - Plain text password to verify
+ * @param storedHash - Base64 encoded salt + hash from database
+ * @returns True if password matches, false otherwise
+ */
 export async function verifyPassword(
   password: string,
   storedHash: string
@@ -41,7 +57,7 @@ export async function verifyPassword(
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
 
-    // Decode stored hash
+    // Decode stored hash from base64
     const combined = new Uint8Array(
       atob(storedHash)
         .split('')
@@ -49,44 +65,61 @@ export async function verifyPassword(
     );
 
     // Extract salt and hash
-    const salt = combined.slice(0, 16);
-    const storedHashBytes = combined.slice(16);
+    const salt = combined.slice(0, SALT_LENGTH);
+    const storedHashBytes = combined.slice(SALT_LENGTH);
 
-    // Derive hash from provided password
+    // Import password as key material
     const key = await crypto.subtle.importKey('raw', data, 'PBKDF2', false, [
       'deriveBits',
     ]);
 
+    // Derive hash from provided password
     const derivedBits = await crypto.subtle.deriveBits(
       {
         name: 'PBKDF2',
         salt: salt,
-        iterations: 100000,
+        iterations: PBKDF2_ITERATIONS,
         hash: 'SHA-256',
       },
       key,
-      256
+      HASH_LENGTH
     );
 
-    // Compare hashes
+    // Compare hashes using constant-time comparison
     const derivedHash = new Uint8Array(derivedBits);
-    return (
-      derivedHash.length === storedHashBytes.length &&
-      derivedHash.every((byte, index) => byte === storedHashBytes[index])
-    );
+    
+    if (derivedHash.length !== storedHashBytes.length) {
+      return false;
+    }
+
+    // Constant-time comparison to prevent timing attacks
+    let result = 0;
+    for (let i = 0; i < derivedHash.length; i++) {
+      result |= derivedHash[i] ^ storedHashBytes[i];
+    }
+
+    return result === 0;
   } catch {
     return false;
   }
 }
 
-// Token generation utility
+/**
+ * Generate a secure authentication token
+ * @param userId - User ID
+ * @param username - Username
+ * @returns Hex-encoded SHA-256 hash token
+ */
 export async function generateToken(
   userId: number,
   username: string
 ): Promise<string> {
-  const data = new TextEncoder().encode(`${userId}-${username}-${Date.now()}`);
+  const timestamp = Date.now();
+  const data = new TextEncoder().encode(`${userId}-${username}-${timestamp}`);
+  
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = new Uint8Array(hashBuffer);
+  
   return Array.from(hashArray)
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');

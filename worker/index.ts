@@ -1,20 +1,43 @@
+/**
+ * Cloudflare Worker Entry Point
+ * This file combines resolver exports and worker configuration
+ */
+
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
   handleSubscriptions,
   createWsConnectionPoolClass,
-  DefaultPublishableContext,
   createDefaultPublishableContext,
+  DefaultPublishableContext,
 } from 'graphql-workers-subscriptions';
 import { createYoga } from 'graphql-yoga';
 
-// Import GraphQL schema and resolvers
-import { typeDefs } from './graphql/schema';
-import { resolvers } from './resolvers';
+import { typeDefs } from '@graphql/schema';
+import { Query } from './queries';
+import { Mutation } from './mutations';
+import { Subscription } from './subscriptions';
+import { Env } from './types';
 
-export interface Env {
-  DB: D1Database;
-  SUBSCRIPTION_POOL: DurableObjectNamespace;
-}
+// ============================================================================
+// Resolver Exports
+// ============================================================================
+
+export const resolvers = {
+  Query,
+  Mutation,
+  Subscription,
+};
+
+// Re-export individual resolvers for direct access
+export { Query, getMessages, me } from './queries';
+export { Mutation, addMessage, register, login } from './mutations';
+export { Subscription, newMessages } from './subscriptions';
+export { hashPassword, verifyPassword, generateToken } from './utilities/utils';
+export type { Env, ResolverContext } from './types';
+
+// ============================================================================
+// GraphQL Schema
+// ============================================================================
 
 export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
   typeDefs,
@@ -22,7 +45,7 @@ export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
 });
 
 // ============================================================================
-// GraphQL Yoga Server Configuration
+// Worker Configuration
 // ============================================================================
 
 const settings = {
@@ -31,15 +54,20 @@ const settings = {
   subscriptionsDb: (env: Env) => env.DB,
 };
 
+// ============================================================================
+// GraphQL Yoga Server
+// ============================================================================
+
 const yoga = createYoga<DefaultPublishableContext<Env>>({
   schema,
   graphiql: {
     subscriptionsProtocol: 'WS',
   },
+  landingPage: false,
 });
 
 // ============================================================================
-// Request Handler Setup
+// Request Handler
 // ============================================================================
 
 const baseFetch = (

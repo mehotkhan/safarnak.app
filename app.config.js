@@ -6,9 +6,9 @@ const getAppConfig = () => {
   const isDevelopment = !isDebug && !isRelease; // Development mode (expo run:android)
 
   // Default configuration
-  let appName = 'Safarnak';
-  let bundleIdentifier = 'com.mehotkhan.safarnak';
-  let packageName = 'com.mehotkhan.safarnak';
+  let appName = 'سفرناک';
+  let bundleIdentifier = 'ir.mohet.safarnak';
+  let packageName = 'ir.mohet.safarnak';
   let scheme = 'safarnak';
 
   // Override with environment variables if available
@@ -27,18 +27,18 @@ const getAppConfig = () => {
 
   // Set specific configurations for different modes
   if (isDebug) {
-    appName = 'تسفرناک';
+    appName = 'سفرناک دیباگ';
     bundleIdentifier = 'ir.mohet.safarnak_debug';
     packageName = 'ir.mohet.safarnak_debug';
     scheme = 'safarnak-debug';
   } else if (isRelease) {
-    appName = 'سقرناک';
+    appName = 'سفرناک';
     bundleIdentifier = 'ir.mohet.safarnak';
     packageName = 'ir.mohet.safarnak';
     scheme = 'safarnak';
   } else if (isDevelopment) {
     // Development mode - use debug configuration for Persian name
-    appName = 'تسفرناک';
+    appName = 'سفرناک دیباگ';
     bundleIdentifier = 'ir.mohet.safarnak_debug';
     packageName = 'ir.mohet.safarnak_debug';
     scheme = 'safarnak-debug';
@@ -47,7 +47,7 @@ const getAppConfig = () => {
   return {
     expo: {
       name: appName,
-      slug: 'safarnak',
+      slug: 'safarNak',
       version: '1.0.0',
       orientation: 'portrait',
       icon: './assets/images/icon.png',

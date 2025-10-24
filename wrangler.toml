@@ -1,5 +1,5 @@
 name = "safarnak-worker"
-main = "worker.ts"
+main = "worker/index.ts"
 compatibility_date = "2025-10-20"
 workers_dev = true
 

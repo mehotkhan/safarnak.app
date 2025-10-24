@@ -9,7 +9,9 @@
     "paths": {
       "@/*": ["./*"],
       "@components/*": ["./components/*"],
-      "@graphql/*": ["./graphql/*"]
+      "@graphql/*": ["./graphql/*"],
+      "@drizzle/*": ["./drizzle/*"],
+      "@worker/*": ["./worker/*"]
     },
     "types": ["./worker-configuration.d.ts"],
     "resolveJsonModule": true,

@@ -15,7 +15,7 @@
         "buildConfiguration": "Debug"
       },
       "env": {
-        "APP_NAME": "تسفرناک",
+        "APP_NAME": "سفرناک دیباگ",
         "APP_SCHEME": "safarnak-debug",
         "GRAPHQL_URL": "http://192.168.1.51:8787/graphql",
         "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql",
@@ -31,7 +31,7 @@
         "buildConfiguration": "Release"
       },
       "env": {
-        "APP_NAME": "سقرناک",
+        "APP_NAME": "سفرناک",
         "APP_SCHEME": "safarnak",
         "GRAPHQL_URL": "https://safarnak.mohet.ir/graphql",
         "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql",
@@ -44,7 +44,7 @@
         "gradleCommand": ":app:assembleRelease"
       },
       "env": {
-        "APP_NAME": "Safarnak Preview",
+        "APP_NAME": "سفرناک پیش‌نمایش",
         "APP_SCHEME": "safarnak-preview",
         "GRAPHQL_URL": "https://safarnak-worker.mehot1.workers.dev/graphql",
         "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql"

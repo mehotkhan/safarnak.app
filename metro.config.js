@@ -10,6 +10,8 @@ config.resolver.extraNodeModules = {
   '@': path.resolve(__dirname),
   '@components': path.resolve(__dirname, 'components'),
   '@graphql': path.resolve(__dirname, 'graphql'),
+  '@drizzle': path.resolve(__dirname, 'drizzle'),
+  '@worker': path.resolve(__dirname, 'worker'),
 };
 
 module.exports = config;
