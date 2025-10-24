@@ -52,14 +52,10 @@ export const register = async (
   // Hash password using PBKDF2
   const passwordHash = await hashPassword(password);
 
-  // Generate user ID
-  const userId = Math.floor(Math.random() * 1000000);
-
-  // Insert user
-  await db
+  // Insert user (ID will be auto-generated)
+  const result = await db
     .insert(users)
     .values({
-      id: userId,
       name: username, // Use username as name for simplicity
       username,
       passwordHash,
@@ -68,14 +64,17 @@ export const register = async (
       avatar: null, // Optional field
       isActive: true,
     })
-    .run();
+    .returning({ id: users.id })
+    .get();
+
+  if (!result) {
+    throw new Error('Failed to create user');
+  }
+
+  const userId = result.id;
 
   // Get the created user
   const user = await db.select().from(users).where(eq(users.id, userId)).get();
-
-  if (!user) {
-    throw new Error('Failed to create user');
-  }
 
   // Generate secure token
   const token = await generateToken(userId, username);

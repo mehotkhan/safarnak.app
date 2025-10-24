@@ -15,6 +15,13 @@
       "when": 1761293375799,
       "tag": "0001_free_wallop",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1761302083279,
+      "tag": "0002_illegal_gertrude_yorkes",
+      "breakpoints": true
     }
   ]
 }
