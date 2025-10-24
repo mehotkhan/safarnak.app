@@ -75,9 +75,10 @@ jobs:
       - name: Expo prebuild (only when native changes)
         if: |
           contains(toJson(github.event.commits.*.modified), 'app.config.js') ||
-          contains(toJson(github.event.commits.*.modified), 'android/')
+          contains(toJson(github.event.commits.*.modified), 'android/') ||
+          contains(toJson(github.event.commits.*.modified), 'package.json')
         run: |
-          npx expo prebuild --platform android --no-install
+          npx expo prebuild --platform android --no-install --clear
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -100,7 +101,7 @@ jobs:
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: true
+          cache-read-only: false
           add-job-summary: never
 
       - name: Cache Metro bundler
@@ -110,9 +111,11 @@ jobs:
             android/app/build/generated/assets
             android/app/build/intermediates/sourcemaps
             /tmp/metro-*
-          key: ${{ runner.os }}-metro-${{ hashFiles('app/**', 'components/**', 'package.json') }}
+            node_modules/.cache
+          key: ${{ runner.os }}-metro-${{ hashFiles('package.json', 'yarn.lock', 'app/**', 'components/**') }}
           restore-keys: |
             ${{ runner.os }}-metro-
+            ${{ runner.os }}-node-
 
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
@@ -122,6 +125,12 @@ jobs:
           cd android
           ./gradlew --version --no-daemon
 
+      - name: Pre-build dependencies
+        run: |
+          cd android
+          ./gradlew buildEnvironment --no-daemon
+          ./gradlew dependencies --no-daemon
+
       - name: Build Android APK
         run: |
           cd android
@@ -130,11 +139,18 @@ jobs:
             --build-cache \
             --parallel \
             --stacktrace \
+            --no-configuration-cache \
             -Pandroid.enablePngCrunchInReleaseBuilds=false \
             -Pandroid.enableMinifyInReleaseBuilds=false \
             -Pandroid.enableShrinkResourcesInReleaseBuilds=false \
+            -Pandroid.enableR8=false \
+            -Pandroid.enableProguard=false \
             -x lint \
-            -x lintVitalAnalyzeRelease
+            -x lintVitalAnalyzeRelease \
+            -x test \
+            -x testReleaseUnitTest \
+            -x connectedAndroidTest \
+            -x connectedDebugAndroidTest
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
