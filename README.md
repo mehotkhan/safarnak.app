@@ -6,6 +6,7 @@
 [![React Native](https://img.shields.io/badge/React%20Native-0.81.5-green)](https://reactnative.dev/)
 [![Expo](https://img.shields.io/badge/Expo-~54-purple)](https://expo.dev/)
 [![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
+[![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 
 ## ✨ Features
 
@@ -16,6 +17,7 @@
 - **🔐 Secure Auth** - PBKDF2 password hashing with token-based authentication
 - **🎨 Modern UI** - Custom components with dark mode support
 - **📊 Type-Safe** - Full TypeScript coverage across client and server
+- **🚀 New Architecture** - React Native Fabric + TurboModules for better performance
 
 ## 🔧 Environment Variables
 
@@ -32,6 +34,7 @@ cp .env.example .env
 - `APP_NAME` - Application name
 - `APP_SCHEME` - Deep linking scheme
 - `BUNDLE_IDENTIFIER` - App bundle identifier
+- `NEW_ARCH` - Force enable New Architecture (`1` or `true`)
 
 ### Environment Priority
 
@@ -59,8 +62,11 @@ yarn start       # Start Expo dev server (port 8081)
 ### Run on Device
 
 ```bash
-# Android
+# Android (Legacy Architecture)
 yarn android
+
+# Android (New Architecture)
+yarn android:newarch
 
 # iOS  
 yarn ios
@@ -81,7 +87,8 @@ Safarnak uses a **unified single-root monorepo** architecture where both client 
 │ • Expo Router       │       │ • GraphQL Yoga      │       │ • Shared Schema     │
 │ • Redux + Persist   │       │ • Subscriptions     │       │ • Migrations        │
 │ • Apollo Client     │       │ • Resolvers         │       │ • Type Safety       │
-│ • Offline SQLite    │       │ • Auth Middleware   │       │                     │
+│ • New Architecture  │       │ • Auth Middleware   │       │                     │
+│ • Offline SQLite    │       │ • Root Redirect     │       │                     │
 └─────────────────────┘       └─────────────────────┘       └─────────────────────┘
 ```
 
@@ -90,7 +97,7 @@ Safarnak uses a **unified single-root monorepo** architecture where both client 
 ```
 safarnak.app/
 ├── worker/                # ⚡ Cloudflare Worker (server-side only)
-│   ├── index.ts           # Worker entry point + resolver exports
+│   ├── index.ts           # Worker entry point + resolver exports + root redirect
 │   ├── types.ts           # Shared resolver types
 │   ├── queries/           # Query resolvers (getMessages, me)
 │   ├── mutations/         # Mutation resolvers (register, login, addMessage)
@@ -123,6 +130,10 @@ safarnak.app/
 │   ├── store.ts           # Redux store with persist
 │   ├── authSlice.ts       # Authentication state
 │   └── offlineMiddleware.ts # Offline queue handling
+├── store/                 # 📦 Additional Redux slices
+│   ├── hooks.ts           # Typed Redux hooks
+│   ├── index.ts           # Store exports
+│   └── slices/            # Additional slices (theme, user)
 ├── hooks/                 # 🪝 Custom React hooks
 ├── constants/             # 📋 App constants
 ├── locales/               # 🌍 i18n translations (en, fa)
@@ -130,6 +141,7 @@ safarnak.app/
 ├── wrangler.toml          # Cloudflare Workers config
 ├── drizzle.config.ts      # Database configuration
 ├── eslint.config.mjs      # ESLint flat config
+├── app.config.js          # Expo configuration with New Architecture
 └── tsconfig.json          # TypeScript configuration
 ```
 
@@ -142,8 +154,10 @@ safarnak.app/
 | **React Native** | 0.81.5 | Mobile UI framework |
 | **Expo Router** | ~6 | File-based navigation |
 | **Redux Toolkit** | ^2.9 | State management |
+| **Redux Persist** | ^6.0 | State persistence |
 | **Apollo Client** | 3.8 | GraphQL client |
 | **react-i18next** | ^16.1 | Internationalization |
+| **Drizzle ORM** | ^0.44 | Client-side SQLite |
 
 ### Backend
 | Technology | Version | Purpose |
@@ -168,7 +182,8 @@ safarnak.app/
 yarn dev              # Start both worker and client concurrently
 yarn start            # Start Expo dev server only
 yarn worker:dev       # Start Cloudflare Worker only
-yarn android          # Run on Android
+yarn android          # Run on Android (Legacy Architecture)
+yarn android:newarch  # Run on Android (New Architecture)
 yarn ios              # Run on iOS
 yarn web              # Run on web
 ```
@@ -191,6 +206,7 @@ yarn format           # Format code with Prettier
 ```bash
 yarn build:debug      # Build debug APK with EAS
 yarn build:release    # Build release APK with EAS
+yarn build:local      # Build release APK locally
 ```
 
 ### Utilities
@@ -210,6 +226,32 @@ TypeScript and Metro are configured with the following path aliases:
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL
 "@drizzle/*"    → "./drizzle/*"      // Database schema
 "@worker/*"     → "./worker/*"       // Worker resolvers
+```
+
+### New Architecture Configuration
+
+The app supports React Native's New Architecture (Fabric + TurboModules) for better performance:
+
+```javascript
+// In app.config.js
+newArchEnabled: 
+  (process.env.NEW_ARCH === '1' || process.env.NEW_ARCH === 'true') || 
+  isDebug || 
+  isDevelopment
+```
+
+**Benefits:**
+- Faster app startup
+- Smoother animations
+- Better memory usage
+- Future-proofing
+
+**Usage:**
+```bash
+# Enable New Architecture
+yarn android:newarch
+# or
+NEW_ARCH=1 yarn android
 ```
 
 ### Environment Variables
@@ -285,6 +327,8 @@ yarn build:release
 2. **Database Reset**: Delete `.wrangler/state/v3/d1/` and run `yarn db:migrate`
 3. **Worker Logs**: Check terminal where `yarn worker:dev` is running
 4. **Type Errors**: Ensure both client and worker are using shared types from `graphql/`
+5. **New Architecture**: Use `yarn android:newarch` to test with Fabric + TurboModules
+6. **Worker Root**: Visit `http://127.0.0.1:8787/` - redirects to `/graphql`
 
 ## 📝 Code Style
 
@@ -300,6 +344,7 @@ yarn build:release
 3. Run `yarn lint:fix` before committing
 4. Ensure TypeScript types are correct
 5. Test both online and offline scenarios
+6. Test both Legacy and New Architecture
 
 ## 📄 License
 
@@ -312,6 +357,7 @@ MIT
 - [Drizzle ORM](https://orm.drizzle.team/)
 - [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server)
 - [React Navigation](https://reactnavigation.org/)
+- [React Native New Architecture](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 
 ---
 

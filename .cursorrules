@@ -6,8 +6,8 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 
 ### Key Architecture Points
 - **Client**: Expo React Native app (iOS/Android/Web)
-- **Worker**: Cloudflare Worker backend (`worker.ts` at root)
-- **Resolvers**: GraphQL resolvers in `resolvers/` folder (server-side only)
+- **Worker**: Cloudflare Worker backend (`worker/index.ts` at root)
+- **Resolvers**: GraphQL resolvers in `worker/` folder (server-side only)
 - **Shared**: GraphQL schema (`graphql/`) and database schema (`drizzle/`) shared between client & worker
 - **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
 
@@ -41,7 +41,7 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 ```
 safarnak.app/                           # Single root directory
 ├── worker.ts                           # Cloudflare Worker entry (3-line imports from resolvers & graphql)
-├── resolvers/                          # GraphQL resolvers (SERVER-SIDE ONLY)
+├── worker/                             # GraphQL resolvers (SERVER-SIDE ONLY)
 │   ├── index.ts                        # Combined resolver exports
 │   ├── queries.ts                      # Query resolvers: getMessages, me
 │   ├── mutations.ts                    # Mutation resolvers: register, login, addMessage
@@ -68,8 +68,8 @@ safarnak.app/                           # Single root directory
 │   ├── MapView.tsx                     # Interactive Leaflet map (WebView-based)
 │   ├── context/                        # React contexts
 │   │   ├── LanguageContext.tsx         # i18n language switching
-│   │   ├── LanguageSwitcher.tsx        # Language selector UI
-│   │   └── ThemeContext.tsx            # Dark/light theme
+│   │   ├── LanguageSwitcher.tsx       # Language selector UI
+│   │   └── ThemeContext.tsx           # Dark/light theme
 │   └── ui/                             # Themed UI components
 │       ├── Themed.tsx                  # Theme-aware View/Text
 │       ├── ThemeToggle.tsx             # Dark mode toggle
@@ -118,16 +118,16 @@ safarnak.app/                           # Single root directory
 - `queries.ts` - Query/mutation strings for Apollo Client
 - `types.ts` - TypeScript interfaces matching GraphQL types
 
-**Server-Only (resolvers/):**
+**Server-Only (worker/):**
 - `queries.ts` - Query resolver functions (getMessages, me)
 - `mutations.ts` - Mutation resolver functions (register, login, addMessage)
 - `subscriptions.ts` - Subscription resolvers (newMessages)
 - `utils.ts` - Password hashing, token generation
 
-**Worker (worker.ts):**
+**Worker (worker/index.ts):**
 ```typescript
-import { typeDefs } from './graphql/schema';
-import { resolvers } from './resolvers';
+import { typeDefs } from '@graphql/schema';
+import { resolvers } from './worker';
 // Minimal file that wires everything together
 ```
 
@@ -154,7 +154,7 @@ const user = await db.select().from(users).where(eq(users.id, id)).get();
 
 ### 3. Authentication
 
-**Password Hashing (resolvers/utils.ts):**
+**Password Hashing (worker/utils.ts):**
 - PBKDF2 with 100,000 iterations
 - SHA-256 hash function
 - 16-byte salt stored with hash
@@ -348,7 +348,7 @@ const { t } = useTranslation();
 **wrangler.toml** - Cloudflare Workers
 - D1 database binding
 - Durable Objects for subscriptions
-- Worker entry point: `worker.ts`
+- Worker entry point: `worker/index.ts`
 
 **drizzle.config.ts** - Database
 - Schema location: `drizzle/schema.ts`
@@ -359,8 +359,8 @@ const { t } = useTranslation();
 
 1. **Never add `"type": "module"` to package.json** - causes metro.config.js to fail
 2. **Use eslint.config.mjs** - ES module config works without "type": "module"
-3. **Shared code goes in graphql/ or drizzle/** - NOT in resolvers/
-4. **Resolvers are server-only** - Never import from client code
+3. **Shared code goes in graphql/ or drizzle/** - NOT in worker/
+4. **Worker code is server-only** - Never import from client code
 5. **Use path aliases** - Avoid relative imports
 6. **Run db:migrate before testing** - Ensure schema is up to date
 7. **Clean caches when stuck** - `yarn clean` fixes most issues
@@ -389,7 +389,7 @@ const { t } = useTranslation();
 
 ## Security Considerations
 
-- **Passwords**: PBKDF2 with 100k iterations (see `resolvers/utils.ts`)
+- **Passwords**: PBKDF2 with 100k iterations (see `worker/utils.ts`)
 - **Tokens**: SHA-256 based, include timestamp
 - **Validation**: Always validate input in resolvers
 - **SQL Injection**: Drizzle ORM prevents this automatically
@@ -414,4 +414,4 @@ const { t } = useTranslation();
 
 ---
 
-**Remember**: This is a unified monorepo. Client and worker code share the same directory structure but serve different purposes. Keep shared code in `graphql/` and `drizzle/`, server logic in `resolvers/` and `worker.ts`, and client code in `app/`, `components/`, `api/`, `redux/`, etc.
+**Remember**: This is a unified monorepo. Client and worker code share the same directory structure but serve different purposes. Keep shared code in `graphql/` and `drizzle/`, server logic in `worker/` and `worker.ts`, and client code in `app/`, `components/`, `api/`, `redux/`, etc.
