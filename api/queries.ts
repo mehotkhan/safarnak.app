@@ -5,7 +5,7 @@ import {
   GET_MESSAGES_QUERY as GET_MESSAGES_QUERY_STRING,
   ADD_MESSAGE_MUTATION as ADD_MESSAGE_MUTATION_STRING,
   ME_QUERY as ME_QUERY_STRING,
-} from '@graphql/queries/queries';
+} from '@graphql/queries';
 
 // Wrap shared GraphQL strings with Apollo's gql tag
 export const REGISTER_MUTATION = gql(REGISTER_MUTATION_STRING);

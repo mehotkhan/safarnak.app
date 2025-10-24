@@ -1,5 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface LanguageContextType {
@@ -33,6 +39,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   }, [i18n]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadSavedLanguage();
   }, [loadSavedLanguage]);
 

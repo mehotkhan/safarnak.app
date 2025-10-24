@@ -12,7 +12,7 @@ const getGraphQLURI = (): string => {
   }
 
   // Fallback to development/production detection
-  if (__DEV__) {
+  if (process.env.NODE_ENV === 'development') {
     // Development - use your local network IP
     return 'http://192.168.1.51:8787/graphql';
   } else {

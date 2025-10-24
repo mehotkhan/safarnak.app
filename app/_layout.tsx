@@ -30,9 +30,13 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     VazirRegular: require('../assets/fonts/Vazir-Regular.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     VazirMedium: require('../assets/fonts/Vazir-Medium.ttf'),
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     VazirBold: require('../assets/fonts/Vazir-Bold.ttf'),
   });
 
