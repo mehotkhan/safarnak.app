@@ -1,315 +1,417 @@
 # Safarnak App - Cursor AI Configuration
 
-## Project Context
-You are working on **Safarnak**, a full-stack travel application with offline-first capabilities. This is a unified single-root monorepo with:
-- **Client**: Expo React Native app (iOS/Android/Web) at root level
-- **Worker**: Cloudflare Worker backend (`worker.ts`) at root level
-- **Shared**: Database schemas (`drizzle/`) and GraphQL definitions (`graphql/`) at root level
+## Project Overview
 
-## Architecture Overview
-- **Frontend**: Expo Router + Redux Toolkit + Apollo Client + Drizzle ORM
-- **Backend**: Cloudflare Workers + GraphQL Yoga + D1 Database + Drizzle ORM
-- **Database**: SQLite (Expo SQLite locally, Cloudflare D1 in production)
-- **State**: Redux with persistence, offline-first approach
-- **Auth**: Token-based with offline fallback
-- **Languages**: English + Persian (Farsi) with RTL support
-- **Code Quality**: ESLint 9 (flat config) + Prettier + TypeScript strict mode
+You are working on **Safarnak**, a full-stack offline-first travel application. This is a **unified single-root monorepo** where both client and server code coexist in the same directory structure.
 
-## Key Technologies
-- React Native 0.81.5 + Expo 54
-- TypeScript with strict mode
-- Redux Toolkit + Redux Persist
-- Apollo Client + GraphQL
-- Drizzle ORM + SQLite
-- Cloudflare Workers + D1
-- react-i18next for i18n
-- ESLint 9 + Prettier for code quality
+### Key Architecture Points
+- **Client**: Expo React Native app (iOS/Android/Web)
+- **Worker**: Cloudflare Worker backend (`worker.ts` at root)
+- **Resolvers**: GraphQL resolvers in `resolvers/` folder (server-side only)
+- **Shared**: GraphQL schema (`graphql/`) and database schema (`drizzle/`) shared between client & worker
+- **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
+
+## Technology Stack
+
+### Frontend (Client)
+- **Expo** ~54 - React Native framework with file-based routing
+- **React Native** 0.81.5 - Mobile framework
+- **Expo Router** ~6 - File-based navigation
+- **Redux Toolkit** ^2.9 - State management
+- **Redux Persist** ^6.0 - Persistent state
+- **Apollo Client** 3.8 - GraphQL client
+- **react-i18next** ^16.1 - Internationalization (English + Persian/Farsi)
+- **Drizzle ORM** ^0.44 - Type-safe database queries (client-side SQLite)
+
+### Backend (Worker)
+- **Cloudflare Workers** - Serverless edge runtime
+- **GraphQL Yoga** ^5.16 - GraphQL server
+- **Cloudflare D1** - Serverless SQLite database
+- **Drizzle ORM** ^0.44 - Type-safe ORM
+- **graphql-workers-subscriptions** ^0.1.6 - Real-time subscriptions with Durable Objects
+
+### Shared
+- **TypeScript** ~5.9 - Strict mode enabled
+- **GraphQL** ^16.11 - Schema and type definitions
+- **ESLint** ^9.38 - Flat config with TypeScript/React/React Native plugins
+- **Prettier** ^3.6 - Code formatting
 
 ## Project Structure
+
 ```
-safarnak.app/
-├── app/                   # Expo Router pages
-├── components/            # UI components
-├── api/                   # GraphQL client utilities
-├── hooks/                 # Custom React hooks
-├── store/                 # Redux store
-├── redux/                 # Redux slices
-├── assets/                # Images, fonts, etc.
-├── android/               # Android native code
-├── ios/                   # iOS native code
-├── worker.ts              # Cloudflare Worker entry
-├── drizzle/               # Database schemas & migrations
-├── graphql/               # Shared GraphQL definitions
-├── app.config.js          # Dynamic app configuration
-├── eas.json               # EAS build profiles
-├── wrangler.toml          # Cloudflare Worker config
-├── drizzle.config.ts      # Database config
-├── eslint.config.js       # ESLint flat config
-├── .prettierrc            # Prettier config
-└── package.json           # Root package config
-```
-
-## Path Aliases
-- `@/*` → `./*` (root files)
-- `@components/*` → `./components/*` (UI components)
-- `@graphql/*` → `./graphql/*` (shared GraphQL definitions)
-
-## Coding Standards
-
-### TypeScript
-- Use strict TypeScript configuration
-- Prefer interfaces over types for object shapes
-- Use path aliases instead of relative imports
-- Always type function parameters and return values
-- Use `any` only when absolutely necessary
-- Use `unknown` for truly unknown types
-
-### React/React Native
-- Use functional components with hooks
-- Prefer `useCallback` and `useMemo` for performance
-- Use TypeScript for all component props
-- Follow Expo Router conventions for navigation
-- Use Redux Toolkit patterns for state management
-- Implement proper error boundaries
-
-### Database
-- Use Drizzle ORM for all database operations
-- Follow shared schema patterns in `drizzle/schema.ts`
-- Use migrations for schema changes
-- Prefer type-safe queries over raw SQL
-- Handle offline/online sync gracefully
-
-### GraphQL
-- Use shared GraphQL definitions from `graphql/` directory
-- Follow Apollo Client patterns for data fetching
-- Use error policies for graceful error handling
-- Implement proper loading states
-- Use subscriptions for real-time updates
-
-### Code Quality
-- Follow ESLint flat config rules
-- Use Prettier for consistent formatting
-- Run `yarn lint:fix` before committing
-- Run `yarn format` for code formatting
-- Use `yarn type-check` to verify TypeScript
-
-## Authentication Patterns
-- Token-based authentication with offline fallback
-- Use `AuthWrapper` component for route protection
-- Store user data in both AsyncStorage and local database
-- Implement proper error handling for auth failures
-- Use PBKDF2 for password hashing
-
-## State Management
-- Use Redux Toolkit with persistence
-- Implement offline middleware for network handling
-- Use selective persistence (whitelist specific slices)
-- Follow Redux best practices for actions and reducers
-- Use proper selectors for efficient state access
-
-## Database Patterns
-- Use shared base schemas with environment extensions
-- Implement proper migration strategies
-- Use type-safe Drizzle queries
-- Handle offline/online sync gracefully
-- Use proper indexing for performance
-
-## UI/UX Guidelines
-- Follow atomic design principles
-- Use custom components from `components/ui/`
-- Implement proper loading and error states
-- Support both light and dark themes
-- Ensure RTL support for Persian language
-- Use proper accessibility features
-
-## Error Handling
-- Use comprehensive error boundaries
-- Implement proper error messages with i18n
-- Handle network errors gracefully
-- Use Apollo Client error policies
-- Log errors appropriately
-
-## Performance
-- Use lazy loading for routes and components
-- Implement proper memoization with React.memo
-- Use Redux selectors for efficient state access
-- Optimize images and assets
-- Use proper bundle splitting
-
-## Testing
-- Write unit tests for utility functions
-- Test components with React Testing Library
-- Mock external dependencies properly
-- Test offline scenarios
-- Test both online and offline functionality
-
-## Common Commands
-```bash
-# Development
-yarn dev                    # Start both client and worker
-yarn start                  # Start Expo dev server
-yarn wrangler:dev          # Start worker dev server
-
-# Database
-yarn db:generate           # Generate migrations
-yarn db:migrate            # Apply migrations
-yarn db:studio             # Open Drizzle Studio
-
-# Code Quality
-yarn lint                  # Run ESLint
-yarn lint:fix              # Fix ESLint issues
-yarn format                # Format with Prettier
-yarn type-check            # TypeScript type checking
-
-# Deployment
-yarn wrangler:deploy       # Deploy worker to Cloudflare
-yarn build:debug           # Build debug Android app
-yarn build:release         # Build release Android app
+safarnak.app/                           # Single root directory
+├── worker.ts                           # Cloudflare Worker entry (3-line imports from resolvers & graphql)
+├── resolvers/                          # GraphQL resolvers (SERVER-SIDE ONLY)
+│   ├── index.ts                        # Combined resolver exports
+│   ├── queries.ts                      # Query resolvers: getMessages, me
+│   ├── mutations.ts                    # Mutation resolvers: register, login, addMessage
+│   ├── subscriptions.ts                # Subscription resolvers: newMessages
+│   └── utils.ts                        # Password hashing (PBKDF2), token generation
+├── graphql/                            # SHARED between client & worker
+│   ├── schema.ts                       # GraphQL typeDefs (shared)
+│   ├── queries.ts                      # Client query strings (REGISTER_MUTATION, LOGIN_MUTATION, etc.)
+│   ├── types.ts                        # TypeScript interfaces (User, Message, AuthPayload, etc.)
+│   └── index.ts                        # Re-exports all shared GraphQL code
+├── drizzle/                            # Database layer (SHARED)
+│   ├── schema.ts                       # Database schema: users, tours, messages, subscriptions
+│   └── migrations/                     # SQL migration files
+├── app/                                # Expo Router pages (CLIENT)
+│   ├── _layout.tsx                     # Root layout with providers
+│   ├── login.tsx                       # Login/register screen
+│   └── (tabs)/                         # Tab navigation group
+│       ├── _layout.tsx                 # Tab layout
+│       ├── index.tsx                   # Home screen with MapView
+│       ├── tour.tsx                    # Tours listing
+│       └── profile.tsx                 # User profile with logout
+├── components/                         # React components (CLIENT)
+│   ├── AuthWrapper.tsx                 # Authentication guard component
+│   ├── MapView.tsx                     # Interactive Leaflet map (WebView-based)
+│   ├── context/                        # React contexts
+│   │   ├── LanguageContext.tsx         # i18n language switching
+│   │   ├── LanguageSwitcher.tsx        # Language selector UI
+│   │   └── ThemeContext.tsx            # Dark/light theme
+│   └── ui/                             # Themed UI components
+│       ├── Themed.tsx                  # Theme-aware View/Text
+│       ├── ThemeToggle.tsx             # Dark mode toggle
+│       ├── CustomText.tsx              # i18n-aware text component
+│       └── ...                         # Other UI components
+├── api/                                # Apollo Client (CLIENT)
+│   ├── client.ts                       # Apollo Client setup with auth link
+│   └── queries.ts                      # Wrapped GQL queries (imports from @graphql/)
+├── redux/                              # Redux state (CLIENT)
+│   ├── store.ts                        # Redux store with persist middleware
+│   ├── authSlice.ts                    # Auth state (user, token, isAuthenticated)
+│   └── offlineMiddleware.ts            # Offline mutation queue
+├── store/                              # Redux helpers (CLIENT)
+│   ├── index.ts                        # Store export
+│   ├── hooks.ts                        # Typed useAppDispatch, useAppSelector
+│   └── slices/                         # Additional slices
+├── hooks/                              # Custom React hooks (CLIENT)
+├── locales/                            # i18n translations
+│   ├── en/translation.json             # English
+│   └── fa/translation.json             # Persian (Farsi)
+├── constants/                          # App constants
+├── assets/                             # Static assets (images, fonts)
+├── config/                             # App configuration
+├── metro.config.js                     # Metro bundler config
+├── wrangler.toml                       # Cloudflare Workers config
+├── drizzle.config.ts                   # Drizzle ORM config
+├── eslint.config.mjs                   # ESLint flat config (ES module)
+├── tsconfig.json                       # TypeScript config
+└── package.json                        # Single package.json (no workspaces)
 ```
 
-## File Naming Conventions
-- Components: PascalCase (e.g., `AuthWrapper.tsx`)
-- Hooks: camelCase starting with 'use' (e.g., `useAuth.ts`)
-- Utilities: camelCase (e.g., `formatDate.ts`)
-- Constants: SCREAMING_SNAKE_CASE (e.g., `API_ENDPOINTS.ts`)
-- Types: PascalCase (e.g., `UserTypes.ts`)
-- Worker files: camelCase (e.g., `worker.ts`)
+## Path Aliases (TypeScript & Metro)
 
-## Import Order
-1. React and React Native imports
-2. Third-party library imports
-3. Internal imports (using path aliases)
-4. Relative imports
-5. Type-only imports (with `type` keyword)
-
-## Code Organization
-- Group related functionality in feature folders
-- Use index files for clean exports
-- Keep components small and focused
-- Extract reusable logic into custom hooks
-- Use proper separation of concerns
-- Keep worker code in `worker.ts`
-
-## Security Considerations
-- Validate all user inputs
-- Use proper password hashing (PBKDF2)
-- Implement secure token generation
-- Handle sensitive data appropriately
-- Follow OWASP security guidelines
-- Use HTTPS in production
-
-## Accessibility
-- Use proper semantic HTML elements
-- Implement proper ARIA labels
-- Ensure keyboard navigation works
-- Test with screen readers
-- Maintain proper color contrast
-- Support RTL layouts
-
-## Internationalization
-- Use react-i18next for all text content
-- Support both LTR and RTL layouts
-- Use proper date and number formatting
-- Test with different languages
-- Provide fallback translations
-- Use proper Persian text handling
-
-## When Making Changes
-1. Follow existing patterns and conventions
-2. Update types when changing interfaces
-3. Add proper error handling
-4. Include loading states where appropriate
-5. Test both online and offline scenarios
-6. Ensure i18n support for new text
-7. Run linting and formatting
-8. Update documentation if needed
-
-## Common Patterns to Follow
-
-### Component Pattern
 ```typescript
-interface ComponentProps {
-  // Define props with proper types
+"@/*"           → "./*"              // Root files
+"@components/*" → "./components/*"   // UI components
+"@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
+```
+
+## Key Patterns & Best Practices
+
+### 1. GraphQL Architecture
+
+**Shared (graphql/):**
+- `schema.ts` - GraphQL type definitions used by both client and worker
+- `queries.ts` - Query/mutation strings for Apollo Client
+- `types.ts` - TypeScript interfaces matching GraphQL types
+
+**Server-Only (resolvers/):**
+- `queries.ts` - Query resolver functions (getMessages, me)
+- `mutations.ts` - Mutation resolver functions (register, login, addMessage)
+- `subscriptions.ts` - Subscription resolvers (newMessages)
+- `utils.ts` - Password hashing, token generation
+
+**Worker (worker.ts):**
+```typescript
+import { typeDefs } from './graphql/schema';
+import { resolvers } from './resolvers';
+// Minimal file that wires everything together
+```
+
+### 2. Database Patterns
+
+**Schema (drizzle/schema.ts):**
+- Define tables: users, tours, messages, subscriptions
+- Use Drizzle ORM helpers: `integer()`, `text()`, `sqliteTable()`
+- Export tables: `export const users = sqliteTable(...)`
+
+**Resolvers:**
+```typescript
+import { drizzle } from 'drizzle-orm/d1';
+import { users } from '../drizzle/schema';
+
+const db = drizzle(context.env.DB);
+const user = await db.select().from(users).where(eq(users.id, id)).get();
+```
+
+**Migrations:**
+- Generate: `yarn db:generate`
+- Apply: `yarn db:migrate`
+- Never edit migrations manually
+
+### 3. Authentication
+
+**Password Hashing (resolvers/utils.ts):**
+- PBKDF2 with 100,000 iterations
+- SHA-256 hash function
+- 16-byte salt stored with hash
+
+**Token Generation:**
+- SHA-256 hash of `userId + username + timestamp`
+- Stored in Redux + AsyncStorage on client
+
+**Auth Flow:**
+1. Client calls `register` or `login` mutation
+2. Worker hashes password, generates token
+3. Client stores token in Redux (persisted)
+4. Apollo Client adds token to headers via `authLink`
+
+### 4. Offline-First Strategy
+
+**Client-Side:**
+- Redux Persist - State survives app restarts
+- AsyncStorage - User data cached locally
+- Offline Middleware - Queue mutations when offline
+- NetInfo - Detect connection status
+
+**Sync Strategy:**
+- Queue failed mutations
+- Retry when connection restored
+- Optimistic UI updates
+
+### 5. Component Patterns
+
+**Functional Components:**
+```typescript
+interface Props {
+  title: string;
+  onPress: () => void;
 }
 
-export default function Component({ prop1, prop2 }: ComponentProps) {
-  // Use hooks at the top
-  const { data, loading, error } = useQuery(QUERY);
+export default function MyComponent({ title, onPress }: Props) {
+  // Use hooks
+  const { t } = useTranslation();
   
-  // Early returns for loading/error states
-  if (loading) return <LoadingScreen />;
-  if (error) return <ErrorScreen error={error} />;
+  // Use callbacks for performance
+  const handlePress = useCallback(() => {
+    onPress();
+  }, [onPress]);
   
-  // Main component logic
-  return (
-    <View>
-      {/* Component JSX */}
-    </View>
-  );
+  return <View>...</View>;
 }
 ```
 
-### Hook Pattern
+**Context Usage:**
 ```typescript
-export function useCustomHook(param: string) {
-  const [state, setState] = useState<StateType>(initialState);
-  
-  const handleAction = useCallback((value: string) => {
-    // Action logic
-  }, []);
-  
-  return { state, handleAction };
-}
+// Provide at root (_layout.tsx)
+<LanguageProvider>
+  <ThemeProvider>
+    <Stack />
+  </ThemeProvider>
+</LanguageProvider>
+
+// Consume anywhere
+const { currentLanguage, changeLanguage } = useLanguage();
 ```
 
-### Redux Slice Pattern
+### 6. TypeScript Standards
+
+**Always type:**
+- Function parameters
+- Return values
+- Component props
+- Redux state/actions
+
+**Avoid:**
+- `any` (use `unknown` if type is truly unknown)
+- Type assertions (prefer type guards)
+- `@ts-ignore` (fix the type issue)
+
+**Use:**
+- Interfaces for objects
+- Type aliases for unions/primitives
+- Generics for reusable components/functions
+
+### 7. Imports
+
+**Good:**
 ```typescript
-interface SliceState {
-  // Define state shape
-}
-
-const slice = createSlice({
-  name: 'sliceName',
-  initialState,
-  reducers: {
-    actionName: (state, action: PayloadAction<PayloadType>) => {
-      // Reducer logic
-    },
-  },
-});
-
-export const { actionName } = slice.actions;
-export default slice.reducer;
+import { View } from '@components/ui/Themed';
+import { LOGIN_MUTATION } from '@graphql/queries';
+import { drizzle } from 'drizzle-orm/d1';
 ```
 
-### Worker Pattern
+**Bad:**
 ```typescript
-export interface Env {
-  DB: D1Database;
-  SUBSCRIPTION_POOL: DurableObjectNamespace;
-}
+import { View } from '../../../components/ui/Themed';  // Use path alias
+import { LOGIN_MUTATION } from './graphql/queries';     // Use path alias
+```
 
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // Worker logic
-  },
+### 8. Error Handling
+
+**GraphQL Resolvers:**
+```typescript
+export const register = async (_, { username, password }, context) => {
+  // Validate input
+  if (!username || !password) {
+    throw new Error('Username and password are required');
+  }
+  
+  // Check existing
+  const existing = await db.select()...;
+  if (existing) {
+    throw new Error('User already exists');
+  }
+  
+  // Perform operation
+  // ...
 };
 ```
 
-## Environment-Specific Considerations
+**Client Components:**
+```typescript
+const [mutate, { loading, error }] = useMutation(REGISTER_MUTATION);
 
-### Client (React Native)
-- Use Expo APIs for platform-specific functionality
-- Handle offline scenarios gracefully
-- Implement proper error boundaries
-- Use Redux for state management
-- Support both iOS and Android
+if (error) return <ErrorDisplay error={error} />;
+if (loading) return <LoadingSpinner />;
+```
 
-### Worker (Cloudflare Workers)
-- Use Cloudflare-specific APIs
-- Handle D1 database operations
-- Implement GraphQL subscriptions
-- Use proper error handling
-- Optimize for edge computing
+## Common Commands
 
-Remember: Always prioritize type safety, offline functionality, code quality, and user experience in this travel application.
+```bash
+# Development
+yarn dev                  # Start both worker and client
+yarn start                # Expo dev server only
+yarn worker:dev           # Worker only
+
+# Database
+yarn db:generate          # Generate migration from schema
+yarn db:migrate           # Apply migrations to local D1
+yarn db:studio            # Open Drizzle Studio
+
+# Code Quality
+yarn lint                 # Run ESLint
+yarn lint:fix             # Fix linting issues
+yarn format               # Format with Prettier
+
+# Build
+yarn android              # Run on Android
+yarn ios                  # Run on iOS
+yarn build:release        # EAS build for production
+
+# Utilities
+yarn clean                # Clear all caches
+```
+
+## File Naming Conventions
+
+- Components: `PascalCase.tsx` (e.g., `AuthWrapper.tsx`)
+- Hooks: `camelCase.ts` starting with 'use' (e.g., `useAuth.ts`)
+- Utilities: `camelCase.ts` (e.g., `formatDate.ts`)
+- Constants: `SCREAMING_SNAKE_CASE` inside files
+- Types: Use descriptive interfaces (e.g., `interface UserProps`)
+
+## Internationalization
+
+**Using translations:**
+```typescript
+import { useTranslation } from 'react-i18next';
+
+const { t } = useTranslation();
+<Text>{t('common.welcome')}</Text>
+```
+
+**Translation files:**
+- `locales/en/translation.json`
+- `locales/fa/translation.json`
+
+**RTL Support:**
+- Automatically detected from language
+- Use `I18nManager` for manual control
+
+## Key Configuration Files
+
+**metro.config.js** - Metro bundler (CommonJS)
+- Defines path aliases
+- Adds .sql file support
+- Configures resolver
+
+**eslint.config.mjs** - ESLint flat config (ES Module)
+- TypeScript rules
+- React/React Native rules
+- Prettier integration
+- **Must use .mjs extension** (package.json doesn't have "type": "module")
+
+**wrangler.toml** - Cloudflare Workers
+- D1 database binding
+- Durable Objects for subscriptions
+- Worker entry point: `worker.ts`
+
+**drizzle.config.ts** - Database
+- Schema location: `drizzle/schema.ts`
+- Migrations: `drizzle/migrations/`
+- Dialect: SQLite
+
+## Critical Rules
+
+1. **Never add `"type": "module"` to package.json** - causes metro.config.js to fail
+2. **Use eslint.config.mjs** - ES module config works without "type": "module"
+3. **Shared code goes in graphql/ or drizzle/** - NOT in resolvers/
+4. **Resolvers are server-only** - Never import from client code
+5. **Use path aliases** - Avoid relative imports
+6. **Run db:migrate before testing** - Ensure schema is up to date
+7. **Clean caches when stuck** - `yarn clean` fixes most issues
+
+## Debugging Tips
+
+**Metro bundler issues:**
+- Run `yarn clean`
+- Delete `.expo` and `node_modules/.cache`
+- Restart with `yarn start --clear`
+
+**Worker issues:**
+- Check `.wrangler/state/v3/d1/` for database
+- Run `yarn db:migrate` to reset database
+- Check wrangler logs in terminal
+
+**Type errors:**
+- Ensure shared types are in `graphql/types.ts`
+- Check tsconfig.json path aliases
+- Run `npx tsc --noEmit` to see all errors
+
+**GraphQL errors:**
+- Check worker terminal for resolver errors
+- Verify schema matches resolvers
+- Test in GraphiQL at `http://localhost:8787/graphql`
+
+## Security Considerations
+
+- **Passwords**: PBKDF2 with 100k iterations (see `resolvers/utils.ts`)
+- **Tokens**: SHA-256 based, include timestamp
+- **Validation**: Always validate input in resolvers
+- **SQL Injection**: Drizzle ORM prevents this automatically
+- **XSS**: React Native escapes by default
+
+## Performance Tips
+
+- Use `React.memo` for expensive components
+- Use `useCallback` for functions passed as props
+- Use `useMemo` for expensive calculations
+- Keep Redux state minimal
+- Use Apollo Client cache effectively
+
+## When in Doubt
+
+1. Check existing patterns in similar files
+2. Use path aliases (`@/`, `@components/`, `@graphql/`)
+3. Type everything strictly
+4. Run linter before committing
+5. Test both online and offline scenarios
+6. Ensure RTL layout works for Persian
+
+---
+
+**Remember**: This is a unified monorepo. Client and worker code share the same directory structure but serve different purposes. Keep shared code in `graphql/` and `drizzle/`, server logic in `resolvers/` and `worker.ts`, and client code in `app/`, `components/`, `api/`, `redux/`, etc.

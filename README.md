@@ -1,6 +1,21 @@
-# Safarnak App
+# 🌍 Safarnak App
 
-A full-stack travel application with offline-first capabilities, built with Expo React Native and Cloudflare Workers in a unified single-root architecture.
+> A full-stack offline-first travel application built with Expo React Native and Cloudflare Workers
+
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue)](https://www.typescriptlang.org/)
+[![React Native](https://img.shields.io/badge/React%20Native-0.81.5-green)](https://reactnative.dev/)
+[![Expo](https://img.shields.io/badge/Expo-~54-purple)](https://expo.dev/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-orange)](https://workers.cloudflare.com/)
+
+## ✨ Features
+
+- **🌐 Offline-First** - Works seamlessly without internet connection
+- **⚡ Real-Time** - GraphQL subscriptions for live updates
+- **📱 Cross-Platform** - iOS, Android, and Web support
+- **🌍 i18n** - English and Persian (Farsi) with RTL support
+- **🔐 Secure Auth** - PBKDF2 password hashing with token-based authentication
+- **🎨 Modern UI** - Custom components with dark mode support
+- **📊 Type-Safe** - Full TypeScript coverage across client and server
 
 ## 🚀 Quick Start
 
@@ -8,264 +23,272 @@ A full-stack travel application with offline-first capabilities, built with Expo
 # Install dependencies
 yarn install
 
-# Start development (both worker and client)
+# Apply database migrations
+yarn db:migrate
+
+# Start development server (both client & worker)
 yarn dev
 
-# Run on Android device
+# Or start separately:
+yarn worker:dev  # Start Cloudflare Worker (port 8787)
+yarn start       # Start Expo dev server (port 8081)
+```
+
+### Run on Device
+
+```bash
+# Android
 yarn android
 
-# Build Persian apps
-yarn build:debug      # تسفرناک (debug APK)
-yarn build:release     # سقرناک (release APK)
+# iOS  
+yarn ios
+
+# Web
+yarn web
 ```
 
-## 📱 Architecture
+## 🏗️ Architecture
+
+Safarnak uses a **unified single-root monorepo** architecture where both client and worker share the same codebase:
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Client App    │    │   Worker API    │    │   Database      │
-│   (React Native)│◄──►│  (Cloudflare)   │◄──►│   (D1/SQLite)   │
-│                 │    │                 │    │                 │
-│ • Expo Router   │    │ • GraphQL API   │    │ • Drizzle ORM   │
-│ • Redux Store   │    │ • Subscriptions │    │ • Shared Schema │
-│ • Offline DB    │    │ • Authentication│    │ • Migrations    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
+│   React Native      │       │  Cloudflare Worker  │       │   SQLite/D1 DB      │
+│   Client App        │◄─────►│   GraphQL API       │◄─────►│   Drizzle ORM       │
+│                     │       │                     │       │                     │
+│ • Expo Router       │       │ • GraphQL Yoga      │       │ • Shared Schema     │
+│ • Redux + Persist   │       │ • Subscriptions     │       │ • Migrations        │
+│ • Apollo Client     │       │ • Resolvers         │       │ • Type Safety       │
+│ • Offline SQLite    │       │ • Auth Middleware   │       │                     │
+└─────────────────────┘       └─────────────────────┘       └─────────────────────┘
 ```
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **Expo React Native** - Cross-platform mobile development
-- **Redux Toolkit** - State management with persistence
-- **Apollo Client** - GraphQL client
-- **Expo Router** - File-based navigation
-- **react-i18next** - Internationalization (EN/FA)
-
-### Backend
-- **Cloudflare Workers** - Serverless runtime
-- **GraphQL Yoga** - GraphQL server
-- **Cloudflare D1** - SQLite database
-- **Drizzle ORM** - Type-safe database queries
-
-### Shared
-- **TypeScript** - Full type safety
-- **ESLint + Prettier** - Code quality and formatting
-- **Drizzle ORM** - Unified database schema
 
 ## 📁 Project Structure
 
 ```
 safarnak.app/
+├── worker.ts              # ⚡ Cloudflare Worker entry point
+├── resolvers/             # 🔧 GraphQL resolvers (server-side only)
+│   ├── queries.ts         # Query resolvers (getMessages, me)
+│   ├── mutations.ts       # Mutation resolvers (register, login, addMessage)
+│   ├── subscriptions.ts   # Subscription resolvers (newMessages)
+│   ├── utils.ts           # Password hashing, token generation
+│   └── index.ts           # Combined resolver exports
+├── graphql/               # 📡 Shared GraphQL (client & worker)
+│   ├── schema.ts          # GraphQL type definitions
+│   ├── queries.ts         # Client-side query strings
+│   ├── types.ts           # TypeScript interfaces
+│   └── index.ts           # Shared exports
+├── drizzle/               # 🗄️ Database layer
+│   ├── schema.ts          # Database schema (users, messages, tours, etc.)
+│   └── migrations/        # SQL migration files
 ├── app/                   # 📱 Expo Router pages
-├── components/            # UI components
-├── api/                   # GraphQL client utilities
-├── hooks/                 # Custom React hooks
-├── store/                 # Redux store
-├── redux/                 # Redux slices
-├── assets/                # Images, fonts, etc.
-├── android/               # Android native code
-├── ios/                   # iOS native code
-├── worker.ts              # ⚡ Cloudflare Worker entry
-├── drizzle/               # 🗄️ Database schemas & migrations
-├── graphql/               # 📡 Shared GraphQL definitions
-├── app.config.js          # Dynamic app configuration
-├── eas.json               # EAS build profiles
-├── wrangler.toml          # Cloudflare Worker config
-├── drizzle.config.ts      # Database config
-├── eslint.config.js       # ESLint flat config
-├── .prettierrc            # Prettier config
-└── package.json           # Root package config
+│   ├── _layout.tsx        # Root layout with providers
+│   ├── login.tsx          # Login screen
+│   └── (tabs)/            # Tab navigation
+│       ├── index.tsx      # Home/Map screen
+│       ├── tour.tsx       # Tours screen
+│       └── profile.tsx    # User profile
+├── components/            # 🎨 UI Components
+│   ├── AuthWrapper.tsx    # Authentication guard
+│   ├── MapView.tsx        # Interactive map component
+│   ├── context/           # React contexts
+│   └── ui/                # Themed UI components
+├── api/                   # 🌐 Apollo Client setup
+│   ├── client.ts          # Apollo Client configuration
+│   └── queries.ts         # Wrapped GraphQL queries
+├── redux/                 # 📦 Redux state management
+│   ├── store.ts           # Redux store with persist
+│   ├── authSlice.ts       # Authentication state
+│   └── offlineMiddleware.ts # Offline queue handling
+├── hooks/                 # 🪝 Custom React hooks
+├── constants/             # 📋 App constants
+├── locales/               # 🌍 i18n translations (en, fa)
+├── metro.config.js        # Metro bundler config
+├── wrangler.toml          # Cloudflare Workers config
+├── drizzle.config.ts      # Database configuration
+├── eslint.config.mjs      # ESLint flat config
+└── tsconfig.json          # TypeScript configuration
 ```
 
-## 🎯 Key Features
+## 🛠️ Tech Stack
 
-- **Offline-First**: Works without internet connection
-- **Real-time Updates**: GraphQL subscriptions
-- **Cross-Platform**: iOS, Android, and Web support
-- **Internationalization**: English and Persian (RTL)
-- **Type Safety**: Full TypeScript coverage
-- **Modern UI**: Custom components with theme support
-- **Unified Architecture**: Single-root monorepo structure
+### Frontend
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Expo** | ~54 | React Native framework |
+| **React Native** | 0.81.5 | Mobile UI framework |
+| **Expo Router** | ~6 | File-based navigation |
+| **Redux Toolkit** | ^2.9 | State management |
+| **Apollo Client** | 3.8 | GraphQL client |
+| **react-i18next** | ^16.1 | Internationalization |
+
+### Backend
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **Cloudflare Workers** | - | Serverless runtime |
+| **GraphQL Yoga** | ^5.16 | GraphQL server |
+| **Cloudflare D1** | - | SQLite database |
+| **Drizzle ORM** | ^0.44 | Type-safe ORM |
+| **graphql-workers-subscriptions** | ^0.1.6 | Real-time subscriptions |
+
+### Shared
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **TypeScript** | ~5.9 | Type safety |
+| **ESLint** | ^9.38 | Code linting |
+| **Prettier** | ^3.6 | Code formatting |
 
 ## 📋 Available Scripts
 
-### 🚀 Development Commands
-
-| Command               | Description                                     |
-| --------------------- | ----------------------------------------------- |
-| `yarn dev`            | Start both worker and client (full development) |
-| `yarn start`          | Start Expo dev server only                      |
-| `yarn android`        | Run on Android device/emulator                  |
-| `yarn ios`            | Run on iOS device/simulator                     |
-| `yarn web`            | Run in web browser                              |
-
-### 📱 Build Commands (Persian Apps)
-
-| Command                  | Description                |
-| ------------------------ | -------------------------- |
-| `yarn build:debug`       | Build debug APK (تسفرناک)  |
-| `yarn build:release`     | Build release APK (سقرناک) |
-| `yarn build:debug:ios`   | Build debug iOS (تسفرناک)  |
-| `yarn build:release:ios` | Build release iOS (سقرناک) |
-
-### 🔧 Worker & Database Commands
-
-| Command              | Description                        |
-| -------------------- | ---------------------------------- |
-| `yarn wrangler:dev` | Start Cloudflare Worker dev server |
-| `yarn wrangler:deploy` | Deploy worker to Cloudflare        |
-| `yarn db:generate`  | Generate database migrations       |
-| `yarn db:migrate`   | Run database migrations            |
-| `yarn db:studio`    | Open Drizzle Studio                |
-
-### 🔍 Code Quality Commands
-
-| Command              | Description                        |
-| -------------------- | ---------------------------------- |
-| `yarn lint`          | Run ESLint on all files           |
-| `yarn lint:fix`      | Fix ESLint issues automatically   |
-| `yarn lint:worker`   | Lint worker code only             |
-| `yarn lint:client`   | Lint client code only             |
-| `yarn format`        | Format code with Prettier         |
-| `yarn format:check`  | Check code formatting             |
-| `yarn type-check`    | Run TypeScript type checking      |
-
-### 🧹 Utility Commands
-
-| Command          | Description                                    |
-| ---------------- | ---------------------------------------------- |
-| `yarn clean`     | Clear databases, cache, and build artifacts    |
-| `yarn clean:all` | Clear everything including global Gradle cache |
-
-## 🔧 Development
-
-### Prerequisites
-
-- Node.js 18+
-- Yarn
-- Expo CLI (`npm install -g @expo/cli`)
-- Wrangler CLI (`npm install -g wrangler`)
-
-### Setup
-
+### Development
 ```bash
-# Install dependencies
-yarn install
-
-# Generate database migrations
-yarn db:generate
-
-# Apply migrations
-yarn db:migrate
-
-# Start development
-yarn dev
+yarn dev              # Start both worker and client concurrently
+yarn start            # Start Expo dev server only
+yarn worker:dev       # Start Cloudflare Worker only
+yarn android          # Run on Android
+yarn ios              # Run on iOS
+yarn web              # Run on web
 ```
+
+### Database
+```bash
+yarn db:generate      # Generate migrations from schema
+yarn db:migrate       # Apply migrations to local D1
+yarn db:studio        # Open Drizzle Studio (port 4983)
+```
+
+### Code Quality
+```bash
+yarn lint             # Run ESLint
+yarn lint:fix         # Fix ESLint issues
+yarn format           # Format code with Prettier
+```
+
+### Build
+```bash
+yarn build:debug      # Build debug APK with EAS
+yarn build:release    # Build release APK with EAS
+```
+
+### Utilities
+```bash
+yarn clean            # Clear all caches and build artifacts
+```
+
+## 🔧 Configuration
 
 ### Path Aliases
 
-- `@/*` → `./*` (root files)
-- `@components/*` → `./components/*` (UI components)
-- `@graphql/*` → `./graphql/*` (shared GraphQL definitions)
+TypeScript and Metro are configured with the following path aliases:
 
-### App Configurations
-
-The app supports different configurations based on the build mode:
-
-#### Development Mode (تسفرناک)
-- **Command**: `yarn android`, `yarn ios`, `yarn web`
-- **App Name**: تسفرناک (Persian)
-- **Package ID**: `ir.mohet.safarnak_debug`
-- **GraphQL URL**: `http://192.168.1.51:8787/graphql` (local development)
-
-#### Debug Build (تسفرناک)
-- **Command**: `yarn build:debug`
-- **App Name**: تسفرناک (Persian)
-- **Package ID**: `ir.mohet.safarnak_debug`
-- **GraphQL URL**: `http://192.168.1.51:8787/graphql` (local development)
-
-#### Release Build (سقرناک)
-- **Command**: `yarn build:release`
-- **App Name**: سقرناک (Persian)
-- **Package ID**: `ir.mohet.safarnak`
-- **GraphQL URL**: `https://safarnak.mohet.ir/graphql` (production)
-
-**Note**: Development and Debug builds use the same package ID, so you can only have one installed at a time. Release builds use a different package ID and can coexist with debug builds.
-
-## 🌐 Deployment
-
-### Worker (Backend)
-
-```bash
-yarn wrangler:deploy
+```typescript
+"@/*"           → "./*"              // Root files
+"@components/*" → "./components/*"   // UI components
+"@graphql/*"    → "./graphql/*"      // Shared GraphQL
 ```
 
-### Client Apps (Persian Names)
+### Environment Variables
 
+Create `app.config.js` with your configuration:
+
+```javascript
+export default {
+  extra: {
+    APP_NAME: "Safarnak",
+    APP_SCHEME: "safarnak",
+    graphqlUrl: "http://192.168.1.51:8787/graphql"
+  }
+};
+```
+
+## 🗄️ Database Schema
+
+The app uses a unified SQLite schema managed by Drizzle ORM:
+
+- **users** - User accounts with authentication
+- **messages** - Real-time messaging
+- **tours** - Travel tour listings
+- **subscriptions** - GraphQL subscription management
+
+Migrations are stored in `drizzle/migrations/` and applied automatically.
+
+## 🔐 Authentication
+
+- **Password Hashing**: PBKDF2 with 100,000 iterations
+- **Token Generation**: SHA-256 based secure tokens
+- **Offline Support**: Credentials cached in AsyncStorage
+- **Token Storage**: Redux persist + AsyncStorage
+
+## 🌍 Internationalization
+
+Supports English and Persian (Farsi) with automatic RTL layout:
+
+```typescript
+// Change language
+import { useTranslation } from 'react-i18next';
+const { t, i18n } = useTranslation();
+await i18n.changeLanguage('fa'); // or 'en'
+```
+
+## 📱 Offline-First Architecture
+
+1. **Client-Side SQLite** - Expo SQLite for local data storage
+2. **Redux Persist** - State persistence across app restarts
+3. **Offline Queue** - Mutations queued when offline
+4. **Sync on Reconnect** - Automatic sync when connection restored
+
+## 🚀 Deployment
+
+### Deploy Worker
 ```bash
-# Build debug APK (تسفرناک)
-yarn build:debug
+yarn worker:deploy
+```
 
-# Build release APK (سقرناک)
+### Build Mobile App
+```bash
+# Configure EAS (first time only)
+eas login
+eas build:configure
+
+# Build for Android
 yarn build:release
-
-# Build iOS versions
-yarn build:debug:ios
-yarn build:release:ios
 ```
 
-### Development Testing
+## 🧪 Development Tips
 
-```bash
-# Run on Android device/emulator
-yarn android
+1. **Metro Cache Issues**: Run `yarn clean` if you encounter bundling errors
+2. **Database Reset**: Delete `.wrangler/state/v3/d1/` and run `yarn db:migrate`
+3. **Worker Logs**: Check terminal where `yarn worker:dev` is running
+4. **Type Errors**: Ensure both client and worker are using shared types from `graphql/`
 
-# Run on iOS device/simulator
-yarn ios
+## 📝 Code Style
 
-# Run in web browser
-yarn web
-```
-
-## 🔧 Troubleshooting
-
-### Build Issues
-
-```bash
-# Clear all caches and build artifacts
-yarn clean:all
-
-# Rebuild from scratch
-yarn build:debug
-```
-
-### Development Issues
-
-```bash
-# Clear project cache
-yarn clean
-
-# Restart development server
-yarn dev
-```
-
-### Common Problems
-
-- **Build fails**: Run `yarn clean:all` before building
-- **App won't install**: Check if both debug/release apps are installed (different package IDs)
-- **GraphQL connection issues**: Verify worker is running with `yarn wrangler:dev`
-- **Metro bundler issues**: Clear cache with `yarn clean` and restart
-- **Linting issues**: Run `yarn lint:fix` to auto-fix problems
+- **ESLint**: Flat config with TypeScript, React, and React Native rules
+- **Prettier**: Single quotes, no semicolons, trailing commas
+- **TypeScript**: Strict mode enabled
+- **Imports**: Use path aliases, avoid relative imports
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run `yarn lint:fix` and `yarn format` to ensure code quality
-5. Test thoroughly
-6. Submit a pull request
+1. Follow the existing code style
+2. Use path aliases (`@/`, `@components/`, `@graphql/`)
+3. Run `yarn lint:fix` before committing
+4. Ensure TypeScript types are correct
+5. Test both online and offline scenarios
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+MIT
+
+## 🔗 Resources
+
+- [Expo Documentation](https://docs.expo.dev/)
+- [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
+- [Drizzle ORM](https://orm.drizzle.team/)
+- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server)
+- [React Navigation](https://reactnavigation.org/)
+
+---
+
+Built with ❤️ using Expo and Cloudflare Workers

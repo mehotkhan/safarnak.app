@@ -2,12 +2,12 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import {
   handleSubscriptions,
   createWsConnectionPoolClass,
-  subscribe,
   DefaultPublishableContext,
   createDefaultPublishableContext,
 } from 'graphql-workers-subscriptions';
 import { createYoga } from 'graphql-yoga';
 
+// Import GraphQL schema and resolvers
 import { typeDefs } from './graphql/schema';
 import { resolvers } from './resolvers';
 
@@ -18,15 +18,12 @@ export interface Env {
 
 export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
   typeDefs,
-  resolvers: {
-    ...resolvers,
-    Subscription: {
-      newMessages: {
-        subscribe: subscribe('NEW_MESSAGES'),
-      },
-    },
-  },
+  resolvers,
 });
+
+// ============================================================================
+// GraphQL Yoga Server Configuration
+// ============================================================================
 
 const settings = {
   schema,
@@ -40,6 +37,10 @@ const yoga = createYoga<DefaultPublishableContext<Env>>({
     subscriptionsProtocol: 'WS',
   },
 });
+
+// ============================================================================
+// Request Handler Setup
+// ============================================================================
 
 const baseFetch = (
   request: Request,
@@ -59,6 +60,10 @@ const fetch = handleSubscriptions({
   fetch: baseFetch,
   ...settings,
 });
+
+// ============================================================================
+// Cloudflare Worker Exports
+// ============================================================================
 
 export default { fetch };
 
