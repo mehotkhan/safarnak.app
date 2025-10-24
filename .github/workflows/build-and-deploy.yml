@@ -101,11 +101,13 @@ jobs:
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-read-only: false
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
           add-job-summary: never
+        continue-on-error: true
 
       - name: Cache Metro bundler
         uses: actions/cache@v4
+        continue-on-error: true
         with:
           path: |
             android/app/build/generated/assets
