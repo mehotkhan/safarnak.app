@@ -123,37 +123,14 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
-      - name: Pre-download Gradle wrapper
-        run: |
-          cd android
-          ./gradlew --version --no-daemon
-
-      - name: Pre-build dependencies
-        run: |
-          cd android
-          ./gradlew buildEnvironment --no-daemon
-          ./gradlew dependencies --no-daemon
-
       - name: Build Android APK
         run: |
           cd android
           ./gradlew assembleRelease \
-            --max-workers=4 \
-            --build-cache \
-            --parallel \
+            --no-daemon \
             --stacktrace \
-            --no-configuration-cache \
-            -Pandroid.enablePngCrunchInReleaseBuilds=false \
-            -Pandroid.enableMinifyInReleaseBuilds=false \
-            -Pandroid.enableShrinkResourcesInReleaseBuilds=false \
-            -Pandroid.enableR8=false \
-            -Pandroid.enableProguard=false \
             -x lint \
-            -x lintVitalAnalyzeRelease \
-            -x test \
-            -x testReleaseUnitTest \
-            -x connectedAndroidTest \
-            -x connectedDebugAndroidTest
+            -x test
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
