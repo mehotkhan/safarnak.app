@@ -30,22 +30,23 @@ yarn dev
 ## 🏗️ Technical Stack
 
 ### Frontend (Client)
-- **Expo** ~54 - React Native framework with file-based routing
+- **Expo** ~54.0.19 - React Native framework with file-based routing
 - **React Native** 0.81.5 - Mobile framework
-- **Redux Toolkit** ^2.9 - State management with persistence
-- **Apollo Client** 3.8 - GraphQL client
-- **react-i18next** ^16.1 - Internationalization
+- **React** 19.1.0 - UI library
+- **Redux Toolkit** ^2.9.2 - State management with persistence
+- **Apollo Client** 3.8.0 - GraphQL client
+- **react-i18next** ^16.1.5 - Internationalization
 
 ### Backend (Worker)
 - **Cloudflare Workers** - Serverless edge runtime
-- **GraphQL Yoga** ^5.16 - GraphQL server
+- **GraphQL Yoga** ^5.16.0 - GraphQL server
 - **Cloudflare D1** - Serverless SQLite database
-- **Drizzle ORM** ^0.44 - Type-safe ORM
+- **Drizzle ORM** ^0.44.6 - Type-safe ORM
 
 ### Development Tools
 - **GraphQL Codegen** ^6.0.1 - Auto-generate TypeScript types and React Apollo hooks
-- **TypeScript** ~5.9 - Enhanced type checking
-- **ESLint** ^9.38 - Developer-friendly linting
+- **TypeScript** ~5.9.3 - Enhanced type checking
+- **ESLint** ^9.38.0 - Developer-friendly linting
 - **Semantic Versioning** - Automated versioning with release-it
 
 ## 📁 Project Structure
