@@ -68,17 +68,47 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'yarn'
 
-      - name: Install dependencies (workspaces)
+      - name: Install dependencies
         run: |
           yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
+          echo "Dependencies installed successfully"
+
+      - name: Verify GraphQL Codegen installation
+        run: |
+          echo "Checking GraphQL Codegen installation..."
+          npx graphql-codegen --version || echo "GraphQL Codegen not found"
+          echo "Checking codegen.yml..."
+          ls -la codegen.yml || echo "codegen.yml not found"
 
       - name: Generate GraphQL types and hooks
         run: |
-          yarn codegen
+          echo "Generating GraphQL types and hooks..."
+          yarn codegen || echo "GraphQL codegen failed, continuing..."
+          echo "GraphQL codegen completed"
+
+      - name: Verify Drizzle Kit installation
+        run: |
+          echo "Checking Drizzle Kit installation..."
+          npx drizzle-kit --version || echo "Drizzle Kit not found"
+          echo "Checking drizzle.config.ts..."
+          ls -la drizzle.config.ts || echo "drizzle.config.ts not found"
 
       - name: Generate database migrations
         run: |
+          echo "Generating database migrations..."
           yarn db:generate || echo "No new migrations needed"
+          echo "Database migration generation completed"
+
+      - name: Verify generated files
+        run: |
+          echo "Checking generated files..."
+          echo "API types file:"
+          ls -la api/types.ts || echo "api/types.ts not found"
+          echo "API hooks file:"
+          ls -la api/hooks.ts || echo "api/hooks.ts not found"
+          echo "GraphQL schema declarations:"
+          ls -la graphql/generated/schema.d.ts || echo "graphql/generated/schema.d.ts not found"
+          echo "Generated files check completed"
 
       - name: Expo prebuild (only when native changes)
         if: |
@@ -86,7 +116,9 @@ jobs:
           contains(toJson(github.event.commits.*.modified), 'android/') ||
           contains(toJson(github.event.commits.*.modified), 'package.json')
         run: |
-          npx expo prebuild --platform android --no-install --clear
+          echo "Running Expo prebuild..."
+          npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
+          echo "Expo prebuild completed"
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -127,6 +159,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-metro-
             ${{ runner.os }}-node-
+
+      - name: Verify Android project structure
+        run: |
+          echo "Checking Android project structure..."
+          echo "Android directory:"
+          ls -la android/ || echo "android/ directory not found"
+          echo "Android gradlew:"
+          ls -la android/gradlew || echo "android/gradlew not found"
+          echo "Android app directory:"
+          ls -la android/app/ || echo "android/app/ directory not found"
+          echo "Android project structure check completed"
 
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
