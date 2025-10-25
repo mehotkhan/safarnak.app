@@ -214,7 +214,7 @@ jobs:
             ### 🎯 Version Progress
             - **Current**: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
             - **Target Stable**: 1.0.0
-            - **Progress**: ${{ steps.version.outputs.major == 0 && (steps.version.outputs.minor - 5) * 20 || 100 }}%
+            - **Progress**: ${{ steps.version.outputs.stage }} stage
 
             ### 📱 Installation
             1. Download the APK file below
