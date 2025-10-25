@@ -12,6 +12,7 @@ on:
       - '.github/workflows/build-and-deploy.yml'
       - 'graphql/**'
       - 'drizzle/**'
+      - 'worker/**'
   release:
     types: [published]
   workflow_dispatch:
