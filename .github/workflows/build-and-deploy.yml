@@ -12,7 +12,6 @@ on:
       - '.github/workflows/build-and-deploy.yml'
       - 'graphql/**'
       - 'drizzle/**'
-      - 'worker/**'
   release:
     types: [published]
   workflow_dispatch:
@@ -355,7 +354,7 @@ jobs:
             **Built with ❤️ using Expo, Cloudflare Workers, and GraphQL Codegen**
           files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
-          prerelease: ${{ steps.version.outputs.stage != 'stable' }}
+          prerelease: false
           fail_on_unmatched_files: true
 
       - name: Cleanup Gradle cache
