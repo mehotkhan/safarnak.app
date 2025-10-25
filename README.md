@@ -9,8 +9,10 @@
 [![GraphQL Codegen](https://img.shields.io/badge/GraphQL-Codegen-purple)](https://the-guild.dev/graphql/codegen)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-0.5.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
+[![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
-**Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
+**Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases) | **Wiki**: [Documentation](https://github.com/mehotkhan/safarnak.app/wiki)
 
 ## ✨ Key Features
 
@@ -212,23 +214,25 @@ safarnak.app/
 
 | Technology        | Version | Purpose                |
 | ----------------- | ------- | ---------------------- |
-| **Expo**          | ~54     | React Native framework |
+| **Expo**          | ~54.0.19| React Native framework |
 | **React Native**  | 0.81.5  | Mobile UI framework    |
-| **Expo Router**   | ~6      | File-based navigation  |
-| **Redux Toolkit** | ^2.9    | State management       |
-| **Redux Persist** | ^6.0    | State persistence      |
-| **Apollo Client** | 3.8     | GraphQL client         |
-| **react-i18next** | ^16.1   | Internationalization   |
-| **Drizzle ORM**   | ^0.44   | Client-side SQLite     |
+| **React**         | 19.1.0  | UI library            |
+| **Expo Router**   | ~6.0.13 | File-based navigation  |
+| **Redux Toolkit** | ^2.9.2  | State management       |
+| **Redux Persist** | ^6.0.0  | State persistence      |
+| **Apollo Client** | 3.8.0   | GraphQL client         |
+| **react-i18next** | ^16.1.5 | Internationalization   |
+| **Drizzle ORM**   | ^0.44.6 | Client-side SQLite     |
 
 ### Backend
 
 | Technology                        | Version | Purpose                 |
 | --------------------------------- | ------- | ----------------------- |
-| **Cloudflare Workers**            | -       | Serverless runtime      |
-| **GraphQL Yoga**                  | ^5.16   | GraphQL server          |
-| **Cloudflare D1**                 | -       | SQLite database         |
-| **Drizzle ORM**                   | ^0.44   | Type-safe ORM           |
+| **Cloudflare Workers**            | Latest  | Serverless runtime      |
+| **GraphQL Yoga**                  | ^5.16.0 | GraphQL server          |
+| **Cloudflare D1**                 | Latest  | SQLite database         |
+| **Drizzle ORM**                   | ^0.44.6 | Type-safe ORM           |
+| **Wrangler**                      | ^4.43.0 | Cloudflare CLI          |
 | **graphql-workers-subscriptions** | ^0.1.6  | Real-time subscriptions |
 
 ### Code Generation

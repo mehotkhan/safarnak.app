@@ -14,20 +14,21 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 ## Technology Stack
 
 ### Frontend (Client)
-- **Expo** ~54 - React Native framework with file-based routing
+- **Expo** ~54.0.19 - React Native framework with file-based routing
 - **React Native** 0.81.5 - Mobile framework
-- **Expo Router** ~6 - File-based navigation
-- **Redux Toolkit** ^2.9 - State management
-- **Redux Persist** ^6.0 - Persistent state
-- **Apollo Client** 3.8 - GraphQL client
-- **react-i18next** ^16.1 - Internationalization (English + Persian/Farsi)
-- **Drizzle ORM** ^0.44 - Type-safe database queries (client-side SQLite)
+- **React** 19.1.0 - UI library
+- **Expo Router** ~6.0.13 - File-based navigation
+- **Redux Toolkit** ^2.9.2 - State management
+- **Redux Persist** ^6.0.0 - Persistent state
+- **Apollo Client** 3.8.0 - GraphQL client
+- **react-i18next** ^16.1.5 - Internationalization (English + Persian/Farsi)
+- **Drizzle ORM** ^0.44.6 - Type-safe database queries (client-side SQLite)
 
 ### Backend (Worker)
 - **Cloudflare Workers** - Serverless edge runtime
-- **GraphQL Yoga** ^5.16 - GraphQL server
+- **GraphQL Yoga** ^5.16.0 - GraphQL server
 - **Cloudflare D1** - Serverless SQLite database
-- **Drizzle ORM** ^0.44 - Type-safe ORM
+- **Drizzle ORM** ^0.44.6 - Type-safe ORM
 - **graphql-workers-subscriptions** ^0.1.6 - Real-time subscriptions with Durable Objects
 
 ### Code Generation
@@ -36,10 +37,10 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **typescript-react-apollo** ^4.3.3 - Generate React Apollo hooks
 
 ### Shared
-- **TypeScript** ~5.9 - Balanced configuration prioritizing development efficiency
-- **GraphQL** ^16.11 - Schema and type definitions
-- **ESLint** ^9.38 - Developer-friendly config with TypeScript/React/React Native plugins
-- **Prettier** ^3.6 - Code formatting
+- **TypeScript** ~5.9.3 - Balanced configuration prioritizing development efficiency
+- **GraphQL** ^16.11.0 - Schema and type definitions
+- **ESLint** ^9.38.0 - Developer-friendly config with TypeScript/React/React Native plugins
+- **Prettier** ^3.6.2 - Code formatting
 
 ## Project Structure
 
