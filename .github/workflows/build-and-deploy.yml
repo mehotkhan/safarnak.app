@@ -155,6 +155,22 @@ jobs:
           retention-days: 30
           compression-level: 0
 
+      - name: Rename APK with descriptive name
+        run: |
+          cd android/app/build/outputs/apk/release
+          # Find the APK file
+          APK_FILE=$(ls *.apk | head -n 1)
+          if [ -n "$APK_FILE" ]; then
+            # Create descriptive name: AppName-Architecture-Version.apk
+            NEW_NAME="Safarnak-Universal-v${{ github.run_number }}.apk"
+            cp "$APK_FILE" "$NEW_NAME"
+            echo "Renamed APK: $APK_FILE -> $NEW_NAME"
+            ls -lh "$NEW_NAME"
+          else
+            echo "No APK file found!"
+            exit 1
+          fi
+
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
@@ -181,7 +197,7 @@ jobs:
             - Offline-first architecture
             - Persian/English language support
             - Dark mode support
-          files: android/app/build/outputs/apk/release/*.apk
+          files: android/app/build/outputs/apk/release/Safarnak-Universal-v${{ github.run_number }}.apk
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
