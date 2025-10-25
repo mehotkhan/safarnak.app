@@ -36,9 +36,9 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **typescript-react-apollo** ^4.3.3 - Generate React Apollo hooks
 
 ### Shared
-- **TypeScript** ~5.9 - Strict mode enabled with enhanced checking
+- **TypeScript** ~5.9 - Balanced configuration prioritizing development efficiency
 - **GraphQL** ^16.11 - Schema and type definitions
-- **ESLint** ^9.38 - Flat config with TypeScript/React/React Native plugins
+- **ESLint** ^9.38 - Developer-friendly config with TypeScript/React/React Native plugins
 - **Prettier** ^3.6 - Code formatting
 
 ## Project Structure
@@ -275,15 +275,17 @@ const { currentLanguage, changeLanguage } = useLanguage();
 - Component props
 - Redux state/actions
 
-**Avoid:**
-- `any` (use `unknown` if type is truly unknown)
-- Type assertions (prefer type guards)
-- `@ts-ignore` (fix the type issue)
+**Development-Friendly Approach:**
+- `any` type is allowed for development flexibility
+- `@ts-ignore` and `@ts-expect-error` are allowed when needed
+- Type assertions are acceptable for development
+- Focus on functionality over strict typing
 
 **Use:**
 - Interfaces for objects
 - Type aliases for unions/primitives
 - Generics for reusable components/functions
+- `@ts-expect-error` with explanatory comments
 
 ### 7. Imports
 
@@ -347,9 +349,9 @@ yarn db:migrate           # Apply migrations to local D1
 yarn db:studio            # Open Drizzle Studio
 
 # Code Quality
-yarn lint                 # Run ESLint with enhanced rules
-yarn lint:fix             # Fix linting issues
-yarn format               # Format with Prettier
+yarn lint                 # Run ESLint with developer-friendly rules
+yarn lint:fix             # Fix linting issues automatically
+yarn format               # Format with Prettier (optional)
 
 # Build
 yarn android              # Run on Android
@@ -419,7 +421,7 @@ const { t } = useTranslation();
 6. **Use path aliases** - Avoid relative imports
 7. **Run db:migrate before testing** - Ensure schema is up to date
 8. **Clean caches when stuck** - `yarn clean` fixes most issues
-9. **Enhanced Type Checking**: Fix all TypeScript errors for better code quality
+9. **Developer-Friendly TypeScript**: Use `any` type and `@ts-expect-error` when needed for development
 10. **Auto-Generated Files**: Never manually edit `api/hooks.ts` or `api/types.ts`
 
 ## Debugging Tips
