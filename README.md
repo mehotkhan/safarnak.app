@@ -12,7 +12,7 @@
 [![Version](https://img.shields.io/badge/Version-0.5.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
-**Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases) | **Wiki**: [Documentation](https://github.com/mehotkhan/safarnak.app/wiki)
+**Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
 
 ## ✨ Key Features
 
