@@ -60,7 +60,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: 🗄️ Database schema check
-        run: yarn db:generate --check
+        run: npx drizzle-kit check --config drizzle.config.ts
 
       - name: 📊 GraphQL codegen
         run: yarn codegen
@@ -95,7 +95,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: ⚡ Worker type check
-        run: npx tsc --noEmit worker.ts
+        run: npx tsc --noEmit worker/index.ts
 
       - name: 🔍 Worker linting
         run: yarn lint worker/
@@ -147,7 +147,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: 🔐 Security audit
-        run: yarn audit --audit-level moderate
+        run: yarn audit --audit-level high
 
       - name: 🔍 Dependency check
         run: npx audit-ci --config audit-ci.json

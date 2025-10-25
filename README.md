@@ -279,10 +279,16 @@ yarn db:studio        # Open Drizzle Studio (port 4983)
 ### Code Quality
 
 ```bash
-yarn lint             # Run ESLint with enhanced rules
-yarn lint:fix         # Fix ESLint issues
-yarn format           # Format code with Prettier
+yarn lint             # Run ESLint with developer-friendly rules
+yarn lint:fix         # Fix ESLint issues automatically
+yarn format           # Format code with Prettier (optional)
 ```
+
+**ESLint Configuration:**
+- **Developer Friendly**: Disabled strict rules that hinder development
+- **TypeScript Support**: Full TypeScript integration with relaxed rules
+- **React Native Optimized**: Disabled accessibility rules not applicable to mobile
+- **Flexible**: Allows `any` type and `@ts-ignore` comments for development
 
 ### Build
 
@@ -312,24 +318,29 @@ TypeScript and Metro are configured with the following path aliases:
 "@worker/*"     → "./worker/*"       // Worker resolvers
 ```
 
-### Enhanced TypeScript Configuration
+### TypeScript Configuration
 
-The project uses strict TypeScript settings for better error detection:
+The project uses a balanced TypeScript configuration for development efficiency:
 
 ```json
 {
   "strict": true,
-  "noUnusedLocals": true,
-  "noUnusedParameters": true,
-  "noImplicitReturns": true,
-  "noFallthroughCasesInSwitch": true,
-  "noUncheckedIndexedAccess": true,
-  "exactOptionalPropertyTypes": true,
-  "noImplicitOverride": true,
-  "allowUnusedLabels": false,
-  "allowUnreachableCode": false
+  "noUnusedLocals": false,        // Disabled for easier development
+  "noUnusedParameters": false,    // Disabled for easier development
+  "noImplicitReturns": true,      // Ensures functions return values
+  "noFallthroughCasesInSwitch": true, // Prevents switch fallthrough bugs
+  "noUncheckedIndexedAccess": false,  // Disabled for easier development
+  "exactOptionalPropertyTypes": false, // Disabled for easier development
+  "noImplicitOverride": true,     // Ensures proper override usage
+  "allowUnusedLabels": false,     // Prevents unreachable code
+  "allowUnreachableCode": false   // Prevents unreachable code
 }
 ```
+
+**Configuration Philosophy:**
+- **Strict Core**: Maintains type safety with `strict: true`
+- **Developer Friendly**: Disables overly strict rules that hinder development
+- **Essential Safety**: Keeps important rules like `noImplicitReturns` and `noFallthroughCasesInSwitch`
 
 ### GraphQL Codegen Configuration
 
@@ -509,14 +520,16 @@ yarn build:release
 5. **New Architecture**: Use `yarn android:newarch` to test with Fabric + TurboModules
 6. **Worker Root**: Visit `http://127.0.0.1:8787/` - redirects to `/graphql`
 7. **GraphQL Changes**: Run `yarn codegen` after modifying schema or operations
-8. **Enhanced Type Checking**: Fix all TypeScript errors for better code quality
+8. **TypeScript Errors**: Use `any` type or `@ts-ignore` when needed for development
+9. **ESLint Issues**: Most strict rules are disabled for easier development
+10. **Pre-commit Hooks**: TypeScript and ESLint checks run automatically on commit
 
 ## 📝 Code Style
 
-- **ESLint**: Flat config with TypeScript, React, and React Native rules
-- **Prettier**: Single quotes, no semicolons, trailing commas
-- **TypeScript**: Strict mode with enhanced checking enabled
-- **Imports**: Use path aliases, avoid relative imports
+- **ESLint**: Developer-friendly config with TypeScript, React, and React Native rules
+- **Prettier**: Single quotes, no semicolons, trailing commas (optional formatting)
+- **TypeScript**: Balanced configuration prioritizing development efficiency
+- **Imports**: Use path aliases (`@/`, `@components/`, `@graphql/`)
 - **GraphQL**: Use `.graphql` files for operations, auto-generate types
 
 ## 🤝 Contributing
