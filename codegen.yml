@@ -1,0 +1,20 @@
+schema: './graphql/schema.graphql'
+documents: './graphql/queries/*.graphql'
+generates:
+  ./api/types.ts:
+    plugins:
+      - typescript
+  ./api/hooks.ts:
+    plugins:
+      - typescript-operations
+      - typescript-react-apollo
+    config:
+      withHooks: true
+      withComponent: false
+      withHOC: false
+      importTypesFrom: './types'
+  ./graphql/generated/schema.d.ts:
+    plugins:
+      - typescript-graphql-files-modules
+    config:
+      modulePathPrefix: '@graphql/'

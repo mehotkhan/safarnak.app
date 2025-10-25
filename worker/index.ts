@@ -12,7 +12,7 @@ import {
 } from 'graphql-workers-subscriptions';
 import { createYoga } from 'graphql-yoga';
 
-import { typeDefs } from '@graphql/schema';
+import { readGraphQLSchema } from '@graphql/schema-loader';
 import { Query } from './queries';
 import { Mutation } from './mutations';
 import { Subscription } from './subscriptions';
@@ -36,7 +36,7 @@ export type { Env, ResolverContext } from './types';
 // ============================================================================
 
 export const schema = makeExecutableSchema<DefaultPublishableContext<Env>>({
-  typeDefs,
+  typeDefs: readGraphQLSchema(),
   resolvers,
 });
 

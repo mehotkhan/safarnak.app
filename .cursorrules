@@ -30,8 +30,13 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Drizzle ORM** ^0.44 - Type-safe ORM
 - **graphql-workers-subscriptions** ^0.1.6 - Real-time subscriptions with Durable Objects
 
+### Code Generation
+- **GraphQL Codegen** ^6.0.1 - Auto-generate TypeScript types and React Apollo hooks
+- **typescript-operations** ^5.0.2 - Generate operation-specific types
+- **typescript-react-apollo** ^4.3.3 - Generate React Apollo hooks
+
 ### Shared
-- **TypeScript** ~5.9 - Strict mode enabled
+- **TypeScript** ~5.9 - Strict mode enabled with enhanced checking
 - **GraphQL** ^16.11 - Schema and type definitions
 - **ESLint** ^9.38 - Flat config with TypeScript/React/React Native plugins
 - **Prettier** ^3.6 - Code formatting
@@ -43,18 +48,55 @@ safarnak.app/                           # Single root directory
 ├── worker.ts                           # Cloudflare Worker entry (3-line imports from resolvers & graphql)
 ├── worker/                             # GraphQL resolvers (SERVER-SIDE ONLY)
 │   ├── index.ts                        # Combined resolver exports
-│   ├── queries.ts                      # Query resolvers: getMessages, me
-│   ├── mutations.ts                    # Mutation resolvers: register, login, addMessage
-│   ├── subscriptions.ts                # Subscription resolvers: newMessages
-│   └── utils.ts                        # Password hashing (PBKDF2), token generation
+│   ├── types.ts                        # Server-specific types
+│   ├── queries/                        # Query resolvers: getMessages, me
+│   ├── mutations/                      # Mutation resolvers: register, login, addMessage
+│   ├── subscriptions/                  # Subscription resolvers: newMessages
+│   └── utilities/                       # Password hashing (PBKDF2), token generation
 ├── graphql/                            # SHARED between client & worker
-│   ├── schema.ts                       # GraphQL typeDefs (shared)
-│   ├── queries.ts                      # Client query strings (REGISTER_MUTATION, LOGIN_MUTATION, etc.)
-│   ├── types.ts                        # TypeScript interfaces (User, Message, AuthPayload, etc.)
-│   └── index.ts                        # Re-exports all shared GraphQL code
+│   ├── schema.graphql                  # Pure GraphQL schema definition
+│   ├── queries/                        # Query definitions (.graphql files)
+│   │   ├── addMessage.graphql
+│   │   ├── getMessages.graphql
+│   │   ├── login.graphql
+│   │   ├── me.graphql
+│   │   └── register.graphql
+│   ├── generated/
+│   │   └── schema.d.ts                 # Worker schema declarations
+│   ├── schema-loader.ts                # Worker schema loader
+│   └── index.ts                         # Shared exports only
+├── api/                                # Client API layer (CLIENT-SIDE ONLY)
+│   ├── client.ts                       # Apollo Client setup with auth link
+│   ├── hooks.ts                        # 🤖 Auto-generated React Apollo hooks
+│   ├── types.ts                        # 🤖 Auto-generated GraphQL types
+│   ├── api-types.ts                    # API-specific types (ApiError, ApiResponse)
+│   ├── index.ts                        # Main API exports
+│   ├── mutations/                      # Client mutation wrappers
+│   │   ├── addMessage.ts
+│   │   ├── login.ts
+│   │   ├── register.ts
+│   │   └── index.ts
+│   ├── queries/                         # Client query wrappers
+│   │   ├── getMessages.ts
+│   │   ├── me.ts
+│   │   └── index.ts
+│   ├── subscriptions/                  # Client subscription wrappers
+│   │   ├── newMessages.ts
+│   │   └── index.ts
+│   └── utilities/                       # Client helper functions
+│       ├── utils.ts
+│       └── index.ts
 ├── drizzle/                            # Database layer (SHARED)
 │   ├── schema.ts                       # Database schema: users, tours, messages, subscriptions
 │   └── migrations/                     # SQL migration files
+├── store/                              # Redux state management (CLIENT)
+│   ├── index.ts                        # Store configuration with persist
+│   ├── hooks.ts                        # Typed useAppDispatch, useAppSelector
+│   ├── slices/                         # Redux slices
+│   │   ├── authSlice.ts                # Auth state (user, token, isAuthenticated)
+│   │   └── themeSlice.ts               # Theme state
+│   └── middleware/                      # Redux middleware
+│       └── offlineMiddleware.ts        # Offline mutation queue
 ├── app/                                # Expo Router pages (CLIENT)
 │   ├── _layout.tsx                     # Root layout with providers
 │   ├── login.tsx                       # Login/register screen
@@ -75,29 +117,22 @@ safarnak.app/                           # Single root directory
 │       ├── ThemeToggle.tsx             # Dark mode toggle
 │       ├── CustomText.tsx              # i18n-aware text component
 │       └── ...                         # Other UI components
-├── api/                                # Apollo Client (CLIENT)
-│   ├── client.ts                       # Apollo Client setup with auth link
-│   └── queries.ts                      # Wrapped GQL queries (imports from @graphql/)
-├── redux/                              # Redux state (CLIENT)
-│   ├── store.ts                        # Redux store with persist middleware
-│   ├── authSlice.ts                    # Auth state (user, token, isAuthenticated)
-│   └── offlineMiddleware.ts            # Offline mutation queue
-├── store/                              # Redux helpers (CLIENT)
-│   ├── index.ts                        # Store export
-│   ├── hooks.ts                        # Typed useAppDispatch, useAppSelector
-│   └── slices/                         # Additional slices
+├── constants/                          # App constants (CLIENT)
+│   ├── app.ts                          # App configuration
+│   ├── Colors.ts                       # Theme colors
+│   └── index.ts                        # Constants exports
 ├── hooks/                              # Custom React hooks (CLIENT)
 ├── locales/                            # i18n translations
 │   ├── en/translation.json             # English
 │   └── fa/translation.json             # Persian (Farsi)
-├── constants/                          # App constants
 ├── assets/                             # Static assets (images, fonts)
-├── config/                             # App configuration
 ├── metro.config.js                     # Metro bundler config
 ├── wrangler.toml                       # Cloudflare Workers config
 ├── drizzle.config.ts                   # Drizzle ORM config
+├── codegen.yml                         # GraphQL Codegen configuration
 ├── eslint.config.mjs                   # ESLint flat config (ES module)
-├── tsconfig.json                       # TypeScript config
+├── app.config.js                       # Expo configuration
+├── tsconfig.json                       # TypeScript config with enhanced checking
 └── package.json                        # Single package.json (no workspaces)
 ```
 
@@ -114,22 +149,37 @@ safarnak.app/                           # Single root directory
 ### 1. GraphQL Architecture
 
 **Shared (graphql/):**
-- `schema.ts` - GraphQL type definitions used by both client and worker
-- `queries.ts` - Query/mutation strings for Apollo Client
-- `types.ts` - TypeScript interfaces matching GraphQL types
+- `schema.graphql` - Pure GraphQL schema definition (shared)
+- `queries/*.graphql` - Query/mutation definitions (shared)
+- `schema-loader.ts` - Worker schema loader
+- `generated/schema.d.ts` - Worker schema declarations
 
-**Server-Only (worker/):**
-- `queries.ts` - Query resolver functions (getMessages, me)
-- `mutations.ts` - Mutation resolver functions (register, login, addMessage)
-- `subscriptions.ts` - Subscription resolvers (newMessages)
-- `utils.ts` - Password hashing, token generation
+**Client-Side (api/):**
+- `hooks.ts` - Auto-generated React Apollo hooks
+- `types.ts` - Auto-generated GraphQL types
+- `api-types.ts` - API-specific types (ApiError, ApiResponse)
+- `mutations/` - Client mutation wrappers
+- `queries/` - Client query wrappers
+- `subscriptions/` - Client subscription wrappers
+
+**Server-Side (worker/):**
+- `queries/` - Query resolver functions (getMessages, me)
+- `mutations/` - Mutation resolver functions (register, login, addMessage)
+- `subscriptions/` - Subscription resolvers (newMessages)
+- `utilities/` - Password hashing, token generation
 
 **Worker (worker/index.ts):**
 ```typescript
-import { typeDefs } from '@graphql/schema';
+import { readGraphQLSchema } from '@graphql/schema-loader';
 import { resolvers } from './worker';
 // Minimal file that wires everything together
 ```
+
+**Codegen Workflow:**
+1. Define schema in `graphql/schema.graphql`
+2. Define operations in `graphql/queries/*.graphql`
+3. Run `yarn codegen` to generate types and hooks in `api/`
+4. Use generated hooks in client components
 
 ### 2. Database Patterns
 
@@ -287,13 +337,17 @@ yarn dev                  # Start both worker and client
 yarn start                # Expo dev server only
 yarn worker:dev           # Worker only
 
+# GraphQL Codegen
+yarn codegen              # Generate types and hooks from GraphQL schema
+yarn codegen:watch        # Watch mode for development
+
 # Database
 yarn db:generate          # Generate migration from schema
 yarn db:migrate           # Apply migrations to local D1
 yarn db:studio            # Open Drizzle Studio
 
 # Code Quality
-yarn lint                 # Run ESLint
+yarn lint                 # Run ESLint with enhanced rules
 yarn lint:fix             # Fix linting issues
 yarn format               # Format with Prettier
 
@@ -359,11 +413,14 @@ const { t } = useTranslation();
 
 1. **Never add `"type": "module"` to package.json** - causes metro.config.js to fail
 2. **Use eslint.config.mjs** - ES module config works without "type": "module"
-3. **Shared code goes in graphql/ or drizzle/** - NOT in worker/
-4. **Worker code is server-only** - Never import from client code
-5. **Use path aliases** - Avoid relative imports
-6. **Run db:migrate before testing** - Ensure schema is up to date
-7. **Clean caches when stuck** - `yarn clean` fixes most issues
+3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only
+4. **GraphQL Codegen**: Always run `yarn codegen` after modifying schema or operations
+5. **Worker code is server-only** - Never import from client code
+6. **Use path aliases** - Avoid relative imports
+7. **Run db:migrate before testing** - Ensure schema is up to date
+8. **Clean caches when stuck** - `yarn clean` fixes most issues
+9. **Enhanced Type Checking**: Fix all TypeScript errors for better code quality
+10. **Auto-Generated Files**: Never manually edit `api/hooks.ts` or `api/types.ts`
 
 ## Debugging Tips
 
@@ -378,14 +435,21 @@ const { t } = useTranslation();
 - Check wrangler logs in terminal
 
 **Type errors:**
-- Ensure shared types are in `graphql/types.ts`
+- Ensure shared types are in `graphql/schema.graphql`
 - Check tsconfig.json path aliases
 - Run `npx tsc --noEmit` to see all errors
+- Run `yarn codegen` to regenerate types
 
 **GraphQL errors:**
 - Check worker terminal for resolver errors
 - Verify schema matches resolvers
 - Test in GraphiQL at `http://localhost:8787/graphql`
+- Run `yarn codegen` after schema changes
+
+**API/Client errors:**
+- Check if `api/hooks.ts` and `api/types.ts` are up to date
+- Run `yarn codegen` to regenerate client code
+- Verify imports are using correct paths
 
 ## Security Considerations
 
@@ -407,11 +471,38 @@ const { t } = useTranslation();
 
 1. Check existing patterns in similar files
 2. Use path aliases (`@/`, `@components/`, `@graphql/`)
-3. Type everything strictly
+3. Type everything strictly with enhanced checking
 4. Run linter before committing
 5. Test both online and offline scenarios
 6. Ensure RTL layout works for Persian
+7. Run `yarn codegen` after GraphQL changes
+8. Never manually edit auto-generated files
+
+## Feature Development Workflow
+
+### Adding New GraphQL Operations
+
+1. **Define Schema**: Add types to `graphql/schema.graphql`
+2. **Create Operations**: Add `.graphql` files to `graphql/queries/`
+3. **Generate Code**: Run `yarn codegen`
+4. **Create Resolvers**: Add resolver functions to `worker/mutations/` or `worker/queries/`
+5. **Create Client Wrappers**: Add wrapper files to `api/mutations/` or `api/queries/`
+6. **Use in Components**: Import generated hooks in React components
+
+### Adding New Database Tables
+
+1. **Update Schema**: Add table to `drizzle/schema.ts`
+2. **Generate Migration**: Run `yarn db:generate`
+3. **Apply Migration**: Run `yarn db:migrate`
+4. **Update Types**: Run `yarn codegen` if GraphQL schema changed
+
+### Adding New UI Components
+
+1. **Create Component**: Add to `components/ui/` or `components/`
+2. **Add Types**: Define TypeScript interfaces
+3. **Add Translations**: Update `locales/en/` and `locales/fa/`
+4. **Test RTL**: Ensure Persian layout works correctly
 
 ---
 
-**Remember**: This is a unified monorepo. Client and worker code share the same directory structure but serve different purposes. Keep shared code in `graphql/` and `drizzle/`, server logic in `worker/` and `worker.ts`, and client code in `app/`, `components/`, `api/`, `redux/`, etc.
+**Remember**: This is a unified monorepo with perfect separation. GraphQL folder is shared, API folder is client-only, Worker folder is server-only. Always run `yarn codegen` after GraphQL changes and never manually edit auto-generated files.

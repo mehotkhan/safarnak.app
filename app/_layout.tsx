@@ -14,9 +14,9 @@ import { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 
-import { client } from '../api/client';
+import { client } from '../api';
 import { useColorScheme } from '../hooks/useColorScheme';
-import { persistor, store } from '../redux/store';
+import { persistor, store } from '../store';
 // Drizzle migrations removed from client UI
 import '../i18n';
 

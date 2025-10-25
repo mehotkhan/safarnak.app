@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { restoreUser, setLoading } from '../redux/authSlice';
+import { restoreUser, setLoading } from '../store/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 // Drizzle removed from client restore path; rely on AsyncStorage only
 

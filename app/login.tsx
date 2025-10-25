@@ -1,4 +1,3 @@
-import { useMutation } from '@apollo/client';
 import { CustomText } from '@components/ui/CustomText';
 import { View } from '@components/ui/Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,8 +14,8 @@ import {
   Platform,
 } from 'react-native';
 
-import { LOGIN_MUTATION, REGISTER_MUTATION } from '../api/queries';
-import { login } from '../redux/authSlice';
+import { useLoginMutation, useRegisterMutation } from '../api/mutations';
+import { login } from '../store/slices/authSlice';
 import { useAppDispatch } from '../store/hooks';
 
 export default function LoginScreen() {
@@ -27,10 +26,9 @@ export default function LoginScreen() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const [loginMutation, { loading: loginLoading }] =
-    useMutation(LOGIN_MUTATION);
+  const [loginMutation, { loading: loginLoading }] = useLoginMutation();
   const [registerMutation, { loading: registerLoading }] =
-    useMutation(REGISTER_MUTATION);
+    useRegisterMutation();
 
   const loading = loginLoading || registerLoading;
 
@@ -64,7 +62,7 @@ export default function LoginScreen() {
       }
 
       // Check for GraphQL errors in the result
-      if (result.errors && result.errors.length > 0) {
+      if ('errors' in result && result.errors && result.errors.length > 0) {
         const error = result.errors[0];
 
         let errorMsg = '';
@@ -93,8 +91,8 @@ export default function LoginScreen() {
 
       if (result.data) {
         const authData = isRegistering
-          ? result.data.register
-          : result.data.login;
+          ? (result.data as any).register
+          : (result.data as any).login;
         const { user, token } = authData;
 
         // Persist auth data to AsyncStorage

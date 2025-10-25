@@ -18,7 +18,7 @@ export type TextProps = ThemeProps & DefaultText['props'];
 export type ViewProps = ThemeProps & DefaultView['props'];
 
 export function useThemeColor(
-  props: { light?: string; dark?: string },
+  props: { light?: string | undefined; dark?: string | undefined },
   colorName: keyof typeof Colors.light & keyof typeof Colors.dark
 ) {
   const { isDark } = useTheme();
@@ -33,7 +33,10 @@ export function useThemeColor(
 
 export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor({ 
+    light: lightColor ?? undefined, 
+    dark: darkColor ?? undefined 
+  }, 'text');
   const { currentLanguage } = useLanguage();
 
   // Use Vazir font for Persian text
@@ -45,7 +48,7 @@ export function Text(props: TextProps) {
 export function View(props: ViewProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
   const backgroundColor = useThemeColor(
-    { light: lightColor, dark: darkColor },
+    { light: lightColor ?? undefined, dark: darkColor ?? undefined },
     'background'
   );
 

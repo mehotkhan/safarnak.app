@@ -95,7 +95,15 @@ export async function verifyPassword(
     // Constant-time comparison to prevent timing attacks
     let result = 0;
     for (let i = 0; i < derivedHash.length; i++) {
-      result |= derivedHash[i] ^ storedHashBytes[i];
+      const storedByte = storedHashBytes[i];
+      if (storedByte !== undefined) {
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        result |= derivedHash[i] ^ (storedByte as number);
+      } else {
+        // If byte is undefined, consider it a mismatch
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+        result |= derivedHash[i] ^ 0xFF;
+      }
     }
 
     return result === 0;

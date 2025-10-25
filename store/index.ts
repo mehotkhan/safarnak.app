@@ -2,8 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { persistReducer, persistStore } from 'redux-persist';
 
+import authReducer from './slices/authSlice';
 import themeReducer from './slices/themeSlice';
-import userReducer from './slices/userSlice';
+import { offlineMiddleware } from './middleware/offlineMiddleware';
 
 // Web-compatible storage
 const storage = typeof window !== 'undefined' ? AsyncStorage : AsyncStorage;
@@ -11,11 +12,11 @@ const storage = typeof window !== 'undefined' ? AsyncStorage : AsyncStorage;
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user', 'theme'], // Persist user and theme slices
+  whitelist: ['auth', 'theme'], // Persist auth and theme slices
 };
 
 const rootReducer = combineReducers({
-  user: userReducer,
+  auth: authReducer,
   theme: themeReducer,
 });
 
@@ -28,7 +29,7 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
       },
-    }),
+    }).concat(offlineMiddleware),
 });
 
 export const persistor = persistStore(store);

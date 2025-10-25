@@ -20,6 +20,8 @@
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",
     "format": "prettier --write .",
+    "codegen": "graphql-codegen --config codegen.yml",
+    "codegen:watch": "graphql-codegen --config codegen.yml --watch",
     "clean": "rm -rf .wrangler db.db* node_modules/.cache android/.gradle android/build android/app/build .expo && echo 'Cleared databases, cache, and build artifacts'"
   },
   "dependencies": {
@@ -43,6 +45,7 @@
     "expo-splash-screen": "~31.0.10",
     "expo-status-bar": "~3.0.8",
     "expo-system-ui": "^6.0.8",
+    "expo-web-browser": "^15.0.8",
     "graphql": "^16.11.0",
     "graphql-workers-subscriptions": "^0.1.6",
     "graphql-yoga": "^5.16.0",
@@ -60,6 +63,11 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251011.0",
     "@eslint/js": "^9.38.0",
+    "@graphql-codegen/cli": "^6.0.1",
+    "@graphql-codegen/typescript": "^5.0.2",
+    "@graphql-codegen/typescript-graphql-files-modules": "^3.0.1",
+    "@graphql-codegen/typescript-operations": "^5.0.2",
+    "@graphql-codegen/typescript-react-apollo": "^4.3.3",
     "@types/react": "~19.1.10",
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.2",

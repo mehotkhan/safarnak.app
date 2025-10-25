@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import NetInfo from '@react-native-community/netinfo';
 
-import { client } from '../api/client'; // Apollo
+import { client } from '../../api';
 
 const queueKey = 'offlineMutations';
 
@@ -13,7 +13,7 @@ async function queueMutation(mutation: any) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function processQueue() {
+async function _processQueue() {
   const queue = JSON.parse((await AsyncStorage.getItem(queueKey)) || '[]');
   for (const mutation of queue) {
     try {

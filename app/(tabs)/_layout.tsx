@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import Colors from '../../constants/Colors';
+import Colors from '@/constants/Colors';
 import { useColorScheme } from '../../hooks/useColorScheme';
 
 function TabBarIcon(props: {

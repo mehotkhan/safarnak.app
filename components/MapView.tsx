@@ -89,7 +89,9 @@ export default function MapView({ location }: MapViewProps) {
     const currentIndex = layers.indexOf(mapLayer);
     const nextIndex = (currentIndex + 1) % layers.length;
     const newLayer = layers[nextIndex];
-    setMapLayer(newLayer);
+    if (newLayer) {
+      setMapLayer(newLayer);
+    }
 
     if (webViewRef.current) {
       let tileUrl = '';
