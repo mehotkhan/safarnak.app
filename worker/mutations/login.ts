@@ -18,41 +18,49 @@ export const login = async (
   { username, password }: LoginArgs,
   context: ResolverContext
 ) => {
-  const db = drizzle(context.env.DB);
+  try {
+    const db = drizzle(context.env.DB);
 
-  // Validate input
-  if (!username || !password) {
-    throw new Error('Username and password are required');
+    // Validate input
+    if (!username || !password) {
+      throw new Error('Username and password are required');
+    }
+
+    // Find user by username
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.username, username))
+      .get();
+
+    if (!user) {
+      throw new Error('Invalid username or password');
+    }
+
+    // Verify password using PBKDF2
+    const isValidPassword = await verifyPassword(password, user.passwordHash);
+
+    if (!isValidPassword) {
+      throw new Error('Invalid username or password');
+    }
+
+    // Generate secure token
+    const token = await generateToken(user.id, username);
+
+    return {
+      user: {
+        id: user.id.toString(),
+        name: user.name,
+        username: user.username,
+        createdAt: user.createdAt,
+      },
+      token,
+    };
+  } catch (error) {
+    // Log the error for debugging
+    console.error('Login error:', error);
+    
+    // Re-throw the error to be handled by GraphQL
+    throw error;
   }
-
-  // Find user by username
-  const user = await db
-    .select()
-    .from(users)
-    .where(eq(users.username, username))
-    .get();
-
-  if (!user) {
-    throw new Error('Invalid username or password');
-  }
-
-  // Verify password using PBKDF2
-  const isValidPassword = await verifyPassword(password, user.passwordHash);
-
-  if (!isValidPassword) {
-    throw new Error('Invalid username or password');
-  }
-
-  // Generate secure token
-  const token = await generateToken(user.id, username);
-
-  return {
-    user: {
-      id: user.id.toString(),
-      name: user.name,
-      username: user.username,
-      createdAt: user.createdAt,
-    },
-    token,
-  };
 };

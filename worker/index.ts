@@ -60,6 +60,14 @@ const yoga = createYoga<DefaultPublishableContext<Env>>({
     subscriptionsProtocol: 'WS',
   },
   landingPage: false,
+  plugins: [
+    {
+      onRequest: ({ request, url }) => {
+        console.log(`GraphQL Request: ${request.method} ${url.pathname}`);
+      },
+    },
+  ],
+  maskedErrors: false, // Show actual error messages instead of "Unexpected error"
 });
 
 // ============================================================================
