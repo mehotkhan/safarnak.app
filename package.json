@@ -85,7 +85,6 @@
     "@graphql-codegen/typescript-graphql-files-modules": "^3.0.1",
     "@graphql-codegen/typescript-operations": "^5.0.2",
     "@graphql-codegen/typescript-react-apollo": "^4.3.3",
-    "@miniflare/d1": "^2.14.4",
     "@types/react": "~19.1.10",
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.2",

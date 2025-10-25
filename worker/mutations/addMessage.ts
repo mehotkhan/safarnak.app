@@ -4,7 +4,7 @@
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 
-import { messages } from '@drizzle/schema';
+import { messages } from '../../drizzle/schema';
 import { ResolverContext } from '../types';
 
 interface AddMessageArgs {

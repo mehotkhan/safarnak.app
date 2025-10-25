@@ -40,7 +40,7 @@ export async function hashPassword(password: string): Promise<string> {
   combined.set(new Uint8Array(derivedBits), salt.length);
 
   // Convert to base64 for storage
-  return btoa(String.fromCharCode(...combined));
+  return btoa(String.fromCharCode(...Array.from(combined)));
 }
 
 /**

@@ -12,7 +12,7 @@ import {
 } from 'graphql-workers-subscriptions';
 import { createYoga } from 'graphql-yoga';
 
-import { readGraphQLSchema } from '@graphql/schema-loader';
+import { readGraphQLSchema } from '../graphql/schema-loader';
 import { Query } from './queries';
 import { Mutation } from './mutations';
 import { Subscription } from './subscriptions';
