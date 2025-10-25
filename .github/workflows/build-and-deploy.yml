@@ -155,6 +155,37 @@ jobs:
           retention-days: 30
           compression-level: 0
 
+      - name: Create GitHub Release with APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Safarnak Android v${{ github.run_number }}
+          body: |
+            ## 🚀 Safarnak Android APK - Build #${{ github.run_number }}
+            
+            **Commit**: ${{ github.sha }}
+            **Branch**: ${{ github.ref_name }}
+            **Built**: ${{ github.event.head_commit.timestamp }}
+            
+            ### 📝 Latest Changes
+            **Commit Message**: ${{ github.event.head_commit.message }}
+            **Author**: ${{ github.event.head_commit.author.name }}
+            
+            ### 📱 Installation
+            1. Download the APK file below
+            2. Enable "Install from unknown sources" in Android settings
+            3. Install the APK
+            
+            ### ✨ Features
+            - GraphQL API integration
+            - Offline-first architecture
+            - Persian/English language support
+            - Dark mode support
+          files: android/app/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+
       - name: Cleanup Gradle cache
         if: always()
         working-directory: android
