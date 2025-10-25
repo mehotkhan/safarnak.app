@@ -5,22 +5,25 @@ Safarnak uses a comprehensive semantic versioning system with automated commit m
 ## 📋 Version Strategy
 
 ### Current Version: `0.5.0` (Alpha)
+
 - **Target Stable**: `1.0.0`
 - **Progress**: 0% → 100% (0.5 → 0.6 → 0.7 → 0.8 → 0.9 → 1.0)
 
 ### Version Stages
-| Version | Stage | Description |
-|---------|-------|-------------|
-| 0.5.0 | Alpha | Initial development version |
-| 0.6.0 | Alpha | Core features implementation |
-| 0.7.0 | Alpha | UI/UX improvements |
-| 0.8.0 | Beta | Feature completion |
-| 0.9.0 | Beta | Testing and bug fixes |
-| 1.0.0 | Stable | First stable release |
+
+| Version | Stage  | Description                  |
+| ------- | ------ | ---------------------------- |
+| 0.5.0   | Alpha  | Initial development version  |
+| 0.6.0   | Alpha  | Core features implementation |
+| 0.7.0   | Alpha  | UI/UX improvements           |
+| 0.8.0   | Beta   | Feature completion           |
+| 0.9.0   | Beta   | Testing and bug fixes        |
+| 1.0.0   | Stable | First stable release         |
 
 ## 🔧 Tools & Configuration
 
 ### Installed Packages
+
 - **release-it**: Automated release management
 - **@commitlint/cli**: Commit message validation
 - **@commitlint/config-conventional**: Conventional commits standard
@@ -29,6 +32,7 @@ Safarnak uses a comprehensive semantic versioning system with automated commit m
 - **conventional-changelog-cli**: Automated changelog generation
 
 ### Configuration Files
+
 - **commitlint.config.js**: Commit message validation rules
 - **.release-it.json**: Release automation configuration
 - **scripts/version-manager.js**: Custom version management
@@ -38,6 +42,7 @@ Safarnak uses a comprehensive semantic versioning system with automated commit m
 ## 🎯 Usage Commands
 
 ### Version Management
+
 ```bash
 # Show current version info
 yarn version:info
@@ -55,6 +60,7 @@ yarn version:create major
 ```
 
 ### Commit Management
+
 ```bash
 # Interactive commit with conventional commits
 yarn commit
@@ -67,6 +73,7 @@ yarn commit:check
 ```
 
 ### Changelog Management
+
 ```bash
 # Generate changelog for current release
 yarn changelog
@@ -78,6 +85,7 @@ yarn changelog:all
 ## 📝 Conventional Commits
 
 ### Commit Format
+
 ```
 <type>(<scope>): <description>
 
@@ -87,20 +95,22 @@ yarn changelog:all
 ```
 
 ### Types
-| Type | Description | Emoji | Example |
-|------|-------------|-------|---------|
-| `feat` | A new feature | ✨ | `feat(auth): add user login` |
-| `fix` | A bug fix | 🐛 | `fix(api): resolve GraphQL error` |
-| `docs` | Documentation changes | 📚 | `docs: update README` |
-| `style` | Code style changes | 🎨 | `style: format code` |
-| `refactor` | Code refactoring | ♻️ | `refactor(api): reorganize structure` |
-| `perf` | Performance improvements | ⚡ | `perf: optimize database queries` |
-| `test` | Test changes | 🧪 | `test: add unit tests` |
-| `build` | Build system changes | 🏗️ | `build: update dependencies` |
-| `ci` | CI/CD changes | 🔧 | `ci: update GitHub Actions` |
-| `chore` | Other changes | 🔨 | `chore: clean up files` |
+
+| Type       | Description              | Emoji | Example                               |
+| ---------- | ------------------------ | ----- | ------------------------------------- |
+| `feat`     | A new feature            | ✨    | `feat(auth): add user login`          |
+| `fix`      | A bug fix                | 🐛    | `fix(api): resolve GraphQL error`     |
+| `docs`     | Documentation changes    | 📚    | `docs: update README`                 |
+| `style`    | Code style changes       | 🎨    | `style: format code`                  |
+| `refactor` | Code refactoring         | ♻️    | `refactor(api): reorganize structure` |
+| `perf`     | Performance improvements | ⚡    | `perf: optimize database queries`     |
+| `test`     | Test changes             | 🧪    | `test: add unit tests`                |
+| `build`    | Build system changes     | 🏗️    | `build: update dependencies`          |
+| `ci`       | CI/CD changes            | 🔧    | `ci: update GitHub Actions`           |
+| `chore`    | Other changes            | 🔨    | `chore: clean up files`               |
 
 ### Scopes (Safarnak-specific)
+
 - `auth` - Authentication system
 - `api` - Client API layer
 - `worker` - Cloudflare Worker
@@ -119,6 +129,7 @@ yarn changelog:all
 - `web` - Web-specific
 
 ### Examples
+
 ```bash
 # Feature commits
 feat(auth): add biometric authentication
@@ -158,6 +169,7 @@ chore: clean up unused files
 ## 🔄 Release Process
 
 ### Automated Release (Recommended)
+
 ```bash
 # Patch release (bug fixes)
 yarn version:patch
@@ -173,7 +185,9 @@ yarn version:prerelease
 ```
 
 ### Manual Release Process
+
 1. **Pre-release checks**:
+
    ```bash
    yarn version:info
    yarn codegen
@@ -184,11 +198,13 @@ yarn version:prerelease
    ```
 
 2. **Create release**:
+
    ```bash
    yarn version:create minor
    ```
 
 3. **Commit and push**:
+
    ```bash
    git add .
    yarn commit
@@ -201,7 +217,9 @@ yarn version:prerelease
    ```
 
 ### Release Automation
+
 The release process automatically:
+
 - ✅ Runs pre-release checks (TypeScript, ESLint, Prettier)
 - ✅ Updates `package.json` version
 - ✅ Updates `app.config.js` version (for APK)
@@ -213,13 +231,16 @@ The release process automatically:
 ## 📱 APK Version Management
 
 ### Version Synchronization
+
 - **package.json**: Main version source
 - **app.config.js**: APK version (automatically synced)
 - **Git tags**: Release versions
 - **GitHub releases**: Public releases
 
 ### Version Updates
+
 The release process automatically updates:
+
 1. `package.json` version
 2. `app.config.js` version
 3. Git tag creation
@@ -229,13 +250,16 @@ The release process automatically updates:
 ## 🤖 AI Commit Message Generator
 
 ### Automatic Analysis
+
 The AI commit message generator analyzes:
+
 - **File changes**: Added, modified, deleted files
 - **File types**: Components, API, GraphQL, database, etc.
 - **Change patterns**: New features, bug fixes, refactoring
 - **Scope detection**: Automatic scope assignment
 
 ### Usage
+
 ```bash
 # Generate commit message for staged changes
 yarn commit:generate
@@ -245,6 +269,7 @@ yarn commit
 ```
 
 ### Example Output
+
 ```
 🤖 AI Commit Message Generator for Safarnak
 
@@ -265,7 +290,9 @@ yarn commit
 ## 🔍 Quality Checks
 
 ### Pre-commit Hooks
+
 Automatically runs before each commit:
+
 - ✅ TypeScript compilation check
 - ✅ ESLint validation
 - ✅ Prettier formatting check
@@ -273,7 +300,9 @@ Automatically runs before each commit:
 - ✅ Database migration check (if schema changed)
 
 ### Pre-release Checks
+
 Automatically runs before each release:
+
 - ✅ TypeScript compilation
 - ✅ ESLint validation
 - ✅ Prettier formatting
@@ -283,11 +312,13 @@ Automatically runs before each release:
 ## 📊 Progress Tracking
 
 ### Version Progress
+
 ```bash
 yarn version:info
 ```
 
 Output:
+
 ```
 📋 Safarnak Version Information
 
@@ -305,11 +336,13 @@ Progress: 0%
 ```
 
 ### Changelog Generation
+
 ```bash
 yarn changelog
 ```
 
 Generates changelog entries with:
+
 - Version information
 - Change descriptions
 - Stage information
@@ -320,6 +353,7 @@ Generates changelog entries with:
 ## 🚀 Best Practices
 
 ### Commit Messages
+
 1. **Use conventional commits**: Follow the format strictly
 2. **Be descriptive**: Clear, concise descriptions
 3. **Include scope**: Specify the affected area
@@ -327,12 +361,14 @@ Generates changelog entries with:
 5. **Lowercase**: No capital letters in descriptions
 
 ### Version Releases
+
 1. **Patch releases**: Bug fixes only
 2. **Minor releases**: New features, backwards compatible
 3. **Major releases**: Breaking changes
 4. **Prereleases**: Alpha/beta testing
 
 ### Release Frequency
+
 - **Patch**: As needed for bug fixes
 - **Minor**: Every 2-4 weeks for new features
 - **Major**: When breaking changes are needed
@@ -343,6 +379,7 @@ Generates changelog entries with:
 ### Common Issues
 
 #### Commit Message Validation Failed
+
 ```bash
 # Use interactive commit
 yarn commit
@@ -355,6 +392,7 @@ yarn commit:check
 ```
 
 #### Pre-commit Hook Failed
+
 ```bash
 # Fix TypeScript errors
 npx tsc --noEmit
@@ -367,6 +405,7 @@ yarn format
 ```
 
 #### Release Failed
+
 ```bash
 # Check version info
 yarn version:info
@@ -380,6 +419,7 @@ yarn format
 ```
 
 ### Git Hooks Not Working
+
 ```bash
 # Make hooks executable
 chmod +x .git/hooks/pre-commit
@@ -393,12 +433,14 @@ git commit -m "test: test commit message"
 ## 📚 Additional Resources
 
 ### Documentation
+
 - [Conventional Commits](https://www.conventionalcommits.org/)
 - [Semantic Versioning](https://semver.org/)
 - [Release-it Documentation](https://github.com/release-it/release-it)
 - [Commitlint Documentation](https://commitlint.js.org/)
 
 ### Safarnak-specific
+
 - [README.md](README.md) - Project overview
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [CHANGELOG.md](CHANGELOG.md) - Version history
@@ -406,6 +448,6 @@ git commit -m "test: test commit message"
 
 ---
 
-**🎉 Happy coding with semantic versioning!** 
+**🎉 Happy coding with semantic versioning!**
 
 Remember: Good commit messages make great releases! 🚀

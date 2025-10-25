@@ -2,9 +2,9 @@ name: 🚀 CI/CD Pipeline
 
 on:
   push:
-    branches: [ master, main, develop ]
+    branches: [master, main, develop]
   pull_request:
-    branches: [ master, main, develop ]
+    branches: [master, main, develop]
 
 jobs:
   # ============================================================================
@@ -13,31 +13,31 @@ jobs:
   quality:
     name: 🔍 Code Quality
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        
-    - name: 📦 Install dependencies
-      run: yarn install --frozen-lockfile
-      
-    - name: 🔍 TypeScript check
-      run: npx tsc --noEmit
-      
-    - name: 🧹 ESLint check
-      run: yarn lint
-      
-    - name: 🎨 Prettier check
-      run: yarn format --check
-      
-    - name: 📊 GraphQL schema validation
-      run: yarn codegen --check
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: 🔍 TypeScript check
+        run: npx tsc --noEmit
+
+      - name: 🧹 ESLint check
+        run: yarn lint
+
+      - name: 🎨 Prettier check
+        run: yarn format --check
+
+      - name: 📊 GraphQL schema validation
+        run: yarn codegen --check
 
   # ============================================================================
   # Database & GraphQL
@@ -45,34 +45,34 @@ jobs:
   database:
     name: 🗄️ Database & GraphQL
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        
-    - name: 📦 Install dependencies
-      run: yarn install --frozen-lockfile
-      
-    - name: 🗄️ Database schema check
-      run: yarn db:generate --check
-      
-    - name: 📊 GraphQL codegen
-      run: yarn codegen
-      
-    - name: 🔍 Generated files check
-      run: |
-        if [ -f "api/hooks.ts" ] && [ -f "api/types.ts" ]; then
-          echo "✅ Generated files exist"
-        else
-          echo "❌ Generated files missing"
-          exit 1
-        fi
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: 🗄️ Database schema check
+        run: yarn db:generate --check
+
+      - name: 📊 GraphQL codegen
+        run: yarn codegen
+
+      - name: 🔍 Generated files check
+        run: |
+          if [ -f "api/hooks.ts" ] && [ -f "api/types.ts" ]; then
+            echo "✅ Generated files exist"
+          else
+            echo "❌ Generated files missing"
+            exit 1
+          fi
 
   # ============================================================================
   # Worker Testing
@@ -80,25 +80,25 @@ jobs:
   worker:
     name: ⚡ Worker Testing
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        
-    - name: 📦 Install dependencies
-      run: yarn install --frozen-lockfile
-      
-    - name: ⚡ Worker type check
-      run: npx tsc --noEmit worker.ts
-      
-    - name: 🔍 Worker linting
-      run: yarn lint worker/
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: ⚡ Worker type check
+        run: npx tsc --noEmit worker.ts
+
+      - name: 🔍 Worker linting
+        run: yarn lint worker/
 
   # ============================================================================
   # Client Testing
@@ -106,25 +106,25 @@ jobs:
   client:
     name: 📱 Client Testing
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        
-    - name: 📦 Install dependencies
-      run: yarn install --frozen-lockfile
-      
-    - name: 📱 Client type check
-      run: npx tsc --noEmit --skipLibCheck
-      
-    - name: 🔍 Client linting
-      run: yarn lint app/ components/ api/ store/
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: 📱 Client type check
+        run: npx tsc --noEmit --skipLibCheck
+
+      - name: 🔍 Client linting
+        run: yarn lint app/ components/ api/ store/
 
   # ============================================================================
   # Security Scanning
@@ -132,25 +132,25 @@ jobs:
   security:
     name: 🔐 Security Scan
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        
-    - name: 📦 Install dependencies
-      run: yarn install --frozen-lockfile
-      
-    - name: 🔐 Security audit
-      run: yarn audit --audit-level moderate
-      
-    - name: 🔍 Dependency check
-      run: npx audit-ci --config audit-ci.json
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: 🔐 Security audit
+        run: yarn audit --audit-level moderate
+
+      - name: 🔍 Dependency check
+        run: npx audit-ci --config audit-ci.json
 
   # ============================================================================
   # Build Testing
@@ -158,27 +158,27 @@ jobs:
   build:
     name: 🏗️ Build Test
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-      
-    - name: 📦 Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
-        cache: 'yarn'
-        
-    - name: 📦 Install dependencies
-      run: yarn install --frozen-lockfile
-      
-    - name: 🏗️ Metro bundler test
-      run: |
-        timeout 30s yarn start --no-dev --minify || true
-        
-    - name: ⚡ Worker build test
-      run: |
-        npx wrangler deploy --dry-run --config wrangler.toml
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: 📦 Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: 🏗️ Metro bundler test
+        run: |
+          timeout 30s yarn start --no-dev --minify || true
+
+      - name: ⚡ Worker build test
+        run: |
+          npx wrangler deploy --dry-run --config wrangler.toml
 
   # ============================================================================
   # Summary
@@ -188,19 +188,19 @@ jobs:
     runs-on: ubuntu-latest
     needs: [quality, database, worker, client, security, build]
     if: always()
-    
+
     steps:
-    - name: 📊 Job Summary
-      run: |
-        echo "## 🚀 CI/CD Pipeline Results" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
-        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔍 Code Quality | ${{ needs.quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🗄️ Database & GraphQL | ${{ needs.database.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| ⚡ Worker Testing | ${{ needs.worker.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 📱 Client Testing | ${{ needs.client.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🔐 Security Scan | ${{ needs.security.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "| 🏗️ Build Test | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
-        echo "**Overall Status**: ${{ needs.quality.result == 'success' && needs.database.result == 'success' && needs.worker.result == 'success' && needs.client.result == 'success' && needs.security.result == 'success' && needs.build.result == 'success' && '✅ All checks passed!' || '❌ Some checks failed' }}" >> $GITHUB_STEP_SUMMARY
+      - name: 📊 Job Summary
+        run: |
+          echo "## 🚀 CI/CD Pipeline Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Code Quality | ${{ needs.quality.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🗄️ Database & GraphQL | ${{ needs.database.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ⚡ Worker Testing | ${{ needs.worker.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📱 Client Testing | ${{ needs.client.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔐 Security Scan | ${{ needs.security.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Build Test | ${{ needs.build.result == 'success' && '✅ Passed' || '❌ Failed' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Overall Status**: ${{ needs.quality.result == 'success' && needs.database.result == 'success' && needs.worker.result == 'success' && needs.client.result == 'success' && needs.security.result == 'success' && needs.build.result == 'success' && '✅ All checks passed!' || '❌ Some checks failed' }}" >> $GITHUB_STEP_SUMMARY

@@ -20,8 +20,4 @@ export * from './api-types';
 export * from './utilities';
 
 // Re-export base GraphQL types for convenience
-export type {
-  AuthPayload,
-  Message,
-  User,
-} from './types';
+export type { AuthPayload, Message, User } from './types';

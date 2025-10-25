@@ -1,4 +1,3 @@
-
 declare module '*/@graphql/addMessage.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -6,7 +5,6 @@ declare module '*/@graphql/addMessage.graphql' {
 
   export default defaultDocument;
 }
-    
 
 declare module '*/@graphql/getMessages.graphql' {
   import { DocumentNode } from 'graphql';
@@ -15,7 +13,6 @@ declare module '*/@graphql/getMessages.graphql' {
 
   export default defaultDocument;
 }
-    
 
 declare module '*/@graphql/login.graphql' {
   import { DocumentNode } from 'graphql';
@@ -24,7 +21,6 @@ declare module '*/@graphql/login.graphql' {
 
   export default defaultDocument;
 }
-    
 
 declare module '*/@graphql/me.graphql' {
   import { DocumentNode } from 'graphql';
@@ -33,7 +29,6 @@ declare module '*/@graphql/me.graphql' {
 
   export default defaultDocument;
 }
-    
 
 declare module '*/@graphql/register.graphql' {
   import { DocumentNode } from 'graphql';
@@ -42,4 +37,3 @@ declare module '*/@graphql/register.graphql' {
 
   export default defaultDocument;
 }
-    

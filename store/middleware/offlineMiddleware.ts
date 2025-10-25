@@ -12,8 +12,7 @@ async function queueMutation(mutation: any) {
   // Optionally perform local optimistic updates here via Redux
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function _processQueue() {
+async function _processQueue(): Promise<void> {
   const queue = JSON.parse((await AsyncStorage.getItem(queueKey)) || '[]');
   for (const mutation of queue) {
     try {

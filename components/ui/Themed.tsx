@@ -33,10 +33,13 @@ export function useThemeColor(
 
 export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const color = useThemeColor({ 
-    light: lightColor ?? undefined, 
-    dark: darkColor ?? undefined 
-  }, 'text');
+  const color = useThemeColor(
+    {
+      light: lightColor ?? undefined,
+      dark: darkColor ?? undefined,
+    },
+    'text'
+  );
   const { currentLanguage } = useLanguage();
 
   // Use Vazir font for Persian text

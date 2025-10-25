@@ -62,6 +62,7 @@ If you experience or witness unacceptable behavior, or have any other concerns, 
 ### What to Include
 
 When reporting, please include:
+
 - **Description** of what happened
 - **Location** of the incident (GitHub, email, etc.)
 - **Date and time** of the incident
@@ -76,21 +77,25 @@ All reports will be handled with confidentiality. We will not disclose your iden
 ## ⚖️ Enforcement Guidelines
 
 ### 1. Correction
+
 **Community Impact**: Use of inappropriate language or other behavior deemed unprofessional or unwelcome in the community.
 
 **Consequence**: A private, written warning from community leaders, providing clarity around the nature of the violation and an explanation of why the behavior was inappropriate. A public apology may be requested.
 
 ### 2. Warning
+
 **Community Impact**: A violation through a single incident or series of actions.
 
 **Consequence**: A warning with consequences for continued behavior. No interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, for a specified period of time. This includes avoiding interactions in community spaces as well as external channels like social media. Violating these terms may lead to a temporary or permanent ban.
 
 ### 3. Temporary Ban
+
 **Community Impact**: A serious violation of community standards, including sustained inappropriate behavior.
 
 **Consequence**: A temporary ban from any sort of interaction or public communication with the community for a specified period of time. No public or private interaction with the people involved, including unsolicited interaction with those enforcing the Code of Conduct, is allowed during this period. Violating these terms may lead to a permanent ban.
 
 ### 4. Permanent Ban
+
 **Community Impact**: Demonstrating a pattern of violation of community standards, including sustained inappropriate behavior, harassment of an individual, or aggression toward or disparagement of classes of individuals.
 
 **Consequence**: A permanent ban from any sort of public interaction within the community.
@@ -98,6 +103,7 @@ All reports will be handled with confidentiality. We will not disclose your iden
 ## 🌟 Community Guidelines
 
 ### 🤝 Contributing
+
 - **Be respectful** of other contributors
 - **Provide constructive feedback** on pull requests and issues
 - **Follow the project's coding standards** and guidelines
@@ -105,6 +111,7 @@ All reports will be handled with confidentiality. We will not disclose your iden
 - **Document your changes** clearly
 
 ### 💬 Communication
+
 - **Use clear and concise language**
 - **Be patient** with newcomers and questions
 - **Provide helpful responses** to issues and discussions
@@ -112,6 +119,7 @@ All reports will be handled with confidentiality. We will not disclose your iden
 - **Respect different time zones** and availability
 
 ### 🐛 Bug Reports
+
 - **Search existing issues** before creating new ones
 - **Provide detailed information** about the bug
 - **Include steps to reproduce** the issue
@@ -119,6 +127,7 @@ All reports will be handled with confidentiality. We will not disclose your iden
 - **Be patient** while waiting for responses
 
 ### ✨ Feature Requests
+
 - **Check existing issues** and discussions first
 - **Provide clear use cases** for the feature
 - **Consider the project's scope** and goals
@@ -128,7 +137,9 @@ All reports will be handled with confidentiality. We will not disclose your iden
 ## 🌍 Diversity and Inclusion
 
 ### Our Commitment
+
 We are committed to providing a welcoming and inclusive environment for all contributors, regardless of:
+
 - **Background**: Personal or professional background
 - **Experience**: Level of technical experience
 - **Identity**: Gender, race, ethnicity, religion, etc.
@@ -136,6 +147,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 - **Language**: Native language or communication style
 
 ### How We Support Diversity
+
 - **Inclusive language** in all communications
 - **Accessible documentation** and resources
 - **Flexible contribution methods** for different schedules
@@ -145,12 +157,14 @@ We are committed to providing a welcoming and inclusive environment for all cont
 ## 📚 Resources
 
 ### Getting Help
+
 - **Documentation**: [README.md](README.md) and [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Issues**: [GitHub Issues](https://github.com/mehotkhan/safarnak.app/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/mehotkhan/safarnak.app/discussions)
 - **Email**: mehotkhan@gmail.com
 
 ### Learning Resources
+
 - [Expo Documentation](https://docs.expo.dev/)
 - [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
 - [GraphQL Codegen](https://the-guild.dev/graphql/codegen)
@@ -160,11 +174,13 @@ We are committed to providing a welcoming and inclusive environment for all cont
 ## 📞 Contact Information
 
 ### Project Maintainer
+
 - **Name**: Mohammad Ebrahim Hosseini
 - **Email**: mehotkhan@gmail.com
 - **GitHub**: [@mehotkhan](https://github.com/mehotkhan)
 
 ### Community Leaders
+
 - **Primary Contact**: mehotkhan@gmail.com
 - **Response Time**: Within 48 hours
 - **Escalation**: For urgent matters, use email with "URGENT" in subject
@@ -176,6 +192,7 @@ This Code of Conduct is licensed under the [Creative Commons Attribution 4.0 Int
 ## 🔄 Updates
 
 This Code of Conduct may be updated from time to time. Changes will be communicated to the community through:
+
 - **GitHub notifications** for contributors
 - **Release notes** in the changelog
 - **Community announcements** in discussions

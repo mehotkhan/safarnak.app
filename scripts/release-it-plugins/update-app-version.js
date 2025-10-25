@@ -13,18 +13,20 @@ module.exports = {
     const { version, previousVersion } = context;
     const versionFile = pluginConfig.versionFile || 'app.config.js';
     const versionFilePath = path.resolve(versionFile);
-    
-    console.log(`📱 Updating app version from ${previousVersion} to ${version}`);
-    
+
+    console.log(
+      `📱 Updating app version from ${previousVersion} to ${version}`
+    );
+
     try {
       // Read the current app.config.js
       let content = fs.readFileSync(versionFilePath, 'utf8');
-      
+
       // Update version in app.config.js
       // Look for version: "x.x.x" pattern
       const versionRegex = /version:\s*["']([^"']+)["']/;
       const newContent = content.replace(versionRegex, `version: "${version}"`);
-      
+
       if (newContent === content) {
         console.log('⚠️  No version found in app.config.js, adding it...');
         // If no version found, add it after the name field
@@ -43,19 +45,21 @@ module.exports = {
       } else {
         fs.writeFileSync(versionFilePath, newContent, 'utf8');
       }
-      
+
       console.log(`✅ Updated ${versionFile} version to ${version}`);
-      
+
       // Also update package.json if needed
       const packageJsonPath = path.resolve('package.json');
       const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
       packageJson.version = version;
-      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+      fs.writeFileSync(
+        packageJsonPath,
+        JSON.stringify(packageJson, null, 2) + '\n'
+      );
       console.log(`✅ Updated package.json version to ${version}`);
-      
     } catch (error) {
       console.error(`❌ Error updating version: ${error.message}`);
       throw error;
     }
-  }
+  },
 };

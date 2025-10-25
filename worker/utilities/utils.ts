@@ -97,12 +97,11 @@ export async function verifyPassword(
     for (let i = 0; i < derivedHash.length; i++) {
       const storedByte = storedHashBytes[i];
       if (storedByte !== undefined) {
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        result |= derivedHash[i] ^ (storedByte as number);
+        result |= (derivedHash[i] ?? 0) ^ (storedByte as number);
       } else {
         // If byte is undefined, consider it a mismatch
-        // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-        result |= derivedHash[i] ^ 0xFF;
+
+        result |= (derivedHash[i] ?? 0) ^ 0xff;
       }
     }
 

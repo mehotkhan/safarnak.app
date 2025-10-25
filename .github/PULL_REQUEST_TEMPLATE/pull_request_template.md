@@ -7,9 +7,11 @@ assignees: ''
 ---
 
 ## 🚀 Pull Request Description
+
 A clear and concise description of what this PR does.
 
 ## 🔄 Changes Made
+
 - [ ] **Client-side changes** (React Native, Expo, Redux, Apollo Client)
 - [ ] **Server-side changes** (Cloudflare Worker, GraphQL resolvers)
 - [ ] **Shared changes** (GraphQL schema, database schema, types)
@@ -17,6 +19,7 @@ A clear and concise description of what this PR does.
 - [ ] **Configuration changes** (TypeScript, ESLint, Prettier, etc.)
 
 ## 📱 Platform Testing
+
 - [ ] Android (Legacy Architecture)
 - [ ] Android (New Architecture - Fabric + TurboModules)
 - [ ] iOS
@@ -24,12 +27,14 @@ A clear and concise description of what this PR does.
 - [ ] All platforms
 
 ## 🌍 Internationalization Testing
+
 - [ ] English language
 - [ ] Persian (Farsi) language
 - [ ] RTL layout
 - [ ] Language switching
 
 ## 🔧 Technical Checklist
+
 - [ ] **GraphQL Schema**: Updated `graphql/schema.graphql` if needed
 - [ ] **GraphQL Operations**: Added/updated `.graphql` files in `graphql/queries/`
 - [ ] **Codegen**: Ran `yarn codegen` to generate types and hooks
@@ -40,6 +45,7 @@ A clear and concise description of what this PR does.
 - [ ] **Formatting**: Code formatted with Prettier (`yarn format`)
 
 ## 🧪 Testing
+
 - [ ] **Online functionality** works correctly
 - [ ] **Offline functionality** works correctly
 - [ ] **Authentication** works correctly
@@ -49,15 +55,19 @@ A clear and concise description of what this PR does.
 - [ ] **RTL layout** works for Persian
 
 ## 📋 Additional Context
+
 Add any other context about the pull request here.
 
 ## 🔗 Related Issues
+
 Closes #(issue number)
 
 ## 📸 Screenshots/Videos
+
 If applicable, add screenshots or videos to demonstrate the changes.
 
 ## 🚨 Breaking Changes
+
 - [ ] This PR contains breaking changes
 - [ ] This PR does not contain breaking changes
 

@@ -56,7 +56,10 @@ const getAppConfig = () => {
       // Enable New Architecture for debug and local development builds, or when explicitly overridden
       // Set NEW_ARCH=1 (or 'true') to force-enable in any profile
       newArchEnabled:
-        (process.env.NEW_ARCH === '1' || process.env.NEW_ARCH === 'true') || isDebug || isDevelopment,
+        process.env.NEW_ARCH === '1' ||
+        process.env.NEW_ARCH === 'true' ||
+        isDebug ||
+        isDevelopment,
       splash: {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
@@ -101,7 +104,8 @@ const getAppConfig = () => {
         eas: {
           projectId: '90632384-6918-4b7a-bbab-e0998b4a4b63',
         },
-        graphqlUrl: process.env.GRAPHQL_URL || 'https://safarnak.mohet.ir/graphql',
+        graphqlUrl:
+          process.env.GRAPHQL_URL || 'https://safarnak.mohet.ir/graphql',
         appName: process.env.APP_NAME || appName,
         appScheme: process.env.APP_SCHEME || scheme,
         bundleIdentifier: process.env.BUNDLE_IDENTIFIER || bundleIdentifier,

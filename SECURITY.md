@@ -4,10 +4,10 @@
 
 We actively support the following versions of Safarnak with security updates:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 1.0.x   | ✅ Yes             |
-| < 1.0   | ❌ No              |
+| Version | Supported |
+| ------- | --------- |
+| 1.0.x   | ✅ Yes    |
+| < 1.0   | ❌ No     |
 
 ## 🚨 Reporting a Vulnerability
 
@@ -20,7 +20,7 @@ We take security seriously. If you discover a security vulnerability, please fol
 Instead, please:
 
 1. **Email us directly**: Send details to `mehotkhan@gmail.com`
-2. **Include**: 
+2. **Include**:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact
@@ -48,18 +48,21 @@ Please provide as much detail as possible:
 ## 🔐 Security Features
 
 ### Authentication & Authorization
+
 - **Password Hashing**: PBKDF2 with 100,000 iterations
 - **Token Generation**: SHA-256 based secure tokens with timestamps
 - **Session Management**: Secure token storage and validation
 - **Input Validation**: Comprehensive validation on all inputs
 
 ### Data Protection
+
 - **Encryption**: HTTPS/TLS for all communications
 - **Database Security**: SQLite with Drizzle ORM (prevents SQL injection)
 - **Client Storage**: Secure token storage in AsyncStorage
 - **Offline Security**: Encrypted local data storage
 
 ### API Security
+
 - **GraphQL**: Type-safe queries prevent injection attacks
 - **Rate Limiting**: Built-in Cloudflare Workers rate limiting
 - **CORS**: Properly configured cross-origin policies
@@ -70,6 +73,7 @@ Please provide as much detail as possible:
 ### For Developers
 
 #### Authentication
+
 ```typescript
 // ✅ Good: Use proper password hashing
 const hashedPassword = await hashPassword(password, salt);
@@ -79,6 +83,7 @@ const user = { password: plainTextPassword };
 ```
 
 #### Input Validation
+
 ```typescript
 // ✅ Good: Validate all inputs
 if (!username || username.length < 3) {
@@ -90,6 +95,7 @@ const query = `SELECT * FROM users WHERE name = '${username}'`;
 ```
 
 #### Token Handling
+
 ```typescript
 // ✅ Good: Secure token generation
 const token = await generateSecureToken(userId, username, timestamp);
@@ -101,12 +107,14 @@ const token = `${userId}-${username}`;
 ### For Users
 
 #### Password Security
+
 - Use strong, unique passwords
 - Enable biometric authentication when available
 - Don't share your account credentials
 - Log out from shared devices
 
 #### App Security
+
 - Keep the app updated to the latest version
 - Don't install from untrusted sources
 - Be cautious with public Wi-Fi
@@ -115,12 +123,14 @@ const token = `${userId}-${username}`;
 ## 🔍 Security Audit
 
 ### Regular Security Checks
+
 - **Dependency Updates**: Regular security updates
 - **Code Reviews**: All changes reviewed for security issues
 - **Penetration Testing**: Regular security assessments
 - **Vulnerability Scanning**: Automated security scanning
 
 ### Security Headers
+
 ```typescript
 // Cloudflare Workers security headers
 const securityHeaders = {
@@ -135,12 +145,14 @@ const securityHeaders = {
 ## 🚫 Known Security Considerations
 
 ### Client-Side Security
+
 - **API Keys**: Never expose sensitive API keys in client code
 - **Local Storage**: Sensitive data encrypted in AsyncStorage
 - **Code Obfuscation**: Production builds are obfuscated
 - **Root Detection**: App detects and warns about rooted devices
 
 ### Server-Side Security
+
 - **Environment Variables**: Sensitive config in environment variables
 - **Database Access**: Restricted database access with proper permissions
 - **Error Handling**: Secure error messages (no sensitive data leaked)
@@ -149,6 +161,7 @@ const securityHeaders = {
 ## 🔄 Security Updates
 
 ### How We Handle Security Updates
+
 1. **Assessment**: Evaluate vulnerability severity
 2. **Fix Development**: Create secure fix
 3. **Testing**: Thorough security testing
@@ -156,6 +169,7 @@ const securityHeaders = {
 5. **Communication**: Notify users of security updates
 
 ### Update Process
+
 - **Critical**: Immediate fix and release
 - **High**: Fix within 1 week
 - **Medium**: Fix within 1 month
@@ -164,17 +178,20 @@ const securityHeaders = {
 ## 📞 Contact Information
 
 ### Security Team
+
 - **Email**: `mehotkhan@gmail.com`
 - **Response Time**: Within 48 hours
 - **PGP Key**: Available upon request
 
 ### General Security Questions
+
 - **GitHub Issues**: For non-sensitive security questions
 - **Discussions**: For general security discussions
 
 ## 📋 Security Checklist
 
 ### Before Release
+
 - [ ] All dependencies updated
 - [ ] Security headers configured
 - [ ] Input validation implemented
@@ -185,6 +202,7 @@ const securityHeaders = {
 - [ ] CORS properly configured
 
 ### Regular Maintenance
+
 - [ ] Dependency security audit
 - [ ] Code security review
 - [ ] Penetration testing

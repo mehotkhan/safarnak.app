@@ -5,6 +5,7 @@ Thank you for your interest in contributing to Safarnak! This document provides 
 ## 🌍 About Safarnak
 
 Safarnak is a modern offline-first travel companion built with:
+
 - **Frontend**: Expo React Native (iOS/Android/Web)
 - **Backend**: Cloudflare Workers with GraphQL
 - **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
@@ -14,6 +15,7 @@ Safarnak is a modern offline-first travel companion built with:
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - Yarn package manager
 - Android Studio (for Android development)
@@ -22,22 +24,26 @@ Safarnak is a modern offline-first travel companion built with:
 ### Development Setup
 
 1. **Fork and Clone**
+
    ```bash
    git clone https://github.com/YOUR_USERNAME/safarnak.app.git
    cd safarnak.app
    ```
 
 2. **Install Dependencies**
+
    ```bash
    yarn install
    ```
 
 3. **Setup Database**
+
    ```bash
    yarn db:migrate
    ```
 
 4. **Generate GraphQL Types**
+
    ```bash
    yarn codegen
    ```
@@ -50,11 +56,13 @@ Safarnak is a modern offline-first travel companion built with:
 ## 🏗️ Architecture Overview
 
 ### Perfect Separation
+
 - **📁 GraphQL Folder**: Shared schema and query definitions only
 - **📁 API Folder**: All client-specific code including auto-generated hooks
 - **📁 Worker Folder**: All server-specific resolvers and logic
 
 ### Key Directories
+
 ```
 safarnak.app/
 ├── worker/          # Server-side GraphQL resolvers
@@ -72,6 +80,7 @@ safarnak.app/
 ### Adding New Features
 
 #### 1. GraphQL Operations
+
 ```bash
 # 1. Define schema
 # Edit graphql/schema.graphql
@@ -93,6 +102,7 @@ yarn codegen
 ```
 
 #### 2. Database Changes
+
 ```bash
 # 1. Update schema
 # Edit drizzle/schema.ts
@@ -108,6 +118,7 @@ yarn codegen
 ```
 
 #### 3. UI Components
+
 ```bash
 # 1. Create component
 # Add to components/ui/ or components/
@@ -125,24 +136,28 @@ yarn codegen
 ## 📋 Code Standards
 
 ### TypeScript
+
 - **Strict Mode**: Enhanced checking enabled
 - **No `any`**: Use `unknown` if type is truly unknown
 - **Path Aliases**: Use `@/`, `@components/`, `@graphql/`
 - **Type Everything**: Parameters, return values, props
 
 ### GraphQL
+
 - **Schema First**: Define in `graphql/schema.graphql`
 - **Operations**: Use `.graphql` files in `graphql/queries/`
 - **Codegen**: Always run `yarn codegen` after changes
 - **Never Edit Generated**: Don't manually edit `api/hooks.ts` or `api/types.ts`
 
 ### React Native
+
 - **Functional Components**: Use hooks and TypeScript
 - **Performance**: Use `React.memo`, `useCallback`, `useMemo`
 - **Accessibility**: Add proper accessibility props
 - **RTL Support**: Test with Persian language
 
 ### File Naming
+
 - **Components**: `PascalCase.tsx` (e.g., `AuthWrapper.tsx`)
 - **Hooks**: `camelCase.ts` starting with 'use' (e.g., `useAuth.ts`)
 - **Utilities**: `camelCase.ts` (e.g., `formatDate.ts`)
@@ -151,12 +166,14 @@ yarn codegen
 ## 🧪 Testing Guidelines
 
 ### Platform Testing
+
 - [ ] **Android** (Legacy Architecture)
 - [ ] **Android** (New Architecture - Fabric + TurboModules)
 - [ ] **iOS** (macOS only)
 - [ ] **Web** browser
 
 ### Feature Testing
+
 - [ ] **Online functionality** works correctly
 - [ ] **Offline functionality** works correctly
 - [ ] **Authentication** works correctly
@@ -166,6 +183,7 @@ yarn codegen
 - [ ] **RTL layout** works for Persian
 
 ### Code Quality
+
 - [ ] **TypeScript**: No errors (`npx tsc --noEmit`)
 - [ ] **ESLint**: Passed checks (`yarn lint`)
 - [ ] **Prettier**: Code formatted (`yarn format`)
@@ -175,6 +193,7 @@ yarn codegen
 ## 🔄 Pull Request Process
 
 ### Before Submitting
+
 1. **Fork** the repository
 2. **Create** a feature branch from `master`
 3. **Make** your changes with clear commit messages
@@ -183,6 +202,7 @@ yarn codegen
 6. **Update** documentation if needed
 
 ### PR Checklist
+
 - [ ] **Description**: Clear description of changes
 - [ ] **Testing**: Tested on all platforms and scenarios
 - [ ] **Code Quality**: Passes all linting and type checks
@@ -191,7 +211,9 @@ yarn codegen
 - [ ] **Related Issues**: Linked if applicable
 
 ### Commit Messages
+
 Use clear, descriptive commit messages:
+
 ```
 feat: add user profile editing functionality
 fix: resolve offline sync issue with messages
@@ -202,6 +224,7 @@ refactor: reorganize API folder structure
 ## 🐛 Bug Reports
 
 When reporting bugs, please include:
+
 - **Platform**: Android/iOS/Web
 - **Architecture**: Legacy/New Architecture
 - **Steps to reproduce**
@@ -212,6 +235,7 @@ When reporting bugs, please include:
 ## ✨ Feature Requests
 
 When requesting features, please consider:
+
 - **Problem statement**: What problem does it solve?
 - **Platform support**: Which platforms should support it?
 - **Internationalization**: Does it need Persian/RTL support?
@@ -223,11 +247,13 @@ When requesting features, please consider:
 Safarnak supports English and Persian (Farsi) with RTL layout:
 
 ### Adding Translations
+
 1. **English**: Update `locales/en/translation.json`
 2. **Persian**: Update `locales/fa/translation.json`
 3. **Usage**: `const { t } = useTranslation(); <Text>{t('key')}</Text>`
 
 ### RTL Considerations
+
 - Test layout with Persian language
 - Use proper RTL-aware components
 - Consider text direction and alignment
@@ -235,11 +261,13 @@ Safarnak supports English and Persian (Farsi) with RTL layout:
 ## 🔐 Security
 
 ### Authentication
+
 - **Password Hashing**: PBKDF2 with 100k iterations
 - **Token Generation**: SHA-256 based secure tokens
 - **Validation**: Always validate input in resolvers
 
 ### Best Practices
+
 - Never commit sensitive data
 - Use environment variables for configuration
 - Validate all user inputs
@@ -248,11 +276,13 @@ Safarnak supports English and Persian (Farsi) with RTL layout:
 ## 📚 Resources
 
 ### Documentation
+
 - [README.md](README.md) - Project overview and setup
 - [.cursorrules](.cursorrules) - Development guidelines
 - [Architecture Guide](README.md#architecture) - Technical architecture
 
 ### External Resources
+
 - [Expo Documentation](https://docs.expo.dev/)
 - [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
 - [GraphQL Codegen](https://the-guild.dev/graphql/codegen)

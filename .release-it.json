@@ -23,9 +23,7 @@
       "yarn lint",
       "yarn format"
     ],
-    "after:bump": [
-      "yarn changelog"
-    ],
+    "after:bump": ["yarn changelog"],
     "after:release": [
       "echo '🚀 Release ${version} completed successfully!'",
       "echo '📱 APK version updated to ${version}'",

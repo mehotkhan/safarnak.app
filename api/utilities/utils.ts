@@ -19,7 +19,10 @@ export const getStoredToken = async (): Promise<string | null> => {
   return null;
 };
 
-export const storeUserData = async (user: any, token: string): Promise<void> => {
+export const storeUserData = async (
+  user: any,
+  token: string
+): Promise<void> => {
   try {
     await AsyncStorage.setItem(
       USER_STORAGE_KEY,
@@ -48,7 +51,7 @@ export const formatApiError = (error: any): ApiError => {
       extensions: error.extensions,
     };
   }
-  
+
   return {
     message: error.message || 'An unknown error occurred',
     code: error.code,

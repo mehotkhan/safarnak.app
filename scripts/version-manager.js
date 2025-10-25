@@ -20,7 +20,7 @@ const VERSION_STAGES = {
   '0.7.0': { stage: 'alpha', description: 'UI/UX improvements' },
   '0.8.0': { stage: 'beta', description: 'Feature completion' },
   '0.9.0': { stage: 'beta', description: 'Testing and bug fixes' },
-  '1.0.0': { stage: 'stable', description: 'First stable release' }
+  '1.0.0': { stage: 'stable', description: 'First stable release' },
 };
 
 function getCurrentVersion() {
@@ -35,7 +35,7 @@ function getCurrentVersion() {
 
 function getNextVersion(currentVersion, type = 'patch') {
   const [major, minor, patch] = currentVersion.split('.').map(Number);
-  
+
   switch (type) {
     case 'major':
       return `${major + 1}.0.0`;
@@ -52,37 +52,41 @@ function getNextVersion(currentVersion, type = 'patch') {
 
 function getVersionStage(version) {
   const [major, minor] = version.split('.').map(Number);
-  
+
   if (major === 0) {
     if (minor < 8) return 'alpha';
     if (minor < 9) return 'beta';
     return 'beta';
   }
-  
+
   return 'stable';
 }
 
 function generateChangelogEntry(version, type, changes = []) {
   const stage = getVersionStage(version);
-  const stageInfo = VERSION_STAGES[version] || { stage, description: 'Version update' };
-  
+  const stageInfo = VERSION_STAGES[version] || {
+    stage,
+    description: 'Version update',
+  };
+
   const date = new Date().toISOString().split('T')[0];
-  const emoji = {
-    'feat': '✨',
-    'fix': '🐛',
-    'docs': '📚',
-    'style': '🎨',
-    'refactor': '♻️',
-    'perf': '⚡',
-    'test': '🧪',
-    'build': '🏗️',
-    'ci': '🔧',
-    'chore': '🔨'
-  }[type] || '📝';
-  
+  const emoji =
+    {
+      feat: '✨',
+      fix: '🐛',
+      docs: '📚',
+      style: '🎨',
+      refactor: '♻️',
+      perf: '⚡',
+      test: '🧪',
+      build: '🏗️',
+      ci: '🔧',
+      chore: '🔨',
+    }[type] || '📝';
+
   let entry = `## [${version}] - ${date}\n\n`;
   entry += `### ${emoji} ${stageInfo.description}\n\n`;
-  
+
   if (changes.length > 0) {
     entry += '#### Changes\n';
     changes.forEach(change => {
@@ -90,14 +94,14 @@ function generateChangelogEntry(version, type, changes = []) {
     });
     entry += '\n';
   }
-  
+
   entry += `#### Version Info\n`;
   entry += `- **Stage**: ${stageInfo.stage}\n`;
   entry += `- **Type**: ${type}\n`;
   entry += `- **APK Version**: ${version}\n`;
   entry += `- **Worker Version**: ${version}\n`;
   entry += `- **Target Stable**: ${TARGET_STABLE_VERSION}\n\n`;
-  
+
   return entry;
 }
 
@@ -105,7 +109,7 @@ function updateAppConfig(version) {
   try {
     const appConfigPath = 'app.config.js';
     let content = fs.readFileSync(appConfigPath, 'utf8');
-    
+
     // Update version in app.config.js
     const versionRegex = /version:\s*["']([^"']+)["']/;
     if (versionRegex.test(content)) {
@@ -121,7 +125,7 @@ function updateAppConfig(version) {
         );
       }
     }
-    
+
     fs.writeFileSync(appConfigPath, content, 'utf8');
     console.log(`✅ Updated app.config.js version to ${version}`);
   } catch (error) {
@@ -134,7 +138,10 @@ function updatePackageJson(version) {
     const packageJsonPath = 'package.json';
     const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
     packageJson.version = version;
-    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + '\n');
+    fs.writeFileSync(
+      packageJsonPath,
+      JSON.stringify(packageJson, null, 2) + '\n'
+    );
     console.log(`✅ Updated package.json version to ${version}`);
   } catch (error) {
     console.error('❌ Error updating package.json:', error.message);
@@ -143,15 +150,15 @@ function updatePackageJson(version) {
 
 function runPreReleaseChecks() {
   console.log('🔍 Running pre-release checks...\n');
-  
+
   const checks = [
     { name: 'TypeScript Check', command: 'npx tsc --noEmit' },
     { name: 'ESLint Check', command: 'yarn lint' },
     { name: 'Prettier Check', command: 'yarn format --check' },
     { name: 'GraphQL Codegen', command: 'yarn codegen' },
-    { name: 'Database Migration', command: 'yarn db:migrate' }
+    { name: 'Database Migration', command: 'yarn db:migrate' },
   ];
-  
+
   for (const check of checks) {
     try {
       console.log(`⏳ Running ${check.name}...`);
@@ -167,58 +174,63 @@ function runPreReleaseChecks() {
 
 function createRelease(version, type) {
   console.log(`🚀 Creating release ${version} (${type})\n`);
-  
+
   // Run pre-release checks
   runPreReleaseChecks();
-  
+
   // Update version files
   updatePackageJson(version);
   updateAppConfig(version);
-  
+
   // Generate changelog entry
   const changelogEntry = generateChangelogEntry(version, type);
-  
+
   // Append to CHANGELOG.md
   try {
     const changelogPath = 'CHANGELOG.md';
     let changelog = fs.readFileSync(changelogPath, 'utf8');
-    
+
     // Insert new entry after the first heading
     const lines = changelog.split('\n');
-    const insertIndex = lines.findIndex(line => line.startsWith('## [Unreleased]'));
+    const insertIndex = lines.findIndex(line =>
+      line.startsWith('## [Unreleased]')
+    );
     if (insertIndex !== -1) {
       lines.splice(insertIndex + 1, 0, '', changelogEntry);
     } else {
       lines.splice(1, 0, '', changelogEntry);
     }
-    
+
     fs.writeFileSync(changelogPath, lines.join('\n'));
     console.log(`✅ Updated CHANGELOG.md with ${version}`);
   } catch (error) {
     console.error('❌ Error updating CHANGELOG.md:', error.message);
   }
-  
+
   console.log(`\n🎉 Release ${version} prepared successfully!`);
   console.log(`📱 APK version: ${version}`);
   console.log(`🌐 Worker version: ${version}`);
   console.log(`📋 Stage: ${getVersionStage(version)}`);
   console.log(`🎯 Target stable: ${TARGET_STABLE_VERSION}`);
-  
+
   return version;
 }
 
 function showVersionInfo() {
   const currentVersion = getCurrentVersion();
   const stage = getVersionStage(currentVersion);
-  const stageInfo = VERSION_STAGES[currentVersion] || { stage, description: 'Version update' };
-  
+  const stageInfo = VERSION_STAGES[currentVersion] || {
+    stage,
+    description: 'Version update',
+  };
+
   console.log('📋 Safarnak Version Information\n');
   console.log(`Current Version: ${currentVersion}`);
   console.log(`Stage: ${stageInfo.stage}`);
   console.log(`Description: ${stageInfo.description}`);
   console.log(`Target Stable: ${TARGET_STABLE_VERSION}`);
   console.log(`Progress: ${getProgressToStable(currentVersion)}%\n`);
-  
+
   console.log('🔄 Available Commands:');
   console.log('  yarn version:patch     - Patch release (0.5.0 → 0.5.1)');
   console.log('  yarn version:minor     - Minor release (0.5.0 → 0.6.0)');
@@ -231,7 +243,7 @@ function showVersionInfo() {
 function getProgressToStable(version) {
   const [major, minor] = version.split('.').map(Number);
   if (major >= 1) return 100;
-  
+
   const totalSteps = 5; // 0.5 → 0.6 → 0.7 → 0.8 → 0.9 → 1.0
   const currentStep = minor - 5;
   return Math.max(0, Math.min(100, (currentStep / totalSteps) * 100));
@@ -240,7 +252,7 @@ function getProgressToStable(version) {
 function main() {
   const args = process.argv.slice(2);
   const command = args[0];
-  
+
   switch (command) {
     case 'info':
       showVersionInfo();
@@ -255,7 +267,10 @@ function main() {
       createRelease(getNextVersion(getCurrentVersion(), 'major'), 'major');
       break;
     case 'prerelease':
-      createRelease(getNextVersion(getCurrentVersion(), 'prerelease'), 'prerelease');
+      createRelease(
+        getNextVersion(getCurrentVersion(), 'prerelease'),
+        'prerelease'
+      );
       break;
     default:
       console.log('🤖 Safarnak Version Manager\n');
@@ -274,9 +289,9 @@ if (require.main === module) {
   main();
 }
 
-module.exports = { 
-  getCurrentVersion, 
-  getNextVersion, 
-  createRelease, 
-  showVersionInfo 
+module.exports = {
+  getCurrentVersion,
+  getNextVersion,
+  createRelease,
+  showVersionInfo,
 };

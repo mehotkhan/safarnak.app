@@ -15,7 +15,7 @@
 ## ✨ Key Features
 
 - **🌐 Offline-First** - Works seamlessly without internet connection
-- **⚡ Real-Time** - GraphQL subscriptions for live updates  
+- **⚡ Real-Time** - GraphQL subscriptions for live updates
 - **📱 Cross-Platform** - iOS, Android, and Web support
 - **🌍 Bilingual** - English and Persian (Farsi) with RTL support
 - **🔐 Secure** - PBKDF2 password hashing with token-based authentication
@@ -50,6 +50,7 @@ cp .env.example .env
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Node.js 20+
 - Yarn package manager
 - Android Studio (for Android development)
@@ -208,43 +209,48 @@ safarnak.app/
 ## 🛠️ Tech Stack
 
 ### Frontend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Expo** | ~54 | React Native framework |
-| **React Native** | 0.81.5 | Mobile UI framework |
-| **Expo Router** | ~6 | File-based navigation |
-| **Redux Toolkit** | ^2.9 | State management |
-| **Redux Persist** | ^6.0 | State persistence |
-| **Apollo Client** | 3.8 | GraphQL client |
-| **react-i18next** | ^16.1 | Internationalization |
-| **Drizzle ORM** | ^0.44 | Client-side SQLite |
+
+| Technology        | Version | Purpose                |
+| ----------------- | ------- | ---------------------- |
+| **Expo**          | ~54     | React Native framework |
+| **React Native**  | 0.81.5  | Mobile UI framework    |
+| **Expo Router**   | ~6      | File-based navigation  |
+| **Redux Toolkit** | ^2.9    | State management       |
+| **Redux Persist** | ^6.0    | State persistence      |
+| **Apollo Client** | 3.8     | GraphQL client         |
+| **react-i18next** | ^16.1   | Internationalization   |
+| **Drizzle ORM**   | ^0.44   | Client-side SQLite     |
 
 ### Backend
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **Cloudflare Workers** | - | Serverless runtime |
-| **GraphQL Yoga** | ^5.16 | GraphQL server |
-| **Cloudflare D1** | - | SQLite database |
-| **Drizzle ORM** | ^0.44 | Type-safe ORM |
-| **graphql-workers-subscriptions** | ^0.1.6 | Real-time subscriptions |
+
+| Technology                        | Version | Purpose                 |
+| --------------------------------- | ------- | ----------------------- |
+| **Cloudflare Workers**            | -       | Serverless runtime      |
+| **GraphQL Yoga**                  | ^5.16   | GraphQL server          |
+| **Cloudflare D1**                 | -       | SQLite database         |
+| **Drizzle ORM**                   | ^0.44   | Type-safe ORM           |
+| **graphql-workers-subscriptions** | ^0.1.6  | Real-time subscriptions |
 
 ### Code Generation
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **GraphQL Codegen** | ^6.0.1 | Auto-generate TypeScript types |
-| **typescript-operations** | ^5.0.2 | Generate operation types |
-| **typescript-react-apollo** | ^4.3.3 | Generate React Apollo hooks |
+
+| Technology                  | Version | Purpose                        |
+| --------------------------- | ------- | ------------------------------ |
+| **GraphQL Codegen**         | ^6.0.1  | Auto-generate TypeScript types |
+| **typescript-operations**   | ^5.0.2  | Generate operation types       |
+| **typescript-react-apollo** | ^4.3.3  | Generate React Apollo hooks    |
 
 ### Shared
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| **TypeScript** | ~5.9 | Type safety with enhanced checking |
-| **ESLint** | ^9.38 | Code linting |
-| **Prettier** | ^3.6 | Code formatting |
+
+| Technology     | Version | Purpose                            |
+| -------------- | ------- | ---------------------------------- |
+| **TypeScript** | ~5.9    | Type safety with enhanced checking |
+| **ESLint**     | ^9.38   | Code linting                       |
+| **Prettier**   | ^3.6    | Code formatting                    |
 
 ## 📋 Available Scripts
 
 ### Development
+
 ```bash
 yarn dev              # Start both worker and client concurrently
 yarn start            # Start Expo dev server only
@@ -256,12 +262,14 @@ yarn web              # Run on web
 ```
 
 ### GraphQL Codegen
+
 ```bash
 yarn codegen          # Generate types and hooks from GraphQL schema
 yarn codegen:watch    # Watch mode for development
 ```
 
 ### Database
+
 ```bash
 yarn db:generate      # Generate migrations from schema
 yarn db:migrate       # Apply migrations to local D1
@@ -269,6 +277,7 @@ yarn db:studio        # Open Drizzle Studio (port 4983)
 ```
 
 ### Code Quality
+
 ```bash
 yarn lint             # Run ESLint with enhanced rules
 yarn lint:fix         # Fix ESLint issues
@@ -276,6 +285,7 @@ yarn format           # Format code with Prettier
 ```
 
 ### Build
+
 ```bash
 yarn build:debug      # Build debug APK with EAS
 yarn build:release    # Build release APK with EAS
@@ -283,6 +293,7 @@ yarn build:local      # Build release APK locally
 ```
 
 ### Utilities
+
 ```bash
 yarn clean            # Clear all caches and build artifacts
 ```
@@ -328,11 +339,11 @@ Auto-generates TypeScript types and React Apollo hooks:
 schema: './graphql/schema.graphql'
 documents: './graphql/queries/*.graphql'
 generates:
-  ./api/types.ts:                    # Base GraphQL types
+  ./api/types.ts: # Base GraphQL types
     plugins: [typescript]
-  ./api/hooks.ts:                     # React Apollo hooks
+  ./api/hooks.ts: # React Apollo hooks
     plugins: [typescript-operations, typescript-react-apollo]
-  ./graphql/generated/schema.d.ts:    # Worker schema declarations
+  ./graphql/generated/schema.d.ts: # Worker schema declarations
     plugins: [typescript-graphql-files-modules]
 ```
 
@@ -342,19 +353,21 @@ The app supports React Native's New Architecture (Fabric + TurboModules):
 
 ```javascript
 // In app.config.js
-newArchEnabled: 
-  (process.env.NEW_ARCH === '1' || process.env.NEW_ARCH === 'true') || 
-  isDebug || 
-  isDevelopment
+newArchEnabled: process.env.NEW_ARCH === '1' ||
+  process.env.NEW_ARCH === 'true' ||
+  isDebug ||
+  isDevelopment;
 ```
 
 **Benefits:**
+
 - Faster app startup
 - Smoother animations
 - Better memory usage
 - Future-proofing
 
 **Usage:**
+
 ```bash
 # Enable New Architecture
 yarn android:newarch
@@ -403,6 +416,7 @@ await i18n.changeLanguage('fa'); // or 'en'
 The project uses GraphQL Codegen for type-safe client-server communication:
 
 ### 1. Define Schema
+
 ```graphql
 # graphql/schema.graphql
 type User {
@@ -418,6 +432,7 @@ type AuthPayload {
 ```
 
 ### 2. Define Operations
+
 ```graphql
 # graphql/queries/login.graphql
 mutation Login($username: String!, $password: String!) {
@@ -433,11 +448,13 @@ mutation Login($username: String!, $password: String!) {
 ```
 
 ### 3. Generate Types & Hooks
+
 ```bash
 yarn codegen
 ```
 
 ### 4. Use Generated Code
+
 ```typescript
 // Auto-generated types and hooks
 import { useLoginMutation, LoginMutationVariables } from '../api/mutations';
@@ -452,6 +469,7 @@ Get the latest release directly from GitHub:
 [![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge)](https://github.com/mehotkhan/safarnak.app/releases/latest)
 
 ### Installation Instructions
+
 1. Download the APK from the latest release
 2. Enable "Install from unknown sources" in Android settings
 3. Install the APK file
@@ -460,11 +478,13 @@ Get the latest release directly from GitHub:
 ## 🚀 Deployment
 
 ### Deploy Worker
+
 ```bash
 yarn worker:deploy
 ```
 
 ### Build Mobile App
+
 ```bash
 # Configure EAS (first time only)
 eas login
@@ -475,6 +495,7 @@ yarn build:release
 ```
 
 ### Automated Builds
+
 - **GitHub Actions**: Automatically builds APK on every push to master
 - **Releases**: APK automatically uploaded to GitHub Releases
 - **Artifacts**: Build artifacts available for 30 days
@@ -503,6 +524,7 @@ yarn build:release
 We welcome contributions! Please follow these guidelines:
 
 ### Development Setup
+
 1. Fork the repository
 2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/safarnak.app.git`
 3. Install dependencies: `yarn install`
@@ -511,6 +533,7 @@ We welcome contributions! Please follow these guidelines:
 6. Start development: `yarn dev`
 
 ### Code Standards
+
 - Follow existing code style and patterns
 - Use path aliases (`@/`, `@components/`, `@graphql/`)
 - Run `yarn lint:fix` before committing
@@ -521,6 +544,7 @@ We welcome contributions! Please follow these guidelines:
 - Run `yarn codegen` after GraphQL changes
 
 ### Pull Request Process
+
 1. Create a feature branch from `master`
 2. Make your changes with clear commit messages
 3. Test thoroughly on both platforms

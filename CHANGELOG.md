@@ -8,12 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Enhanced TypeScript configuration with strict checking
 - Comprehensive GitHub issue and PR templates
 - Detailed contributing guidelines
 - Security policy documentation
 
 ### Changed
+
 - Improved project structure documentation
 - Enhanced Cursor AI rules for better development
 
@@ -22,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### 🎉 Initial Release
 
 #### Added
+
 - **🌍 Offline-First Travel App**: Complete travel companion with offline support
 - **📱 Cross-Platform**: iOS, Android, and Web support with Expo React Native
 - **⚡ Real-Time Features**: GraphQL subscriptions for live messaging
@@ -32,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **🚀 Performance**: React Native New Architecture (Fabric + TurboModules)
 
 #### Architecture
+
 - **🏗️ Unified Monorepo**: Single-root architecture with perfect separation
 - **📡 GraphQL Backend**: Cloudflare Workers with GraphQL Yoga
 - **🗄️ Database**: Cloudflare D1 (SQLite) with Drizzle ORM
@@ -40,6 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **🌐 API Layer**: Apollo Client with auto-generated hooks
 
 #### Core Features
+
 - **🗺️ Interactive Maps**: Leaflet-based map with multiple layers
 - **💬 Real-Time Messaging**: GraphQL subscriptions for live chat
 - **👤 User Management**: Registration, login, and profile management
@@ -48,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **🔄 Sync**: Automatic sync when connection restored
 
 #### Technical Stack
+
 - **Frontend**: Expo ~54, React Native 0.81.5, Expo Router ~6
 - **Backend**: Cloudflare Workers, GraphQL Yoga ^5.16
 - **Database**: Cloudflare D1, Drizzle ORM ^0.44
@@ -57,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **TypeScript**: ~5.9 with enhanced checking
 
 #### Project Structure
+
 ```
 safarnak.app/
 ├── worker/                    # Cloudflare Worker (server-side)
@@ -70,6 +77,7 @@ safarnak.app/
 ```
 
 #### Development Features
+
 - **🛠️ Enhanced TypeScript**: Strict mode with comprehensive checking
 - **📝 Code Quality**: ESLint flat config with Prettier
 - **🔄 Auto-Generation**: GraphQL types and React Apollo hooks
@@ -78,24 +86,28 @@ safarnak.app/
 - **🔧 Development Tools**: Hot reload, debugging, and profiling
 
 #### Security
+
 - **🔐 Password Security**: PBKDF2 with 100,000 iterations
 - **🎫 Token Security**: SHA-256 based secure tokens
 - **🛡️ Input Validation**: Comprehensive validation on all inputs
 - **🔒 Data Protection**: Encrypted local storage and secure communications
 
 #### Internationalization
+
 - **🌍 Languages**: English and Persian (Farsi)
 - **📱 RTL Support**: Automatic right-to-left layout for Persian
 - **🔄 Language Switching**: Seamless language switching
 - **📝 Translations**: Comprehensive translation coverage
 
 #### Performance
+
 - **⚡ New Architecture**: Fabric + TurboModules support
 - **📦 Bundle Optimization**: Efficient code splitting and lazy loading
 - **🔄 Caching**: Apollo Client cache and Redux persistence
 - **📱 Offline Performance**: Optimized offline functionality
 
 #### Developer Experience
+
 - **🛠️ Type Safety**: Auto-generated TypeScript types
 - **📝 Documentation**: Comprehensive README and development guides
 - **🔧 Tooling**: ESLint, Prettier, and TypeScript configuration
@@ -107,11 +119,13 @@ safarnak.app/
 ## Version History
 
 ### Semantic Versioning
+
 - **MAJOR** version for incompatible API changes
 - **MINOR** version for backwards-compatible functionality additions
 - **PATCH** version for backwards-compatible bug fixes
 
 ### Release Types
+
 - **🚀 Major Release**: Significant new features or breaking changes
 - **✨ Minor Release**: New features, backwards-compatible
 - **🐛 Patch Release**: Bug fixes and improvements
@@ -130,16 +144,20 @@ When making changes, please update this changelog:
 5. **Follow format**: Use consistent formatting and emojis
 
 ### Example Entry
+
 ```markdown
 ### Added
+
 - 🎉 New feature: User profile editing
 - 📱 Platform: iOS support for new feature
 
 ### Changed
+
 - 🔄 Improved: Authentication flow performance
 - 📝 Updated: GraphQL schema for better type safety
 
 ### Fixed
+
 - 🐛 Fixed: Offline sync issue with messages
 - 🔧 Resolved: TypeScript errors in components
 ```
