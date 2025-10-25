@@ -1,0 +1,34 @@
+---
+name: 📚 Documentation
+about: Improve Safarnak documentation
+title: '[DOCS] '
+labels: ['documentation', 'needs-triage']
+assignees: ''
+---
+
+## 📚 Documentation Issue
+Describe what documentation needs to be improved, added, or clarified.
+
+## 📍 Location
+Where is this documentation issue located?
+- [ ] README.md
+- [ ] .cursorrules
+- [ ] Code comments
+- [ ] API documentation
+- [ ] Architecture documentation
+- [ ] Development setup guide
+- [ ] Deployment guide
+- [ ] Other: ___________
+
+## 🎯 Problem
+What is unclear, missing, or incorrect in the current documentation?
+
+## 💡 Proposed Solution
+How would you like to improve the documentation?
+
+## 📋 Additional Context
+Add any other context about the documentation issue here.
+
+---
+
+**Note**: Good documentation is crucial for this complex architecture. Thank you for helping improve it!

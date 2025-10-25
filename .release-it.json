@@ -1,0 +1,40 @@
+{
+  "git": {
+    "commitMessage": "chore: release v${version}",
+    "tagName": "v${version}",
+    "requireCleanWorkingDir": true,
+    "requireUpstream": true,
+    "requireCommits": true,
+    "addUntrackedFiles": false
+  },
+  "github": {
+    "release": true,
+    "releaseName": "Safarnak ${version}",
+    "releaseNotes": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
+  },
+  "npm": {
+    "publish": false
+  },
+  "hooks": {
+    "before:init": [
+      "yarn codegen",
+      "yarn db:migrate",
+      "npx tsc --noEmit",
+      "yarn lint",
+      "yarn format"
+    ],
+    "after:bump": [
+      "yarn changelog"
+    ],
+    "after:release": [
+      "echo '🚀 Release ${version} completed successfully!'",
+      "echo '📱 APK version updated to ${version}'",
+      "echo '🌐 Worker deployed to Cloudflare'"
+    ]
+  },
+  "plugins": {
+    "./scripts/release-it-plugins/update-app-version.js": {
+      "versionFile": "app.config.js"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+---
+name: 🐛 Bug Report
+about: Create a report to help us improve Safarnak
+title: '[BUG] '
+labels: ['bug', 'needs-triage']
+assignees: ''
+---
+
+## 🐛 Bug Description
+A clear and concise description of what the bug is.
+
+## 🔄 Steps to Reproduce
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
+
+## ✅ Expected Behavior
+A clear and concise description of what you expected to happen.
+
+## ❌ Actual Behavior
+A clear and concise description of what actually happened.
+
+## 📱 Environment
+- **Platform**: [e.g., Android, iOS, Web]
+- **Architecture**: [e.g., Legacy, New Architecture (Fabric + TurboModules)]
+- **App Version**: [e.g., 1.0.0]
+- **Device**: [e.g., Samsung Galaxy S21, iPhone 13]
+- **OS Version**: [e.g., Android 12, iOS 15]
+
+## 📋 Additional Context
+- **Offline/Online**: [e.g., Works offline, Only online]
+- **Language**: [e.g., English, Persian (Farsi)]
+- **Theme**: [e.g., Light mode, Dark mode]
+
+## 🔍 Debug Information
+```bash
+# Please run these commands and include the output:
+yarn codegen
+yarn db:migrate
+npx tsc --noEmit
+```
+
+## 📸 Screenshots/Videos
+If applicable, add screenshots or videos to help explain your problem.
+
+## 🔗 Related Issues
+Link any related issues here.
+
+---
+
+**Note**: Please ensure you've run `yarn clean` and restarted the development server before reporting the bug.

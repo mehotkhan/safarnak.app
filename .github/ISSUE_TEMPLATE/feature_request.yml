@@ -1,0 +1,49 @@
+---
+name: ✨ Feature Request
+about: Suggest an idea for Safarnak
+title: '[FEATURE] '
+labels: ['enhancement', 'needs-triage']
+assignees: ''
+---
+
+## ✨ Feature Description
+A clear and concise description of the feature you'd like to see implemented.
+
+## 🎯 Problem Statement
+What problem does this feature solve? Why is it needed?
+
+## 💡 Proposed Solution
+Describe your proposed solution in detail.
+
+## 🔄 Alternative Solutions
+Describe any alternative solutions or features you've considered.
+
+## 📱 Platform Considerations
+- [ ] Android
+- [ ] iOS  
+- [ ] Web
+- [ ] All platforms
+
+## 🌍 Internationalization
+- [ ] English only
+- [ ] Persian (Farsi) support needed
+- [ ] RTL layout considerations
+- [ ] Additional languages needed
+
+## 🔧 Technical Considerations
+- [ ] Requires GraphQL schema changes
+- [ ] Requires database schema changes
+- [ ] Requires new dependencies
+- [ ] Affects offline functionality
+- [ ] Requires authentication
+- [ ] Real-time features needed
+
+## 📋 Additional Context
+Add any other context, mockups, or examples about the feature request here.
+
+## 🔗 Related Issues
+Link any related issues here.
+
+---
+
+**Note**: Please consider the offline-first architecture and bilingual support when proposing features.

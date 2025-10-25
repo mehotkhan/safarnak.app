@@ -161,8 +161,8 @@ jobs:
           # Find the APK file
           APK_FILE=$(ls *.apk | head -n 1)
           if [ -n "$APK_FILE" ]; then
-            # Create descriptive name: AppName-Architecture-Version.apk
-            NEW_NAME="Safarnak-Universal-v${{ github.run_number }}.apk"
+            # Create descriptive name: AppName-Version-Build.apk
+            NEW_NAME="Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk"
             cp "$APK_FILE" "$NEW_NAME"
             echo "Renamed APK: $APK_FILE -> $NEW_NAME"
             ls -lh "$NEW_NAME"
@@ -171,21 +171,50 @@ jobs:
             exit 1
           fi
 
+      - name: Get App Version
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
+          echo "minor=$(echo $VERSION | cut -d. -f2)" >> $GITHUB_OUTPUT
+          echo "patch=$(echo $VERSION | cut -d. -f3)" >> $GITHUB_OUTPUT
+          echo "stage=$(node -e "
+            const [major, minor] = '$VERSION'.split('.').map(Number);
+            if (major === 0) {
+              if (minor < 8) console.log('alpha');
+              else if (minor < 9) console.log('beta');
+              else console.log('beta');
+            } else {
+              console.log('stable');
+            }
+          ")" >> $GITHUB_OUTPUT
+          echo "📱 App Version: $VERSION ($(echo $VERSION | cut -d. -f1).$(echo $VERSION | cut -d. -f2).$(echo $VERSION | cut -d. -f3))"
+
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ github.run_number }}
-          name: Safarnak Android v${{ github.run_number }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Safarnak Android v${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
           body: |
-            ## 🚀 Safarnak Android APK - Build #${{ github.run_number }}
+            ## 🚀 Safarnak Android APK - v${{ steps.version.outputs.version }}
             
-            **Commit**: ${{ github.sha }}
-            **Branch**: ${{ github.ref_name }}
-            **Built**: ${{ github.event.head_commit.timestamp }}
+            ### 📋 Version Information
+            - **Version**: ${{ steps.version.outputs.version }}
+            - **Stage**: ${{ steps.version.outputs.stage }}
+            - **Build**: #${{ github.run_number }}
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref_name }}
+            - **Built**: ${{ github.event.head_commit.timestamp }}
             
             ### 📝 Latest Changes
             **Commit Message**: ${{ github.event.head_commit.message }}
             **Author**: ${{ github.event.head_commit.author.name }}
+            
+            ### 🎯 Version Progress
+            - **Current**: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
+            - **Target Stable**: 1.0.0
+            - **Progress**: ${{ steps.version.outputs.major == 0 && (steps.version.outputs.minor - 5) * 20 || 100 }}%
             
             ### 📱 Installation
             1. Download the APK file below
@@ -193,13 +222,44 @@ jobs:
             3. Install the APK
             
             ### ✨ Features
-            - GraphQL API integration
-            - Offline-first architecture
-            - Persian/English language support
-            - Dark mode support
-          files: android/app/build/outputs/apk/release/Safarnak-Universal-v${{ github.run_number }}.apk
+            - **🌍 Offline-First**: Works seamlessly without internet
+            - **📡 GraphQL API**: Type-safe client-server communication
+            - **🌐 Bilingual**: English and Persian (Farsi) support
+            - **🌙 Dark Mode**: System preference and manual toggle
+            - **🗺️ Interactive Maps**: Leaflet-based with multiple layers
+            - **💬 Real-Time**: Live messaging with GraphQL subscriptions
+            - **🔐 Secure**: PBKDF2 password hashing and token-based auth
+            - **📱 Cross-Platform**: iOS, Android, and Web support
+            
+            ### 🏗️ Technical Stack
+            - **Frontend**: Expo React Native 0.81.5
+            - **Backend**: Cloudflare Workers with GraphQL
+            - **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
+            - **State**: Redux Toolkit with persistence
+            - **Codegen**: GraphQL Codegen for type safety
+            
+            ### 🔄 Version History
+            | Version | Stage | Description |
+            |---------|-------|-------------|
+            | 0.5.0 | Alpha | Initial development version |
+            | 0.6.0 | Alpha | Core features implementation |
+            | 0.7.0 | Alpha | UI/UX improvements |
+            | 0.8.0 | Beta | Feature completion |
+            | 0.9.0 | Beta | Testing and bug fixes |
+            | 1.0.0 | Stable | First stable release |
+            
+            ### 🐛 Bug Reports
+            If you encounter any issues, please report them on [GitHub Issues](https://github.com/mehotkhan/safarnak.app/issues).
+            
+            ### 🤝 Contributing
+            We welcome contributions! See our [Contributing Guide](https://github.com/mehotkhan/safarnak.app/blob/master/CONTRIBUTING.md) for details.
+            
+            ---
+            
+            **Built with ❤️ using Expo, Cloudflare Workers, and GraphQL Codegen**
+          files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
-          prerelease: false
+          prerelease: ${{ steps.version.outputs.stage != 'stable' }}
           fail_on_unmatched_files: true
 
       - name: Cleanup Gradle cache
