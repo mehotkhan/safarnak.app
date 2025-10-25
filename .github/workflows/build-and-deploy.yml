@@ -290,8 +290,8 @@ jobs:
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version.outputs.version }}
-          name: Safarnak Android v${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
+          tag_name: v${{ steps.version.outputs.version }}-build${{ github.run_number }}
+          name: Safarnak Android v${{ steps.version.outputs.version }} build ${{ github.run_number }} (${{ steps.version.outputs.stage }})
           body: |
             ## 🚀 Safarnak Android APK - v${{ steps.version.outputs.version }}
 
