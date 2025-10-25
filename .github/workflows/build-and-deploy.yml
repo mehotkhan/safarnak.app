@@ -72,6 +72,14 @@ jobs:
         run: |
           yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
 
+      - name: Generate GraphQL types and hooks
+        run: |
+          yarn codegen
+
+      - name: Generate database migrations
+        run: |
+          yarn db:generate || echo "No new migrations needed"
+
       - name: Expo prebuild (only when native changes)
         if: |
           contains(toJson(github.event.commits.*.modified), 'app.config.js') ||
@@ -146,29 +154,15 @@ jobs:
           echo ""
           echo "=== APK sizes ==="
           du -h *.apk 2>/dev/null || echo "No APK files to measure"
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: safarnak-android-v${{ github.run_number }}
-          path: android/app/build/outputs/apk/release/*.apk
-          retention-days: 30
-          compression-level: 0
-
-      - name: Rename APK with descriptive name
-        run: |
-          cd android/app/build/outputs/apk/release
-          # Find the APK file
-          APK_FILE=$(ls *.apk | head -n 1)
-          if [ -n "$APK_FILE" ]; then
-            # Create descriptive name: AppName-Version-Build.apk
-            NEW_NAME="Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk"
-            cp "$APK_FILE" "$NEW_NAME"
-            echo "Renamed APK: $APK_FILE -> $NEW_NAME"
-            ls -lh "$NEW_NAME"
-          else
-            echo "No APK file found!"
+          echo ""
+          echo "=== Checking APK existence ==="
+          if [ ! -f *.apk ]; then
+            echo "❌ No APK files found in release directory!"
+            echo "Contents of release directory:"
+            ls -la
             exit 1
+          else
+            echo "✅ APK files found successfully"
           fi
 
       - name: Get App Version
@@ -190,6 +184,64 @@ jobs:
             }
           ")" >> $GITHUB_OUTPUT
           echo "📱 App Version: $VERSION ($(echo $VERSION | cut -d. -f1).$(echo $VERSION | cut -d. -f2).$(echo $VERSION | cut -d. -f3))"
+
+      - name: Rename APK with descriptive name
+        run: |
+          cd android/app/build/outputs/apk/release
+          echo "=== Renaming APK file ==="
+          echo "Current directory contents:"
+          ls -la
+          
+          # Find the APK file
+          APK_FILE=$(ls *.apk 2>/dev/null | head -n 1)
+          if [ -z "$APK_FILE" ]; then
+            echo "❌ No APK file found in release directory!"
+            echo "Available files:"
+            ls -la
+            exit 1
+          fi
+          
+          echo "Found APK file: $APK_FILE"
+          
+          # Create descriptive name: AppName-Version-Build.apk
+          NEW_NAME="Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk"
+          echo "Renaming to: $NEW_NAME"
+          
+          # Copy the file with new name
+          cp "$APK_FILE" "$NEW_NAME"
+          
+          if [ -f "$NEW_NAME" ]; then
+            echo "✅ Successfully renamed APK: $APK_FILE -> $NEW_NAME"
+            echo "New file details:"
+            ls -lh "$NEW_NAME"
+          else
+            echo "❌ Failed to rename APK file!"
+            exit 1
+          fi
+
+      - name: Verify APK file before upload
+        run: |
+          APK_PATH="android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk"
+          echo "Checking APK file: $APK_PATH"
+          
+          if [ -f "$APK_PATH" ]; then
+            echo "✅ APK file exists and ready for upload"
+            echo "File size: $(du -h "$APK_PATH" | cut -f1)"
+            echo "File permissions: $(ls -l "$APK_PATH")"
+          else
+            echo "❌ APK file not found at expected path: $APK_PATH"
+            echo "Available files in release directory:"
+            ls -la android/app/build/outputs/apk/release/
+            exit 1
+          fi
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: safarnak-android-v${{ steps.version.outputs.version }}-build${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk
+          retention-days: 30
+          compression-level: 0
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
