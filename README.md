@@ -573,8 +573,11 @@ We welcome contributions! Please follow these guidelines:
 ### Code Standards
 
 - Follow existing code style and patterns
-- Use path aliases (`@/`, `@components/`, `@graphql/`)
-- **Import from `api/` directly**: `import { useLoginMutation } from '@/api'`
+- **Always use path aliases** - Never use relative imports like `../../api`
+- **Use @api** for API imports: `import { useLoginMutation } from '@api'`
+- **Use @store** for Redux: `import { useAppDispatch } from '@store/hooks'`
+- **Use @hooks** for custom hooks: `import { useColorScheme } from '@hooks/useColorScheme'`
+- **Use @constants** for constants: `import { colors } from '@constants/Colors'`
 - Run `yarn lint:fix` before committing
 - Ensure TypeScript types are correct
 - Test both online and offline scenarios

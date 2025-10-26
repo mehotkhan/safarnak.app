@@ -295,20 +295,41 @@ const { currentLanguage, changeLanguage } = useLanguage();
 - Generics for reusable components/functions
 - `@ts-expect-error` with explanatory comments
 
+### 6.1. Path Alias Priority
+
+**NEVER use relative imports** - Always use path aliases:
+- ✅ `@api` instead of `../../api` or `../api`
+- ✅ `@store/hooks` instead of `../../store/hooks`
+- ✅ `@hooks/useColorScheme` instead of `../../hooks/useColorScheme`
+- ✅ `@constants/Colors` instead of `../../constants/Colors`
+- ✅ `@components/ui/Themed` instead of `../../../components/ui/Themed`
+
+This ensures consistent, maintainable imports across the entire codebase.
+
 ### 7. Imports
+
+**Always use path aliases instead of relative imports!**
 
 **Good:**
 ```typescript
 import { View } from '@components/ui/Themed';
-import { useLoginMutation, useMeQuery } from '@/api';
-import { drizzle } from 'drizzle-orm/d1';
+import { useLoginMutation, useMeQuery, useAddMessageMutation } from '@api';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { login } from '@store/slices/authSlice';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { colors } from '@constants/Colors';
+import { client } from '@api';
+import { persistor, store } from '@store';
 ```
 
 **Bad:**
 ```typescript
-import { View } from '../../../components/ui/Themed';  // Use path alias
-import { useLoginMutation } from '../api/mutations';  // Directly import from api/
-import { LOGIN_MUTATION } from './graphql/queries';   // Use generated hooks, not raw operations
+import { View } from '../../../components/ui/Themed';     // Use @components
+import { useLoginMutation } from '../../api';            // Use @api
+import { useAppDispatch } from '../../store/hooks';     // Use @store/hooks
+import { login } from '../../store/slices/authSlice';      // Use @store/slices/authSlice
+import { useColorScheme } from '../../hooks/useColorScheme';  // Use @hooks
+import { client } from '../api';                          // Use @api
 ```
 
 ### 8. Error Handling
