@@ -208,14 +208,59 @@ jobs:
             echo "✅ APK files found successfully"
           fi
 
-      - name: Get App Version
+      - name: Get version info and auto-bump based on commit type
         id: version
         run: |
-          VERSION=$(node -p "require('./package.json').version")
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Get latest commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Latest commit: $COMMIT_MSG"
+          
+          # Determine version bump based on commit type (semantic versioning)
+          if [[ "$COMMIT_MSG" =~ ^(feat|feature)(\(.*\))?: ]]; then
+            # New feature -> minor bump
+            NEW_VERSION=$(node -p "
+              const v = '$CURRENT_VERSION'.split('.');
+              console.log(v[0] + '.' + (parseInt(v[1]) + 1) + '.' + v[2]);
+            ")
+            BUMP_TYPE="minor"
+            echo "🚀 Feature detected: $CURRENT_VERSION -> $NEW_VERSION"
+          elif [[ "$COMMIT_MSG" =~ ^(fix|bugfix)(\(.*\))?: ]]; then
+            # Bug fix -> patch bump
+            NEW_VERSION=$(node -p "
+              const v = '$CURRENT_VERSION'.split('.');
+              console.log(v[0] + '.' + v[1] + '.' + (parseInt(v[2]) + 1));
+            ")
+            BUMP_TYPE="patch"
+            echo "🐛 Fix detected: $CURRENT_VERSION -> $NEW_VERSION"
+          else
+            # Everything else (refactor, chore, docs, etc.) -> build increment only
+            NEW_VERSION="$CURRENT_VERSION"
+            BUMP_TYPE="build"
+            echo "📝 No version change, using: $NEW_VERSION"
+          fi
+          
+          # Update package.json with new version
+          if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "Updating package.json version to $NEW_VERSION"
+            node -e "
+              const fs = require('fs');
+              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+              pkg.version = '$NEW_VERSION';
+              fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            "
+            echo "✅ Version updated in package.json"
+          fi
+          
+          VERSION=$NEW_VERSION
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
           echo "minor=$(echo $VERSION | cut -d. -f2)" >> $GITHUB_OUTPUT
           echo "patch=$(echo $VERSION | cut -d. -f3)" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
           echo "stage=$(node -e "
             const [major, minor] = '$VERSION'.split('.').map(Number);
             if (major === 0) {
@@ -285,6 +330,15 @@ jobs:
           path: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk
           retention-days: 30
           compression-level: 0
+          
+      - name: Commit version bump if changed
+        if: steps.version.outputs.bump_type != 'build'
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add package.json
+          git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]" || echo "No changes to commit"
+          git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
