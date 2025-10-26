@@ -14,40 +14,51 @@
 
 **Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
 
-## ✨ Key Features
+---
 
-- **🌐 Offline-First** - Works seamlessly without internet connection
-- **⚡ Real-Time** - GraphQL subscriptions for live updates
-- **📱 Cross-Platform** - iOS, Android, and Web support
-- **🌍 Bilingual** - English and Persian (Farsi) with RTL support
-- **🔐 Secure** - PBKDF2 password hashing with token-based authentication
-- **🎨 Modern UI** - Custom components with dark mode support
-- **📊 Type-Safe** - Full TypeScript coverage with auto-generated GraphQL types
-- **🚀 Performance** - React Native New Architecture (Fabric + TurboModules)
-- **🔄 Auto-Generated** - GraphQL Codegen for type-safe client-server communication
+## 📚 What is This?
 
-## 🔧 Environment Variables
+A full-stack mobile travel app with **perfect separation** between client (React Native) and server (Cloudflare Workers) code in a **single-root monorepo**.
 
-The app uses environment variables for configuration. Copy `.env.example` to `.env` and customize:
+### Key Concepts
 
-```bash
-cp .env.example .env
+- **Client** (React Native): Expo app with Redux, Apollo Client, offline-first architecture
+- **Server** (Cloudflare Workers): Serverless GraphQL API with Cloudflare D1 database
+- **Shared** (GraphQL + Drizzle): Type-safe schema shared between client and server
+- **Codegen**: Auto-generates TypeScript types and React hooks from GraphQL schema
+
+---
+
+## 🏗️ Architecture Overview
+
+```
+┌─────────────────────────┐         ┌─────────────────────────┐
+│   React Native Client   │         │  Cloudflare Worker       │
+│                         │         │                         │
+│  app/                   │◄───────►│  worker/               │
+│    └─ Pages & Routes    │         │    └─ GraphQL API       │
+│                         │         │                         │
+│  api/                   │         │  graphql/              │
+│    └─ Auto-gen hooks    │◄───────►│    └─ Schema (.graphql)│
+│                         │         │                         │
+│  store/                  │         │  drizzle/              │
+│    └─ Redux state        │◄───────►│    └─ DB schema         │
+│                         │         │                         │
+│  components/             │         │                         │
+│  hooks/                  │         │                         │
+│  constants/              │         │                         │
+└─────────────────────────┘         └─────────────────────────┘
 ```
 
-### Available Variables
+### How It Works
 
-- `GRAPHQL_URL` - Production GraphQL endpoint (default: `https://safarnak.mohet.ir/graphql`)
-- `GRAPHQL_URL_DEV` - Development GraphQL endpoint (default: `http://192.168.1.51:8787/graphql`)
-- `APP_NAME` - Application name
-- `APP_SCHEME` - Deep linking scheme
-- `BUNDLE_IDENTIFIER` - App bundle identifier
-- `NEW_ARCH` - Force enable New Architecture (`1` or `true`)
+1. **Define GraphQL Schema** (`graphql/schema.graphql`) - Shared between client and worker
+2. **Define Operations** (`graphql/queries/*.graphql`) - Queries and mutations
+3. **Run Codegen** - Auto-generates TypeScript types and React hooks in `api/`
+4. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic
+5. **Use in App** (`app/`, `components/`) - Import generated hooks from `@api`
 
-### Environment Priority
-
-1. **EAS Build Variables** - Set in `eas.json` for builds
-2. **Process Environment** - From `.env` file
-3. **Hardcoded Fallbacks** - Development/production defaults
+---
 
 ## 🚀 Quick Start
 
@@ -55,558 +66,353 @@ cp .env.example .env
 
 - Node.js 20+
 - Yarn package manager
-- Android Studio (for Android development)
-- Xcode (for iOS development, macOS only)
 
-### Installation
+### Setup (5 minutes)
 
 ```bash
-# Clone the repository
+# Clone and install
 git clone https://github.com/mehotkhan/safarnak.app.git
 cd safarnak.app
-
-# Install dependencies
 yarn install
 
-# Apply database migrations
+# Setup database
 yarn db:migrate
 
-# Generate GraphQL types and hooks
+# Generate GraphQL types
 yarn codegen
 
-# Start development server (both client & worker)
-yarn dev
+# Start development
+yarn dev  # Runs both worker (8787) and client (8081)
 ```
 
-### Development Commands
+### Run on Device
 
 ```bash
-# Start services separately
-yarn worker:dev  # Cloudflare Worker (port 8787)
-yarn start       # Expo dev server (port 8081)
-
-# Run on devices
-yarn android     # Android (Legacy Architecture)
-yarn android:newarch  # Android (New Architecture)
+yarn android     # Android (legacy)
+yarn android:newarch  # Android (new architecture)
 yarn ios         # iOS (macOS only)
 yarn web         # Web browser
-
-# GraphQL Codegen
-yarn codegen     # Generate types and hooks
-yarn codegen:watch # Watch mode for development
 ```
 
-## 🏗️ Architecture
+---
 
-Safarnak uses a **unified single-root monorepo** architecture with **perfect separation** between client and server code:
+## 📁 Codebase Structure
 
-```
-┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
-│   React Native      │       │  Cloudflare Worker  │       │   SQLite/D1 DB      │
-│   Client App        │◄─────►│   GraphQL API       │◄─────►│   Drizzle ORM       │
-│                     │       │                     │       │                     │
-│ • Expo Router       │       │ • GraphQL Yoga      │       │ • Shared Schema     │
-│ • Redux + Persist   │       │ • Subscriptions     │       │ • Migrations        │
-│ • Apollo Client     │       │ • Resolvers         │       │ • Type Safety       │
-│ • Auto-Generated    │       │ • Auth Middleware   │       │                     │
-│ • Offline SQLite    │       │ • Root Redirect     │       │                     │
-└─────────────────────┘       └─────────────────────┘       └─────────────────────┘
-```
-
-### 🎯 Perfect Separation
-
-- **📁 GraphQL Folder**: Shared schema and query definitions only
-- **📁 API Folder**: All client-specific code including auto-generated hooks
-- **📁 Worker Folder**: All server-specific resolvers and logic
-
-## 📁 Project Structure
+### Client-Side (What You'll Modify Most)
 
 ```
-safarnak.app/
-├── worker/                    # ⚡ Cloudflare Worker (server-side only)
-│   ├── index.ts              # Worker entry point + resolver exports
-│   ├── types.ts              # Server-specific types
-│   ├── queries/               # Query resolvers (getMessages, me)
-│   ├── mutations/            # Mutation resolvers (register, login, addMessage)
-│   ├── subscriptions/        # Subscription resolvers (newMessages)
-│   └── utilities/            # Password hashing, token generation
-├── graphql/                   # 📡 Shared GraphQL (client & worker)
-│   ├── schema.graphql        # Pure GraphQL schema definition
-│   ├── queries/              # Query definitions (.graphql files)
-│   │   ├── addMessage.graphql
-│   │   ├── getMessages.graphql
-│   │   ├── login.graphql
-│   │   ├── me.graphql
-│   │   └── register.graphql
-│   ├── generated/
-│   │   └── schema.d.ts       # Worker schema declarations
-│   ├── schema-loader.ts      # Worker schema loader
-│   └── index.ts              # Shared exports only
-├── api/                       # 🌐 Client API layer (CLIENT-SIDE ONLY)
-│   ├── client.ts             # Apollo Client setup with auth link
-│   ├── hooks.ts              # 🤖 Auto-generated React Apollo hooks (queries, mutations, subscriptions)
-│   ├── types.ts              # 🤖 Auto-generated GraphQL types
-│   ├── api-types.ts          # API-specific types (ApiError, ApiResponse)
-│   ├── utils.ts              # Client utility functions (storage, error handling, network checks)
-│   └── index.ts              # Main API exports (re-exports all hooks and utilities)
-├── drizzle/                   # 🗄️ Database layer (shared)
-│   ├── schema.ts             # Database schema (users, messages, tours)
-│   └── migrations/           # SQL migration files
-├── store/                     # 📦 Redux state management
-│   ├── index.ts              # Store configuration with persist
-│   ├── hooks.ts              # Typed Redux hooks
-│   ├── slices/               # Redux slices
-│   │   ├── authSlice.ts      # Authentication state
-│   │   └── themeSlice.ts     # Theme state
-│   └── middleware/           # Redux middleware
-│       └── offlineMiddleware.ts # Offline queue handling
-├── app/                       # 📱 Expo Router pages
-│   ├── _layout.tsx           # Root layout with providers
-│   ├── auth/                  # 🔐 Authentication pages
-│   │   ├── _layout.tsx      # Auth routing layout
-│   │   ├── login.tsx        # Login page
-│   │   └── register.tsx     # Registration page
-│   └── (tabs)/               # Tab navigation
-│       ├── index.tsx         # Home/Map screen
-│       ├── tour.tsx          # Tours screen
-│       └── profile.tsx       # User profile
-├── components/                # 🎨 UI Components
-│   ├── AuthWrapper.tsx       # Authentication guard
-│   ├── MapView.tsx          # Interactive map component
-│   ├── context/              # React contexts
-│   │   ├── LanguageContext.tsx
-│   │   ├── LanguageSwitcher.tsx
-│   │   └── ThemeContext.tsx
-│   └── ui/                   # Themed UI components
-│       ├── Themed.tsx
-│       ├── ThemeToggle.tsx
-│       ├── CustomText.tsx
-│       └── ...
-├── constants/                 # 📋 App constants
-│   ├── app.ts                # App configuration
-│   ├── Colors.ts             # Theme colors
-│   └── index.ts              # Constants exports
-├── hooks/                     # 🪝 Custom React hooks
-├── locales/                   # 🌍 i18n translations (en, fa)
-├── metro.config.js            # Metro bundler config
-├── wrangler.toml              # Cloudflare Workers config
-├── drizzle.config.ts          # Database configuration
-├── codegen.yml                # GraphQL Codegen configuration
-├── eslint.config.mjs          # ESLint flat config
-├── app.config.js              # Expo configuration
-└── tsconfig.json              # TypeScript configuration
+app/                    # 📱 Expo Router file-based pages
+├── auth/              # Authentication pages
+│   ├── login.tsx     # Login page (auto-redirect if logged in)
+│   └── register.tsx   # Registration page
+└── (tabs)/            # Main app tabs
+    ├── index.tsx      # Home screen
+    ├── tour.tsx       # Tours list
+    └── profile.tsx    # User profile
+
+components/            # 🎨 Reusable UI components
+├── AuthWrapper.tsx    # Authentication guard
+├── MapView.tsx        # Map component
+└── context/           # React contexts (language, theme)
+
+api/                    # 🌐 GraphQL client (auto-generated)
+├── hooks.ts           # ✨ Generated React hooks
+├── types.ts           # ✨ Generated TypeScript types
+└── client.ts          # Apollo Client setup
+
+store/                  # 📦 Redux state
+├── slices/            # State slices
+│   ├── authSlice.ts   # Auth state
+│   └── themeSlice.ts  # Theme state
+└── middleware/        # Redux middleware
+    └── offlineMiddleware.ts  # Offline queue
+
+constants/              # 📋 App configuration
+hooks/                   # 🪝 Custom React hooks
+locales/                 # 🌍 i18n translations (en, fa)
 ```
 
-## 🛠️ Tech Stack
+### Server-Side
 
-### Frontend
+```
+worker/                 # ⚡ Cloudflare Worker
+├── queries/           # Query resolvers (getMessages, me)
+├── mutations/        # Mutation resolvers (register, login)
+└── subscriptions/    # Subscription resolvers (newMessages)
 
-| Technology        | Version | Purpose                |
-| ----------------- | ------- | ---------------------- |
-| **Expo**          | ~54.0.19| React Native framework |
-| **React Native**  | 0.81.5  | Mobile UI framework    |
-| **React**         | 19.1.0  | UI library            |
-| **Expo Router**   | ~6.0.13 | File-based navigation  |
-| **Redux Toolkit** | ^2.9.2  | State management       |
-| **Redux Persist** | ^6.0.0  | State persistence      |
-| **Apollo Client** | 3.8.0   | GraphQL client         |
-| **react-i18next** | ^16.1.5 | Internationalization   |
-| **Drizzle ORM**   | ^0.44.6 | Client-side SQLite     |
+graphql/               # 📡 Shared GraphQL
+├── schema.graphql    # GraphQL schema (shared)
+└── queries/          # Query definitions (.graphql files)
 
-### Backend
+drizzle/               # 🗄️ Database (shared)
+├── schema.ts         # Database schema
+└── migrations/       # SQL migrations
+```
 
-| Technology                        | Version | Purpose                 |
-| --------------------------------- | ------- | ----------------------- |
-| **Cloudflare Workers**            | Latest  | Serverless runtime      |
-| **GraphQL Yoga**                  | ^5.16.0 | GraphQL server          |
-| **Cloudflare D1**                 | Latest  | SQLite database         |
-| **Drizzle ORM**                   | ^0.44.6 | Type-safe ORM           |
-| **Wrangler**                      | ^4.43.0 | Cloudflare CLI          |
-| **graphql-workers-subscriptions** | ^0.1.6  | Real-time subscriptions |
+### Shared (Critical)
 
-### Code Generation
+- **`graphql/`** - GraphQL schema and operations (shared between client & worker)
+- **`drizzle/`** - Database schema (shared between client & worker)
+- **`api/`** - Auto-generated client code (run `yarn codegen` to update)
 
-| Technology                  | Version | Purpose                        |
-| --------------------------- | ------- | ------------------------------ |
-| **GraphQL Codegen**         | ^6.0.1  | Auto-generate TypeScript types |
-| **typescript-operations**   | ^5.0.2  | Generate operation types       |
-| **typescript-react-apollo** | ^4.3.3  | Generate React Apollo hooks    |
+---
 
-### Shared
+## 💡 How to Add New Features
 
-| Technology     | Version | Purpose                            |
-| -------------- | ------- | ---------------------------------- |
-| **TypeScript** | ~5.9    | Type safety with enhanced checking |
-| **ESLint**     | ^9.38   | Code linting                       |
-| **Prettier**   | ^3.6    | Code formatting                    |
+### Adding a GraphQL Query/Mutation
 
-## 📋 Available Scripts
+1. **Define in GraphQL Schema**:
+```graphql
+# graphql/schema.graphql
+type Query {
+  getTours: [Tour!]!
+}
+```
 
-### Development
+2. **Create Operation File**:
+```graphql
+# graphql/queries/getTours.graphql
+query GetTours {
+  getTours {
+    id
+    name
+    location
+  }
+}
+```
 
+3. **Run Codegen**:
 ```bash
-yarn dev              # Start both worker and client concurrently
-yarn start            # Start Expo dev server only
-yarn worker:dev       # Start Cloudflare Worker only
-yarn android          # Run on Android (Legacy Architecture)
-yarn android:newarch  # Run on Android (New Architecture)
-yarn ios              # Run on iOS
-yarn web              # Run on web
+yarn codegen
 ```
 
-### GraphQL Codegen
-
-```bash
-yarn codegen          # Generate types and hooks from GraphQL schema
-yarn codegen:watch    # Watch mode for development
+4. **Implement Resolver**:
+```typescript
+// worker/queries/getTours.ts
+export const getTours = async (_: any, __: any, context: any) => {
+  const db = drizzle(context.env.DB);
+  return await db.select().from(tours).all();
+};
 ```
 
-### Database
+5. **Use in Component**:
+```typescript
+import { useGetToursQuery } from '@api';
 
-```bash
-yarn db:generate      # Generate migrations from schema
-yarn db:migrate       # Apply migrations to local D1
-yarn db:studio        # Open Drizzle Studio (port 4983)
+function ToursScreen() {
+  const { data, loading } = useGetToursQuery();
+  // ...use data
+}
 ```
 
-### Code Quality
+### Adding a New UI Component
 
-```bash
-yarn lint             # Run ESLint with developer-friendly rules
-yarn lint:fix         # Fix ESLint issues automatically
-yarn format           # Format code with Prettier (optional)
+1. **Create Component**:
+```typescript
+// components/TourCard.tsx
+import { CustomText } from '@components/ui/CustomText';
+import { View } from '@components/ui/Themed';
+
+interface TourCardProps {
+  tour: { id: string; name: string };
+}
+
+export default function TourCard({ tour }: TourCardProps) {
+  return (
+    <View>
+      <CustomText>{tour.name}</CustomText>
+    </View>
+  );
+}
 ```
 
-**ESLint Configuration:**
-- **Developer Friendly**: Disabled strict rules that hinder development
-- **TypeScript Support**: Full TypeScript integration with relaxed rules
-- **React Native Optimized**: Disabled accessibility rules not applicable to mobile
-- **Flexible**: Allows `any` type and `@ts-ignore` comments for development
-
-### Build
-
-```bash
-yarn build:debug      # Build debug APK with EAS
-yarn build:release    # Build release APK with EAS
-yarn build:local      # Build release APK locally
+2. **Use Path Aliases**:
+```typescript
+import { useColorScheme } from '@hooks/useColorScheme';
+import { colors } from '@constants/Colors';
+import { useAppDispatch } from '@store/hooks';
 ```
 
-### Utilities
+### Adding to Redux Store
 
-```bash
-yarn clean            # Clear all caches and build artifacts
+1. **Create Slice**:
+```typescript
+// store/slices/toursSlice.ts
+import { createSlice } from '@reduxjs/toolkit';
+
+const toursSlice = createSlice({
+  name: 'tours',
+  initialState: { tours: [] },
+  reducers: {
+    setTours: (state, action) => {
+      state.tours = action.payload;
+    },
+  },
+});
+
+export const { setTours } = toursSlice.actions;
+export default toursSlice.reducer;
 ```
+
+2. **Add to Store**:
+```typescript
+// store/index.ts
+import toursReducer from './slices/toursSlice';
+
+// Add to combineReducers
+tours: toursReducer,
+```
+
+---
 
 ## 🔧 Configuration
 
 ### Path Aliases
 
-TypeScript and Metro are configured with the following path aliases:
-
 ```typescript
-"@/*"           → "./*"              // Root files
-"@components/*" → "./components/*"   // UI components
-"@graphql/*"    → "./graphql/*"      // Shared GraphQL
-"@drizzle/*"    → "./drizzle/*"      // Database schema
-"@worker/*"     → "./worker/*"       // Worker resolvers
-"@api"          → "./api"             // API layer (client hooks)
-"@api/*"        → "./api/*"           // API subfolder imports
-"@store"        → "./store"           // Redux store
-"@store/*"      → "./store/*"         // Store subfolder imports
-"@hooks"        → "./hooks"           // Custom React hooks
-"@hooks/*"      → "./hooks/*"         // Hooks subfolder imports
-"@constants"    → "./constants"       // App constants
-"@constants/*"  → "./constants/*"     // Constants subfolder imports
-"@locales"      → "./locales"         // i18n translations
-"@locales/*"    → "./locales/*"      // Locales subfolder imports
-```
-
-**Usage Examples:**
-```typescript
-// API imports
 import { useLoginMutation } from '@api';
-import { apiTypes } from '@api/types';
-
-// Store imports
-import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { useAppDispatch } from '@store/hooks';
 import { login } from '@store/slices/authSlice';
-
-// Hooks imports
 import { useColorScheme } from '@hooks/useColorScheme';
-
-// Constants imports
-import { APP_NAME } from '@constants';
 import { colors } from '@constants/Colors';
-
-// Locales imports
-import enTranslation from '@locales/en/translation.json';
+import Colors from '@/constants/Colors';
 ```
 
-### TypeScript Configuration
+**Never use relative imports** (`../../api`, `../store`). Always use path aliases.
 
-The project uses a balanced TypeScript configuration for development efficiency:
+### GraphQL Codegen
 
-```json
-{
-  "strict": true,
-  "noUnusedLocals": false,        // Disabled for easier development
-  "noUnusedParameters": false,    // Disabled for easier development
-  "noImplicitReturns": true,      // Ensures functions return values
-  "noFallthroughCasesInSwitch": true, // Prevents switch fallthrough bugs
-  "noUncheckedIndexedAccess": false,  // Disabled for easier development
-  "exactOptionalPropertyTypes": false, // Disabled for easier development
-  "noImplicitOverride": true,     // Ensures proper override usage
-  "allowUnusedLabels": false,     // Prevents unreachable code
-  "allowUnreachableCode": false   // Prevents unreachable code
-}
-```
+Auto-generates TypeScript types and React hooks from GraphQL schema:
 
-**Configuration Philosophy:**
-- **Strict Core**: Maintains type safety with `strict: true`
-- **Developer Friendly**: Disables overly strict rules that hinder development
-- **Essential Safety**: Keeps important rules like `noImplicitReturns` and `noFallthroughCasesInSwitch`
+1. **Schema** (`graphql/schema.graphql`) defines types
+2. **Operations** (`graphql/queries/*.graphql`) define queries/mutations
+3. **Run** `yarn codegen` to generate `api/hooks.ts` and `api/types.ts`
+4. **Use** generated hooks: `import { useLoginMutation } from '@api'`
 
-### GraphQL Codegen Configuration
+**Important**: Always run `yarn codegen` after modifying GraphQL schema or operations.
 
-Auto-generates TypeScript types and React Apollo hooks:
+---
 
-```yaml
-schema: './graphql/schema.graphql'
-documents: './graphql/queries/*.graphql'
-generates:
-  ./api/types.ts: # Base GraphQL types
-    plugins: [typescript]
-  ./api/hooks.ts: # React Apollo hooks
-    plugins: [typescript-operations, typescript-react-apollo]
-  ./graphql/generated/schema.d.ts: # Worker schema declarations
-    plugins: [typescript-graphql-files-modules]
-```
-
-### New Architecture Configuration
-
-The app supports React Native's New Architecture (Fabric + TurboModules):
-
-```javascript
-// In app.config.js
-newArchEnabled: process.env.NEW_ARCH === '1' ||
-  process.env.NEW_ARCH === 'true' ||
-  isDebug ||
-  isDevelopment;
-```
-
-**Benefits:**
-
-- Faster app startup
-- Smoother animations
-- Better memory usage
-- Future-proofing
-
-**Usage:**
+## 📋 Common Commands
 
 ```bash
-# Enable New Architecture
-yarn android:newarch
-# or
-NEW_ARCH=1 yarn android
+# Development
+yarn dev              # Start both worker & client
+yarn start            # Expo dev server only
+yarn worker:dev       # Worker only
+
+# Database
+yarn db:migrate       # Apply migrations
+yarn db:studio        # Open Drizzle Studio
+
+# GraphQL
+yarn codegen          # Generate types & hooks
+yarn codegen:watch    # Watch mode
+
+# Build
+yarn android          # Run on Android
+yarn build:release    # Build release APK
+
+# Utilities
+yarn clean            # Clear caches
+yarn lint             # Check code quality
+yarn lint:fix         # Fix issues
 ```
 
-## 🗄️ Database Schema
+---
 
-The app uses a unified SQLite schema managed by Drizzle ORM:
+## 🛠️ Technology Stack
 
-- **users** - User accounts with authentication
-- **messages** - Real-time messaging
-- **tours** - Travel tour listings
-- **subscriptions** - GraphQL subscription management
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React Native 0.81.5 | Mobile UI |
+| **Backend** | Cloudflare Workers | Serverless API |
+| **Database** | Cloudflare D1 (SQLite) | Server database |
+| **GraphQL** | GraphQL Yoga | API layer |
+| **ORM** | Drizzle 0.44.6 | Type-safe queries |
+| **State** | Redux Toolkit | Client state |
+| **Codegen** | GraphQL Codegen | Auto-generate types |
+| **Router** | Expo Router | File-based routing |
 
-Migrations are stored in `drizzle/migrations/` and applied automatically.
+**Full stack**: TypeScript, ESLint, Prettier, React i18n, New Architecture enabled
 
-## 🔐 Authentication
-
-- **Password Hashing**: PBKDF2 with 100,000 iterations
-- **Token Generation**: SHA-256 based secure tokens
-- **Offline Support**: Credentials cached in AsyncStorage
-- **Token Storage**: Redux persist + AsyncStorage
-
-## 🌍 Internationalization
-
-Supports English and Persian (Farsi) with automatic RTL layout:
-
-```typescript
-// Change language
-import { useTranslation } from 'react-i18next';
-const { t, i18n } = useTranslation();
-await i18n.changeLanguage('fa'); // or 'en'
-```
-
-## 📱 Offline-First Architecture
-
-1. **Client-Side SQLite** - Expo SQLite for local data storage
-2. **Redux Persist** - State persistence across app restarts
-3. **Offline Queue** - Mutations queued when offline
-4. **Sync on Reconnect** - Automatic sync when connection restored
-
-## 🔄 GraphQL Codegen Workflow
-
-The project uses GraphQL Codegen for type-safe client-server communication:
-
-### 1. Define Schema
-
-```graphql
-# graphql/schema.graphql
-type User {
-  id: ID!
-  name: String!
-  username: String!
-}
-
-type AuthPayload {
-  user: User!
-  token: String!
-}
-```
-
-### 2. Define Operations
-
-```graphql
-# graphql/queries/login.graphql
-mutation Login($username: String!, $password: String!) {
-  login(username: $username, password: $password) {
-    user {
-      id
-      name
-      username
-    }
-    token
-  }
-}
-```
-
-### 3. Generate Types & Hooks
-
-```bash
-yarn codegen
-```
-
-### 4. Use Generated Code
-
-```typescript
-// Import directly from api/ - all hooks and types available
-import { useLoginMutation, useMeQuery, useAddMessageMutation } from '@/api';
-
-const [loginMutation] = useLoginMutation();
-const { data } = useMeQuery();
-```
-
-## 📱 Download APK
-
-Get the latest release directly from GitHub:
-
-[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge)](https://github.com/mehotkhan/safarnak.app/releases/latest)
-
-### Installation Instructions
-
-1. Download the APK from the latest release
-2. Enable "Install from unknown sources" in Android settings
-3. Install the APK file
-4. Launch Safarnak and start exploring!
-
-## 🚀 Deployment
-
-### Deploy Worker
-
-```bash
-yarn worker:deploy
-```
-
-### Build Mobile App
-
-```bash
-# Configure EAS (first time only)
-eas login
-eas build:configure
-
-# Build for Android
-yarn build:release
-```
-
-### Automated Builds
-
-- **GitHub Actions**: Automatically builds APK on every push to master
-- **Releases**: APK automatically uploaded to GitHub Releases
-- **Artifacts**: Build artifacts available for 30 days
+---
 
 ## 🧪 Development Tips
 
-1. **Metro Cache Issues**: Run `yarn clean` if you encounter bundling errors
+1. **Metro Cache Issues**: Run `yarn clean`
 2. **Database Reset**: Delete `.wrangler/state/v3/d1/` and run `yarn db:migrate`
-3. **Worker Logs**: Check terminal where `yarn worker:dev` is running
-4. **Type Errors**: Ensure both client and worker are using shared types from `graphql/`
-5. **New Architecture**: Use `yarn android:newarch` to test with Fabric + TurboModules
-6. **Worker Root**: Visit `http://127.0.0.1:8787/` - redirects to `/graphql`
-7. **GraphQL Changes**: Run `yarn codegen` after modifying schema or operations
-8. **TypeScript Errors**: Use `any` type or `@ts-ignore` when needed for development
-9. **ESLint Issues**: Most strict rules are disabled for easier development
-10. **Pre-commit Hooks**: TypeScript and ESLint checks run automatically on commit
+3. **Type Errors**: Run `yarn codegen` to regenerate types
+4. **GraphQL Changes**: Always run `yarn codegen` after schema changes
+5. **Worker Logs**: Check terminal running `yarn worker:dev`
+6. **Worker URL**: `http://127.0.0.1:8787/graphql`
 
-## 📝 Code Style
+---
 
-- **ESLint**: Developer-friendly config with TypeScript, React, and React Native rules
-- **Prettier**: Single quotes, no semicolons, trailing commas (optional formatting)
-- **TypeScript**: Balanced configuration prioritizing development efficiency
-- **Imports**: Use path aliases (`@/`, `@components/`, `@graphql/`)
-- **GraphQL**: Use `.graphql` files for operations, auto-generate types
+## 🔐 Authentication Flow
 
-## 🤝 Contributing
+1. User logs in → Client calls `login` mutation
+2. Worker validates → Returns user + token
+3. Client stores → Redux + AsyncStorage
+4. Apollo adds token → Automatic auth headers
+5. Auto-redirect → Logged-in users can't access auth pages
 
-We welcome contributions! Please follow these guidelines:
+**Auth Pages**: `app/auth/login.tsx` and `app/auth/register.tsx`  
+**Auth Guard**: `components/AuthWrapper.tsx`
 
-### Development Setup
+---
 
-1. Fork the repository
-2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/safarnak.app.git`
-3. Install dependencies: `yarn install`
-4. Apply migrations: `yarn db:migrate`
-5. Generate GraphQL types: `yarn codegen`
-6. Start development: `yarn dev`
+## 🌍 Internationalization
 
-### Code Standards
+Supports English and Persian (Farsi) with automatic RTL:
 
-- Follow existing code style and patterns
-- **Always use path aliases** - Never use relative imports like `../../api`
-- **Use @api** for API imports: `import { useLoginMutation } from '@api'`
-- **Use @store** for Redux: `import { useAppDispatch } from '@store/hooks'`
-- **Use @hooks** for custom hooks: `import { useColorScheme } from '@hooks/useColorScheme'`
-- **Use @constants** for constants: `import { colors } from '@constants/Colors'`
-- Run `yarn lint:fix` before committing
-- Ensure TypeScript types are correct
-- Test both online and offline scenarios
-- Test both Legacy and New Architecture
-- Update GraphQL schema and operations as needed
-- **Always run `yarn codegen` after GraphQL changes**
+```typescript
+import { useTranslation } from 'react-i18next';
 
-### Pull Request Process
+const { t } = useTranslation();
+<CustomText>{t('common.welcome')}</CustomText>
+```
 
-1. Create a feature branch from `master`
-2. Make your changes with clear commit messages
-3. Test thoroughly on both platforms
-4. Submit a pull request with a clear description
-5. Ensure all CI checks pass
+**Translation files**: `locales/en/translation.json`, `locales/fa/translation.json`
+
+---
+
+## 🎯 Key Concepts
+
+### Perfect Separation
+
+- **`graphql/`** - Shared schema and operations
+- **`api/`** - Auto-generated client code only
+- **`worker/`** - Server-only resolvers
+- **`drizzle/`** - Shared database schema
+
+### Auto-Generated Code
+
+**Never manually edit**:
+- `api/hooks.ts` - Generated React hooks
+- `api/types.ts` - Generated TypeScript types
+
+These are generated from `graphql/schema.graphql` and `graphql/queries/*.graphql`.
+
+### Path Aliases
+
+Always use aliases, never relative imports:
+- ✅ `@api`, `@store/hooks`, `@hooks/useColorScheme`
+- ❌ `../../api`, `../store/hooks`
+
+---
 
 ## 📄 License
 
 MIT
 
+---
+
 ## 🔗 Resources
 
-- [Expo Documentation](https://docs.expo.dev/)
-- [Cloudflare Workers Docs](https://developers.cloudflare.com/workers/)
-- [Drizzle ORM](https://orm.drizzle.team/)
-- [GraphQL Yoga](https://the-guild.dev/graphql/yoga-server)
+- [Expo Docs](https://docs.expo.dev/)
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
 - [GraphQL Codegen](https://the-guild.dev/graphql/codegen)
-- [React Navigation](https://reactnavigation.org/)
-- [React Native New Architecture](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
-
----
+- [Drizzle ORM](https://orm.drizzle.team/)
 
 Built with ❤️ using Expo, Cloudflare Workers, and GraphQL Codegen
