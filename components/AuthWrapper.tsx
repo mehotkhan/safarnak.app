@@ -3,8 +3,8 @@ import { router } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
-import { restoreUser, setLoading } from '../store/slices/authSlice';
-import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { restoreUser, setLoading } from '@store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 // Drizzle removed from client restore path; rely on AsyncStorage only
 
 const USER_STORAGE_KEY = '@safarnak_user';

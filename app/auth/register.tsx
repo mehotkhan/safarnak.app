@@ -14,9 +14,9 @@ import {
   Platform,
 } from 'react-native';
 
-import { useRegisterMutation } from '../../api';
-import { login } from '../../store/slices/authSlice';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useRegisterMutation } from '@api';
+import { login } from '@store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 
 export default function RegisterScreen() {
   const { t } = useTranslation();

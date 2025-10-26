@@ -14,9 +14,9 @@ import {
   Platform,
 } from 'react-native';
 
-import { useLoginMutation } from '../../api';
-import { login } from '../../store/slices/authSlice';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { useLoginMutation } from '@api';
+import { login } from '@store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 
 export default function LoginScreen() {
   const { t } = useTranslation();

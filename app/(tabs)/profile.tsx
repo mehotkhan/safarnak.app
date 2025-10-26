@@ -6,9 +6,9 @@ import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
 
-import { logout } from '../../store/slices/authSlice';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import type { RootState } from '../../store';
+import { logout } from '@store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import type { RootState } from '@store';
 
 const USER_STORAGE_KEY = '@safarnak_user';
 
