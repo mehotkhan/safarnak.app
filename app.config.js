@@ -74,12 +74,18 @@ const getAppConfig = () => {
         bundleIdentifier: bundleIdentifier,
       },
       android: {
-        // Version code for Android builds; can be overridden via ANDROID_VERSION_CODE env
+        // Display version (shown in Play Store and app info)
+        versionName: appVersion,
+        // Internal integer version code (MUST increment for Android to allow updates)
+        // Format: maj*10000 + min*100 + pat
+        // Examples:
+        //   0.6.1 → 601 (0*10000 + 6*100 + 1)
+        //   1.2.3 → 12003 (1*10000 + 2*100 + 3)
+        //   2.10.5 → 21005 (2*10000 + 10*100 + 5)
         versionCode:
           parseInt(process.env.ANDROID_VERSION_CODE || '0', 10) ||
           (() => {
             const [maj, min, pat] = appVersion.split('.').map(n => parseInt(n, 10) || 0);
-            // Fallback deterministic code from semver (maj.min.pat => MMmmpp)
             return maj * 10000 + min * 100 + pat;
           })(),
         adaptiveIcon: {
