@@ -74,6 +74,14 @@ const getAppConfig = () => {
         bundleIdentifier: bundleIdentifier,
       },
       android: {
+        // Version code for Android builds; can be overridden via ANDROID_VERSION_CODE env
+        versionCode:
+          parseInt(process.env.ANDROID_VERSION_CODE || '0', 10) ||
+          (() => {
+            const [maj, min, pat] = appVersion.split('.').map(n => parseInt(n, 10) || 0);
+            // Fallback deterministic code from semver (maj.min.pat => MMmmpp)
+            return maj * 10000 + min * 100 + pat;
+          })(),
         adaptiveIcon: {
           foregroundImage: './assets/images/adaptive-icon.png',
           backgroundColor: '#ffffff',
