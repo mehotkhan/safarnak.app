@@ -174,14 +174,14 @@ safarnak.app/                           # Single root directory
 ```typescript
 import { readGraphQLSchema } from '@graphql/schema-loader';
 import { resolvers } from './worker';
-// Minimal file that wires everything together
+// GraphQL Yoga server using shared schema + resolvers
 ```
 
-**Codegen Workflow:**
+**Codegen Workflow (dev-time):**
 1. Define schema in `graphql/schema.graphql`
 2. Define operations in `graphql/queries/*.graphql`
-3. Run `yarn codegen` to generate types and hooks in `api/`
-4. Use generated hooks in client components
+3. Run `yarn codegen` to generate `api/types.ts` and `api/hooks.ts`
+4. Import from `@api` in client components (never import raw `.graphql` files)
 
 ### 2. Database Patterns
 
@@ -226,6 +226,11 @@ const user = await db.select().from(users).where(eq(users.id, id)).get();
 - `app/auth/register.tsx` - Dedicated registration page with auto-redirect if already logged in
 - Both pages check `isAuthenticated` from Redux and redirect to `/(tabs)` if user is logged in
 - AuthWrapper redirects unauthenticated users to `/auth/login`
+
+**Routing & Navigation:**
+- Root initial route: `auth` (see `app/_layout.tsx` `unstable_settings.initialRouteName`)
+- Auth stack: `app/auth/_layout.tsx` defines `login` and `register`
+- Main app stack: `/(tabs)` group for primary screens
 
 ### 4. Offline-First Strategy
 
@@ -324,12 +329,12 @@ import { persistor, store } from '@store';
 
 **Bad:**
 ```typescript
-import { View } from '../../../components/ui/Themed';     // Use @components
-import { useLoginMutation } from '../../api';            // Use @api
-import { useAppDispatch } from '../../store/hooks';     // Use @store/hooks
-import { login } from '../../store/slices/authSlice';      // Use @store/slices/authSlice
-import { useColorScheme } from '../../hooks/useColorScheme';  // Use @hooks
-import { client } from '../api';                          // Use @api
+import { View } from '../../../components/ui/Themed';       // Use @components
+import { useLoginMutation } from '../../api';              // Use @api
+import { useAppDispatch } from '../../store/hooks';       // Use @store/hooks
+import { login } from '../../store/slices/authSlice';        // Use @store/slices/authSlice
+import { useColorScheme } from '../../hooks/useColorScheme';// Use @hooks
+import { client } from '../api';                            // Use @api
 ```
 
 ### 8. Error Handling
