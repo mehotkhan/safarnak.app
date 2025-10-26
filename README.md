@@ -16,6 +16,22 @@
 
 ---
 
+## Table of Contents
+- [What is This?](#-what-is-this)
+- [Architecture Overview](#-architecture-overview)
+- [Quick Start](#-quick-start)
+- [Codebase Structure](#-codebase-structure)
+- [How to Add New Features](#-how-to-add-new-features)
+- [Configuration](#-configuration)
+- [Common Commands](#-common-commands)
+- [Technology Stack](#-technology-stack)
+- [Development Tips](#-development-tips)
+- [Authentication Flow](#-authentication-flow)
+- [Internationalization](#-internationalization)
+- [Key Concepts](#-key-concepts)
+- [License](#-license)
+- [Resources](#-resources)
+
 ## 📚 What is This?
 
 A full-stack mobile travel app with **perfect separation** between client (React Native) and server (Cloudflare Workers) code in a **single-root monorepo**.
@@ -275,7 +291,7 @@ import { useAppDispatch } from '@store/hooks';
 import { login } from '@store/slices/authSlice';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { colors } from '@constants/Colors';
-import Colors from '@/constants/Colors';
+import Colors from '@constants/Colors';
 ```
 
 **Never use relative imports** (`../../api`, `../store`). Always use path aliases.
