@@ -9,7 +9,7 @@
 [![GraphQL Codegen](https://img.shields.io/badge/GraphQL-Codegen-purple)](https://the-guild.dev/graphql/codegen)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.5.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
+[![Version](https://img.shields.io/badge/Version-0.6.2-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
 **Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
@@ -34,7 +34,7 @@
 
 ## 📚 What is This?
 
-A full-stack mobile travel app with **perfect separation** between client (React Native) and server (Cloudflare Workers) code in a **single-root monorepo**.
+A full-stack **Android-only** travel app with **perfect separation** between client (React Native) and server (Cloudflare Workers) code in a **single-root monorepo**.
 
 ### Key Concepts
 
@@ -175,11 +175,12 @@ yarn dev  # Runs both worker (8787) and client (8081)
 ### Run on Device
 
 ```bash
-yarn android     # Android (legacy)
-yarn android:newarch  # Android (new architecture)
-yarn ios         # iOS (macOS only)
-yarn web         # Web browser
+yarn android           # Android (legacy)
+yarn android:newarch   # Android (new architecture)
+yarn web               # Web browser
 ```
+
+**Note**: This app is Android-only. iOS support has been removed.
 
 ---
 

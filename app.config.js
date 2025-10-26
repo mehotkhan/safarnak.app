@@ -69,10 +69,6 @@ const getAppConfig = () => {
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
       },
-      ios: {
-        supportsTablet: true,
-        bundleIdentifier: bundleIdentifier,
-      },
       android: {
         // Display version (shown in Play Store and app info)
         versionName: appVersion,
@@ -109,7 +105,6 @@ const getAppConfig = () => {
             locationAlwaysAndWhenInUsePermission: `Allow ${appName} to use your location.`,
             locationAlwaysPermission: `Allow ${appName} to use your location.`,
             locationWhenInUsePermission: `Allow ${appName} to use your location.`,
-            isIosBackgroundLocationEnabled: true,
             isAndroidBackgroundLocationEnabled: true,
           },
         ],

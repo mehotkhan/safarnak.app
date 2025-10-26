@@ -7,7 +7,6 @@
     "start": "expo start",
     "android": "expo run:android",
     "android:newarch": "NEW_ARCH=1 expo run:android",
-    "ios": "expo run:ios",
     "web": "expo start --web",
     "build:debug": "eas build --profile debug --platform android",
     "build:release": "eas build --profile release --platform android",

@@ -11,9 +11,6 @@
         "buildType": "apk",
         "gradleCommand": ":app:assembleDebug"
       },
-      "ios": {
-        "buildConfiguration": "Debug"
-      },
       "env": {
         "APP_NAME": "سفرناک دیباگ",
         "APP_SCHEME": "safarnak-debug",
@@ -26,9 +23,6 @@
       "android": {
         "buildType": "apk",
         "gradleCommand": ":app:assembleRelease"
-      },
-      "ios": {
-        "buildConfiguration": "Release"
       },
       "env": {
         "APP_NAME": "سفرناک",
