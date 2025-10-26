@@ -338,18 +338,22 @@ jobs:
           body: |
             ## 🚀 Safarnak Android APK - v${{ steps.version.outputs.version }}
 
-            ### 📋 Version
+            ### 📋 Build Info
             - Version: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
             - Build: #${{ github.run_number }}
             - Commit: ${{ github.sha }}
+            - Date: $(date -u +"%Y-%m-%d %H:%M UTC")
 
             ### 📝 Latest Changes
-            - ${{ github.ref_name }}: ${{ github.event.head_commit.message }}
+            ${{ github.event.head_commit.message }}
 
             ### 📱 Installation
             1. Download the APK file below
-            2. Enable "Install from unknown sources" on your device
+            2. Enable "Install from unknown sources" on your device  
             3. Install the APK
+
+            ---
+            See [README](https://github.com/mehotkhan/safarnak.app/blob/master/README.md) for full documentation.
           files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
           prerelease: false
