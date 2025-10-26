@@ -311,7 +311,21 @@ const { currentLanguage, changeLanguage } = useLanguage();
 
 This ensures consistent, maintainable imports across the entire codebase.
 
-### 7. Imports
+### 7. Git & Versioning Policy (CI‑driven)
+
+- Version source of truth: `package.json`
+- App version is read dynamically by `app.config.js` (no hardcoded string)
+- Semantic bump is automatic on push to `master`/`main` based on the latest commit message:
+  - `feat:` or `feature:` → minor bump (e.g., 0.5.0 → 0.6.0)
+  - `fix:` or `bugfix:` → patch bump (e.g., 0.5.0 → 0.5.1)
+  - Other prefixes (`ci:`, `docs:`, `chore:`, `refactor:`…) → build only, no version change
+- APK metadata:
+  - versionName = `package.json` version
+  - versionCode = derived from semver or via `ANDROID_VERSION_CODE`
+- Release notes: minimal (version, build, commit, date, install steps). No features/stack tables
+- To force a bump: push a commit with `feat:` (minor) or `fix:` (patch)
+
+### 8. Imports
 
 **Always use path aliases instead of relative imports!**
 
@@ -337,7 +351,7 @@ import { useColorScheme } from '../../hooks/useColorScheme';// Use @hooks
 import { client } from '../api';                            // Use @api
 ```
 
-### 8. Error Handling
+### 9. Error Handling
 
 **GraphQL Resolvers:**
 ```typescript
