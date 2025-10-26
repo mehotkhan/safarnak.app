@@ -43,7 +43,7 @@ jobs:
     timeout-minutes: 60
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
+      cancel-in-progress: false  # Don't cancel running builds, let them complete
     permissions:
       contents: write
       packages: write
@@ -326,6 +326,7 @@ jobs:
           git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
+        if: steps.version_bump.outputs.bump_type != 'build'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}-build${{ github.run_number }}
