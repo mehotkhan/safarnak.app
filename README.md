@@ -142,27 +142,13 @@ safarnak.app/
 │   │   └── schema.d.ts       # Worker schema declarations
 │   ├── schema-loader.ts      # Worker schema loader
 │   └── index.ts              # Shared exports only
-├── api/                       # 🌐 Client API layer
-│   ├── client.ts             # Apollo Client configuration
-│   ├── hooks.ts              # 🤖 Auto-generated React Apollo hooks
+├── api/                       # 🌐 Client API layer (CLIENT-SIDE ONLY)
+│   ├── client.ts             # Apollo Client setup with auth link
+│   ├── hooks.ts              # 🤖 Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 │   ├── types.ts              # 🤖 Auto-generated GraphQL types
 │   ├── api-types.ts          # API-specific types (ApiError, ApiResponse)
-│   ├── index.ts              # Main API exports
-│   ├── mutations/            # Client mutation wrappers
-│   │   ├── addMessage.ts
-│   │   ├── login.ts
-│   │   ├── register.ts
-│   │   └── index.ts
-│   ├── queries/               # Client query wrappers
-│   │   ├── getMessages.ts
-│   │   ├── me.ts
-│   │   └── index.ts
-│   ├── subscriptions/         # Client subscription wrappers
-│   │   ├── newMessages.ts
-│   │   └── index.ts
-│   └── utilities/            # Client helper functions
-│       ├── utils.ts
-│       └── index.ts
+│   ├── utils.ts              # Client utility functions (storage, error handling, network checks)
+│   └── index.ts              # Main API exports (re-exports all hooks and utilities)
 ├── drizzle/                   # 🗄️ Database layer (shared)
 │   ├── schema.ts             # Database schema (users, messages, tours)
 │   └── migrations/           # SQL migration files
@@ -471,10 +457,11 @@ yarn codegen
 ### 4. Use Generated Code
 
 ```typescript
-// Auto-generated types and hooks
-import { useLoginMutation, LoginMutationVariables } from '../api/mutations';
+// Import directly from api/ - all hooks and types available
+import { useLoginMutation, useMeQuery, useAddMessageMutation } from '@/api';
 
 const [loginMutation] = useLoginMutation();
+const { data } = useMeQuery();
 ```
 
 ## 📱 Download APK
@@ -553,12 +540,13 @@ We welcome contributions! Please follow these guidelines:
 
 - Follow existing code style and patterns
 - Use path aliases (`@/`, `@components/`, `@graphql/`)
+- **Import from `api/` directly**: `import { useLoginMutation } from '@/api'`
 - Run `yarn lint:fix` before committing
 - Ensure TypeScript types are correct
 - Test both online and offline scenarios
 - Test both Legacy and New Architecture
 - Update GraphQL schema and operations as needed
-- Run `yarn codegen` after GraphQL changes
+- **Always run `yarn codegen` after GraphQL changes**
 
 ### Pull Request Process
 

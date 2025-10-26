@@ -1,6 +1,6 @@
 # 🚀 Semantic Versioning & Release Management
 
-Safarnak uses a comprehensive semantic versioning system with automated commit message generation, changelog creation, and release management.
+Safarnak uses a comprehensive semantic versioning system with **automatic version bumping** based on commit type, automated commit message generation, changelog creation, and release management.
 
 ## 📋 Version Strategy
 
@@ -8,6 +8,7 @@ Safarnak uses a comprehensive semantic versioning system with automated commit m
 
 - **Target Stable**: `1.0.0`
 - **Progress**: 0% → 100% (0.5 → 0.6 → 0.7 → 0.8 → 0.9 → 1.0)
+- **Auto-Bump**: Version automatically increments on each push to master based on commit type
 
 ### Version Stages
 
@@ -41,13 +42,31 @@ Safarnak uses a comprehensive semantic versioning system with automated commit m
 
 ## 🎯 Usage Commands
 
-### Version Management
+### Automatic Version Bumping
+
+**Version now auto-increments on push to master based on commit type:**
+
+| Commit Type | Version Bump | Example | Use Case |
+|------------|--------------|---------|----------|
+| `feat:` or `feature:` | Minor (+0.1.0) | `0.5.0` → `0.6.0` | New features |
+| `fix:` or `bugfix:` | Patch (+0.0.1) | `0.5.0` → `0.5.1` | Bug fixes |
+| `refactor:`, `chore:`, `docs:`, etc. | Build only | `0.5.0-build59` | No version change |
+
+**Each push to master triggers:**
+1. GitHub Actions reads commit message
+2. Determines version bump based on type
+3. Updates `package.json`
+4. Builds APK with new version
+5. Creates release with updated version tag
+6. Pushes version bump back to repository
+
+### Manual Version Management
 
 ```bash
 # Show current version info
 yarn version:info
 
-# Create releases
+# Create releases manually (if needed)
 yarn version:patch      # 0.5.0 → 0.5.1
 yarn version:minor      # 0.5.0 → 0.6.0
 yarn version:major      # 0.5.0 → 1.0.0

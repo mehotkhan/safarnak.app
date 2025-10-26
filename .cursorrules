@@ -126,7 +126,7 @@ safarnak.app/                           # Single root directory
 ## Path Aliases (TypeScript & Metro)
 
 ```typescript
-"@/*"           → "./*"              // Root files
+"@/*"           → "./*"              // Root files (use '@/api' not '../api')
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
 ```
@@ -279,14 +279,15 @@ const { currentLanguage, changeLanguage } = useLanguage();
 **Good:**
 ```typescript
 import { View } from '@components/ui/Themed';
-import { LOGIN_MUTATION } from '@graphql/queries';
+import { useLoginMutation, useMeQuery } from '@/api';
 import { drizzle } from 'drizzle-orm/d1';
 ```
 
 **Bad:**
 ```typescript
 import { View } from '../../../components/ui/Themed';  // Use path alias
-import { LOGIN_MUTATION } from './graphql/queries';     // Use path alias
+import { useLoginMutation } from '../api/mutations';  // Directly import from api/
+import { LOGIN_MUTATION } from './graphql/queries';   // Use generated hooks, not raw operations
 ```
 
 ### 8. Error Handling

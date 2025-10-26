@@ -42,10 +42,10 @@ Safarnak is a modern offline-first travel companion built with:
    yarn db:migrate
    ```
 
-4. **Generate GraphQL Types**
+4. **Generate GraphQL Types and Hooks**
 
    ```bash
-   yarn codegen
+   yarn codegen  # Auto-generates api/hooks.ts and api/types.ts
    ```
 
 5. **Start Development**
