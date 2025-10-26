@@ -2,7 +2,7 @@ import { CustomText } from '@components/ui/CustomText';
 import { View } from '@components/ui/Themed';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
@@ -16,16 +16,23 @@ import {
 
 import { useLoginMutation } from '../../api';
 import { login } from '../../store/slices/authSlice';
-import { useAppDispatch } from '../../store/hooks';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
   const [loginMutation, { loading }] = useLoginMutation();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated]);
 
   const handleLogin = async () => {
     setErrorMessage('');
