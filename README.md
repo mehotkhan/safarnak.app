@@ -260,8 +260,8 @@ type Query {
 # graphql/queries/getTours.graphql
 query GetTours {
   getTours {
-    id
-    name
+      id
+      name
     location
   }
 }
