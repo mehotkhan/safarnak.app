@@ -68,25 +68,11 @@ safarnak.app/                           # Single root directory
 │   └── index.ts                         # Shared exports only
 ├── api/                                # Client API layer (CLIENT-SIDE ONLY)
 │   ├── client.ts                       # Apollo Client setup with auth link
-│   ├── hooks.ts                        # 🤖 Auto-generated React Apollo hooks
+│   ├── hooks.ts                        # 🤖 Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 │   ├── types.ts                        # 🤖 Auto-generated GraphQL types
 │   ├── api-types.ts                    # API-specific types (ApiError, ApiResponse)
-│   ├── index.ts                        # Main API exports
-│   ├── mutations/                      # Client mutation wrappers
-│   │   ├── addMessage.ts
-│   │   ├── login.ts
-│   │   ├── register.ts
-│   │   └── index.ts
-│   ├── queries/                         # Client query wrappers
-│   │   ├── getMessages.ts
-│   │   ├── me.ts
-│   │   └── index.ts
-│   ├── subscriptions/                  # Client subscription wrappers
-│   │   ├── newMessages.ts
-│   │   └── index.ts
-│   └── utilities/                       # Client helper functions
-│       ├── utils.ts
-│       └── index.ts
+│   ├── utils.ts                        # Client utility functions (storage, error handling, network checks)
+│   └── index.ts                        # Main API exports (re-exports generated hooks + utils)
 ├── drizzle/                            # Database layer (SHARED)
 │   ├── schema.ts                       # Database schema: users, tours, messages, subscriptions
 │   └── migrations/                     # SQL migration files
@@ -156,12 +142,12 @@ safarnak.app/                           # Single root directory
 - `generated/schema.d.ts` - Worker schema declarations
 
 **Client-Side (api/):**
-- `hooks.ts` - Auto-generated React Apollo hooks
+- `client.ts` - Apollo Client setup with auth link
+- `hooks.ts` - Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 - `types.ts` - Auto-generated GraphQL types
 - `api-types.ts` - API-specific types (ApiError, ApiResponse)
-- `mutations/` - Client mutation wrappers
-- `queries/` - Client query wrappers
-- `subscriptions/` - Client subscription wrappers
+- `utils.ts` - Utility functions (storage, error handling, network checks)
+- `index.ts` - Main exports (re-exports all hooks and utilities)
 
 **Server-Side (worker/):**
 - `queries/` - Query resolver functions (getMessages, me)
@@ -487,10 +473,9 @@ const { t } = useTranslation();
 
 1. **Define Schema**: Add types to `graphql/schema.graphql`
 2. **Create Operations**: Add `.graphql` files to `graphql/queries/`
-3. **Generate Code**: Run `yarn codegen`
+3. **Generate Code**: Run `yarn codegen` (auto-generates hooks in `api/hooks.ts`)
 4. **Create Resolvers**: Add resolver functions to `worker/mutations/` or `worker/queries/`
-5. **Create Client Wrappers**: Add wrapper files to `api/mutations/` or `api/queries/`
-6. **Use in Components**: Import generated hooks in React components
+5. **Use in Components**: Import generated hooks directly from `api/` (e.g., `import { useLoginMutation } from 'api'`)
 
 ### Adding New Database Tables
 

@@ -2,7 +2,7 @@
 // Helper functions for API operations
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ApiError } from '../api-types';
+import { ApiError } from './api-types';
 
 const USER_STORAGE_KEY = '@safarnak_user';
 

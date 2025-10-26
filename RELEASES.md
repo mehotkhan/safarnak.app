@@ -49,6 +49,28 @@ Welcome to the Safarnak release page! Here you'll find all versions, changelogs,
 
 ## 🔄 Release History
 
+### Latest Commits
+- `ci(build): remove worker from APK build trigger`
+- `ci(release): unique tag per push (version+build)`
+- `ci: update build workflow to include worker changes`
+- `fix(worker): improve error handling for registration and login`
+- `chore: disable wiki and remove wiki folder`
+- `docs: update README and cursor rules with latest project information`
+- `docs: update wiki pages with latest project information`
+- `fix(build): add comprehensive error handling and verification steps`
+- `fix(build): resolve APK build action errors and improve reliability`
+- `fix(ci): resolve all CI/CD pipeline failures`
+- `docs: add comprehensive GitHub wiki documentation`
+- `fix(ci): resolve CI/CD pipeline failures and improve robustness`
+- `docs: update README and .cursorrules for simplified development approach`
+- `fix(ci): fix multiple CI/CD pipeline failures`
+- `fix(ci): fix GitHub Actions workflow syntax error`
+- `refactor(config): simplify TypeScript and ESLint configuration`
+- `docs: add comprehensive release page with version history`
+- `feat(build): implement comprehensive semantic versioning system`
+- `Update project structure and enhance GraphQL code generation in Safarnak app`
+- `Add step to rename APK with descriptive name in GitHub Actions workflow`
+
 ### v0.5.0 (Alpha) - December 19, 2024
 
 **🎉 Initial Release with Semantic Versioning System**
@@ -82,17 +104,6 @@ Welcome to the Safarnak release page! Here you'll find all versions, changelogs,
 - **State**: Redux Toolkit with persistence
 - **Codegen**: GraphQL Codegen for type safety
 - **Versioning**: Semantic versioning with automated releases
-
-#### 🎯 Features
-
-- **🌍 Offline-First**: Works seamlessly without internet
-- **📡 GraphQL API**: Type-safe client-server communication
-- **🌐 Bilingual**: English and Persian (Farsi) support
-- **🌙 Dark Mode**: System preference and manual toggle
-- **🗺️ Interactive Maps**: Leaflet-based with multiple layers
-- **💬 Real-Time**: Live messaging with GraphQL subscriptions
-- **🔐 Secure**: PBKDF2 password hashing and token-based auth
-- **📱 Cross-Platform**: iOS, Android, and Web support
 
 ## 🚀 Upcoming Releases
 

@@ -4,20 +4,12 @@
 // Client configuration
 export { client } from './client';
 
-// Query hooks
-export * from './queries';
+// Auto-generated hooks (queries, mutations, subscriptions)
+export * from './hooks';
 
-// Mutation hooks
-export * from './mutations';
-
-// Subscription hooks
-export * from './subscriptions';
-
-// API-specific types
+// Auto-generated and custom types
+export * from './types';
 export * from './api-types';
 
 // Utilities
-export * from './utilities';
-
-// Re-export base GraphQL types for convenience
-export type { AuthPayload, Message, User } from './types';
+export * from './utils';

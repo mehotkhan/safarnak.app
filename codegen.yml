@@ -6,13 +6,14 @@ generates:
       - typescript
   ./api/hooks.ts:
     plugins:
+      - add:
+          content: "import { Exact, Scalars } from './types';\n"
       - typescript-operations
       - typescript-react-apollo
     config:
       withHooks: true
       withComponent: false
       withHOC: false
-      importTypesFrom: './types'
   ./graphql/generated/schema.d.ts:
     plugins:
       - typescript-graphql-files-modules

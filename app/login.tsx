@@ -14,7 +14,7 @@ import {
   Platform,
 } from 'react-native';
 
-import { useLoginMutation, useRegisterMutation } from '../api/mutations';
+import { useLoginMutation, useRegisterMutation } from '../api';
 import { login } from '../store/slices/authSlice';
 import { useAppDispatch } from '../store/hooks';
 
