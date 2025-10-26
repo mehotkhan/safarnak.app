@@ -51,21 +51,21 @@ A full-stack mobile travel app with **perfect separation** between client (React
 
 ```mermaid
 flowchart LR
-  subgraph Client [React Native Client (Expo)]
-    A[app/ (Expo Router pages)]
-    B[components/ (UI + contexts)]
-    C[store/ (Redux + Persist)]
-    D[api/ (Apollo Client + generated hooks)]
+  subgraph Client["React Native Client (Expo)"]
+    A["app/ - Expo Router pages"]
+    B["components/ - UI & contexts"]
+    C["store/ - Redux + Persist"]
+    D["api/ - Apollo Client + generated hooks"]
   end
 
-  subgraph Shared [Shared]
-    E[graphql/ (Schema + Operations)]
-    F[drizzle/ (DB schema)]
+  subgraph Shared["Shared"]
+    E["graphql/ - Schema & Operations"]
+    F["drizzle/ - DB schema"]
   end
 
-  subgraph Worker [Cloudflare Worker (GraphQL API)]
-    G[worker/ (Resolvers + GraphQL Yoga)]
-    H[(D1 Database · SQLite)]
+  subgraph Worker["Cloudflare Worker (GraphQL API)"]
+    G["worker/ - Resolvers + GraphQL Yoga"]
+    H["D1 Database (SQLite)"]
   end
 
   A --> D
@@ -85,7 +85,7 @@ flowchart LR
 sequenceDiagram
   participant U as User
   participant RN as React Native App
-  participant AP as Apollo Client (@api)
+  participant AP as Apollo Client
   participant API as GraphQL API (Worker)
   participant DB as D1 (SQLite)
 
@@ -103,12 +103,12 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-  SCHEMA[graphql/schema.graphql]
-  OPS[graphql/queries/*.graphql]
-  CODEGEN[yarn codegen]
-  TYPES[api/types.ts]
-  HOOKS[api/hooks.ts]
-  APP[app/* uses @api hooks]
+  SCHEMA["graphql/schema.graphql"]
+  OPS["graphql/queries/*.graphql"]
+  CODEGEN["yarn codegen"]
+  TYPES["api/types.ts"]
+  HOOKS["api/hooks.ts"]
+  APP["app/* uses @api hooks"]
 
   SCHEMA --> CODEGEN
   OPS --> CODEGEN
@@ -122,12 +122,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-  MUT[Dispatch mutation]
-  MID[offlineMiddleware]
-  NET{Online?}
-  QUEUE[Persist queue (AsyncStorage)]
-  SEND[Apollo mutate]
-  RETRY[On reconnect]
+  MUT["Dispatch mutation"]
+  MID["offlineMiddleware"]
+  NET{"Online?"}
+  QUEUE["Persist queue (AsyncStorage)"]
+  SEND["Apollo mutate"]
+  RETRY["On reconnect"]
 
   MUT --> MID
   MID --> NET
