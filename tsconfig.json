@@ -11,7 +11,17 @@
       "@components/*": ["./components/*"],
       "@graphql/*": ["./graphql/*"],
       "@drizzle/*": ["./drizzle/*"],
-      "@worker/*": ["./worker/*"]
+      "@worker/*": ["./worker/*"],
+      "@api": ["./api"],
+      "@api/*": ["./api/*"],
+      "@store": ["./store"],
+      "@store/*": ["./store/*"],
+      "@hooks": ["./hooks"],
+      "@hooks/*": ["./hooks/*"],
+      "@constants": ["./constants"],
+      "@constants/*": ["./constants/*"],
+      "@locales": ["./locales"],
+      "@locales/*": ["./locales/*"]
     },
     "types": ["./worker-configuration.d.ts"],
     "resolveJsonModule": true,
