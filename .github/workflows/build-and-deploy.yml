@@ -52,7 +52,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0  # Fetch full history to properly detect commit messages
 
       - name: Free disk space
         run: |
@@ -113,13 +113,19 @@ jobs:
       - name: Bump version and sync app.config.js
         id: version_bump
         run: |
-          # Read current version
+          # Read current version from the repo (not local changes)
           CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
+          echo "📦 Current version in repo: $CURRENT_VERSION"
 
-          # Get latest commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "Latest commit: $COMMIT_MSG"
+          # Get commit message that triggered this build
+          COMMIT_MSG="${{ github.event.head_commit.message }}"
+          echo "📝 Commit message: $COMMIT_MSG"
+          
+          # Alternative: get from git log if head_commit is not available
+          if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" == "null" ]; then
+            COMMIT_MSG=$(git log -1 --pretty=%B)
+            echo "📝 Using git log: $COMMIT_MSG"
+          fi
 
           # Determine version bump based on commit type (semantic versioning)
           if [[ "$COMMIT_MSG" =~ ^(feat|feature)(\(.*\))?: ]]; then
