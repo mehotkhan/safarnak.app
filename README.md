@@ -40,7 +40,8 @@ A full-stack mobile travel app with **perfect separation** between client (React
 
 - **Client** (React Native): Expo app with Redux, Apollo Client, offline-first architecture
 - **Server** (Cloudflare Workers): Serverless GraphQL API with Cloudflare D1 database
-- **Shared** (GraphQL + Drizzle): Type-safe schema shared between client and server
+- **Shared** (GraphQL): Type-safe GraphQL schema shared between client and server
+- **Worker-Only** (Drizzle): Database schema only used in worker, never in client
 - **Codegen**: Auto-generates TypeScript types and React hooks from GraphQL schema
 
 ---
@@ -230,7 +231,7 @@ graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)
 └── queries/          # Query definitions (.graphql files)
 
-drizzle/               # 🗄️ Database (shared)
+drizzle/               # 🗄️ Database schema (worker-only, not used by client)
 ├── schema.ts         # Database schema
 └── migrations/       # SQL migrations
 ```
@@ -238,7 +239,7 @@ drizzle/               # 🗄️ Database (shared)
 ### Shared (Critical)
 
 - **`graphql/`** - GraphQL schema and operations (shared between client & worker)
-- **`drizzle/`** - Database schema (shared between client & worker)
+- **`drizzle/`** - Database schema (worker-only, used ONLY in worker code)
 - **`api/`** - Auto-generated client code (run `yarn codegen` to update)
 
 ---
@@ -415,7 +416,7 @@ yarn lint:fix         # Fix issues
 | **Backend** | Cloudflare Workers | Serverless API |
 | **Database** | Cloudflare D1 (SQLite) | Server database |
 | **GraphQL** | GraphQL Yoga | API layer |
-| **ORM** | Drizzle 0.44.6 | Type-safe queries |
+| **ORM** | Drizzle 0.44.6 | Type-safe queries (worker-only) |
 | **State** | Redux Toolkit | Client state |
 | **Codegen** | GraphQL Codegen | Auto-generate types |
 | **Router** | Expo Router | File-based routing |
@@ -470,7 +471,7 @@ const { t } = useTranslation();
 - **`graphql/`** - Shared schema and operations
 - **`api/`** - Auto-generated client code only
 - **`worker/`** - Server-only resolvers
-- **`drizzle/`** - Shared database schema
+- **`drizzle/`** - Worker-only database schema (not used by client)
 
 ### Auto-Generated Code
 

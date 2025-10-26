@@ -8,7 +8,8 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Client**: Expo React Native app (iOS/Android/Web)
 - **Worker**: Cloudflare Worker backend (`worker/index.ts` at root)
 - **Resolvers**: GraphQL resolvers in `worker/` folder (server-side only)
-- **Shared**: GraphQL schema (`graphql/`) and database schema (`drizzle/`) shared between client & worker
+- **Shared**: GraphQL schema (`graphql/`) shared between client & worker
+- **Worker-Only**: Drizzle ORM and database schema (`drizzle/`) used ONLY in worker, never in client
 - **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
 
 ## Technology Stack
@@ -22,7 +23,7 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Redux Persist** ^6.0.0 - Persistent state
 - **Apollo Client** 3.8.0 - GraphQL client
 - **react-i18next** ^16.1.5 - Internationalization (English + Persian/Farsi)
-- **Drizzle ORM** ^0.44.6 - Type-safe database queries (client-side SQLite)
+- **Drizzle ORM** ^0.44.6 - Type-safe database queries (server-side only, Cloudflare D1)
 
 ### Backend (Worker)
 - **Cloudflare Workers** - Serverless edge runtime
@@ -73,7 +74,7 @@ safarnak.app/                           # Single root directory
 │   ├── api-types.ts                    # API-specific types (ApiError, ApiResponse)
 │   ├── utils.ts                        # Client utility functions (storage, error handling, network checks)
 │   └── index.ts                        # Main API exports (re-exports generated hooks + utils)
-├── drizzle/                            # Database layer (SHARED)
+├── drizzle/                            # Database schema (WORKER-ONLY, not used in client)
 │   ├── schema.ts                       # Database schema: users, tours, messages, subscriptions
 │   └── migrations/                     # SQL migration files
 ├── store/                              # Redux state management (CLIENT)
@@ -132,7 +133,7 @@ safarnak.app/                           # Single root directory
 "@/*"           → "./*"              // Root files (use '@/api' not '../api')
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
-"@drizzle/*"    → "./drizzle/*"      // Database schema
+"@drizzle/*"    → "./drizzle/*"      // Database schema (worker-only, not for client imports)
 "@worker/*"     → "./worker/*"       // Worker resolvers
 "@api"          → "./api"            // API layer (client hooks)
 "@api/*"        → "./api/*"          // API subfolder imports
@@ -183,14 +184,21 @@ import { resolvers } from './worker';
 3. Run `yarn codegen` to generate `api/types.ts` and `api/hooks.ts`
 4. Import from `@api` in client components (never import raw `.graphql` files)
 
-### 2. Database Patterns
+### 2. Database Patterns (Worker-Only)
+
+**Important**: Drizzle ORM is only used in worker code, never in client components!
 
 **Schema (drizzle/schema.ts):**
 - Define tables: users, tours, messages, subscriptions
 - Use Drizzle ORM helpers: `integer()`, `text()`, `sqliteTable()`
 - Export tables: `export const users = sqliteTable(...)`
 
-**Resolvers:**
+**Client Usage:**
+- Client uses GraphQL queries/mutations (via Apollo Client)
+- Client uses AsyncStorage for local caching (not Drizzle)
+- Client NEVER imports from `drizzle/` directory
+
+**Worker Resolvers:**
 ```typescript
 import { drizzle } from 'drizzle-orm/d1';
 import { users } from '../drizzle/schema';
@@ -464,7 +472,7 @@ const { t } = useTranslation();
 
 1. **Never add `"type": "module"` to package.json** - causes metro.config.js to fail
 2. **Use eslint.config.mjs** - ES module config works without "type": "module"
-3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only
+3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only, Drizzle is worker-only
 4. **GraphQL Codegen**: Always run `yarn codegen` after modifying schema or operations
 5. **Worker code is server-only** - Never import from client code
 6. **Use path aliases** - Avoid relative imports
@@ -539,12 +547,13 @@ const { t } = useTranslation();
 4. **Create Resolvers**: Add resolver functions to `worker/mutations/` or `worker/queries/`
 5. **Use in Components**: Import generated hooks directly from `api/` (e.g., `import { useLoginMutation } from 'api'`)
 
-### Adding New Database Tables
+### Adding New Database Tables (Worker-Only)
 
-1. **Update Schema**: Add table to `drizzle/schema.ts`
+1. **Update Schema**: Add table to `drizzle/schema.ts` (worker-only, not used by client)
 2. **Generate Migration**: Run `yarn db:generate`
 3. **Apply Migration**: Run `yarn db:migrate`
-4. **Update Types**: Run `yarn codegen` if GraphQL schema changed
+4. **Update GraphQL Schema**: Add types to `graphql/schema.graphql` if exposing data to client
+5. **Generate Client Code**: Run `yarn codegen` to create client hooks
 
 ### Adding New UI Components
 
