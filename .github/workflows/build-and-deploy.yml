@@ -112,46 +112,28 @@ jobs:
 
       - name: Determine semantic version bump
         id: version_bump
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          # Read current version from the repo (not local changes)
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "📦 Current version in repo: $CURRENT_VERSION"
-
-          # Get commit message that triggered this build
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          echo "📝 Commit message: $COMMIT_MSG"
-          
-          # Alternative: get from git log if head_commit is not available
-          if [ -z "$COMMIT_MSG" ] || [ "$COMMIT_MSG" == "null" ]; then
-            COMMIT_MSG=$(git log -1 --pretty=%B)
-            echo "📝 Using git log: $COMMIT_MSG"
-          fi
-
-          # Determine version bump based on commit type (semantic versioning)
-          if [[ "$COMMIT_MSG" =~ ^(feat|feature)(\(.*\))?: ]]; then
-            NEW_VERSION=$(node -p "const v='$CURRENT_VERSION'.split('.'); console.log(v[0]+'.'+(parseInt(v[1])+1)+'.'+v[2]);")
-            BUMP_TYPE="minor"
-          elif [[ "$COMMIT_MSG" =~ ^(fix|bugfix)(\(.*\))?: ]]; then
-            NEW_VERSION=$(node -p "const v='$CURRENT_VERSION'.split('.'); console.log(v[0]+'.'+v[1]+'.'+(parseInt(v[2])+1));")
-            BUMP_TYPE="patch"
-          else
-            NEW_VERSION="$CURRENT_VERSION"
-            BUMP_TYPE="build"
-          fi
-
-          echo "Bump type: $BUMP_TYPE"
-
-          # Update package.json if needed
-          if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
-            node -e "const fs=require('fs'); const p='package.json'; const pkg=JSON.parse(fs.readFileSync(p,'utf8')); pkg.version='$NEW_VERSION'; fs.writeFileSync(p, JSON.stringify(pkg,null,2)+'\n');"
-            echo "✅ Updated package.json to $NEW_VERSION"
-          fi
-
-          # app.config.js now reads from package.json automatically
-          echo "✅ app.config.js will use version from package.json: $NEW_VERSION"
-
-          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          node <<'NODE'
+          const fs = require('fs');
+          const cp = require('child_process');
+          const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
+          const current = pkg.version.trim();
+          let msg = process.env.COMMIT_MSG || '';
+          if (!msg || msg === 'null') {
+            try { msg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
+          }
+          let bump = 'build';
+          const m = current.split('.').map(n=>parseInt(n,10)||0);
+          if (/^(feat|feature)(\(|:)/.test(msg)) { m[1]+=1; m[2]=0; bump='minor'; }
+          else if (/^(fix|bugfix)(\(|:)/.test(msg)) { m[2]+=1; bump='patch'; }
+          const next = bump==='build' ? current : `${m[0]}.${m[1]}.${m[2]}`;
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${next}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=${bump}\n`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `major=${m[0]}\nminor=${m[1]}\npatch=${m[2]}\n`);
+          console.log(`Current: ${current} -> Next: ${next} (${bump})`);
+          NODE
 
       - name: Apply version bump (update package.json)
         if: steps.version_bump.outputs.bump_type != 'build'
@@ -234,7 +216,7 @@ jobs:
           APP_NAME: 'Safarnak'
           APP_SCHEME: 'safarnak'
           GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
-          ANDROID_VERSION_CODE: ${{ steps.version.outputs.major }}${{ steps.version.outputs.minor }}${{ steps.version.outputs.patch }}
+          ANDROID_VERSION_CODE: ${{ steps.version_bump.outputs.major }}${{ steps.version_bump.outputs.minor }}${{ steps.version_bump.outputs.patch }}
 
       - name: List APK files
         working-directory: android/app/build/outputs/apk/release
