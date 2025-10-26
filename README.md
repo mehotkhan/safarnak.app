@@ -47,23 +47,93 @@ A full-stack mobile travel app with **perfect separation** between client (React
 
 ## 🏗️ Architecture Overview
 
+### System Architecture
+
+```mermaid
+flowchart LR
+  subgraph Client [React Native Client (Expo)]
+    A[app/ (Expo Router pages)]
+    B[components/ (UI + contexts)]
+    C[store/ (Redux + Persist)]
+    D[api/ (Apollo Client + generated hooks)]
+  end
+
+  subgraph Shared [Shared]
+    E[graphql/ (Schema + Operations)]
+    F[drizzle/ (DB schema)]
+  end
+
+  subgraph Worker [Cloudflare Worker (GraphQL API)]
+    G[worker/ (Resolvers + GraphQL Yoga)]
+    H[(D1 Database · SQLite)]
+  end
+
+  A --> D
+  B --> D
+  C --> D
+  D <-->|HTTPS GraphQL| G
+  G --> H
+  E --> D
+  E --> G
+  F --> G
+  F --> H
 ```
-┌─────────────────────────┐         ┌─────────────────────────┐
-│   React Native Client   │         │  Cloudflare Worker       │
-│                         │         │                         │
-│  app/                   │◄───────►│  worker/               │
-│    └─ Pages & Routes    │         │    └─ GraphQL API       │
-│                         │         │                         │
-│  api/                   │         │  graphql/              │
-│    └─ Auto-gen hooks    │◄───────►│    └─ Schema (.graphql)│
-│                         │         │                         │
-│  store/                  │         │  drizzle/              │
-│    └─ Redux state        │◄───────►│    └─ DB schema         │
-│                         │         │                         │
-│  components/             │         │                         │
-│  hooks/                  │         │                         │
-│  constants/              │         │                         │
-└─────────────────────────┘         └─────────────────────────┘
+
+### Runtime Data Flow (example: Login)
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant RN as React Native App
+  participant AP as Apollo Client (@api)
+  participant API as GraphQL API (Worker)
+  participant DB as D1 (SQLite)
+
+  U->>RN: Tap "Login"
+  RN->>AP: login(username, password)
+  AP->>API: POST /graphql (login)
+  API->>DB: Verify credentials (PBKDF2)
+  DB-->>API: user row
+  API-->>AP: { user, token }
+  AP->>RN: Update Redux + Persist
+  RN-->>U: Navigate to (tabs)
+```
+
+### Dev-time GraphQL Pipeline
+
+```mermaid
+flowchart LR
+  SCHEMA[graphql/schema.graphql]
+  OPS[graphql/queries/*.graphql]
+  CODEGEN[yarn codegen]
+  TYPES[api/types.ts]
+  HOOKS[api/hooks.ts]
+  APP[app/* uses @api hooks]
+
+  SCHEMA --> CODEGEN
+  OPS --> CODEGEN
+  CODEGEN --> TYPES
+  CODEGEN --> HOOKS
+  HOOKS --> APP
+  TYPES --> APP
+```
+
+### Offline-first Flow (client)
+
+```mermaid
+flowchart LR
+  MUT[Dispatch mutation]
+  MID[offlineMiddleware]
+  NET{Online?}
+  QUEUE[Persist queue (AsyncStorage)]
+  SEND[Apollo mutate]
+  RETRY[On reconnect]
+
+  MUT --> MID
+  MID --> NET
+  NET -- No --> QUEUE
+  NET -- Yes --> SEND
+  QUEUE --> RETRY --> SEND
 ```
 
 ### How It Works
