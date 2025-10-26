@@ -110,11 +110,45 @@ jobs:
           ls -la graphql/generated/schema.d.ts || echo "graphql/generated/schema.d.ts not found"
           echo "Generated files check completed"
 
-      - name: Expo prebuild (only when native changes)
-        if: |
-          contains(toJson(github.event.commits.*.modified), 'app.config.js') ||
-          contains(toJson(github.event.commits.*.modified), 'android/') ||
-          contains(toJson(github.event.commits.*.modified), 'package.json')
+      - name: Bump version and sync app.config.js
+        id: version_bump
+        run: |
+          # Read current version
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Get latest commit message
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Latest commit: $COMMIT_MSG"
+
+          # Determine version bump based on commit type (semantic versioning)
+          if [[ "$COMMIT_MSG" =~ ^(feat|feature)(\(.*\))?: ]]; then
+            NEW_VERSION=$(node -p "const v='$CURRENT_VERSION'.split('.'); console.log(v[0]+'.'+(parseInt(v[1])+1)+'.'+v[2]);")
+            BUMP_TYPE="minor"
+          elif [[ "$COMMIT_MSG" =~ ^(fix|bugfix)(\(.*\))?: ]]; then
+            NEW_VERSION=$(node -p "const v='$CURRENT_VERSION'.split('.'); console.log(v[0]+'.'+v[1]+'.'+(parseInt(v[2])+1));")
+            BUMP_TYPE="patch"
+          else
+            NEW_VERSION="$CURRENT_VERSION"
+            BUMP_TYPE="build"
+          fi
+
+          echo "Bump type: $BUMP_TYPE"
+
+          # Update package.json if needed
+          if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
+            node -e "const fs=require('fs'); const p='package.json'; const pkg=JSON.parse(fs.readFileSync(p,'utf8')); pkg.version='$NEW_VERSION'; fs.writeFileSync(p, JSON.stringify(pkg,null,2)+'\n');"
+            echo "✅ Updated package.json to $NEW_VERSION"
+          fi
+
+          # Sync app.config.js version
+          node -e "const fs=require('fs'); const p='app.config.js'; let c=fs.readFileSync(p,'utf8'); const r=/version:\s*[\"']([^\"']+)[\"']/; if(r.test(c)){c=c.replace(r, 'version: \"'+process.env.NEW_VERSION+'\"');} else { const rn=/name:\s*[\"']([^\"']+)[\"']/; const m=c.match(rn); if(m){ c=c.replace(m[0], m[0]+',\n      version: \"'+process.env.NEW_VERSION+'\"'); }} fs.writeFileSync(p,c,'utf8');"
+          echo "✅ Synced app.config.js to $NEW_VERSION"
+
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+
+      - name: Expo prebuild (propagate version to native)
         run: |
           echo "Running Expo prebuild..."
           npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
@@ -208,59 +242,15 @@ jobs:
             echo "✅ APK files found successfully"
           fi
 
-      - name: Get version info and auto-bump based on commit type
+      - name: Read version info
         id: version
         run: |
-          # Get current version from package.json
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          echo "Current version: $CURRENT_VERSION"
-          
-          # Get latest commit message
-          COMMIT_MSG=$(git log -1 --pretty=%B)
-          echo "Latest commit: $COMMIT_MSG"
-          
-          # Determine version bump based on commit type (semantic versioning)
-          if [[ "$COMMIT_MSG" =~ ^(feat|feature)(\(.*\))?: ]]; then
-            # New feature -> minor bump
-            NEW_VERSION=$(node -p "
-              const v = '$CURRENT_VERSION'.split('.');
-              console.log(v[0] + '.' + (parseInt(v[1]) + 1) + '.' + v[2]);
-            ")
-            BUMP_TYPE="minor"
-            echo "🚀 Feature detected: $CURRENT_VERSION -> $NEW_VERSION"
-          elif [[ "$COMMIT_MSG" =~ ^(fix|bugfix)(\(.*\))?: ]]; then
-            # Bug fix -> patch bump
-            NEW_VERSION=$(node -p "
-              const v = '$CURRENT_VERSION'.split('.');
-              console.log(v[0] + '.' + v[1] + '.' + (parseInt(v[2]) + 1));
-            ")
-            BUMP_TYPE="patch"
-            echo "🐛 Fix detected: $CURRENT_VERSION -> $NEW_VERSION"
-          else
-            # Everything else (refactor, chore, docs, etc.) -> build increment only
-            NEW_VERSION="$CURRENT_VERSION"
-            BUMP_TYPE="build"
-            echo "📝 No version change, using: $NEW_VERSION"
-          fi
-          
-          # Update package.json with new version
-          if [ "$NEW_VERSION" != "$CURRENT_VERSION" ]; then
-            echo "Updating package.json version to $NEW_VERSION"
-            node -e "
-              const fs = require('fs');
-              const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-              pkg.version = '$NEW_VERSION';
-              fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            "
-            echo "✅ Version updated in package.json"
-          fi
-          
-          VERSION=$NEW_VERSION
+          VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
           echo "minor=$(echo $VERSION | cut -d. -f2)" >> $GITHUB_OUTPUT
           echo "patch=$(echo $VERSION | cut -d. -f3)" >> $GITHUB_OUTPUT
-          echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT
+          echo "bump_type=${{ steps.version_bump.outputs.bump_type }}" >> $GITHUB_OUTPUT
           echo "stage=$(node -e "
             const [major, minor] = '$VERSION'.split('.').map(Number);
             if (major === 0) {
@@ -332,11 +322,11 @@ jobs:
           compression-level: 0
           
       - name: Commit version bump if changed
-        if: steps.version.outputs.bump_type != 'build'
+        if: steps.version_bump.outputs.bump_type != 'build'
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add package.json
+          git add package.json app.config.js
           git commit -m "chore: bump version to ${{ steps.version.outputs.version }} [skip ci]" || echo "No changes to commit"
           git push origin HEAD || echo "Push failed or unnecessary"
 
@@ -348,64 +338,18 @@ jobs:
           body: |
             ## 🚀 Safarnak Android APK - v${{ steps.version.outputs.version }}
 
-            ### 📋 Version Information
-            - **Version**: ${{ steps.version.outputs.version }}
-            - **Stage**: ${{ steps.version.outputs.stage }}
-            - **Build**: #${{ github.run_number }}
-            - **Commit**: ${{ github.sha }}
-            - **Branch**: ${{ github.ref_name }}
-            - **Built**: ${{ github.event.head_commit.timestamp }}
+            ### 📋 Version
+            - Version: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
+            - Build: #${{ github.run_number }}
+            - Commit: ${{ github.sha }}
 
             ### 📝 Latest Changes
-            **Commit Message**: ${{ github.event.head_commit.message }}
-            **Author**: ${{ github.event.head_commit.author.name }}
-
-            ### 🎯 Version Progress
-            - **Current**: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
-            - **Target Stable**: 1.0.0
-            - **Progress**: ${{ steps.version.outputs.stage }} stage
+            - ${{ github.ref_name }}: ${{ github.event.head_commit.message }}
 
             ### 📱 Installation
             1. Download the APK file below
-            2. Enable "Install from unknown sources" in Android settings
+            2. Enable "Install from unknown sources" on your device
             3. Install the APK
-
-            ### ✨ Features
-            - **🌍 Offline-First**: Works seamlessly without internet
-            - **📡 GraphQL API**: Type-safe client-server communication
-            - **🌐 Bilingual**: English and Persian (Farsi) support
-            - **🌙 Dark Mode**: System preference and manual toggle
-            - **🗺️ Interactive Maps**: Leaflet-based with multiple layers
-            - **💬 Real-Time**: Live messaging with GraphQL subscriptions
-            - **🔐 Secure**: PBKDF2 password hashing and token-based auth
-            - **📱 Cross-Platform**: iOS, Android, and Web support
-
-            ### 🏗️ Technical Stack
-            - **Frontend**: Expo React Native 0.81.5
-            - **Backend**: Cloudflare Workers with GraphQL
-            - **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
-            - **State**: Redux Toolkit with persistence
-            - **Codegen**: GraphQL Codegen for type safety
-
-            ### 🔄 Version History
-            | Version | Stage | Description |
-            |---------|-------|-------------|
-            | 0.5.0 | Alpha | Initial development version |
-            | 0.6.0 | Alpha | Core features implementation |
-            | 0.7.0 | Alpha | UI/UX improvements |
-            | 0.8.0 | Beta | Feature completion |
-            | 0.9.0 | Beta | Testing and bug fixes |
-            | 1.0.0 | Stable | First stable release |
-
-            ### 🐛 Bug Reports
-            If you encounter any issues, please report them on [GitHub Issues](https://github.com/mehotkhan/safarnak.app/issues).
-
-            ### 🤝 Contributing
-            We welcome contributions! See our [Contributing Guide](https://github.com/mehotkhan/safarnak.app/blob/master/CONTRIBUTING.md) for details.
-
-            ---
-
-            **Built with ❤️ using Expo, Cloudflare Workers, and GraphQL Codegen**
           files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
           prerelease: false
