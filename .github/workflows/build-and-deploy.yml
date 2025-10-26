@@ -32,7 +32,7 @@ env:
   NODE_ENV: 'production'
   # Environment variables for the app
   GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
-  APP_NAME: 'سقرناک'
+  APP_NAME: 'سفرناک'
   APP_SCHEME: 'safarnak'
   BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
 
