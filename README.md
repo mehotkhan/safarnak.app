@@ -51,21 +51,21 @@ A full-stack mobile travel app with **perfect separation** between client (React
 
 ```mermaid
 flowchart LR
-  subgraph Client["React Native Client (Expo)"]
+  subgraph Client["React Native Client Expo"]
     A["app/ - Expo Router pages"]
-    B["components/ - UI & contexts"]
-    C["store/ - Redux + Persist"]
-    D["api/ - Apollo Client + generated hooks"]
+    B["components/ - UI and contexts"]
+    C["store/ - Redux with Persist"]
+    D["api/ - Apollo Client with generated hooks"]
   end
 
   subgraph Shared["Shared"]
-    E["graphql/ - Schema & Operations"]
+    E["graphql/ - Schema and Operations"]
     F["drizzle/ - DB schema"]
   end
 
-  subgraph Worker["Cloudflare Worker (GraphQL API)"]
-    G["worker/ - Resolvers + GraphQL Yoga"]
-    H["D1 Database (SQLite)"]
+  subgraph Worker["Cloudflare Worker GraphQL API"]
+    G["worker/ - Resolvers and GraphQL Yoga"]
+    H["D1 Database SQLite"]
   end
 
   A --> D
@@ -86,17 +86,17 @@ sequenceDiagram
   participant U as User
   participant RN as React Native App
   participant AP as Apollo Client
-  participant API as GraphQL API (Worker)
-  participant DB as D1 (SQLite)
+  participant API as GraphQL API Worker
+  participant DB as D1 SQLite
 
-  U->>RN: Tap "Login"
-  RN->>AP: login(username, password)
-  AP->>API: POST /graphql (login)
-  API->>DB: Verify credentials (PBKDF2)
+  U->>RN: Tap Login
+  RN->>AP: login username password
+  AP->>API: POST graphql login
+  API->>DB: Verify credentials PBKDF2
   DB-->>API: user row
-  API-->>AP: { user, token }
-  AP->>RN: Update Redux + Persist
-  RN-->>U: Navigate to (tabs)
+  API-->>AP: user token
+  AP->>RN: Update Redux and Persist
+  RN-->>U: Navigate to tabs
 ```
 
 ### Dev-time GraphQL Pipeline
@@ -125,7 +125,7 @@ flowchart LR
   MUT["Dispatch mutation"]
   MID["offlineMiddleware"]
   NET{"Online?"}
-  QUEUE["Persist queue (AsyncStorage)"]
+  QUEUE["Persist queue AsyncStorage"]
   SEND["Apollo mutate"]
   RETRY["On reconnect"]
 
