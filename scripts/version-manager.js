@@ -9,8 +9,7 @@ const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-// Current version info
-const CURRENT_VERSION = '0.5.0';
+// Current version info (read dynamically; do not hardcode)
 const TARGET_STABLE_VERSION = '1.0.0';
 
 // Version progression stages
@@ -29,7 +28,13 @@ function getCurrentVersion() {
     return packageJson.version;
   } catch (error) {
     console.error('❌ Error reading package.json:', error.message);
-    return CURRENT_VERSION;
+    // Fallback to app.config.js if package.json fails
+    try {
+      const appConfig = fs.readFileSync('app.config.js', 'utf8');
+      const match = appConfig.match(/version:\s*["']([^"']+)["']/);
+      if (match) return match[1];
+    } catch {}
+    return '0.0.0';
   }
 }
 

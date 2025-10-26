@@ -116,20 +116,9 @@ safarnak.app/
 
 ---
 
-## Version History
+## Versioning
 
-### Semantic Versioning
-
-- **MAJOR** version for incompatible API changes
-- **MINOR** version for backwards-compatible functionality additions
-- **PATCH** version for backwards-compatible bug fixes
-
-### Release Types
-
-- **🚀 Major Release**: Significant new features or breaking changes
-- **✨ Minor Release**: New features, backwards-compatible
-- **🐛 Patch Release**: Bug fixes and improvements
-- **🔒 Security Release**: Security updates and fixes
+This project follows Semantic Versioning (SemVer). See `SEMANTIC_VERSIONING.md` for details.
 
 ---
 

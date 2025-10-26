@@ -22,16 +22,7 @@ Welcome to the Safarnak release page! Here you'll find all versions, changelogs,
 - **🚀 Release Automation**: GitHub integration with automated releases
 - **📚 Complete Documentation**: Comprehensive guides and best practices
 
-#### 🎯 Version Strategy
-
-| Version | Stage  | Description                  | Progress |
-| ------- | ------ | ---------------------------- | -------- |
-| 0.5.0   | Alpha  | Initial development version  | 0%       |
-| 0.6.0   | Alpha  | Core features implementation | 20%      |
-| 0.7.0   | Alpha  | UI/UX improvements           | 40%      |
-| 0.8.0   | Beta   | Feature completion           | 60%      |
-| 0.9.0   | Beta   | Testing and bug fixes        | 80%      |
-| 1.0.0   | Stable | First stable release         | 100%     |
+<!-- Removed verbose version strategy table for cleaner release notes -->
 
 ## 📥 Download Links
 
@@ -96,13 +87,7 @@ Welcome to the Safarnak release page! Here you'll find all versions, changelogs,
 - ✅ GitHub issue and PR templates
 - ✅ CI/CD pipeline documentation
 
-#### 🔧 Technical Stack
-
-- **Frontend**: Expo React Native 0.81.5
-- **Backend**: Cloudflare Workers with GraphQL
-- **Database**: Cloudflare D1 (SQLite) with Drizzle ORM
-- **State**: Redux Toolkit with persistence
-- **Codegen**: GraphQL Codegen for type safety
+<!-- Removed generic technical stack list to keep release notes focused on changes -->
 - **Versioning**: Semantic versioning with automated releases
 
 ## 🚀 Upcoming Releases

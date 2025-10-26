@@ -4,22 +4,15 @@ Safarnak uses a comprehensive semantic versioning system with **automatic versio
 
 ## 📋 Version Strategy
 
-### Current Version: `0.5.0` (Alpha)
+### Current Version
 
-- **Target Stable**: `1.0.0`
-- **Progress**: 0% → 100% (0.5 → 0.6 → 0.7 → 0.8 → 0.9 → 1.0)
-- **Auto-Bump**: Version automatically increments on each push to master based on commit type
+The current version is read from `package.json`. Do not hardcode version numbers in documentation.
 
 ### Version Stages
 
 | Version | Stage  | Description                  |
 | ------- | ------ | ---------------------------- |
-| 0.5.0   | Alpha  | Initial development version  |
-| 0.6.0   | Alpha  | Core features implementation |
-| 0.7.0   | Alpha  | UI/UX improvements           |
-| 0.8.0   | Beta   | Feature completion           |
-| 0.9.0   | Beta   | Testing and bug fixes        |
-| 1.0.0   | Stable | First stable release         |
+| x.y.z   | alpha/beta/stable  | Description |
 
 ## 🔧 Tools & Configuration
 
@@ -44,7 +37,7 @@ Safarnak uses a comprehensive semantic versioning system with **automatic versio
 
 ### Automatic Version Bumping
 
-**Version now auto-increments on push to master based on commit type:**
+**Version bumping:**
 
 | Commit Type | Version Bump | Example | Use Case |
 |------------|--------------|---------|----------|
@@ -52,7 +45,7 @@ Safarnak uses a comprehensive semantic versioning system with **automatic versio
 | `fix:` or `bugfix:` | Patch (+0.0.1) | `0.5.0` → `0.5.1` | Bug fixes |
 | `refactor:`, `chore:`, `docs:`, etc. | Build only | `0.5.0-build59` | No version change |
 
-**Each push to master triggers:**
+**Release steps (CI or local):**
 1. GitHub Actions reads commit message
 2. Determines version bump based on type
 3. Updates `package.json`
