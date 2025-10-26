@@ -309,6 +309,37 @@ TypeScript and Metro are configured with the following path aliases:
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL
 "@drizzle/*"    → "./drizzle/*"      // Database schema
 "@worker/*"     → "./worker/*"       // Worker resolvers
+"@api"          → "./api"             // API layer (client hooks)
+"@api/*"        → "./api/*"           // API subfolder imports
+"@store"        → "./store"           // Redux store
+"@store/*"      → "./store/*"         // Store subfolder imports
+"@hooks"        → "./hooks"           // Custom React hooks
+"@hooks/*"      → "./hooks/*"         // Hooks subfolder imports
+"@constants"    → "./constants"       // App constants
+"@constants/*"  → "./constants/*"     // Constants subfolder imports
+"@locales"      → "./locales"         // i18n translations
+"@locales/*"    → "./locales/*"      // Locales subfolder imports
+```
+
+**Usage Examples:**
+```typescript
+// API imports
+import { useLoginMutation } from '@api';
+import { apiTypes } from '@api/types';
+
+// Store imports
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { login } from '@store/slices/authSlice';
+
+// Hooks imports
+import { useColorScheme } from '@hooks/useColorScheme';
+
+// Constants imports
+import { APP_NAME } from '@constants';
+import { colors } from '@constants/Colors';
+
+// Locales imports
+import enTranslation from '@locales/en/translation.json';
 ```
 
 ### TypeScript Configuration

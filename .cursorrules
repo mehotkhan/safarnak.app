@@ -132,6 +132,18 @@ safarnak.app/                           # Single root directory
 "@/*"           → "./*"              // Root files (use '@/api' not '../api')
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
+"@drizzle/*"    → "./drizzle/*"      // Database schema
+"@worker/*"     → "./worker/*"       // Worker resolvers
+"@api"          → "./api"            // API layer (client hooks)
+"@api/*"        → "./api/*"          // API subfolder imports
+"@store"        → "./store"           // Redux store
+"@store/*"      → "./store/*"        // Store subfolder imports
+"@hooks"        → "./hooks"          // Custom React hooks
+"@hooks/*"      → "./hooks/*"        // Hooks subfolder imports
+"@constants"    → "./constants"      // App constants
+"@constants/*"  → "./constants/*"    // Constants subfolder imports
+"@locales"      → "./locales"        // i18n translations
+"@locales/*"    → "./locales/*"      // Locales subfolder imports
 ```
 
 ## Key Patterns & Best Practices
