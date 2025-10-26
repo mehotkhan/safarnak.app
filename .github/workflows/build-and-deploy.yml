@@ -329,15 +329,15 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version.outputs.version }}-build${{ github.run_number }}
-          name: Safarnak Android v${{ steps.version.outputs.version }} build ${{ github.run_number }} (${{ steps.version.outputs.stage }})
+          name: Safarnak v${{ steps.version.outputs.version }} build ${{ github.run_number }}
           body: |
-            ## 🚀 Safarnak Android APK - v${{ steps.version.outputs.version }}
+            ## 🚀 Safarnak v${{ steps.version.outputs.version }}
 
             ### 📋 Build Info
-            - Version: ${{ steps.version.outputs.version }} (${{ steps.version.outputs.stage }})
+            - Version: ${{ steps.version.outputs.version }}
             - Build: #${{ github.run_number }}
             - Commit: ${{ github.sha }}
-            - Date: $(date -u +"%Y-%m-%d %H:%M UTC")
+            - Date: ${{ github.event.head_commit.timestamp }}
 
             ### 📝 Latest Changes
             ${{ github.event.head_commit.message }}
