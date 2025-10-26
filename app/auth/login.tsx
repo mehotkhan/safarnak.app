@@ -14,155 +14,49 @@ import {
   Platform,
 } from 'react-native';
 
-import { useLoginMutation, useRegisterMutation } from '../api';
-import { login } from '../store/slices/authSlice';
-import { useAppDispatch } from '../store/hooks';
+import { useLoginMutation } from '../../api';
+import { login } from '../../store/slices/authSlice';
+import { useAppDispatch } from '../../store/hooks';
 
 export default function LoginScreen() {
   const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const [loginMutation, { loading: loginLoading }] = useLoginMutation();
-  const [registerMutation, { loading: registerLoading }] =
-    useRegisterMutation();
+  const [loginMutation, { loading }] = useLoginMutation();
 
-  const loading = loginLoading || registerLoading;
-
-  const handleAuth = async () => {
+  const handleLogin = async () => {
     setErrorMessage('');
 
-    if (username.trim().length === 0 || password.trim().length === 0) {
+    if (!username.trim() || !password.trim()) {
       setErrorMessage(t('login.errors.fieldsRequired'));
       return;
     }
 
     try {
-      let result;
+      const result = await loginMutation({
+        variables: { username: username.trim(), password: password.trim() },
+      });
 
-      if (isRegistering) {
-        result = await registerMutation({
-          variables: {
-            username: username.trim(),
-            password: password.trim(),
-          },
-          errorPolicy: 'all',
-        });
-      } else {
-        result = await loginMutation({
-          variables: {
-            username: username.trim(),
-            password: password.trim(),
-          },
-          errorPolicy: 'all',
-        });
-      }
+      if (result.data?.login) {
+        const { user, token } = result.data.login;
 
-      // Check for GraphQL errors in the result
-      if ('errors' in result && result.errors && result.errors.length > 0) {
-        const error = result.errors[0];
-
-        let errorMsg = '';
-
-        // Check for original error message in extensions
-        const originalError = (error.extensions as any)?.originalError?.message;
-        if (originalError) {
-          if (originalError.includes('Invalid username or password')) {
-            errorMsg = t('login.errors.invalidCredentials');
-          } else if (originalError.includes('already exists')) {
-            errorMsg = t('login.errors.userExists');
-          } else {
-            errorMsg = originalError;
-          }
-        } else if (error.message.includes('Invalid username or password')) {
-          errorMsg = t('login.errors.invalidCredentials');
-        } else if (error.message.includes('already exists')) {
-          errorMsg = t('login.errors.userExists');
-        } else {
-          errorMsg = error.message;
-        }
-
-        setErrorMessage(errorMsg);
-        return;
-      }
-
-      if (result.data) {
-        const authData = isRegistering
-          ? (result.data as any).register
-          : (result.data as any).login;
-        const { user, token } = authData;
-
-        // Persist auth data to AsyncStorage
-        await AsyncStorage.setItem(
-          '@safarnak_user',
-          JSON.stringify({ user, token })
-        );
-
-        // Update Redux store
-        dispatch(login({ user, token }));
-
+        await AsyncStorage.setItem('@safarnak_user', JSON.stringify({ user, token }));
+        dispatch(login({ user: user as any, token }));
         router.replace('/(tabs)');
-
-        Alert.alert(
-          t('login.success.title'),
-          isRegistering
-            ? t('login.success.registerSuccess')
-            : t('login.success.loginSuccess')
-        );
-      } else {
-        setErrorMessage(t('login.errors.databaseError'));
+        Alert.alert(t('login.success.title'), t('login.success.loginSuccess'));
       }
     } catch (error: any) {
-      let errorMsg = '';
-
-      // Handle GraphQL errors
-      if (error.graphQLErrors && error.graphQLErrors.length > 0) {
-        const graphQLError = error.graphQLErrors[0];
-
-        // Check for original error message in extensions
-        const originalError = (graphQLError.extensions as any)?.originalError
-          ?.message;
-        if (originalError) {
-          if (originalError.includes('Invalid username or password')) {
-            errorMsg = t('login.errors.invalidCredentials');
-          } else if (originalError.includes('already exists')) {
-            errorMsg = t('login.errors.userExists');
-          } else {
-            errorMsg = originalError;
-          }
-        } else if (
-          graphQLError.message.includes('Invalid username or password')
-        ) {
-          errorMsg = t('login.errors.invalidCredentials');
-        } else if (graphQLError.message.includes('already exists')) {
-          errorMsg = t('login.errors.userExists');
-        } else {
-          errorMsg = graphQLError.message;
-        }
+      const message = error?.message || error?.graphQLErrors?.[0]?.message || '';
+      if (message.includes('Invalid username or password')) {
+        setErrorMessage(t('login.errors.invalidCredentials'));
+      } else if (error?.networkError) {
+        setErrorMessage(t('login.errors.networkError'));
+      } else {
+        setErrorMessage(message || t('login.errors.databaseError'));
       }
-      // Handle network errors
-      else if (error.networkError) {
-        errorMsg = t('login.errors.networkError');
-      }
-      // Handle general errors
-      else if (error.message) {
-        if (error.message.includes('Invalid username or password')) {
-          errorMsg = t('login.errors.invalidCredentials');
-        } else if (error.message.includes('already exists')) {
-          errorMsg = t('login.errors.userExists');
-        } else {
-          errorMsg = error.message;
-        }
-      }
-      // Fallback error message
-      else {
-        errorMsg = t('login.errors.databaseError');
-      }
-
-      setErrorMessage(errorMsg);
     }
   };
 
@@ -187,7 +81,7 @@ export default function LoginScreen() {
             <TextInput
               style={[styles.input, errorMessage && styles.inputError]}
               value={username}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setUsername(text);
                 if (errorMessage) setErrorMessage('');
               }}
@@ -206,7 +100,7 @@ export default function LoginScreen() {
             <TextInput
               style={[styles.input, errorMessage && styles.inputError]}
               value={password}
-              onChangeText={text => {
+              onChangeText={(text) => {
                 setPassword(text);
                 if (errorMessage) setErrorMessage('');
               }}
@@ -215,7 +109,7 @@ export default function LoginScreen() {
               autoCapitalize='none'
               autoCorrect={false}
               returnKeyType='done'
-              onSubmitEditing={handleAuth}
+              onSubmitEditing={handleLogin}
               editable={!loading}
             />
           </View>
@@ -228,37 +122,25 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleAuth}
+            onPress={handleLogin}
             disabled={loading}
           >
             {loading ? (
               <ActivityIndicator color='#fff' size='small' />
             ) : (
               <CustomText weight='medium' style={styles.buttonText}>
-                {isRegistering
-                  ? t('login.registerButton')
-                  : t('login.loginButton')}
+                {t('login.loginButton')}
               </CustomText>
             )}
           </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.toggleButton}
-            onPress={() => {
-              setIsRegistering(!isRegistering);
-              setErrorMessage('');
-            }}
+            onPress={() => router.push('/auth/register' as any)}
             disabled={loading}
           >
-            <CustomText
-              style={[
-                styles.toggleButtonText,
-                loading && styles.toggleButtonDisabled,
-              ]}
-            >
-              {isRegistering
-                ? t('login.toggleToLogin')
-                : t('login.toggleToRegister')}
+            <CustomText style={styles.toggleButtonText}>
+              {t('login.toggleToRegister')}
             </CustomText>
           </TouchableOpacity>
         </View>
@@ -317,10 +199,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1f2937',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
     shadowRadius: 2,
     elevation: 1,
@@ -350,10 +229,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
     shadowColor: '#3b82f6',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
@@ -376,8 +252,5 @@ const styles = StyleSheet.create({
     color: '#3b82f6',
     fontSize: 14,
     fontWeight: '500',
-  },
-  toggleButtonDisabled: {
-    color: '#9ca3af',
   },
 });

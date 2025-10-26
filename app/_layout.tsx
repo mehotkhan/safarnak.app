@@ -17,13 +17,12 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { client } from '../api';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { persistor, store } from '../store';
-// Drizzle migrations removed from client UI
 import '../i18n';
 
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: 'login',
+  initialRouteName: 'auth',
 };
 
 SplashScreen.preventAutoHideAsync();
@@ -40,52 +39,33 @@ export default function RootLayout() {
     VazirBold: require('../assets/fonts/Vazir-Bold.ttf'),
   });
 
+  const colorScheme = useColorScheme();
+
   useEffect(() => {
     if (error) throw error;
-  }, [error]);
+    if (loaded) SplashScreen.hideAsync();
+  }, [error, loaded]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <ApolloProvider client={client}>
-          <RootLayoutNav />
+          <LanguageProvider>
+            <CustomThemeProvider>
+              <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+                <AuthWrapper>
+                  <Stack>
+                    <Stack.Screen name='auth' options={{ headerShown: false }} />
+                    <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+                  </Stack>
+                </AuthWrapper>
+              </ThemeProvider>
+            </CustomThemeProvider>
+          </LanguageProvider>
         </ApolloProvider>
       </PersistGate>
     </Provider>
-  );
-}
-
-function RootLayoutNav() {
-  return (
-    <LanguageProvider>
-      <CustomThemeProvider>
-        <RootLayoutNavContent />
-      </CustomThemeProvider>
-    </LanguageProvider>
-  );
-}
-
-function RootLayoutNavContent() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AuthWrapper>
-        <Stack>
-          <Stack.Screen name='login' options={{ headerShown: false }} />
-          <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-        </Stack>
-      </AuthWrapper>
-    </ThemeProvider>
   );
 }
