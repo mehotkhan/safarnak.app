@@ -162,7 +162,10 @@ safarnak.app/
 │       └── offlineMiddleware.ts # Offline queue handling
 ├── app/                       # 📱 Expo Router pages
 │   ├── _layout.tsx           # Root layout with providers
-│   ├── login.tsx             # Login screen
+│   ├── auth/                  # 🔐 Authentication pages
+│   │   ├── _layout.tsx      # Auth routing layout
+│   │   ├── login.tsx        # Login page
+│   │   └── register.tsx     # Registration page
 │   └── (tabs)/               # Tab navigation
 │       ├── index.tsx         # Home/Map screen
 │       ├── tour.tsx          # Tours screen

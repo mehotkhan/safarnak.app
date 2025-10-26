@@ -86,7 +86,10 @@ safarnak.app/                           # Single root directory
 │       └── offlineMiddleware.ts        # Offline mutation queue
 ├── app/                                # Expo Router pages (CLIENT)
 │   ├── _layout.tsx                     # Root layout with providers
-│   ├── login.tsx                       # Login/register screen
+│   ├── auth/                           # Authentication pages
+│   │   ├── _layout.tsx                # Auth routing layout
+│   │   ├── login.tsx                  # Login page (with auto-redirect for logged-in users)
+│   │   └── register.tsx               # Registration page (with auto-redirect for logged-in users)
 │   └── (tabs)/                         # Tab navigation group
 │       ├── _layout.tsx                 # Tab layout
 │       ├── index.tsx                   # Home screen with MapView
@@ -205,6 +208,12 @@ const user = await db.select().from(users).where(eq(users.id, id)).get();
 2. Worker hashes password, generates token
 3. Client stores token in Redux (persisted)
 4. Apollo Client adds token to headers via `authLink`
+
+**Auth Pages:**
+- `app/auth/login.tsx` - Dedicated login page with auto-redirect if already logged in
+- `app/auth/register.tsx` - Dedicated registration page with auto-redirect if already logged in
+- Both pages check `isAuthenticated` from Redux and redirect to `/(tabs)` if user is logged in
+- AuthWrapper redirects unauthenticated users to `/auth/login`
 
 ### 4. Offline-First Strategy
 
