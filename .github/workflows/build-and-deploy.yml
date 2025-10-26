@@ -339,8 +339,11 @@ jobs:
             - Commit: ${{ github.sha }}
             - Date: ${{ github.event.head_commit.timestamp }}
 
-            ### 📝 Latest Changes
+            ### 📝 Changes in This Build
             ${{ github.event.head_commit.message }}
+
+            ### 📚 All Commits
+            $(git log --oneline --no-decorate --format="- %s (%h)" origin/master...HEAD | head -20)
 
             ### 📱 Installation
             1. Download the APK file below
