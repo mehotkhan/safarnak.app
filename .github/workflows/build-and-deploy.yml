@@ -141,9 +141,8 @@ jobs:
             echo "✅ Updated package.json to $NEW_VERSION"
           fi
 
-          # Sync app.config.js version
-          node -e "const fs=require('fs'); const p='app.config.js'; let c=fs.readFileSync(p,'utf8'); const r=/version:\s*[\"']([^\"']+)[\"']/; if(r.test(c)){c=c.replace(r, 'version: \"'+process.env.NEW_VERSION+'\"');} else { const rn=/name:\s*[\"']([^\"']+)[\"']/; const m=c.match(rn); if(m){ c=c.replace(m[0], m[0]+',\n      version: \"'+process.env.NEW_VERSION+'\"'); }} fs.writeFileSync(p,c,'utf8');"
-          echo "✅ Synced app.config.js to $NEW_VERSION"
+          # app.config.js now reads from package.json automatically
+          echo "✅ app.config.js will use version from package.json: $NEW_VERSION"
 
           echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
           echo "bump_type=$BUMP_TYPE" >> $GITHUB_OUTPUT

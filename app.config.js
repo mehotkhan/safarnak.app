@@ -44,11 +44,15 @@ const getAppConfig = () => {
     scheme = 'safarnak-debug';
   }
 
+  // Read version from package.json
+  const packageJson = JSON.parse(require('fs').readFileSync('./package.json', 'utf8'));
+  const appVersion = packageJson.version;
+
   return {
     expo: {
       name: appName,
       slug: 'safarNak',
-      version: '1.0.0',
+      version: appVersion,
       orientation: 'portrait',
       icon: './assets/images/icon.png',
       scheme: scheme,
