@@ -316,6 +316,14 @@ jobs:
           retention-days: 30
           compression-level: 0
           
+      - name: Generate commit list
+        id: commits
+        run: |
+          COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -20)
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
       - name: Commit version bump if changed
         if: steps.version_bump.outputs.bump_type != 'build'
         run: |
@@ -344,7 +352,7 @@ jobs:
             ${{ github.event.head_commit.message }}
 
             ### 📚 All Commits
-            $(git log --oneline --no-decorate --format="- %s (%h)" origin/master...HEAD | head -20)
+            ${{ steps.commits.outputs.commits }}
 
             ### 📱 Installation
             1. Download the APK file below
