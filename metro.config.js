@@ -1,6 +1,7 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { withNativewind } = require('nativewind/metro');
 
-const config = getDefaultConfig(__dirname);
+let config = getDefaultConfig(__dirname);
 
 // Add support for .sql files
 
@@ -18,5 +19,7 @@ config.resolver.extraNodeModules = {
   '@constants': path.resolve(__dirname, 'constants'),
   '@locales': path.resolve(__dirname, 'locales'),
 };
+
+config = withNativewind(config, { input: './global.css' });
 
 module.exports = config;
