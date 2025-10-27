@@ -60,25 +60,29 @@ export default function WelcomeScreen() {
       >
         {onboarding.map((item) => (
           <View key={item.id} style={[styles.slide, isRTL && { transform: [{ scaleX: -1 }] }]}>
-            <Image source={item.image} style={styles.image} resizeMode="contain" />
-            <View style={styles.textContainer}>
-              <Text style={styles.title}>{item.title}</Text>
+            <Image source={item.image} style={styles.image} resizeMode="cover" />
+            <View style={styles.overlay}>
+              <View style={styles.textCard}>
+                <Text style={styles.title}>{item.title}</Text>
+                <Text style={styles.description}>{item.description}</Text>
+              </View>
             </View>
-            <Text style={styles.description}>{item.description}</Text>
           </View>
         ))}
       </Swiper>
 
-      <View style={styles.buttonContainer}>
-        <CustomButton
-          title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
-          onPress={() =>
-            isLastSlide
-              ? router.push('/auth/login' as any)
-              : swiperRef.current?.scrollBy(1)
-          }
-          bgVariant="primary"
-        />
+      <View style={styles.buttonWrapper}>
+        <View style={styles.buttonContainer}>
+          <CustomButton
+            title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
+            onPress={() =>
+              isLastSlide
+                ? router.push('/auth/login' as any)
+                : swiperRef.current?.scrollBy(1)
+            }
+            bgVariant="primary"
+          />
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -106,36 +110,52 @@ const styles = StyleSheet.create({
   },
   slide: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 20,
+    position: 'relative',
   },
   image: {
+    position: 'absolute',
     width: '100%',
-    height: 300,
+    height: '100%',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingBottom: 120,
+    paddingHorizontal: 20,
+  },
+  textCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
   },
   textContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
-    marginTop: 40,
   },
   title: {
     color: Colors.light.primary,
     fontWeight: '700',
-    fontSize: 28,
-    marginHorizontal: 40,
+    fontSize: 24,
     textAlign: 'center',
+    marginBottom: 8,
   },
   description: {
-    color: '#6b7280',
+    color: '#4b5563',
     textAlign: 'center',
-    fontSize: 16,
-    marginTop: 12,
-    marginHorizontal: 40,
-    fontWeight: '600',
-    lineHeight: 24,
+    fontSize: 15,
+    fontWeight: '500',
+    lineHeight: 22,
   },
   dot: {
     width: 32,
@@ -151,9 +171,24 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
     borderRadius: 2,
   },
+  buttonWrapper: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingBottom: 24,
+    paddingHorizontal: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+  },
   buttonContainer: {
     width: '100%',
-    paddingHorizontal: 24,
-    paddingBottom: 24,
   },
 });
