@@ -1,4 +1,5 @@
-import { TouchableOpacity, Text, TouchableOpacityProps } from 'react-native';
+import { TouchableOpacity, Text, TouchableOpacityProps, StyleSheet, ActivityIndicator } from 'react-native';
+import Colors from '@constants/Colors';
 
 type ButtonBgVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'outline';
 type ButtonTextVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'success';
@@ -9,36 +10,36 @@ interface CustomButtonProps extends TouchableOpacityProps {
   textVariant?: ButtonTextVariant;
   IconLeft?: React.ComponentType<any>;
   IconRight?: React.ComponentType<any>;
-  className?: string;
+  loading?: boolean;
 }
 
 const getBgVariantStyle = (variant: ButtonBgVariant) => {
   switch (variant) {
     case 'secondary':
-      return 'bg-gray-500';
+      return styles.bgSecondary;
     case 'danger':
-      return 'bg-red-500';
+      return styles.bgDanger;
     case 'success':
-      return 'bg-green-500';
+      return styles.bgSuccess;
     case 'outline':
-      return 'bg-transparent border-neutral-300 border-[0.5px]';
+      return styles.bgOutline;
     default:
-      return 'bg-purple-500';
+      return styles.bgPrimary;
   }
 };
 
 const getTextVariantStyle = (variant: ButtonTextVariant) => {
   switch (variant) {
     case 'primary':
-      return 'text-black';
+      return styles.textPrimary;
     case 'secondary':
-      return 'text-gray-100';
+      return styles.textSecondary;
     case 'danger':
-      return 'text-red-100';
+      return styles.textDanger;
     case 'success':
-      return 'text-green-100';
+      return styles.textSuccess;
     default:
-      return 'text-white';
+      return styles.textDefault;
   }
 };
 
@@ -49,24 +50,76 @@ export default function CustomButton({
   textVariant = 'default',
   IconLeft,
   IconRight,
-  className = '',
+  loading = false,
+  disabled,
   ...props
 }: CustomButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`w-full rounded-full p-3 flex flex-row justify-center items-center ${getBgVariantStyle(
-        bgVariant
-      )} ${className}`}
+      style={[styles.button, getBgVariantStyle(bgVariant), (disabled || loading) && styles.disabled]}
+      disabled={disabled || loading}
       {...props}
     >
       {IconLeft && <IconLeft />}
-      <Text className={`text-lg ${getTextVariantStyle(textVariant)}`}>
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator color="#fff" size="small" />
+      ) : (
+        <Text style={[styles.text, getTextVariantStyle(textVariant)]}>{title}</Text>
+      )}
       {IconRight && <IconRight />}
     </TouchableOpacity>
   );
 }
 
-
+const styles = StyleSheet.create({
+  button: {
+    width: '100%',
+    borderRadius: 25,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 8,
+  },
+  bgPrimary: {
+    backgroundColor: Colors.light.primary,
+  },
+  bgSecondary: {
+    backgroundColor: '#6b7280',
+  },
+  bgDanger: {
+    backgroundColor: Colors.light.danger,
+  },
+  bgSuccess: {
+    backgroundColor: Colors.light.success,
+  },
+  bgOutline: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  textDefault: {
+    color: '#ffffff',
+  },
+  textPrimary: {
+    color: '#000000',
+  },
+  textSecondary: {
+    color: '#f3f4f6',
+  },
+  textDanger: {
+    color: '#fef2f2',
+  },
+  textSuccess: {
+    color: '#f0fdf4',
+  },
+  disabled: {
+    opacity: 0.5,
+  },
+});

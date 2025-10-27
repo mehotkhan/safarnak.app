@@ -117,8 +117,8 @@ export default function RegisterScreen() {
           <CustomButton
             title={t('login.registerButton')}
             onPress={handleRegister}
+            loading={loading}
             disabled={loading}
-            className={loading ? 'opacity-50' : ''}
           />
 
           <OAuth />

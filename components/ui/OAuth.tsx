@@ -1,4 +1,4 @@
-import { View, Text, Image } from 'react-native';
+import { View, Text, Image, StyleSheet } from 'react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import CustomButton from './CustomButton';
@@ -10,24 +10,24 @@ interface OAuthProps {
 
 export default function OAuth({ onGooglePress, googleIcon }: OAuthProps) {
   const { t } = useTranslation();
+  
   const handleGoogleSignIn = () => {
     if (onGooglePress) onGooglePress();
   };
 
   return (
-    <View>
-      <View className="flex flex-row justify-center items-center mt-4 gap-x-3">
-        <View className="flex-1 h-[1px] bg-neutral-100" />
-        <Text className="text-lg">{t('oauth.or')}</Text>
-        <View className="flex-1 h-[1px] bg-neutral-100" />
+    <View style={styles.container}>
+      <View style={styles.dividerContainer}>
+        <View style={styles.divider} />
+        <Text style={styles.orText}>{t('oauth.or')}</Text>
+        <View style={styles.divider} />
       </View>
 
       <CustomButton
         title={t('oauth.loginWithGoogle')}
-        className="mt-5 w-full shadow-none"
         IconLeft={() =>
           googleIcon ? (
-            <Image source={googleIcon} resizeMode="contain" className="w-5 h-5 mx-2" />
+            <Image source={googleIcon} resizeMode="contain" style={styles.googleIcon} />
           ) : null
         }
         bgVariant="outline"
@@ -38,4 +38,29 @@ export default function OAuth({ onGooglePress, googleIcon }: OAuthProps) {
   );
 }
 
-
+const styles = StyleSheet.create({
+  container: {
+    marginVertical: 8,
+  },
+  dividerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginVertical: 16,
+    gap: 12,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#f5f5f5',
+  },
+  orText: {
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  googleIcon: {
+    width: 20,
+    height: 20,
+    marginHorizontal: 8,
+  },
+});

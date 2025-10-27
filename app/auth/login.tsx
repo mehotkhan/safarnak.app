@@ -115,8 +115,8 @@ export default function LoginScreen() {
           <CustomButton
             title={t('login.loginButton')}
             onPress={handleLogin}
+            loading={loading}
             disabled={loading}
-            className={loading ? 'opacity-50' : ''}
           />
 
           <OAuth />

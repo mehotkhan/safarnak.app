@@ -88,7 +88,6 @@ export default function WelcomeScreen() {
               : swiperRef.current?.scrollBy(1)
           }
           bgVariant="primary"
-          className="mb-4"
         />
       </View>
     </View>

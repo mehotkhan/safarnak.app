@@ -9,41 +9,34 @@ import {
   Platform,
   TextInputProps,
   ImageSourcePropType,
+  StyleSheet,
 } from 'react-native';
+import Colors from '@constants/Colors';
 
 interface InputFieldProps extends TextInputProps {
   label: string;
   icon?: ImageSourcePropType;
-  labelStyle?: string;
-  containerStyle?: string;
-  inputStyle?: string;
-  iconStyle?: string;
-  className?: string;
+  error?: boolean;
 }
 
 export default function InputField({
   label,
   icon,
   secureTextEntry = false,
-  labelStyle = '',
-  containerStyle = '',
-  inputStyle = '',
-  iconStyle = '',
-  className = '',
+  error = false,
   ...props
 }: InputFieldProps) {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View className={`my-2 w-full ${className}`}>
-          <Text className={`text-xl mb-3 ${labelStyle}`}>{label}</Text>
-          <View
-            className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 focus:border-primary-500 ${containerStyle}`}
-          >
-            {icon && <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />}
+        <View style={styles.container}>
+          <Text style={styles.label}>{label}</Text>
+          <View style={[styles.inputContainer, error && styles.inputContainerError]}>
+            {icon && <Image source={icon} style={styles.icon} />}
             <TextInput
-              className={`rounded-full p-4 text-black text-[15px] flex-1 ${inputStyle} text-left placeholder:text-neutral-500`}
+              style={styles.input}
               secureTextEntry={secureTextEntry}
+              placeholderTextColor="#9ca3af"
               {...props}
             />
           </View>
@@ -53,4 +46,39 @@ export default function InputField({
   );
 }
 
-
+const styles = StyleSheet.create({
+  container: {
+    marginVertical: 8,
+    width: '100%',
+  },
+  label: {
+    fontSize: 18,
+    marginBottom: 12,
+    color: '#1f2937',
+    fontWeight: '500',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.light.neutral100,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: Colors.light.neutral100,
+    paddingHorizontal: 4,
+  },
+  inputContainerError: {
+    borderColor: Colors.light.danger,
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    marginLeft: 16,
+  },
+  input: {
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: '#000',
+  },
+});
