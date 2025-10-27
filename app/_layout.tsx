@@ -18,6 +18,7 @@ import { client } from '@api';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { persistor, store } from '@store';
 import '../i18n';
+import '../global.css';
 
 export { ErrorBoundary } from 'expo-router';
 
