@@ -12,20 +12,26 @@ export default function WelcomeScreen() {
   const { t } = useTranslation();
 
   return (
-    <View style={{ flex: 1, padding: 24, justifyContent: 'center' }}>
+    <View style={{ flex: 1, padding: 24, justifyContent: 'center', backgroundColor: '#30D5C8' }}>
       <View className="items-center mb-10">
         <Image source={splashIcon} resizeMode="contain" style={{ width: 200, height: 200 }} />
       </View>
 
-      <CustomText weight="bold" style={{ fontSize: 28, textAlign: 'center', marginBottom: 12 }}>
+      <CustomText weight="bold" style={{ fontSize: 28, textAlign: 'center', marginBottom: 12, color: '#ffffff' }}>
         {t('welcome.title')}
       </CustomText>
-      <CustomText style={{ fontSize: 16, textAlign: 'center' }}>
+      <CustomText style={{ fontSize: 16, textAlign: 'center', color: '#f8f9fa' }}>
         {t('welcome.subtitle')}
       </CustomText>
 
       <View style={{ marginTop: 32 }}>
-        <CustomButton title={t('welcome.getStarted')} onPress={() => router.push('/auth/login' as any)} />
+        <CustomButton
+          title={t('welcome.getStarted')}
+          onPress={() => router.push('/auth/login' as any)}
+          className="bg-white"
+          textVariant="primary"
+          bgVariant="outline"
+        />
       </View>
     </View>
   );
