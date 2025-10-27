@@ -1,6 +1,5 @@
 import { View, Text, TouchableOpacity, Image, StyleSheet, I18nManager } from 'react-native';
 import React, { useRef, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import Swiper from 'react-native-swiper';
 import { useTranslation } from 'react-i18next';
@@ -42,13 +41,15 @@ export default function WelcomeScreen() {
   const isLastSlide = activeIndex === onboarding.length - 1;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <TouchableOpacity
-        onPress={() => router.push('/auth/login' as any)}
-        style={[styles.skipButton, isRTL && styles.skipButtonRTL]}
-      >
-        <Text style={styles.skipText}>{t('welcome.skip')}</Text>
-      </TouchableOpacity>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          onPress={() => router.push('/auth/login' as any)}
+          style={[styles.skipButton, isRTL && styles.skipButtonRTL]}
+        >
+          <Text style={styles.skipText}>{t('welcome.skip')}</Text>
+        </TouchableOpacity>
+      </View>
 
       <Swiper
         ref={swiperRef}
@@ -57,6 +58,7 @@ export default function WelcomeScreen() {
         activeDot={<View style={styles.activeDot} />}
         onIndexChanged={(index) => setActiveIndex(index)}
         containerStyle={isRTL ? { transform: [{ scaleX: -1 }] } : {}}
+        paginationStyle={{ bottom: 150 }}
       >
         {onboarding.map((item) => (
           <View key={item.id} style={[styles.slide, isRTL && { transform: [{ scaleX: -1 }] }]}>
@@ -84,29 +86,39 @@ export default function WelcomeScreen() {
           />
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffff',
+    backgroundColor: '#000000',
+  },
+  topBar: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    paddingTop: 50,
+    paddingBottom: 16,
+    paddingHorizontal: 20,
   },
   skipButton: {
-    width: '100%',
-    justifyContent: 'flex-end',
-    alignItems: 'flex-end',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    alignSelf: 'flex-end',
   },
   skipButtonRTL: {
-    alignItems: 'flex-start',
+    alignSelf: 'flex-start',
   },
   skipText: {
-    color: Colors.light.primary,
+    color: '#ffffff',
     fontSize: 16,
     fontWeight: '700',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   slide: {
     flex: 1,
@@ -161,7 +173,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 4,
     marginHorizontal: 4,
-    backgroundColor: '#f1f5f9',
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
     borderRadius: 2,
   },
   activeDot: {
