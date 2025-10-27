@@ -1,11 +1,15 @@
 import { LanguageSwitcher } from '@components/context/LanguageSwitcher';
 import { Text, View } from '@components/ui/Themed';
 import { ThemeToggle } from '@components/ui/ThemeToggle';
+import CustomButton from '@components/ui/CustomButton';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, TouchableOpacity } from 'react-native';
+import { Alert, Image, StyleSheet } from 'react-native';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const appIcon = require('../../assets/images/icon.png');
 
+import Colors from '@constants/Colors';
 import { logout } from '@store/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 import type { RootState } from '@store';
@@ -19,10 +23,7 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
-      {
-        text: t('common.cancel'),
-        style: 'cancel',
-      },
+      { text: t('common.cancel'), style: 'cancel' },
       {
         text: t('profile.logout'),
         style: 'destructive',
@@ -41,28 +42,42 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{t('profile.title')}</Text>
-      <View
-        style={styles.separator}
-        lightColor='#eee'
-        darkColor='rgba(255,255,255,0.1)'
-      />
-
-      {user && (
-        <Text style={styles.welcome}>
-          {t('profile.welcome', { name: user.name })}
+      {/* Header Card */}
+      <View style={styles.headerCard}>
+        <View style={styles.avatarContainer}>
+          <Image source={appIcon} style={styles.avatar} resizeMode='contain' />
+        </View>
+        <Text style={styles.nameText}>
+          {user?.name ? user.name : t('profile.title')}
         </Text>
-      )}
+        <Text style={styles.subText}>{t('profile.description')}</Text>
+      </View>
 
-      <Text style={styles.description}>{t('profile.description')}</Text>
+      {/* Settings Card */}
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>{t('profile.settings')}</Text>
 
-      <LanguageSwitcher />
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>{t('profile.language')}</Text>
+          <LanguageSwitcher />
+        </View>
 
-      <ThemeToggle />
+        <View style={styles.divider} />
 
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>{t('profile.logout')}</Text>
-      </TouchableOpacity>
+        <View style={styles.row}>
+          <Text style={styles.rowLabel}>{t('profile.theme')}</Text>
+          <ThemeToggle />
+        </View>
+      </View>
+
+      {/* Actions */}
+      <View style={styles.actions}>
+        <CustomButton
+          title={t('profile.logout')}
+          bgVariant='danger'
+          onPress={handleLogout}
+        />
+      </View>
     </View>
   );
 }
@@ -70,40 +85,76 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+  },
+  headerCard: {
     alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: Colors.light.card,
+    borderRadius: 16,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    shadowColor: Colors.light.shadow,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+    marginBottom: 16,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
+  avatarContainer: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    marginBottom: 12,
+    backgroundColor: '#fff',
   },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
+  avatar: {
+    width: '100%',
+    height: '100%',
   },
-  welcome: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 20,
-    color: '#2f95dc',
+  nameText: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginTop: 4,
   },
-  description: {
-    fontSize: 16,
+  subText: {
+    fontSize: 14,
     textAlign: 'center',
-    marginHorizontal: 20,
-    lineHeight: 24,
+    color: Colors.light.tabIconDefault,
+    marginTop: 6,
   },
-  logoutButton: {
-    backgroundColor: '#ff4444',
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    marginTop: 30,
+  card: {
+    backgroundColor: Colors.light.card,
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: Colors.light.shadow,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 1,
   },
-  logoutButtonText: {
-    color: '#fff',
+  cardTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  rowLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: Colors.light.border,
+    marginVertical: 8,
+  },
+  actions: {
+    marginTop: 24,
   },
 });
