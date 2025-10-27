@@ -2,28 +2,64 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "lib": ["ES2015", "ES2017", "DOM"],
+    "lib": [
+      "ES2015",
+      "ES2017",
+      "DOM"
+    ],
     "jsx": "react-jsx",
     "moduleResolution": "Bundler",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@components/*": ["./components/*"],
-      "@graphql/*": ["./graphql/*"],
-      "@drizzle/*": ["./drizzle/*"],
-      "@worker/*": ["./worker/*"],
-      "@api": ["./api"],
-      "@api/*": ["./api/*"],
-      "@store": ["./store"],
-      "@store/*": ["./store/*"],
-      "@hooks": ["./hooks"],
-      "@hooks/*": ["./hooks/*"],
-      "@constants": ["./constants"],
-      "@constants/*": ["./constants/*"],
-      "@locales": ["./locales"],
-      "@locales/*": ["./locales/*"]
+      "@/*": [
+        "./*"
+      ],
+      "@components/*": [
+        "./components/*"
+      ],
+      "@graphql/*": [
+        "./graphql/*"
+      ],
+      "@drizzle/*": [
+        "./drizzle/*"
+      ],
+      "@worker/*": [
+        "./worker/*"
+      ],
+      "@api": [
+        "./api"
+      ],
+      "@api/*": [
+        "./api/*"
+      ],
+      "@store": [
+        "./store"
+      ],
+      "@store/*": [
+        "./store/*"
+      ],
+      "@hooks": [
+        "./hooks"
+      ],
+      "@hooks/*": [
+        "./hooks/*"
+      ],
+      "@constants": [
+        "./constants"
+      ],
+      "@constants/*": [
+        "./constants/*"
+      ],
+      "@locales": [
+        "./locales"
+      ],
+      "@locales/*": [
+        "./locales/*"
+      ]
     },
-    "types": ["./worker-configuration.d.ts"],
+    "types": [
+      "./worker-configuration.d.ts"
+    ],
     "resolveJsonModule": true,
     "noEmit": true,
     "skipLibCheck": true,
@@ -42,7 +78,8 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "worker-configuration.d.ts"
+    "worker-configuration.d.ts",
+    "nativewind-env.d.ts"
   ],
   "exclude": [
     "node_modules",

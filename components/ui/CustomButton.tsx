@@ -1,5 +1,4 @@
-import { TouchableOpacity, Text, TouchableOpacityProps, StyleSheet, ActivityIndicator } from 'react-native';
-import Colors from '@constants/Colors';
+import { TouchableOpacity, Text, TouchableOpacityProps, ActivityIndicator } from 'react-native';
 
 type ButtonBgVariant = 'primary' | 'secondary' | 'danger' | 'success' | 'outline';
 type ButtonTextVariant = 'default' | 'primary' | 'secondary' | 'danger' | 'success';
@@ -16,30 +15,30 @@ interface CustomButtonProps extends TouchableOpacityProps {
 const getBgVariantStyle = (variant: ButtonBgVariant) => {
   switch (variant) {
     case 'secondary':
-      return styles.bgSecondary;
+      return 'bg-gray-500';
     case 'danger':
-      return styles.bgDanger;
+      return 'bg-red-500';
     case 'success':
-      return styles.bgSuccess;
+      return 'bg-green-500';
     case 'outline':
-      return styles.bgOutline;
+      return 'bg-transparent border border-gray-300';
     default:
-      return styles.bgPrimary;
+      return 'bg-[#30D5C8]';
   }
 };
 
 const getTextVariantStyle = (variant: ButtonTextVariant) => {
   switch (variant) {
     case 'primary':
-      return styles.textPrimary;
+      return 'text-black';
     case 'secondary':
-      return styles.textSecondary;
+      return 'text-gray-100';
     case 'danger':
-      return styles.textDanger;
+      return 'text-red-100';
     case 'success':
-      return styles.textSuccess;
+      return 'text-green-100';
     default:
-      return styles.textDefault;
+      return 'text-white';
   }
 };
 
@@ -57,7 +56,9 @@ export default function CustomButton({
   return (
     <TouchableOpacity
       onPress={onPress}
-      style={[styles.button, getBgVariantStyle(bgVariant), (disabled || loading) && styles.disabled]}
+      className={`w-full rounded-full py-3 px-3 flex flex-row justify-center items-center my-2 ${getBgVariantStyle(
+        bgVariant
+      )} ${(disabled || loading) ? 'opacity-50' : ''}`}
       disabled={disabled || loading}
       {...props}
     >
@@ -65,61 +66,10 @@ export default function CustomButton({
       {loading ? (
         <ActivityIndicator color="#fff" size="small" />
       ) : (
-        <Text style={[styles.text, getTextVariantStyle(textVariant)]}>{title}</Text>
+        <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant)}`}>{title}</Text>
       )}
       {IconRight && <IconRight />}
     </TouchableOpacity>
   );
 }
-
-const styles = StyleSheet.create({
-  button: {
-    width: '100%',
-    borderRadius: 25,
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginVertical: 8,
-  },
-  bgPrimary: {
-    backgroundColor: Colors.light.primary,
-  },
-  bgSecondary: {
-    backgroundColor: '#6b7280',
-  },
-  bgDanger: {
-    backgroundColor: Colors.light.danger,
-  },
-  bgSuccess: {
-    backgroundColor: Colors.light.success,
-  },
-  bgOutline: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  textDefault: {
-    color: '#ffffff',
-  },
-  textPrimary: {
-    color: '#000000',
-  },
-  textSecondary: {
-    color: '#f3f4f6',
-  },
-  textDanger: {
-    color: '#fef2f2',
-  },
-  textSuccess: {
-    color: '#f0fdf4',
-  },
-  disabled: {
-    opacity: 0.5,
-  },
-});
+ 

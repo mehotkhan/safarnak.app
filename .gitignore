@@ -7,8 +7,6 @@
 # ============================================================================
 Template/
 Template
-Templates/
-Templates
 node_modules/
 jspm_packages/
 bower_components/
@@ -235,3 +233,4 @@ git-toggle.html
 # - README.md
 # - .cursorrules
 # - .gitignore
+android/.kotlin/sessions/kotlin-compiler-9126776779933390962.salive

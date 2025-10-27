@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
+import { Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 
 import { useRegisterMutation } from '@api';
 import { login } from '@store/slices/authSlice';
@@ -64,20 +64,20 @@ export default function RegisterScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      className="flex-1 bg-[#f8f9fa]"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.content}>
-        <View style={styles.header}>
-          <CustomText weight='bold' style={styles.title}>
+      <View className="flex-1 justify-center px-6">
+        <View className="items-center mb-12">
+          <CustomText weight='bold' style={{ fontSize: 32, textAlign: 'center', marginBottom: 12, color: '#1a1a1a' }}>
             {t('login.registerButton')}
           </CustomText>
-          <CustomText style={styles.subtitle}>
+          <CustomText style={{ fontSize: 16, textAlign: 'center', color: '#6b7280', lineHeight: 24 }}>
             Create a new account to get started
           </CustomText>
         </View>
 
-        <View style={styles.form}>
+        <View className="w-full">
           <InputField
             label={t('login.usernameLabel')}
             value={username}
@@ -109,8 +109,8 @@ export default function RegisterScreen() {
           />
 
           {errorMessage ? (
-            <View style={styles.errorContainer}>
-              <CustomText style={styles.errorText}>{errorMessage}</CustomText>
+            <View className="bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
+              <CustomText style={{ color: '#dc2626', fontSize: 14, textAlign: 'center' }}>{errorMessage}</CustomText>
             </View>
           ) : null}
 
@@ -124,11 +124,11 @@ export default function RegisterScreen() {
           <OAuth />
 
           <TouchableOpacity
-            style={styles.toggleButton}
+            className="items-center py-2"
             onPress={() => router.push('/auth/login' as any)}
             disabled={loading}
           >
-            <CustomText style={styles.toggleButtonText}>
+            <CustomText style={{ color: '#3b82f6', fontSize: 14, fontWeight: '500' }}>
               {t('login.toggleToLogin')}
             </CustomText>
           </TouchableOpacity>
@@ -137,59 +137,3 @@ export default function RegisterScreen() {
     </KeyboardAvoidingView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f8f9fa',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 48,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 12,
-    color: '#1a1a1a',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: '#6b7280',
-    lineHeight: 24,
-    paddingHorizontal: 16,
-  },
-  form: {
-    width: '100%',
-  },
-  errorContainer: {
-    backgroundColor: '#fef2f2',
-    borderWidth: 1,
-    borderColor: '#fecaca',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: '#dc2626',
-    fontSize: 14,
-    textAlign: 'center',
-  },
-  toggleButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  toggleButtonText: {
-    color: '#3b82f6',
-    fontSize: 14,
-    fontWeight: '500',
-  },
-});
