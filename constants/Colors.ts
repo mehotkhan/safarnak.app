@@ -11,6 +11,13 @@ export default {
     card: '#f8f9fa',
     border: '#e9ecef',
     shadow: '#000',
+    // Template-aligned additions
+    primary: '#7c3aed', // violet-600
+    primaryMuted: '#8b5cf6', // violet-500
+    neutral100: '#f5f5f5',
+    textMuted: '#6b7280',
+    danger: '#ef4444',
+    success: '#10b981',
   },
   dark: {
     text: '#fff',
@@ -21,5 +28,12 @@ export default {
     card: '#1e1e1e',
     border: '#333',
     shadow: '#000',
+    // Template-aligned additions
+    primary: '#a78bfa', // violet-300
+    primaryMuted: '#8b5cf6', // violet-500
+    neutral100: '#2a2a2a',
+    textMuted: '#9ca3af',
+    danger: '#f87171',
+    success: '#34d399',
   },
 };

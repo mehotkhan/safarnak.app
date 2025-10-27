@@ -65,6 +65,7 @@
     "graphql-workers-subscriptions": "^0.1.6",
     "graphql-yoga": "^5.16.0",
     "i18next": "^25.6.0",
+    "nativewind": "^4.2.1",
     "react": "19.1.0",
     "react-i18next": "^16.1.5",
     "react-native": "0.81.5",
@@ -73,7 +74,8 @@
     "react-native-web": "~0.21.2",
     "react-native-webview": "^13.16.0",
     "react-redux": "^9.2.0",
-    "redux-persist": "^6.0.0"
+    "redux-persist": "^6.0.0",
+    "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20251011.0",

@@ -47,7 +47,7 @@ export default function AuthWrapper({
       if (isAuthenticated) {
         router.replace('/(tabs)');
       } else {
-        router.replace('/auth/login' as any);
+        router.replace('/auth/welcome' as any);
       }
     }
   }, [isAuthenticated, isLoading]);

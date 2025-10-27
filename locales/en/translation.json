@@ -66,5 +66,14 @@
       "offlineMode": "Offline Mode",
       "offlineMessage": "Logged in offline. Data will sync when connection is restored."
     }
+  },
+  "welcome": {
+    "title": "Welcome to Safarnak",
+    "subtitle": "Plan trips, explore places, and sync across devices.",
+    "getStarted": "Get Started"
+  },
+  "oauth": {
+    "or": "Or",
+    "loginWithGoogle": "Log In with Google"
   }
 }

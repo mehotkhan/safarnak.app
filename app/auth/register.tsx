@@ -1,18 +1,13 @@
 import { CustomText } from '@components/ui/CustomText';
 import { View } from '@components/ui/Themed';
+import CustomButton from '@components/ui/CustomButton';
+import InputField from '@components/ui/InputField';
+import OAuth from '@components/ui/OAuth';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Alert,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import { Alert, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 
 import { useRegisterMutation } from '@api';
 import { login } from '@store/slices/authSlice';
@@ -83,45 +78,35 @@ export default function RegisterScreen() {
         </View>
 
         <View style={styles.form}>
-          <View style={styles.inputContainer}>
-            <CustomText weight='medium' style={styles.label}>
-              {t('login.usernameLabel')}
-            </CustomText>
-            <TextInput
-              style={[styles.input, errorMessage && styles.inputError]}
-              value={username}
-              onChangeText={(text) => {
-                setUsername(text);
-                if (errorMessage) setErrorMessage('');
-              }}
-              placeholder={t('login.usernamePlaceholder')}
-              autoCapitalize='none'
-              autoCorrect={false}
-              returnKeyType='next'
-              editable={!loading}
-            />
-          </View>
+          <InputField
+            label={t('login.usernameLabel')}
+            value={username}
+            onChangeText={(text) => {
+              setUsername(text);
+              if (errorMessage) setErrorMessage('');
+            }}
+            placeholder={t('login.usernamePlaceholder')}
+            autoCapitalize='none'
+            autoCorrect={false}
+            returnKeyType='next'
+            editable={!loading}
+          />
 
-          <View style={styles.inputContainer}>
-            <CustomText weight='medium' style={styles.label}>
-              {t('login.passwordLabel')}
-            </CustomText>
-            <TextInput
-              style={[styles.input, errorMessage && styles.inputError]}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errorMessage) setErrorMessage('');
-              }}
-              placeholder={t('login.passwordPlaceholder')}
-              secureTextEntry
-              autoCapitalize='none'
-              autoCorrect={false}
-              returnKeyType='done'
-              onSubmitEditing={handleRegister}
-              editable={!loading}
-            />
-          </View>
+          <InputField
+            label={t('login.passwordLabel')}
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (errorMessage) setErrorMessage('');
+            }}
+            placeholder={t('login.passwordPlaceholder')}
+            secureTextEntry
+            autoCapitalize='none'
+            autoCorrect={false}
+            returnKeyType='done'
+            onSubmitEditing={handleRegister}
+            editable={!loading}
+          />
 
           {errorMessage ? (
             <View style={styles.errorContainer}>
@@ -129,19 +114,14 @@ export default function RegisterScreen() {
             </View>
           ) : null}
 
-          <TouchableOpacity
-            style={[styles.button, loading && styles.buttonDisabled]}
+          <CustomButton
+            title={t('login.registerButton')}
             onPress={handleRegister}
             disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color='#fff' size='small' />
-            ) : (
-              <CustomText weight='medium' style={styles.buttonText}>
-                {t('login.registerButton')}
-              </CustomText>
-            )}
-          </TouchableOpacity>
+            className={loading ? 'opacity-50' : ''}
+          />
+
+          <OAuth />
 
           <TouchableOpacity
             style={styles.toggleButton}
@@ -189,34 +169,6 @@ const styles = StyleSheet.create({
   form: {
     width: '100%',
   },
-  inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 8,
-    color: '#374151',
-  },
-  input: {
-    backgroundColor: '#ffffff',
-    borderWidth: 1,
-    borderColor: '#d1d5db',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
-    color: '#1f2937',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  inputError: {
-    borderColor: '#ef4444',
-    backgroundColor: '#fef2f2',
-  },
   errorContainer: {
     backgroundColor: '#fef2f2',
     borderWidth: 1,
@@ -230,28 +182,6 @@ const styles = StyleSheet.create({
     color: '#dc2626',
     fontSize: 14,
     textAlign: 'center',
-  },
-  button: {
-    backgroundColor: '#3b82f6',
-    borderRadius: 12,
-    paddingVertical: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#3b82f6',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  buttonDisabled: {
-    backgroundColor: '#9ca3af',
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
   },
   toggleButton: {
     alignItems: 'center',
