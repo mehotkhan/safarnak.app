@@ -44,5 +44,11 @@
     "expo-env.d.ts",
     "worker-configuration.d.ts"
   ],
-  "exclude": ["node_modules", "worker/node_modules", "client/node_modules"]
+  "exclude": [
+    "node_modules",
+    "worker/node_modules",
+    "client/node_modules",
+    "Template",
+    "Template/**"
+  ]
 }

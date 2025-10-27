@@ -30,6 +30,7 @@ export default [
       'db-manager.js',
       'scripts/**',
       'client/.expo/**',
+      'Template/**'
     ],
   },
 

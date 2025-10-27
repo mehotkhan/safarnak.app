@@ -30,7 +30,7 @@ export default function ProfileScreen() {
           try {
             await AsyncStorage.removeItem(USER_STORAGE_KEY);
             dispatch(logout());
-            router.replace('/login');
+            router.replace('/auth/login' as any);
           } catch (error) {
             console.log('Error during logout:', error);
           }

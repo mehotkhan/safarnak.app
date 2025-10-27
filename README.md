@@ -21,6 +21,7 @@
 - [Architecture Overview](#-architecture-overview)
 - [Quick Start](#-quick-start)
 - [Codebase Structure](#-codebase-structure)
+- [Template System](#-template-system)
 - [How to Add New Features](#-how-to-add-new-features)
 - [Configuration](#-configuration)
 - [Common Commands](#-common-commands)
@@ -242,6 +243,30 @@ drizzle/               # 🗄️ Database schema (worker-only, not used by clien
 - **`graphql/`** - GraphQL schema and operations (shared between client & worker)
 - **`drizzle/`** - Database schema (worker-only, used ONLY in worker code)
 - **`api/`** - Auto-generated client code (run `yarn codegen` to update)
+
+---
+
+## 🧩 Template System
+
+Safarnak leverages a local, untracked UI Template located at `Template/` for rapid UI scaffolding and visual consistency. This folder is intentionally ignored by Git (see `.gitignore`) so it remains a local-only resource during development.
+
+- Source Template repo: `git@github.com:saurabhparyani/avent.git`
+- Local path: `Template/`
+- Purpose: Reference styles, flows, and components (e.g., `CustomButton`, `InputField`, `OAuth`, `(auth)` and `(tabs)` layouts) to redesign Safarnak screens.
+
+Guidelines:
+
+1. Do not import code directly from `Template/` into app modules. Instead, port patterns into `components/`, `constants/`, and `app/` with our path aliases and TypeScript style.
+2. Keep `Template/` updated locally by recloning or pulling the upstream repo if needed. It will never be committed.
+3. When adopting UI patterns, prefer shared components in `components/ui/` and align theme tokens in `constants/Colors.ts`.
+4. Preserve our GraphQL, Redux, and offline-first architecture; UI changes should remain presentation-layer only.
+
+Migration plan snapshot:
+
+- Port `CustomButton`, `InputField`, `OAuth` into `components/ui/` with path aliases.
+- Redesign `app/auth/login.tsx` and `app/auth/register.tsx` to match Template visuals.
+- Align tab layout visuals to Template’s `(tabs)` screens while retaining our routes: `index`, `tour`, `profile`.
+- Integrate primary/neutral colors from Template into `constants/Colors.ts` without breaking dark mode.
 
 ---
 
