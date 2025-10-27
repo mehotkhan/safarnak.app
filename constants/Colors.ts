@@ -11,9 +11,9 @@ export default {
     card: '#f8f9fa',
     border: '#e9ecef',
     shadow: '#000',
-    // Template-aligned additions
-    primary: '#7c3aed', // violet-600
-    primaryMuted: '#8b5cf6', // violet-500
+    // Template-aligned additions (Persian Turquoise)
+    primary: '#30D5C8', // Persian turquoise
+    primaryMuted: '#4DD8CC', // lighter turquoise
     neutral100: '#f5f5f5',
     textMuted: '#6b7280',
     danger: '#ef4444',

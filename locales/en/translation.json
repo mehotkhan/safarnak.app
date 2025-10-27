@@ -68,9 +68,21 @@
     }
   },
   "welcome": {
-    "title": "Welcome to Safarnak",
-    "subtitle": "Plan trips, explore places, and sync across devices.",
-    "getStarted": "Get Started"
+    "skip": "Skip",
+    "next": "Next",
+    "getStarted": "Start",
+    "onboarding1": {
+      "title": "Plan Your Perfect Trip",
+      "description": "Effortlessly create custom itineraries tailored to your style, from daily plans to must-see spots."
+    },
+    "onboarding2": {
+      "title": "Discover Hidden Gems",
+      "description": "Explore local favorites and unique experiences wherever you go. Your trip, curated just for you."
+    },
+    "onboarding3": {
+      "title": "Stay Organized & Relax",
+      "description": "Keep all your travel details in one place, so you can focus on making memories without the stress."
+    }
   },
   "oauth": {
     "or": "Or",
