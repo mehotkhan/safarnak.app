@@ -82,6 +82,10 @@
     "onboarding3": {
       "title": "Stay Organized & Relax",
       "description": "Keep all your travel details in one place, so you can focus on making memories without the stress."
+    },
+    "onboarding4": {
+      "title": "Ready to Start?",
+      "description": "Join thousands of travelers planning amazing trips. Sign in or create your account to begin your journey."
     }
   },
   "oauth": {

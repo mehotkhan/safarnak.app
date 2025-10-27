@@ -36,6 +36,12 @@ export default function WelcomeScreen() {
       description: t('welcome.onboarding3.description'),
       image: splashImage,
     },
+    {
+      id: 4,
+      title: t('welcome.onboarding4.title'),
+      description: t('welcome.onboarding4.description'),
+      image: splashImage,
+    },
   ];
 
   const isLastSlide = activeIndex === onboarding.length - 1;
@@ -58,7 +64,7 @@ export default function WelcomeScreen() {
         activeDot={<View style={styles.activeDot} />}
         onIndexChanged={(index) => setActiveIndex(index)}
         containerStyle={isRTL ? { transform: [{ scaleX: -1 }] } : {}}
-        paginationStyle={{ bottom: 150 }}
+        paginationStyle={{ bottom: 20 }}
       >
         {onboarding.map((item) => (
           <View key={item.id} style={[styles.slide, isRTL && { transform: [{ scaleX: -1 }] }]}>
@@ -73,18 +79,17 @@ export default function WelcomeScreen() {
         ))}
       </Swiper>
 
-      <View style={styles.buttonWrapper}>
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
-            onPress={() =>
-              isLastSlide
-                ? router.push('/auth/login' as any)
-                : swiperRef.current?.scrollBy(1)
-            }
-            bgVariant="primary"
-          />
-        </View>
+      <View style={styles.buttonFixed}>
+        <CustomButton
+          title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
+          onPress={() =>
+            isLastSlide
+              ? router.push('/auth/login' as any)
+              : swiperRef.current?.scrollBy(1)
+          }
+          bgVariant="primary"
+          className="mb-4"
+        />
       </View>
     </View>
   );
@@ -183,24 +188,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.primary,
     borderRadius: 2,
   },
-  buttonWrapper: {
+  buttonFixed: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 80,
     left: 0,
     right: 0,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
     paddingHorizontal: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  buttonContainer: {
-    width: '100%',
+    zIndex: 20,
   },
 });
