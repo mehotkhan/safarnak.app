@@ -10,6 +10,7 @@ interface CustomButtonProps extends TouchableOpacityProps {
   IconLeft?: React.ComponentType<any>;
   IconRight?: React.ComponentType<any>;
   loading?: boolean;
+  className?: string;
 }
 
 const getBgVariantStyle = (variant: ButtonBgVariant) => {
@@ -23,7 +24,7 @@ const getBgVariantStyle = (variant: ButtonBgVariant) => {
     case 'outline':
       return 'bg-transparent border border-gray-300';
     default:
-      return 'bg-[#30D5C8]';
+      return 'bg-primary';
   }
 };
 
@@ -51,14 +52,15 @@ export default function CustomButton({
   IconRight,
   loading = false,
   disabled,
+  className = '',
   ...props
 }: CustomButtonProps) {
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`w-full rounded-full py-3 px-3 flex flex-row justify-center items-center my-2 ${getBgVariantStyle(
+      className={`w-full rounded-full py-3 px-3 flex flex-row justify-center items-center my-2 android:shadow-none shadow-md shadow-black/20 android:elevation-2 ${getBgVariantStyle(
         bgVariant
-      )} ${(disabled || loading) ? 'opacity-50' : ''}`}
+      )} ${(disabled || loading) ? 'opacity-50' : ''} ${className}`}
       disabled={disabled || loading}
       {...props}
     >
