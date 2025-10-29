@@ -5,25 +5,28 @@
 You are working on **Safarnak**, a full-stack offline-first travel application. This is a **unified single-root monorepo** where both client and server code coexist in the same directory structure.
 
 ### Key Architecture Points
-- **Client**: Expo React Native app (iOS/Android/Web)
-- **Worker**: Cloudflare Worker backend (`worker/index.ts` at root)
+- **Client**: Expo React Native app (iOS/Android/Web) with NativeWind v4 styling
+- **Worker**: Cloudflare Worker backend (`worker/index.ts` - entry point defined in wrangler.toml)
 - **Resolvers**: GraphQL resolvers in `worker/` folder (server-side only)
 - **Shared**: GraphQL schema (`graphql/`) shared between client & worker
 - **Worker-Only**: Drizzle ORM and database schema (`drizzle/`) used ONLY in worker, never in client
+- **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
 - **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
 
 ## Technology Stack
 
 ### Frontend (Client)
-- **Expo** ~54.0.19 - React Native framework with file-based routing
+- **Expo** ~54.0.20 - React Native framework with file-based routing
 - **React Native** 0.81.5 - Mobile framework
 - **React** 19.1.0 - UI library
 - **Expo Router** ~6.0.13 - File-based navigation
+- **NativeWind** ^4.1.21 - Tailwind CSS for React Native (utility-first styling)
+- **Tailwind CSS** ^3.4.17 - CSS framework (configured for React Native)
 - **Redux Toolkit** ^2.9.2 - State management
 - **Redux Persist** ^6.0.0 - Persistent state
 - **Apollo Client** 3.8.0 - GraphQL client
-- **react-i18next** ^16.1.5 - Internationalization (English + Persian/Farsi)
-- **Drizzle ORM** ^0.44.6 - Type-safe database queries (server-side only, Cloudflare D1)
+- **react-i18next** ^16.2.1 - Internationalization (English + Persian/Farsi)
+- **Drizzle ORM** ^0.44.7 - Type-safe database queries (server-side only, Cloudflare D1)
 
 ### Backend (Worker)
 - **Cloudflare Workers** - Serverless edge runtime
@@ -47,9 +50,8 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 
 ```
 safarnak.app/                           # Single root directory
-├── worker.ts                           # Cloudflare Worker entry (3-line imports from resolvers & graphql)
 ├── worker/                             # GraphQL resolvers (SERVER-SIDE ONLY)
-│   ├── index.ts                        # Combined resolver exports
+│   ├── index.ts                        # Cloudflare Worker entry point (main export, witnesses resolvers + GraphQL Yoga)
 │   ├── types.ts                        # Server-specific types
 │   ├── queries/                        # Query resolvers: getMessages, me
 │   ├── mutations/                      # Mutation resolvers: register, login, addMessage
@@ -117,8 +119,11 @@ safarnak.app/                           # Single root directory
 │   ├── en/translation.json             # English
 │   └── fa/translation.json             # Persian (Farsi)
 ├── assets/                             # Static assets (images, fonts)
-├── metro.config.js                     # Metro bundler config
-├── wrangler.toml                       # Cloudflare Workers config
+├── metro.config.js                     # Metro bundler config with NativeWind
+├── babel.config.js                     # Babel config with NativeWind preset
+├── tailwind.config.js                  # Tailwind CSS configuration
+├── global.css                          # Tailwind CSS directives (@tailwind base/components/utilities)
+├── wrangler.toml                       # Cloudflare Workers config (worker entry: worker/index.ts)
 ├── drizzle.config.ts                   # Drizzle ORM config
 ├── codegen.yml                         # GraphQL Codegen configuration
 ├── eslint.config.mjs                   # ESLint flat config (ES module)
@@ -174,7 +179,9 @@ safarnak.app/                           # Single root directory
 **Worker (worker/index.ts):**
 ```typescript
 import { readGraphQLSchema } from '@graphql/schema-loader';
-import { resolvers } from './worker';
+import { Query } from './queries';
+import { Mutation } from './mutations';
+import { Subscription } from './subscriptions';
 // GraphQL Yoga server using shared schema + resolvers
 ```
 
@@ -253,16 +260,57 @@ const user = await db.select().from(users).where(eq(users.id, id)).get();
 - Retry when connection restored
 - Optimistic UI updates
 
-### 5. Component Patterns
+### 5. Styling with NativeWind v4 (Tailwind CSS)
+
+**NativeWind Configuration:**
+- `tailwind.config.js` - Tailwind configuration with NativeWind preset
+- `global.css` - Tailwind directives (imported in `app/_layout.tsx`)
+- `babel.config.js` - NativeWind Babel preset
+- `metro.config.js` - NativeWind Metro integration with `withNativeWind()`
+
+**Using Tailwind Classes:**
+```typescript
+import { View, Text } from 'react-native';
+
+export default function MyComponent() {
+  return (
+    <View className="flex-1 bg-white dark:bg-black p-4">
+      <Text className="text-lg text-gray-800 dark:text-gray-200 font-bold">
+        Hello World
+      </Text>
+    </View>
+  );
+}
+```
+
+**Key Features:**
+- Utility-first CSS classes (e.g., `flex-1`, `p-4`, `bg-white`)
+- Dark mode support via `dark:` prefix (e.g., `dark:bg-black`)
+- Responsive design utilities
+- Automatic theme-aware colors using Redux theme state
+
+**Theme Integration:**
+- NativeWind v4 responds to `Appearance.setColorScheme()` changes
+- ThemeContext syncs Redux theme state with React Native Appearance API
+- Dark mode classes automatically applied based on theme state
+
+**Best Practices:**
+- Use Tailwind classes for styling instead of inline styles when possible
+- Combine with theme-aware components (`Themed.tsx`) for complex theming
+- Use `className` prop on React Native components (View, Text, TouchableOpacity, etc.)
+- Prefer Tailwind utilities over custom styles for consistency
+
+### 6. Component Patterns
 
 **Functional Components:**
 ```typescript
 interface Props {
   title: string;
   onPress: () => void;
+  className?: string; // Optional Tailwind classes
 }
 
-export default function MyComponent({ title, onPress }: Props) {
+export default function MyComponent({ title, onPress, className }: Props) {
   // Use hooks
   const { t } = useTranslation();
   
@@ -271,7 +319,11 @@ export default function MyComponent({ title, onPress }: Props) {
     onPress();
   }, [onPress]);
   
-  return <View>...</View>;
+  return (
+    <View className={`p-4 ${className || ''}`}>
+      <Text className="text-base font-semibold">{title}</Text>
+    </View>
+  );
 }
 ```
 
@@ -288,7 +340,7 @@ export default function MyComponent({ title, onPress }: Props) {
 const { currentLanguage, changeLanguage } = useLanguage();
 ```
 
-### 6. TypeScript Standards
+### 7. TypeScript Standards
 
 **Always type:**
 - Function parameters
@@ -308,7 +360,7 @@ const { currentLanguage, changeLanguage } = useLanguage();
 - Generics for reusable components/functions
 - `@ts-expect-error` with explanatory comments
 
-### 6.1. Path Alias Priority
+### 7.1. Path Alias Priority
 
 **NEVER use relative imports** - Always use path aliases:
 - ✅ `@api` instead of `../../api` or `../api`
@@ -319,7 +371,7 @@ const { currentLanguage, changeLanguage } = useLanguage();
 
 This ensures consistent, maintainable imports across the entire codebase.
 
-### 7. Git & Versioning Policy (CI‑driven)
+### 8. Git & Versioning Policy (CI‑driven)
 
 - Version source of truth: `package.json`
 - App version is read dynamically by `app.config.js` (no hardcoded string)
@@ -333,7 +385,7 @@ This ensures consistent, maintainable imports across the entire codebase.
 - Release notes: minimal (version, build, commit, date, install steps). No features/stack tables
 - To force a bump: push a commit with `feat:` (minor) or `fix:` (patch)
 
-### 8. Imports
+### 9. Imports
 
 **Always use path aliases instead of relative imports!**
 
@@ -359,7 +411,7 @@ import { useColorScheme } from '../../hooks/useColorScheme';// Use @hooks
 import { client } from '../api';                            // Use @api
 ```
 
-### 9. Error Handling
+### 10. Error Handling
 
 **GraphQL Resolvers:**
 ```typescript
@@ -451,6 +503,8 @@ const { t } = useTranslation();
 - Defines path aliases
 - Adds .sql file support
 - Configures resolver
+- Integrates NativeWind with `withNativeWind()` wrapper
+- Processes `global.css` for Tailwind
 
 **eslint.config.mjs** - ESLint flat config (ES Module)
 - TypeScript rules
@@ -461,7 +515,27 @@ const { t } = useTranslation();
 **wrangler.toml** - Cloudflare Workers
 - D1 database binding
 - Durable Objects for subscriptions
-- Worker entry point: `worker/index.ts`
+- Worker entry point: `worker/index.ts` (defined in `main` field)
+- Development server on port 8787
+
+**babel.config.js** - Babel configuration
+- Expo preset with NativeWind JSX import source
+- NativeWind Babel preset for Tailwind processing
+- React Native Reanimated plugin
+- React Native Worklets plugin (must be last)
+
+**tailwind.config.js** - Tailwind CSS configuration
+- NativeWind preset for React Native
+- Class-based dark mode enabled
+- Custom colors (primary, danger, success, neutral)
+- Custom font families (Outfit variants)
+- Content paths: `app/**/*.{js,jsx,ts,tsx}`, `components/**/*.{js,jsx,ts,tsx}`
+
+**global.css** - Tailwind directives
+- `@tailwind base` - Base styles
+- `@tailwind components` - Component classes
+- `@tailwind utilities` - Utility classes
+- Imported in `app/_layout.tsx` for global availability
 
 **drizzle.config.ts** - Database
 - Schema location: `drizzle/schema.ts`
@@ -476,10 +550,12 @@ const { t } = useTranslation();
 4. **GraphQL Codegen**: Always run `yarn codegen` after modifying schema or operations
 5. **Worker code is server-only** - Never import from client code
 6. **Use path aliases** - Avoid relative imports
-7. **Run db:migrate before testing** - Ensure schema is up to date
-8. **Clean caches when stuck** - `yarn clean` fixes most issues
-9. **Developer-Friendly TypeScript**: Use `any` type and `@ts-expect-error` when needed for development
-10. **Auto-Generated Files**: Never manually edit `api/hooks.ts` or `api/types.ts`
+7. **Styling with NativeWind**: Use Tailwind CSS classes via `className` prop, not inline styles
+8. **Run db:migrate before testing** - Ensure schema is up to date
+9. **Clean caches when stuck** - `yarn clean` fixes most issues
+10. **Developer-Friendly TypeScript**: Use `any` type and `@ts-expect-error` when needed for development
+11. **Auto-Generated Files**: Never manually edit `api/hooks.ts` or `api/types.ts`
+12. **Worker Entry Point**: Cloudflare Worker entry is `worker/index.ts` (defined in wrangler.toml `main` field)
 
 ## Debugging Tips
 

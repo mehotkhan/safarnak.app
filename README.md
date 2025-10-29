@@ -39,10 +39,11 @@ A full-stack **Android-only** travel app with **perfect separation** between cli
 
 ### Key Concepts
 
-- **Client** (React Native): Expo app with Redux, Apollo Client, offline-first architecture
+- **Client** (React Native): Expo app with Redux, Apollo Client, NativeWind v4 styling, offline-first architecture
 - **Server** (Cloudflare Workers): Serverless GraphQL API with Cloudflare D1 database
 - **Shared** (GraphQL): Type-safe GraphQL schema shared between client and server
 - **Worker-Only** (Drizzle): Database schema only used in worker, never in client
+- **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
 - **Codegen**: Auto-generates TypeScript types and React hooks from GraphQL schema
 
 ---
@@ -181,7 +182,7 @@ yarn android:newarch   # Android (new architecture)
 yarn web               # Web browser
 ```
 
-**Note**: This app is Android-only. iOS support has been removed.
+**Note**: This app primarily targets Android. iOS support is available but not actively tested. The codebase supports iOS/Android/Web through Expo.
 
 ---
 
@@ -219,6 +220,9 @@ store/                  # 📦 Redux state
 constants/              # 📋 App configuration
 hooks/                   # 🪝 Custom React hooks
 locales/                 # 🌍 i18n translations (en, fa)
+global.css              # 🎨 Tailwind CSS directives (NativeWind)
+tailwind.config.js      # 🎨 Tailwind configuration
+babel.config.js         # ⚙️ Babel config (NativeWind preset)
 ```
 
 ### Server-Side
@@ -320,21 +324,27 @@ function ToursScreen() {
 
 ### Adding a New UI Component
 
-1. **Create Component**:
+1. **Create Component** (using NativeWind/Tailwind):
 ```typescript
 // components/TourCard.tsx
+import { View, Text, TouchableOpacity } from 'react-native';
 import { CustomText } from '@components/ui/CustomText';
-import { View } from '@components/ui/Themed';
 
 interface TourCardProps {
   tour: { id: string; name: string };
+  onPress?: () => void;
 }
 
-export default function TourCard({ tour }: TourCardProps) {
+export default function TourCard({ tour, onPress }: TourCardProps) {
   return (
-    <View>
-      <CustomText>{tour.name}</CustomText>
-    </View>
+    <TouchableOpacity 
+      onPress={onPress}
+      className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm mb-3"
+    >
+      <Text className="text-lg font-semibold text-gray-900 dark:text-white">
+        {tour.name}
+      </Text>
+    </TouchableOpacity>
   );
 }
 ```
@@ -441,13 +451,14 @@ yarn lint:fix         # Fix issues
 | **Frontend** | React Native 0.81.5 | Mobile UI |
 | **Backend** | Cloudflare Workers | Serverless API |
 | **Database** | Cloudflare D1 (SQLite) | Server database |
-| **GraphQL** | GraphQL Yoga | API layer |
-| **ORM** | Drizzle 0.44.6 | Type-safe queries (worker-only) |
-| **State** | Redux Toolkit | Client state |
-| **Codegen** | GraphQL Codegen | Auto-generate types |
-| **Router** | Expo Router | File-based routing |
+| **GraphQL** | GraphQL Yoga 5.16.0 | API layer |
+| **ORM** | Drizzle 0.44.7 | Type-safe queries (worker-only) |
+| **Styling** | NativeWind 4.1.21 + Tailwind CSS 3.4.17 | Utility-first CSS |
+| **State** | Redux Toolkit 2.9.2 | Client state |
+| **Codegen** | GraphQL Codegen 6.0.1 | Auto-generate types |
+| **Router** | Expo Router 6.0.13 | File-based routing |
 
-**Full stack**: TypeScript, ESLint, Prettier, React i18n, New Architecture enabled
+**Full stack**: TypeScript 5.9, ESLint, Prettier, React i18next, New Architecture enabled
 
 ---
 
@@ -458,7 +469,9 @@ yarn lint:fix         # Fix issues
 3. **Type Errors**: Run `yarn codegen` to regenerate types
 4. **GraphQL Changes**: Always run `yarn codegen` after schema changes
 5. **Worker Logs**: Check terminal running `yarn worker:dev`
-6. **Worker URL**: `http://127.0.0.1:8787/graphql`
+6. **Worker URL**: `http://127.0.0.1:8787/graphql` (or `http://localhost:8787/graphql`)
+7. **Styling Issues**: Ensure `global.css` is imported in `app/_layout.tsx`, check `tailwind.config.js` content paths
+8. **NativeWind Not Working**: Clear Metro cache and restart: `yarn clean && yarn start`
 
 ---
 
@@ -472,6 +485,53 @@ yarn lint:fix         # Fix issues
 
 **Auth Pages**: `app/auth/login.tsx` and `app/auth/register.tsx`  
 **Auth Guard**: `components/AuthWrapper.tsx`
+
+---
+
+## 🎨 Styling with NativeWind (Tailwind CSS)
+
+Safarnak uses **NativeWind v4** for utility-first styling with Tailwind CSS. This provides a consistent, maintainable styling approach across the app.
+
+### Key Features
+
+- **Utility-first CSS**: Use Tailwind classes directly via `className` prop
+- **Dark mode**: Automatic dark mode support with `dark:` prefix
+- **Theme integration**: Automatically syncs with Redux theme state
+- **Responsive**: Built-in responsive utilities
+
+### Usage Example
+
+```typescript
+import { View, Text } from 'react-native';
+
+export default function MyScreen() {
+  return (
+    <View className="flex-1 bg-white dark:bg-black p-4">
+      <Text className="text-xl font-bold text-gray-900 dark:text-white mb-4">
+        Welcome to Safarnak
+      </Text>
+      <View className="bg-primary rounded-lg p-3">
+        <Text className="text-white text-center">Primary Button</Text>
+      </View>
+    </View>
+  );
+}
+```
+
+### Configuration Files
+
+- `tailwind.config.js` - Tailwind configuration with custom colors and fonts
+- `global.css` - Tailwind directives (imported in `app/_layout.tsx`)
+- `babel.config.js` - NativeWind Babel preset
+- `metro.config.js` - NativeWind Metro integration
+
+### Custom Colors
+
+The app uses custom colors defined in `tailwind.config.js`:
+- `primary` - Main brand color (#30D5C8)
+- `danger` - Error/warning color (#ef4444)
+- `success` - Success color (#10b981)
+- `neutral` - Neutral grays
 
 ---
 
@@ -494,10 +554,10 @@ const { t } = useTranslation();
 
 ### Perfect Separation
 
-- **`graphql/`** - Shared schema and operations
-- **`api/`** - Auto-generated client code only
-- **`worker/`** - Server-only resolvers
-- **`drizzle/`** - Worker-only database schema (not used by client)
+- **`graphql/`** - Shared schema and operations (used by both client & worker)
+- **`api/`** - Auto-generated client code only (client-side GraphQL hooks)
+- **`worker/`** - Server-only resolvers (entry: `worker/index.ts`)
+- **`drizzle/`** - Worker-only database schema (never imported in client code)
 
 ### Auto-Generated Code
 
