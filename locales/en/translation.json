@@ -29,8 +29,8 @@
     "saved": "Saved Locations",
     "language": "Language",
     "theme": "Theme",
-    "lightMode": "Light",
-    "darkMode": "Dark",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
     "notifications": "Notifications",
     "privacy": "Privacy",
     "logout": "Logout",
@@ -52,9 +52,13 @@
     "errors": {
       "title": "Error",
       "fieldsRequired": "Username and password are required",
+      "usernameRequired": "Username is required",
+      "passwordRequired": "Password is required",
+      "passwordTooShort": "Password must be at least 6 characters",
       "userNotFound": "User not found. Please check your username or register a new account.",
       "invalidCredentials": "Invalid username or password",
       "userExists": "User with this username already exists",
+      "createUserFailed": "Failed to create user. Please try again.",
       "networkError": "Network error. Please check your connection.",
       "databaseError": "Database error. Please try again.",
       "offlineError": "Failed to login offline"
@@ -65,6 +69,10 @@
       "registerSuccess": "Account created successfully!",
       "offlineMode": "Offline Mode",
       "offlineMessage": "Logged in offline. Data will sync when connection is restored."
+    },
+    "register": {
+      "title": "Create Account",
+      "subtitle": "Create a new account to get started"
     }
   },
   "welcome": {
