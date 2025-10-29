@@ -20,4 +20,7 @@ config.resolver.extraNodeModules = {
   '@locales': path.resolve(__dirname, 'locales'),
 };
 
+// Use resolver.alias for subpath mapping to ensure Metro resolves correctly
+// No aliases required for NativeWind when using default React JSX runtime
+
 module.exports = withNativeWind(config, { input: './global.css' });
