@@ -1,42 +1,24 @@
-import { Text, View } from '@components/ui/Themed';
+import { CustomText } from '@components/ui/CustomText';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet } from 'react-native';
+import { View, ScrollView } from 'react-native';
 
 export default function TourScreen() {
   const { t } = useTranslation();
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{t('tour.title')}</Text>
-      <View
-        style={styles.separator}
-        lightColor='#eee'
-        darkColor='rgba(255,255,255,0.1)'
-      />
-      <Text style={styles.description}>{t('tour.description')}</Text>
-    </View>
+    <ScrollView className="flex-1 bg-white dark:bg-black">
+      <View className="flex-1 items-center justify-center px-5 py-12">
+        <CustomText
+          weight="bold"
+          className="text-2xl text-black dark:text-white mb-8 text-center"
+        >
+          {t('tour.title')}
+        </CustomText>
+        <View className="h-px w-4/5 bg-gray-300 dark:bg-gray-700 mb-8" />
+        <CustomText className="text-base text-center text-gray-700 dark:text-gray-300 px-5 leading-6">
+          {t('tour.description')}
+        </CustomText>
+      </View>
+    </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginHorizontal: 20,
-    lineHeight: 24,
-  },
-});

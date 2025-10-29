@@ -78,7 +78,7 @@ export default function WelcomeScreen() {
         ))}
       </Swiper>
 
-      <View className="absolute bottom-20 left-0 right-0 px-6 z-20">
+      <View className="absolute bottom-10 left-0 right-0 px-6 z-20 m">
         <CustomButton
           title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
           onPress={() =>

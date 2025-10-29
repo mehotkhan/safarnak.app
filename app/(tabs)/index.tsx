@@ -1,8 +1,7 @@
 import MapView from '@components/MapView';
-import { View } from '@components/ui/Themed';
 import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, View } from 'react-native';
 
 export default function HomeScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(
@@ -26,7 +25,7 @@ export default function HomeScreen() {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
+    <View className="flex-1 bg-white dark:bg-black">
       <MapView location={location} />
     </View>
   );

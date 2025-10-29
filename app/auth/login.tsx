@@ -1,5 +1,5 @@
 import { CustomText } from '@components/ui/CustomText';
-import { View } from '@components/ui/Themed';
+import { View } from 'react-native';
 import CustomButton from '@components/ui/CustomButton';
 import InputField from '@components/ui/InputField';
 import OAuth from '@components/ui/OAuth';
@@ -41,6 +41,18 @@ export default function LoginScreen() {
       const result = await loginMutation({
         variables: { username: username.trim(), password: password.trim() },
       });
+
+      // Check for GraphQL errors first (errorPolicy: 'all' means errors don't throw)
+      const errors = (result as any).errors;
+      if (errors && errors.length > 0) {
+        const errorMessage = errors[0]?.message || '';
+        if (errorMessage.includes('Invalid username or password')) {
+          setErrorMessage(t('login.errors.invalidCredentials'));
+        } else {
+          setErrorMessage(errorMessage || t('login.errors.databaseError'));
+        }
+        return;
+      }
 
       if (result.data?.login) {
         const { user, token } = result.data.login;

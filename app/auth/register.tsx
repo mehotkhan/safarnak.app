@@ -1,5 +1,5 @@
 import { CustomText } from '@components/ui/CustomText';
-import { View } from '@components/ui/Themed';
+import { View } from 'react-native';
 import CustomButton from '@components/ui/CustomButton';
 import InputField from '@components/ui/InputField';
 import OAuth from '@components/ui/OAuth';
@@ -37,10 +37,35 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (password.trim().length < 6) {
+      setErrorMessage(t('login.errors.passwordTooShort'));
+      return;
+    }
+
     try {
       const result = await registerMutation({
         variables: { username: username.trim(), password: password.trim() },
       });
+
+      // Check for GraphQL errors first (errorPolicy: 'all' means errors don't throw)
+      const errors = (result as any).errors;
+      if (errors && errors.length > 0) {
+        const errorMessage = errors[0]?.message || '';
+        
+        // Map server error messages to translated messages
+        if (errorMessage.includes('already exists') || errorMessage.includes('User with this username already exists')) {
+          setErrorMessage(t('login.errors.userExists'));
+        } else if (errorMessage.includes('Username is required')) {
+          setErrorMessage(t('login.errors.usernameRequired'));
+        } else if (errorMessage.includes('Password must be at least 6 characters')) {
+          setErrorMessage(t('login.errors.passwordTooShort'));
+        } else if (errorMessage.includes('Failed to create user') || errorMessage.includes('Failed to retrieve created user')) {
+          setErrorMessage(t('login.errors.createUserFailed'));
+        } else {
+          setErrorMessage(errorMessage || t('login.errors.databaseError'));
+        }
+        return;
+      }
 
       if (result.data?.register) {
         const { user, token } = result.data.register;
@@ -52,8 +77,16 @@ export default function RegisterScreen() {
       }
     } catch (error: any) {
       const message = error?.message || error?.graphQLErrors?.[0]?.message || '';
-      if (message.includes('already exists')) {
+      
+      // Map server error messages to translated messages
+      if (message.includes('already exists') || message.includes('User with this username already exists')) {
         setErrorMessage(t('login.errors.userExists'));
+      } else if (message.includes('Username is required')) {
+        setErrorMessage(t('login.errors.usernameRequired'));
+      } else if (message.includes('Password must be at least 6 characters')) {
+        setErrorMessage(t('login.errors.passwordTooShort'));
+      } else if (message.includes('Failed to create user') || message.includes('Failed to retrieve created user')) {
+        setErrorMessage(t('login.errors.createUserFailed'));
       } else if (error?.networkError) {
         setErrorMessage(t('login.errors.networkError'));
       } else {
@@ -70,10 +103,10 @@ export default function RegisterScreen() {
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-12">
           <CustomText weight='bold' style={{ fontSize: 32, textAlign: 'center', marginBottom: 12, color: '#1a1a1a' }}>
-            {t('login.registerButton')}
+            {t('login.register.title')}
           </CustomText>
           <CustomText style={{ fontSize: 16, textAlign: 'center', color: '#6b7280', lineHeight: 24 }}>
-            Create a new account to get started
+            {t('login.register.subtitle')}
           </CustomText>
         </View>
 
