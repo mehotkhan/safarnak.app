@@ -43,6 +43,7 @@ web-build/
 # ============================================================================
 android/.gradle/
 android/.cxx/
+android/.kotlin/
 android/build/
 android/app/build/
 android/**/build/
@@ -233,4 +234,3 @@ git-toggle.html
 # - README.md
 # - .cursorrules
 # - .gitignore
-android/.kotlin/sessions/kotlin-compiler-9126776779933390962.salive
