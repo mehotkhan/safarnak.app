@@ -319,15 +319,29 @@ jobs:
       - name: Generate commit list
         id: commits
         run: |
-          # Get the latest tag (if exists), otherwise use empty to get all commits
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # Fetch all tags to ensure we have the latest releases
+          git fetch --tags --force 2>/dev/null || true
+          
+          # Get the latest successful release tag (matching pattern vX.Y.Z-buildN)
+          LAST_TAG=$(git tag --sort=-creatordate | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+-build[0-9]+$" | head -n 1 || echo "")
+          
           if [ -z "$LAST_TAG" ]; then
-            # No previous tag, show last 20 commits
-            COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -20)
+            # No previous release tag found, show last 50 commits
+            echo "⚠️ No previous release tag found, showing last 50 commits"
+            COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -50)
           else
-            # Show only commits since last tag to avoid duplicates
-            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)")
+            # Show ALL commits between last successful release and current HEAD
+            # Exclude automatic version bump commits to keep the list clean
+            echo "📋 Finding commits since last successful release: $LAST_TAG"
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)" | grep -v "chore: bump version" || git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)")
+            
+            if [ -z "$COMMITS" ]; then
+              COMMITS="- No new commits since last release (this is likely a rebuild)"
+            fi
           fi
+          
+          echo "✅ Found commits for release notes:"
+          echo "$COMMITS" | head -20
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
