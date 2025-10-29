@@ -319,7 +319,15 @@ jobs:
       - name: Generate commit list
         id: commits
         run: |
-          COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -20)
+          # Get the latest tag (if exists), otherwise use empty to get all commits
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -z "$LAST_TAG" ]; then
+            # No previous tag, show last 20 commits
+            COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -20)
+          else
+            # Show only commits since last tag to avoid duplicates
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)")
+          fi
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -351,7 +359,7 @@ jobs:
             ### 📝 Changes in This Build
             ${{ github.event.head_commit.message }}
 
-            ### 📚 All Commits
+            ### 📚 Commits Since Last Release
             ${{ steps.commits.outputs.commits }}
 
             ### 📱 Installation
