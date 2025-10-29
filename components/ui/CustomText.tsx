@@ -2,15 +2,16 @@ import { useLanguage } from '@components/context/LanguageContext';
 import {
   Text as RNText,
   TextProps as RNTextProps,
-  TextStyle,
 } from 'react-native';
 
 interface CustomTextProps extends RNTextProps {
   weight?: 'regular' | 'medium' | 'bold';
+  className?: string;
 }
 
 export function CustomText({
   weight = 'regular',
+  className = '',
   style,
   ...props
 }: CustomTextProps) {
@@ -31,10 +32,11 @@ export function CustomText({
     }
   }
 
-  const textStyle: TextStyle = {
-    fontFamily,
-    ...(style as TextStyle),
-  };
-
-  return <RNText style={textStyle} {...props} />;
+  return (
+    <RNText
+      className={className}
+      style={[{ fontFamily }, style]}
+      {...props}
+    />
+  );
 }

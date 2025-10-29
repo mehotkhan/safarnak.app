@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 import { useLanguage } from './LanguageContext';
 
@@ -13,74 +13,27 @@ export function LanguageSwitcher() {
   ];
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>{t('profile.language')}</Text>
-      <View style={styles.languageButtons}>
-        {languages.map(lang => (
-          <TouchableOpacity
-            key={lang.code}
-            style={[
-              styles.languageButton,
-              currentLanguage === lang.code && styles.activeLanguageButton,
-            ]}
-            onPress={() => changeLanguage(lang.code)}
+    <View className="flex-row gap-2">
+      {languages.map(lang => (
+        <TouchableOpacity
+          key={lang.code}
+          onPress={() => changeLanguage(lang.code)}
+          className={`flex-row items-center px-5 py-2 rounded-full border-2 ${
+            currentLanguage === lang.code
+              ? 'bg-blue-100 border-blue-500'
+              : 'bg-gray-100 border-gray-300'
+          }`}
+        >
+          <Text className="text-xl mr-2">{lang.flag}</Text>
+          <Text
+            className={`text-base font-medium ${
+              currentLanguage === lang.code ? 'text-blue-600' : 'text-gray-700'
+            }`}
           >
-            <Text style={styles.flag}>{lang.flag}</Text>
-            <Text
-              style={[
-                styles.languageText,
-                currentLanguage === lang.code && styles.activeLanguageText,
-              ]}
-            >
-              {lang.name}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+            {lang.name}
+          </Text>
+        </TouchableOpacity>
+      ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    marginVertical: 20,
-    paddingHorizontal: 20,
-  },
-  label: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-  languageButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
-  languageButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 25,
-    borderWidth: 2,
-    borderColor: '#ddd',
-    backgroundColor: '#f9f9f9',
-  },
-  activeLanguageButton: {
-    borderColor: '#2f95dc',
-    backgroundColor: '#e3f2fd',
-  },
-  flag: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  languageText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-  },
-  activeLanguageText: {
-    color: '#2f95dc',
-    fontWeight: '600',
-  },
-});

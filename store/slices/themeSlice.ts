@@ -8,7 +8,7 @@ interface ThemeState {
 }
 
 const initialState: ThemeState = {
-  mode: 'system',
+  mode: 'light', // Default to light mode
   isDark: false,
 };
 

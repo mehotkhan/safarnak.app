@@ -1,129 +1,38 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import React, { useRef, useEffect } from 'react';
-import {
-  View,
-  StyleSheet,
-  TouchableOpacity,
-  ActivityIndicator,
-  Text,
-} from 'react-native';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { View, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import { WebView } from 'react-native-webview';
+import { useColorScheme } from '@hooks/useColorScheme';
 
 interface MapViewProps {
   location: Location.LocationObject | null;
-  onLocationUpdate?: (location: Location.LocationObject) => void;
 }
 
+type MapLayer = 'standard' | 'satellite' | 'terrain';
+
+const MAP_LAYERS = {
+  standard: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  terrain: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
+} as const;
+
+const DEFAULT_CENTER = { latitude: 35.6892, longitude: 51.3890 }; // Tehran, Iran
+
 export default function MapView({ location }: MapViewProps) {
-  const [isMapLoading, setIsMapLoading] = React.useState(true);
-  const [mapLayer, setMapLayer] = React.useState<
-    'standard' | 'satellite' | 'terrain'
-  >('standard');
+  const [isMapLoading, setIsMapLoading] = useState(true);
+  const [mapLayer, setMapLayer] = useState<MapLayer>('standard');
   const webViewRef = useRef<WebView>(null);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
 
-  useEffect(() => {
-    if (location && webViewRef.current) {
-      // Update map center when location is available
-      const script = `
-        if (typeof map !== 'undefined') {
-          map.setView([${location.coords.latitude}, ${location.coords.longitude}], 13);
-          if (typeof marker !== 'undefined') {
-            marker.setLatLng([${location.coords.latitude}, ${location.coords.longitude}]);
-          } else {
-            marker = L.marker([${location.coords.latitude}, ${location.coords.longitude}])
-              .addTo(map)
-              .bindPopup('Your Location')
-              .openPopup();
-          }
-        }
-      `;
-      webViewRef.current.injectJavaScript(script);
-    }
-  }, [location]);
+  // Generate HTML content for the map
+  const generateMapHTML = useCallback(() => {
+    const lat = location?.coords.latitude || DEFAULT_CENTER.latitude;
+    const lng = location?.coords.longitude || DEFAULT_CENTER.longitude;
+    const hasLocation = !!location;
 
-  const handleZoomIn = () => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (typeof map !== 'undefined') {
-          map.zoomIn();
-        }
-        true;
-      `);
-    }
-  };
-
-  const handleZoomOut = () => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (typeof map !== 'undefined') {
-          map.zoomOut();
-        }
-        true;
-      `);
-    }
-  };
-
-  const handleCenterLocation = () => {
-    if (location && webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (typeof map !== 'undefined') {
-          map.setView([${location.coords.latitude}, ${location.coords.longitude}], 15);
-          if (typeof marker !== 'undefined') {
-            marker.setLatLng([${location.coords.latitude}, ${location.coords.longitude}]);
-            marker.openPopup();
-          } else {
-            marker = L.marker([${location.coords.latitude}, ${location.coords.longitude}])
-              .addTo(map)
-              .bindPopup('Your Location')
-              .openPopup();
-          }
-        }
-        true;
-      `);
-    }
-  };
-
-  const handleMapLayerChange = () => {
-    const layers = ['standard', 'satellite', 'terrain'] as const;
-    const currentIndex = layers.indexOf(mapLayer);
-    const nextIndex = (currentIndex + 1) % layers.length;
-    const newLayer = layers[nextIndex];
-    if (newLayer) {
-      setMapLayer(newLayer);
-    }
-
-    if (webViewRef.current) {
-      let tileUrl = '';
-
-      switch (newLayer) {
-        case 'standard':
-          tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-          break;
-        case 'satellite':
-          tileUrl =
-            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
-          break;
-        case 'terrain':
-          tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
-          break;
-      }
-
-      webViewRef.current.injectJavaScript(`
-        if (typeof map !== 'undefined' && typeof currentTileLayer !== 'undefined') {
-          map.removeLayer(currentTileLayer);
-          currentTileLayer = L.tileLayer('${tileUrl}', {
-            attribution: '',
-            maxZoom: 19,
-            minZoom: 2
-          }).addTo(map);
-        }
-        true;
-      `);
-    }
-  };
-
-  const htmlContent = `
+    return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -140,12 +49,8 @@ export default function MapView({ location }: MapViewProps) {
     html, body { height: 100%; width: 100%; overflow: hidden; }
     #map { 
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0; right: 0; bottom: 0;
+      width: 100%; height: 100%;
     }
   </style>
 </head>
@@ -154,175 +59,162 @@ export default function MapView({ location }: MapViewProps) {
   <script>
     try {
       var map = L.map('map', {
-        center: [${location?.coords.latitude || 37.78825}, ${location?.coords.longitude || -122.4324}],
+        center: [${lat}, ${lng}],
         zoom: 13,
         zoomControl: false
       });
       
-      var currentTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      var currentTileLayer = L.tileLayer('${MAP_LAYERS.standard}', {
         attribution: '',
         maxZoom: 19,
         minZoom: 2
       }).addTo(map);
 
-      var marker;
-      ${
-        location
-          ? `
-        marker = L.marker([${location.coords.latitude}, ${location.coords.longitude}], {
-          title: 'Your Location'
-        })
-          .addTo(map)
-          .bindPopup('<b>Your Location</b>')
-          .openPopup();
-      `
-          : ''
-      }
+      var marker${hasLocation ? ` = L.marker([${lat}, ${lng}]).addTo(map).bindPopup('<b>Your Location</b>').openPopup()` : ''};
       
-      // Force map to invalidate size after load
-      setTimeout(function() {
-        map.invalidateSize();
-      }, 100);
+      setTimeout(() => map.invalidateSize(), 100);
     } catch (error) {
-      // Handle map initialization error silently
+      console.error('Map initialization error:', error);
     }
   </script>
 </body>
 </html>`;
+  }, [location]);
+
+  // Update marker position when location changes
+  useEffect(() => {
+    if (!location || !webViewRef.current) return;
+
+    const { latitude, longitude } = location.coords;
+    webViewRef.current.injectJavaScript(`
+      if (typeof map !== 'undefined') {
+        map.setView([${latitude}, ${longitude}], map.getZoom());
+        if (typeof marker !== 'undefined') {
+          marker.setLatLng([${latitude}, ${longitude}]);
+        } else {
+          marker = L.marker([${latitude}, ${longitude}])
+            .addTo(map)
+            .bindPopup('<b>Your Location</b>')
+            .openPopup();
+        }
+      }
+      true;
+    `);
+  }, [location]);
+
+  // Map control handlers
+  const executeMapCommand = useCallback((command: string) => {
+    webViewRef.current?.injectJavaScript(`
+      if (typeof map !== 'undefined') {
+        ${command}
+      }
+      true;
+    `);
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    executeMapCommand('map.zoomIn();');
+  }, [executeMapCommand]);
+
+  const handleZoomOut = useCallback(() => {
+    executeMapCommand('map.zoomOut();');
+  }, [executeMapCommand]);
+
+  const handleCenterLocation = useCallback(() => {
+    if (!location) return;
+    
+    const { latitude, longitude } = location.coords;
+    executeMapCommand(`
+      map.setView([${latitude}, ${longitude}], 15);
+      if (typeof marker !== 'undefined') {
+        marker.setLatLng([${latitude}, ${longitude}]).openPopup();
+      }
+    `);
+  }, [location, executeMapCommand]);
+
+  const handleMapLayerChange = useCallback(() => {
+    const layers: MapLayer[] = ['standard', 'satellite', 'terrain'];
+    const currentIndex = layers.indexOf(mapLayer);
+    const nextLayer = layers[(currentIndex + 1) % layers.length] as MapLayer;
+    
+    setMapLayer(nextLayer);
+    
+    executeMapCommand(`
+      if (typeof currentTileLayer !== 'undefined') {
+        map.removeLayer(currentTileLayer);
+        currentTileLayer = L.tileLayer('${MAP_LAYERS[nextLayer]}', {
+          attribution: '',
+          maxZoom: 19,
+          minZoom: 2
+        }).addTo(map);
+      }
+    `);
+  }, [mapLayer, executeMapCommand]);
 
   return (
-    <View style={styles.container}>
+    <View className="flex-1">
+      {/* Loading Indicator */}
       {isMapLoading && (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size='large' color='#0000ff' />
-          <Text style={styles.loadingText}>Loading Map...</Text>
+        <View className="absolute inset-0 justify-center items-center bg-white/90 dark:bg-black/90 z-[1000]">
+          <ActivityIndicator size="large" color="#8b5cf6" />
+          <Text className="mt-2.5 text-base text-gray-800 dark:text-gray-200">
+            Loading Map...
+          </Text>
         </View>
       )}
+
+      {/* Map WebView */}
       <WebView
         ref={webViewRef}
-        source={{
-          html: htmlContent,
-          baseUrl: 'https://openstreetmap.org',
-        }}
-        style={styles.map}
+        source={{ html: generateMapHTML(), baseUrl: 'https://openstreetmap.org' }}
+        className="flex-1"
         javaScriptEnabled={true}
         domStorageEnabled={true}
         originWhitelist={['*']}
-        allowsInlineMediaPlayback={true}
-        mediaPlaybackRequiresUserAction={false}
         startInLoadingState={true}
         onLoadEnd={() => setIsMapLoading(false)}
-        onError={() => {
-          setIsMapLoading(false);
-        }}
-        onHttpError={() => {
-          // Handle HTTP errors silently
-        }}
-        onMessage={() => {
-          // Handle messages silently
-        }}
+        onError={() => setIsMapLoading(false)}
       />
 
       {/* Map Controls */}
-      <View style={styles.controlsContainer}>
+      <View className="absolute bottom-8 right-5 flex-col z-[100] gap-2">
+        {/* Zoom In */}
         <TouchableOpacity
-          style={styles.controlButton}
+          className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"
           onPress={handleZoomIn}
-          activeOpacity={0.5}
+          activeOpacity={0.7}
         >
-          <Ionicons name='add' size={20} color='#333' />
+          <Ionicons name="add" size={24} color={isDark ? '#fff' : '#333'} />
         </TouchableOpacity>
 
+        {/* Zoom Out */}
         <TouchableOpacity
-          style={[styles.controlButton, styles.buttonSpacing]}
+          className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"
           onPress={handleZoomOut}
-          activeOpacity={0.5}
+          activeOpacity={0.7}
         >
-          <Ionicons name='remove' size={20} color='#333' />
+          <Ionicons name="remove" size={24} color={isDark ? '#fff' : '#333'} />
         </TouchableOpacity>
 
+        {/* Center on Location */}
         <TouchableOpacity
-          style={[
-            styles.controlButton,
-            styles.centerButton,
-            styles.buttonSpacing,
-          ]}
+          className="w-12 h-12 rounded-full bg-purple-500 justify-center items-center shadow-lg"
           onPress={handleCenterLocation}
-          activeOpacity={0.5}
+          activeOpacity={0.7}
+          disabled={!location}
         >
-          <Ionicons name='locate' size={20} color='#FFFFFF' />
+          <Ionicons name="locate" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
+        {/* Change Map Layer */}
         <TouchableOpacity
-          style={[
-            styles.controlButton,
-            styles.layerButton,
-            styles.buttonSpacing,
-          ]}
+          className="w-12 h-12 rounded-full bg-blue-500 justify-center items-center shadow-lg"
           onPress={handleMapLayerChange}
-          activeOpacity={0.5}
+          activeOpacity={0.7}
         >
-          <Ionicons name='layers' size={20} color='#333' />
+          <Ionicons name="layers" size={24} color="#FFFFFF" />
         </TouchableOpacity>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    zIndex: 1000,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-  },
-  controlsContainer: {
-    position: 'absolute',
-    bottom: 30,
-    right: 20,
-    flexDirection: 'column',
-    zIndex: 100,
-    backgroundColor: 'transparent',
-  },
-  controlButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 0,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 5,
-  },
-  buttonSpacing: {
-    marginTop: 8,
-  },
-  centerButton: {
-    backgroundColor: 'rgba(74, 144, 226, 0.9)',
-  },
-  layerButton: {
-    backgroundColor: 'rgba(255, 193, 7, 0.9)',
-  },
-});

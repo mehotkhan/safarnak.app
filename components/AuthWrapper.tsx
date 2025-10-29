@@ -5,7 +5,6 @@ import { ActivityIndicator, View } from 'react-native';
 
 import { restoreUser, setLoading } from '@store/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
-// Drizzle removed from client restore path; rely on AsyncStorage only
 
 const USER_STORAGE_KEY = '@safarnak_user';
 
@@ -54,8 +53,8 @@ export default function AuthWrapper({
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size='large' color='#2f95dc' />
+      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
+        <ActivityIndicator size="large" color="#8b5cf6" />
       </View>
     );
   }

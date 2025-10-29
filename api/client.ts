@@ -27,8 +27,8 @@ const getGraphQLURI = (): string => {
       console.log('Using development GraphQL URL from env:', devUrl);
       return devUrl;
     }
-    // Fallback to hardcoded development URL
-    console.log('Using hardcoded development GraphQL URL');
+    // Fallback to local Wrangler server (matches Wrangler network binding)
+    console.log('Using local Wrangler GraphQL URL');
     return 'http://192.168.1.51:8787/graphql';
   } else {
     // Production - use your custom domain
@@ -43,10 +43,6 @@ console.log('GraphQL URI:', GRAPHQL_URI);
 
 const httpLink = createHttpLink({
   uri: GRAPHQL_URI,
-  // Add timeout and error handling for production
-  fetchOptions: {
-    timeout: 30000, // 30 second timeout
-  },
   // Add error handling
   fetch: (uri, options) => {
     console.log('GraphQL Request:', { uri, options });

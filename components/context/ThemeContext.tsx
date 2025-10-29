@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useContext, useEffect } from 'react';
-import { useColorScheme } from 'react-native';
+import { Appearance, useColorScheme as useSystemColorScheme } from 'react-native';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -25,7 +25,13 @@ interface ThemeProviderProps {
 export function ThemeProvider({ children }: ThemeProviderProps) {
   const dispatch = useAppDispatch();
   const { isDark, mode: themeMode } = useAppSelector(state => state.theme);
-  const systemColorScheme = useColorScheme();
+  const systemColorScheme = useSystemColorScheme();
+
+  // Sync React Native Appearance color scheme with Redux theme state
+  // NativeWind v4 automatically responds to Appearance.setColorScheme changes
+  useEffect(() => {
+    Appearance.setColorScheme(isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   // Update theme based on system preference when mode is 'system'
   useEffect(() => {
