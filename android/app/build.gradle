@@ -92,8 +92,8 @@ android {
         applicationId 'ir.mohet.safarnak_debug'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 700
-        versionName "0.7.0"
+        versionCode 800
+        versionName "0.8.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
