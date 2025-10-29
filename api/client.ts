@@ -5,34 +5,35 @@ import Constants from 'expo-constants';
 
 // Get GraphQL URL from environment variables or fallback to defaults
 const getGraphQLURI = (): string => {
-  // Priority 1: Check EAS build environment variables
+  // Priority 1: Check EAS build environment variables from app.config.js
   const envGraphQLUrl = Constants.expoConfig?.extra?.graphqlUrl;
   if (envGraphQLUrl) {
-    console.log('Using EAS GraphQL URL:', envGraphQLUrl);
+    console.log('📡 Using GraphQL URL from app.config.js:', envGraphQLUrl);
     return envGraphQLUrl;
   }
 
-  // Priority 2: Check process.env variables (from .env file)
+  // Priority 2: Check process.env variables (from .env file) - only works in development
   const processEnvGraphQLUrl = process.env.GRAPHQL_URL;
-  if (processEnvGraphQLUrl) {
-    console.log('Using process.env GraphQL URL:', processEnvGraphQLUrl);
+  if (processEnvGraphQLUrl && __DEV__) {
+    console.log('📡 Using process.env GraphQL URL (dev only):', processEnvGraphQLUrl);
     return processEnvGraphQLUrl;
   }
 
-  // Priority 3: Fallback to development/production detection
-  if (process.env.NODE_ENV === 'development') {
-    // Check for development-specific URL
+  // Priority 3: Use __DEV__ flag (React Native's development mode indicator)
+  // This is reliable because it's set by Metro bundler and React Native
+  if (__DEV__) {
+    // Development mode - check for development-specific URL
     const devUrl = process.env.GRAPHQL_URL_DEV;
     if (devUrl) {
-      console.log('Using development GraphQL URL from env:', devUrl);
+      console.log('📡 Using development GraphQL URL from env:', devUrl);
       return devUrl;
     }
     // Fallback to local Wrangler server (matches Wrangler network binding)
-    console.log('Using local Wrangler GraphQL URL');
+    console.log('📡 Using local Wrangler GraphQL URL (dev mode)');
     return 'http://192.168.1.51:8787/graphql';
   } else {
-    // Production - use your custom domain
-    console.log('Using hardcoded production GraphQL URL');
+    // Production build (__DEV__ = false) - always use production URL
+    console.log('📡 Using production GraphQL URL');
     return 'https://safarnak.mohet.ir/graphql';
   }
 };
