@@ -92,8 +92,8 @@ android {
         applicationId 'ir.mohet.safarnak_debug'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0.0"
+        versionCode 700
+        versionName "0.7.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -126,17 +126,12 @@ android {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
+        // Handle duplicate native libraries
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
-    }
-    
-    lint {
-        // Disable lint tasks that cause issues in CI environments
-        checkReleaseBuilds false
-        abortOnError false
-        ignoreWarnings true
-        quiet true
     }
 }
 
@@ -159,6 +154,9 @@ android {
         }
     }
 }
+
+// react-native-worklets Android platform is disabled via react-native.config.js
+// We only need it for Babel plugin, react-native-reanimated provides native worklets
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
