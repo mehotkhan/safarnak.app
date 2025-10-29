@@ -1,6 +1,6 @@
 {
   "name": "safarnak-app",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "main": "expo-router/entry",
   "scripts": {
     "dev": "concurrently -k -n worker,expo -c yellow,cyan \"yarn worker:dev\" \"yarn start\"",
