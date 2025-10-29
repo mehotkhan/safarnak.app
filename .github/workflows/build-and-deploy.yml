@@ -10,8 +10,6 @@ on:
       - 'package.json'
       - 'yarn.lock'
       - '.github/workflows/build-and-deploy.yml'
-      - 'graphql/**'
-      - 'drizzle/**'
   release:
     types: [published]
   workflow_dispatch:
@@ -73,42 +71,15 @@ jobs:
           yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
           echo "Dependencies installed successfully"
 
-      - name: Verify GraphQL Codegen installation
+      - name: Verify required API files exist
         run: |
-          echo "Checking GraphQL Codegen installation..."
-          npx graphql-codegen --version || echo "GraphQL Codegen not found"
-          echo "Checking codegen.yml..."
-          ls -la codegen.yml || echo "codegen.yml not found"
-
-      - name: Generate GraphQL types and hooks
-        run: |
-          echo "Generating GraphQL types and hooks..."
-          yarn codegen || echo "GraphQL codegen failed, continuing..."
-          echo "GraphQL codegen completed"
-
-      - name: Verify Drizzle Kit installation
-        run: |
-          echo "Checking Drizzle Kit installation..."
-          npx drizzle-kit --version || echo "Drizzle Kit not found"
-          echo "Checking drizzle.config.ts..."
-          ls -la drizzle.config.ts || echo "drizzle.config.ts not found"
-
-      - name: Generate database migrations
-        run: |
-          echo "Generating database migrations..."
-          yarn db:generate || echo "No new migrations needed"
-          echo "Database migration generation completed"
-
-      - name: Verify generated files
-        run: |
-          echo "Checking generated files..."
-          echo "API types file:"
-          ls -la api/types.ts || echo "api/types.ts not found"
-          echo "API hooks file:"
-          ls -la api/hooks.ts || echo "api/hooks.ts not found"
-          echo "GraphQL schema declarations:"
-          ls -la graphql/generated/schema.d.ts || echo "graphql/generated/schema.d.ts not found"
-          echo "Generated files check completed"
+          echo "Verifying required API files for Android build..."
+          if [ ! -f "api/types.ts" ] || [ ! -f "api/hooks.ts" ]; then
+            echo "❌ Error: Required API files (api/types.ts, api/hooks.ts) are missing!"
+            echo "Please run 'yarn codegen' locally and commit the generated files."
+            exit 1
+          fi
+          echo "✅ Required API files found"
 
       - name: Determine semantic version bump
         id: version_bump
