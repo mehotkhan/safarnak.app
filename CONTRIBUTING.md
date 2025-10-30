@@ -217,6 +217,36 @@ docs: update GraphQL schema documentation
 refactor: reorganize API folder structure
 ```
 
+## 🌿 Branching & Merge Policy (Cursor Rule)
+
+For every feature or fix, follow this workflow:
+
+1. Create a branch from `master`:
+
+   - Features: `feat/<short-name>` (e.g., `feat/router-restructure`)
+   - Fixes: `fix/<short-name>`
+   - Chores/Docs: `chore/<short-name>`, `docs/<short-name>`
+
+2. Implement changes with multiple small, logical commits:
+
+   - Keep headers ≤100 chars (commitlint enforced)
+   - Use scopes: `router`, `i18n`, `ui`, `auth`, `graphql`, `database`, etc.
+   - Example: `feat(router): add (auth) and (app) route groups`
+
+3. Before each commit (hooks run automatically):
+
+   - Type check: `npx tsc --noEmit`
+   - Lint: `yarn lint`
+
+4. Open a PR to `master` when ready. Debug and iterate on the branch.
+
+5. After review and local verification, merge to `master`.
+
+   - Pushes to `master` should only be via PR merges
+   - Do not push feature branches directly to `master`
+
+This policy ensures stable mainline development while enabling iterative, well-scoped changes.
+
 ## 🐛 Bug Reports
 
 When reporting bugs, please include:
