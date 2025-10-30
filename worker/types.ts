@@ -20,6 +20,13 @@ export interface Env {
 export type ResolverContext = DefaultPublishableContext<Env>;
 
 /**
+ * Alias for GraphQL resolver context (for compatibility)
+ */
+export type GraphQLContext = ResolverContext & {
+  userId?: number; // Optional user ID from auth token
+};
+
+/**
  * Base resolver function type
  */
 export type ResolverFn<TArgs = unknown, TResult = unknown> = (

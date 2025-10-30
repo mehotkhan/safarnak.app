@@ -10,10 +10,31 @@ export type AddMessageMutationVariables = Exact<{
 
 export type AddMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Message', id: string, content: string, createdAt: string } };
 
+export type CreateTripMutationVariables = Exact<{
+  input: CreateTripInput;
+}>;
+
+
+export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
+
 export type GetMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetMessagesQuery = { __typename?: 'Query', getMessages: Array<{ __typename?: 'Message', id: string, content: string, createdAt: string }> };
+
+export type GetTripQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetTripQuery = { __typename?: 'Query', getTrip?: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } | null };
+
+export type GetTripsQueryVariables = Exact<{
+  status?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetTripsQuery = { __typename?: 'Query', getTrips: Array<{ __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, budget?: number | null, accommodation?: string | null, createdAt: string, updatedAt: string }> };
 
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -72,6 +93,51 @@ export function useAddMessageMutation(baseOptions?: Apollo.MutationHookOptions<A
 export type AddMessageMutationHookResult = ReturnType<typeof useAddMessageMutation>;
 export type AddMessageMutationResult = Apollo.MutationResult<AddMessageMutation>;
 export type AddMessageMutationOptions = Apollo.BaseMutationOptions<AddMessageMutation, AddMessageMutationVariables>;
+export const CreateTripDocument = gql`
+    mutation CreateTrip($input: CreateTripInput!) {
+  createTrip(input: $input) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    accommodation
+    aiReasoning
+    coordinates {
+      latitude
+      longitude
+    }
+  }
+}
+    `;
+export type CreateTripMutationFn = Apollo.MutationFunction<CreateTripMutation, CreateTripMutationVariables>;
+
+/**
+ * __useCreateTripMutation__
+ *
+ * To run a mutation, you first call `useCreateTripMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTripMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTripMutation, { data, loading, error }] = useCreateTripMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateTripMutation(baseOptions?: Apollo.MutationHookOptions<CreateTripMutation, CreateTripMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateTripMutation, CreateTripMutationVariables>(CreateTripDocument, options);
+      }
+export type CreateTripMutationHookResult = ReturnType<typeof useCreateTripMutation>;
+export type CreateTripMutationResult = Apollo.MutationResult<CreateTripMutation>;
+export type CreateTripMutationOptions = Apollo.BaseMutationOptions<CreateTripMutation, CreateTripMutationVariables>;
 export const GetMessagesDocument = gql`
     query GetMessages {
   getMessages {
@@ -113,6 +179,115 @@ export type GetMessagesQueryHookResult = ReturnType<typeof useGetMessagesQuery>;
 export type GetMessagesLazyQueryHookResult = ReturnType<typeof useGetMessagesLazyQuery>;
 export type GetMessagesSuspenseQueryHookResult = ReturnType<typeof useGetMessagesSuspenseQuery>;
 export type GetMessagesQueryResult = Apollo.QueryResult<GetMessagesQuery, GetMessagesQueryVariables>;
+export const GetTripDocument = gql`
+    query GetTrip($id: ID!) {
+  getTrip(id: $id) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    accommodation
+    aiReasoning
+    itinerary {
+      day
+      title
+      activities
+    }
+    coordinates {
+      latitude
+      longitude
+    }
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetTripQuery__
+ *
+ * To run a query within a React component, call `useGetTripQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTripQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTripQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetTripQuery(baseOptions: Apollo.QueryHookOptions<GetTripQuery, GetTripQueryVariables> & ({ variables: GetTripQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTripQuery, GetTripQueryVariables>(GetTripDocument, options);
+      }
+export function useGetTripLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTripQuery, GetTripQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTripQuery, GetTripQueryVariables>(GetTripDocument, options);
+        }
+export function useGetTripSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTripQuery, GetTripQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTripQuery, GetTripQueryVariables>(GetTripDocument, options);
+        }
+export type GetTripQueryHookResult = ReturnType<typeof useGetTripQuery>;
+export type GetTripLazyQueryHookResult = ReturnType<typeof useGetTripLazyQuery>;
+export type GetTripSuspenseQueryHookResult = ReturnType<typeof useGetTripSuspenseQuery>;
+export type GetTripQueryResult = Apollo.QueryResult<GetTripQuery, GetTripQueryVariables>;
+export const GetTripsDocument = gql`
+    query GetTrips($status: String) {
+  getTrips(status: $status) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    budget
+    accommodation
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetTripsQuery__
+ *
+ * To run a query within a React component, call `useGetTripsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTripsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTripsQuery({
+ *   variables: {
+ *      status: // value for 'status'
+ *   },
+ * });
+ */
+export function useGetTripsQuery(baseOptions?: Apollo.QueryHookOptions<GetTripsQuery, GetTripsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTripsQuery, GetTripsQueryVariables>(GetTripsDocument, options);
+      }
+export function useGetTripsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTripsQuery, GetTripsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTripsQuery, GetTripsQueryVariables>(GetTripsDocument, options);
+        }
+export function useGetTripsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTripsQuery, GetTripsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTripsQuery, GetTripsQueryVariables>(GetTripsDocument, options);
+        }
+export type GetTripsQueryHookResult = ReturnType<typeof useGetTripsQuery>;
+export type GetTripsLazyQueryHookResult = ReturnType<typeof useGetTripsLazyQuery>;
+export type GetTripsSuspenseQueryHookResult = ReturnType<typeof useGetTripsSuspenseQuery>;
+export type GetTripsQueryResult = Apollo.QueryResult<GetTripsQuery, GetTripsQueryVariables>;
 export const LoginDocument = gql`
     mutation Login($username: String!, $password: String!) {
   login(username: $username, password: $password) {
