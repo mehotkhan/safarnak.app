@@ -3,15 +3,6 @@ name: Build Android APK
 on:
   push:
     branches: [master, main]
-    paths:
-      - 'app/**'
-      - 'components/**'
-      - 'android/**'
-      - 'package.json'
-      - 'yarn.lock'
-      - '.github/workflows/build-and-deploy.yml'
-  release:
-    types: [published]
   workflow_dispatch:
     inputs:
       build_type:
@@ -91,27 +82,61 @@ jobs:
           const cp = require('child_process');
           const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
           const current = pkg.version.trim();
+          
+          // Get commit message
           let msg = process.env.COMMIT_MSG || '';
           if (!msg || msg === 'null') {
             try { msg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
           }
+          
+          // Skip bump if commit has [skip ci] or is a version bump commit
+          if (msg.includes('[skip ci]') || msg.includes('chore: bump version') || msg.includes('chore(release)')) {
+            console.log('⏭️  Skipping version bump (version commit or [skip ci])');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${current}\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=skip\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=false\n`);
+            process.exit(0);
+          }
+          
+          // Determine bump type
           let bump = 'build';
           const m = current.split('.').map(n=>parseInt(n,10)||0);
-          if (/^(feat|feature)(\(|:)/.test(msg)) { m[1]+=1; m[2]=0; bump='minor'; }
-          else if (/^(fix|bugfix)(\(|:)/.test(msg)) { m[2]+=1; bump='patch'; }
+          if (/^(feat|feature)(\(|:)/.test(msg)) { 
+            m[1]+=1; 
+            m[2]=0; 
+            bump='minor'; 
+          } else if (/^(fix|bugfix)(\(|:)/.test(msg)) { 
+            m[2]+=1; 
+            bump='patch'; 
+          }
+          
           const next = bump==='build' ? current : `${m[0]}.${m[1]}.${m[2]}`;
+          const shouldRelease = bump !== 'build';
+          
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${next}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=${bump}\n`);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `major=${m[0]}\nminor=${m[1]}\npatch=${m[2]}\n`);
-          console.log(`Current: ${current} -> Next: ${next} (${bump})`);
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=${shouldRelease}\n`);
+          
+          console.log(`📦 Current: ${current} -> Next: ${next} (${bump})`);
+          if (shouldRelease) console.log('✅ Will create new release');
+          else console.log('ℹ️  Build-only (no version change)');
           NODE
 
-      - name: Apply version bump (update package.json)
-        if: steps.version_bump.outputs.bump_type != 'build'
+      - name: Apply version bump (update package.json and app.config.js)
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
           NEW_VERSION=${{ steps.version_bump.outputs.version }}
-          node -e "const fs=require('fs'); const p='package.json'; const pkg=JSON.parse(fs.readFileSync(p,'utf8')); pkg.version='${NEW_VERSION}'; fs.writeFileSync(p, JSON.stringify(pkg,null,2)+'\n');"
-          echo "✅ package.json set to ${NEW_VERSION}"
+          
+          # Update package.json
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '${NEW_VERSION}';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+            console.log('✅ package.json updated to ${NEW_VERSION}');
+          "
+          
+          echo "✅ Version files updated to ${NEW_VERSION}"
 
       - name: Calculate version code for Android
         id: version_code
@@ -314,60 +339,63 @@ jobs:
           retention-days: 30
           compression-level: 0
           
-      - name: Generate commit list
+      - name: Generate commit list for release notes
         id: commits
         run: |
           # Fetch all tags to ensure we have the latest releases
           git fetch --tags --force 2>/dev/null || true
           
-          # Get the latest successful release tag (matching pattern vX.Y.Z-buildN)
-          LAST_TAG=$(git tag --sort=-creatordate | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+-build[0-9]+$" | head -n 1 || echo "")
+          # Get the latest release tag (matching pattern vX.Y.Z)
+          LAST_TAG=$(git tag --sort=-version:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 1 || echo "")
           
           if [ -z "$LAST_TAG" ]; then
-            # No previous release tag found, show last 50 commits
-            echo "⚠️ No previous release tag found, showing last 50 commits"
-            COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -50)
+            # No previous release tag found, show last 20 commits
+            echo "⚠️ No previous release tag found, showing last 20 commits"
+            COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -20)
           else
-            # Show ALL commits between last successful release and current HEAD
-            # Exclude automatic version bump commits to keep the list clean
-            echo "📋 Finding commits since last successful release: $LAST_TAG"
-            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)" | grep -v "chore: bump version" || git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)")
+            # Show commits between last release and current HEAD
+            # Exclude automatic version bump commits and [skip ci] commits
+            echo "📋 Finding commits since last release: $LAST_TAG"
+            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)" | \
+              grep -v "chore: bump version" | \
+              grep -v "chore(release)" | \
+              grep -v "\[skip ci\]" || echo "")
             
             if [ -z "$COMMITS" ]; then
-              COMMITS="- No new commits since last release (this is likely a rebuild)"
+              COMMITS="- No new commits since last release"
             fi
           fi
           
-          echo "✅ Found commits for release notes:"
+          echo "✅ Commits for release notes:"
           echo "$COMMITS" | head -20
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Commit version bump if changed
-        if: steps.version_bump.outputs.bump_type != 'build'
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add package.json app.config.js
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json
           git commit -m "chore: bump version to ${{ steps.version_code.outputs.version }} [skip ci]" || echo "No changes to commit"
           git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
-        if: steps.version_bump.outputs.bump_type != 'build'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
-          name: Safarnak v${{ steps.version_code.outputs.version }} build ${{ github.run_number }}
+          tag_name: v${{ steps.version_code.outputs.version }}
+          name: Safarnak v${{ steps.version_code.outputs.version }}
           body: |
             ## 🚀 Safarnak v${{ steps.version_code.outputs.version }}
 
             ### 📋 Build Info
-            - Version: ${{ steps.version_code.outputs.version }}
-            - Version Code: ${{ steps.version_code.outputs.version_code }}
-            - Build: #${{ github.run_number }}
-            - Commit: ${{ github.sha }}
-            - Date: ${{ github.event.head_commit.timestamp }}
+            - **Version**: ${{ steps.version_code.outputs.version }}
+            - **Version Code**: ${{ steps.version_code.outputs.version_code }}
+            - **Build**: #${{ github.run_number }}
+            - **Commit**: ${{ github.sha }}
+            - **Date**: ${{ github.event.head_commit.timestamp }}
 
             ### 📝 Changes in This Build
             ${{ github.event.head_commit.message }}
@@ -377,7 +405,7 @@ jobs:
 
             ### 📱 Installation
             1. Download the APK file below
-            2. Enable "Install from unknown sources" on your device  
+            2. Enable "Install from unknown sources" on your Android device
             3. Install the APK
 
             ---
@@ -386,6 +414,8 @@ jobs:
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup Gradle cache
         if: always()
