@@ -1,10 +1,7 @@
 import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
-// ============================================================================
-// CLEANED UP SCHEMA - Only essential tables for Safarnak travel app
-// ============================================================================
-
+ 
 // Users table - core user information
 export const users = sqliteTable('users', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -25,14 +22,18 @@ export const tours = sqliteTable('tours', {
   title: text('title').notNull(),
   description: text('description'),
   shortDescription: text('short_description'),
-  price: integer('price').notNull(), // Price in Tomans
-  currency: text('currency').default('IRR'),
-  duration: integer('duration'), // Duration in hours
-  durationType: text('duration_type').default('hours'),
+  price: integer('price').notNull(), // Price in USD (stored as cents)
+  currency: text('currency').default('USD'),
+  rating: integer('rating').default(0), // stored as integer (4.5 * 10 = 45)
+  reviews: integer('reviews').default(0),
+  duration: integer('duration').notNull(), // Duration in days
+  durationType: text('duration_type').default('days'),
   location: text('location').notNull(),
   coordinates: text('coordinates'),
-  category: text('category'),
+  category: text('category').notNull(),
   difficulty: text('difficulty').default('easy'),
+  highlights: text('highlights'), // JSON string array
+  inclusions: text('inclusions'), // JSON string array
   maxParticipants: integer('max_participants'),
   minParticipants: integer('min_participants').default(1),
   imageUrl: text('image_url'),
@@ -86,12 +87,18 @@ export const userPreferences = sqliteTable('user_preferences', {
 export const trips = sqliteTable('trips', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').references(() => users.id).notNull(),
-  title: text('title').notNull(),
-  startDate: text('start_date').notNull(),
-  endDate: text('end_date').notNull(),
-  destination: text('destination').notNull(),
+  title: text('title'),
+  destination: text('destination'),
+  startDate: text('start_date'),
+  endDate: text('end_date'),
   budget: integer('budget'),
-  status: text('status').default('planned'),
+  travelers: integer('travelers').default(1),
+  preferences: text('preferences'),
+  accommodation: text('accommodation'),
+  status: text('status').default('in_progress'), // 'in_progress', 'completed', 'cancelled'
+  aiReasoning: text('ai_reasoning'),
+  itinerary: text('itinerary'), // JSON string
+  coordinates: text('coordinates'), // JSON string: {latitude, longitude}
   aiGenerated: integer('ai_generated', { mode: 'boolean' }).default(true),
   metadata: text('metadata'),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
@@ -202,12 +209,21 @@ export const locations = sqliteTable('locations', {
 export const places = sqliteTable('places', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
+  location: text('location').notNull(),
   locationId: integer('location_id').references(() => locations.id),
-  type: text('type').notNull(),
+  distance: integer('distance'), // in km
+  rating: integer('rating').default(0), // stored as integer (4.5 * 10 = 45)
+  reviews: integer('reviews').default(0),
+  type: text('type').notNull(), // category
   description: text('description'),
+  tips: text('tips'), // JSON string array
+  isOpen: integer('is_open', { mode: 'boolean' }).default(true),
+  hours: text('hours'), // JSON string
+  phone: text('phone'),
+  website: text('website'),
   price: integer('price'),
   ownerId: integer('owner_id').references(() => users.id),
-  coordinates: text('coordinates'),
+  coordinates: text('coordinates'), // JSON string: {latitude, longitude}
   embedding: text('embedding'),
   imageUrl: text('image_url'),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),

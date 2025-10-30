@@ -3,11 +3,18 @@
     "home": "Home",
     "tour": "Tour",
     "profile": "Profile",
+    "plan": "Plan",
+    "explore": "Explore",
+    "me": "Me",
     "loading": "Loading...",
     "error": "Error",
     "save": "Save",
     "cancel": "Cancel",
-    "ok": "OK"
+    "ok": "OK",
+    "delete": "Delete",
+    "edit": "Edit",
+    "share": "Share",
+    "search": "Search"
   },
   "home": {
     "title": "Home",
@@ -99,5 +106,151 @@
   "oauth": {
     "or": "Or",
     "loginWithGoogle": "Log In with Google"
+  },
+  "datePicker": {
+    "selectDate": "Select Date"
+  },
+  "plan": {
+    "title": "My Plans",
+    "description": "Create and manage your AI-powered trips",
+    "emptyState": "No plans yet. Create your first AI trip!",
+    "startAITrip": "Start AI Trip",
+    "createTrip": "Create Trip",
+    "viewPlan": "View Plan",
+    "editPlan": "Edit Plan",
+    "deletePlan": "Delete Plan",
+    "shareAsPost": "Share as Post",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "form": {
+      "title": "Create New Trip",
+      "destination": "Destination",
+      "destinationPlaceholder": "Where do you want to go?",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "describePlan": "Describe your plan",
+      "describePlanPlaceholder": "Add any notes, goals, or details for this trip...",
+      "optionalDivider": "( optional )",
+      "preferences": "Preferences",
+      "preferencesPlaceholder": "e.g., Adventure, Culture, Food, Family-friendly",
+      "travelers": "Number of Travelers",
+      "travelersPlaceholder": "1",
+      "datePlaceholder": "YYYY-MM-DD",
+      "accommodation": "Accommodation Preference",
+      "hotel": "Hotel",
+      "hostel": "Hostel",
+      "apartment": "Apartment",
+      "camping": "Camping",
+      "submit": "Generate AI Trip",
+      "generating": "Generating your perfect trip...",
+      "regenerate": "Regenerate Plan"
+    }
+  },
+  "plan.form.errors": {
+    "destinationRequired": "Destination and dates are required",
+    "descriptionMin": "Please add at least 10 characters to describe your plan",
+    "travelersInvalid": "Number of travelers must be at least 1",
+    "datesInvalid": "End date must be after start date",
+    "startDateRequired": "Start date is required",
+    "endDateRequired": "End date is required",
+    "dateFormatInvalid": "Date must be in YYYY-MM-DD format",
+    "notAuthenticated": "Please sign in to create a trip",
+    "generic": "Please check the inputs",
+    "generateFailed": "Failed to generate trip"
+  },
+  "plan.form.successTitle": "Success",
+  "plan.form.generated": "AI trip generated successfully!",
+  "explore": {
+    "title": "Explore",
+    "description": "Discover tours, places, and community",
+    "searchPlaceholder": "Search tours, places...",
+    "filters": "Filters",
+    "categories": {
+      "all": "All",
+      "tours": "Tours",
+      "places": "Places",
+      "popular": "Popular",
+      "nearby": "Nearby",
+      "adventure": "Adventure",
+      "culture": "Culture",
+      "food": "Food",
+      "nature": "Nature"
+    },
+    "sort": {
+      "popular": "Most Popular",
+      "rating": "Highest Rated",
+      "price": "Price: Low to High",
+      "newest": "Newest"
+    },
+    "tourCard": {
+      "from": "From",
+      "rating": "Rating",
+      "reviews": "reviews",
+      "duration": "Duration",
+      "days": "days",
+      "joinTour": "Join Tour",
+      "bookmark": "Bookmark"
+    },
+    "placeCard": {
+      "open": "Open",
+      "closed": "Closed",
+      "distance": "km away",
+      "viewDetails": "View Details"
+    }
+  },
+  "me": {
+    "title": "Profile",
+    "myTrips": "My Trips",
+    "myTripsSubtitle": "View and manage your trips",
+    "messages": "Messages",
+    "messagesSubtitle": "Notifications and chats",
+    "settings": "Settings",
+    "subscription": "Subscription",
+    "aiQuota": "AI Quota",
+    "quotaRemaining": "{{remaining}} of {{total}} AI trips remaining",
+    "upgrade": "Upgrade Plan",
+    "editProfile": "Edit Profile",
+    "content": "Content",
+    "preferences": "Preferences",
+    "tabs": {
+      "trips": "My Trips",
+      "tours": "My Tours",
+      "saved": "Saved"
+    },
+    "tripsList": {
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "emptyState": "No trips yet"
+    },
+    "inbox": {
+      "title": "Inbox",
+      "notifications": "Notifications",
+      "chats": "Chats",
+      "emptyState": "No messages yet"
+    }
+  },
+  "tripDetail": {
+    "aiReasoning": "AI Reasoning",
+    "itinerary": "Itinerary",
+    "tripDetails": "Trip Details",
+    "travelers": "travelers",
+    "traveler": "traveler",
+    "budget": "budget",
+    "day": "Day"
+  },
+  "tourDetail": {
+    "aboutTour": "About This Tour",
+    "highlights": "Highlights",
+    "whatsIncluded": "What's Included",
+    "maxParticipants": "Max Participants",
+    "difficulty": "Difficulty"
+  },
+  "placeDetail": {
+    "about": "About",
+    "hours": "Hours",
+    "tips": "Tips",
+    "getDirections": "Get Directions",
+    "reviews": "reviews",
+    "kmAway": "km away"
   }
 }

@@ -29,6 +29,20 @@
       "when": 1761813529167,
       "tag": "0003_lowly_omega_sentinel",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1761817122360,
+      "tag": "0004_salty_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1761820715270,
+      "tag": "0005_ambiguous_viper",
+      "breakpoints": true
     }
   ]
 }

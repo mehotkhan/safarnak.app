@@ -3,11 +3,18 @@
     "home": "خانه",
     "tour": "تور",
     "profile": "پروفایل",
+    "plan": "برنامه",
+    "explore": "کاوش",
+    "me": "من",
     "loading": "در حال بارگذاری...",
     "error": "خطا",
     "save": "ذخیره",
     "cancel": "لغو",
-    "ok": "تایید"
+    "ok": "تایید",
+    "delete": "حذف",
+    "edit": "ویرایش",
+    "share": "اشتراک‌گذاری",
+    "search": "جستجو"
   },
   "home": {
     "title": "خانه",
@@ -99,5 +106,151 @@
   "oauth": {
     "or": "یا",
     "loginWithGoogle": "ورود با گوگل"
+  },
+  "datePicker": {
+    "selectDate": "انتخاب تاریخ"
+  },
+  "plan": {
+    "title": "برنامه‌های من",
+    "description": "برنامه‌های سفر هوشمند خود را ایجاد و مدیریت کنید",
+    "emptyState": "هنوز برنامه‌ای ندارید. اولین سفر هوش مصنوعی خود را ایجاد کنید!",
+    "startAITrip": "شروع سفر هوشمند",
+    "createTrip": "ایجاد سفر",
+    "viewPlan": "مشاهده برنامه",
+    "editPlan": "ویرایش برنامه",
+    "deletePlan": "حذف برنامه",
+    "shareAsPost": "اشتراک‌گذاری به عنوان پست",
+    "inProgress": "در حال انجام",
+    "completed": "تکمیل شده",
+    "form": {
+      "title": "ایجاد سفر جدید",
+      "destination": "مقصد",
+      "destinationPlaceholder": "کجا می‌خواهید بروید؟",
+      "startDate": "تاریخ شروع",
+      "endDate": "تاریخ پایان",
+      "describePlan": "توضیح برنامه شما",
+      "describePlanPlaceholder": "یادداشت‌ها، اهداف یا جزئیات این سفر را بنویسید...",
+      "optionalDivider": "( اختیاری )",
+      "preferences": "ترجیحات",
+      "preferencesPlaceholder": "مثلاً: ماجراجویی، فرهنگ، غذا، خانوادگی",
+      "travelers": "تعداد مسافران",
+      "travelersPlaceholder": "۱",
+      "datePlaceholder": "YYYY-MM-DD",
+      "accommodation": "ترجیح اقامتگاه",
+      "hotel": "هتل",
+      "hostel": "هاستل",
+      "apartment": "آپارتمان",
+      "camping": "کمپینگ",
+      "submit": "ایجاد سفر هوشمند",
+      "generating": "در حال ایجاد سفر کامل شما...",
+      "regenerate": "ایجاد مجدد برنامه"
+    }
+  },
+  "plan.form.errors": {
+    "destinationRequired": "مقصد و تاریخ‌ها الزامی است",
+    "descriptionMin": "حداقل ۱۰ کاراکتر برای توضیح برنامه وارد کنید",
+    "travelersInvalid": "تعداد مسافران باید حداقل ۱ باشد",
+    "datesInvalid": "تاریخ پایان باید بعد از تاریخ شروع باشد",
+    "startDateRequired": "تاریخ شروع الزامی است",
+    "endDateRequired": "تاریخ پایان الزامی است",
+    "dateFormatInvalid": "تاریخ باید به فرمت YYYY-MM-DD باشد",
+    "notAuthenticated": "برای ایجاد برنامه سفر وارد حساب خود شوید",
+    "generic": "لطفاً ورودی‌ها را بررسی کنید",
+    "generateFailed": "ایجاد برنامه سفر ناموفق بود"
+  },
+  "plan.form.successTitle": "موفقیت",
+  "plan.form.generated": "برنامه سفر هوشمند با موفقیت ایجاد شد!",
+  "explore": {
+    "title": "کاوش",
+    "description": "تورها، مکان‌ها و جامعه را کشف کنید",
+    "searchPlaceholder": "جستجوی تورها، مکان‌ها...",
+    "filters": "فیلترها",
+    "categories": {
+      "all": "همه",
+      "tours": "تورها",
+      "places": "مکان‌ها",
+      "popular": "محبوب",
+      "nearby": "نزدیک",
+      "adventure": "ماجراجویی",
+      "culture": "فرهنگ",
+      "food": "غذا",
+      "nature": "طبیعت"
+    },
+    "sort": {
+      "popular": "محبوب‌ترین",
+      "rating": "بالاترین امتیاز",
+      "price": "قیمت: کم به زیاد",
+      "newest": "جدیدترین"
+    },
+    "tourCard": {
+      "from": "از",
+      "rating": "امتیاز",
+      "reviews": "نظرات",
+      "duration": "مدت",
+      "days": "روز",
+      "joinTour": "شرکت در تور",
+      "bookmark": "نشانه‌گذاری"
+    },
+    "placeCard": {
+      "open": "باز",
+      "closed": "بسته",
+      "distance": "کیلومتر دورتر",
+      "viewDetails": "مشاهده جزئیات"
+    }
+  },
+  "me": {
+    "title": "پروفایل",
+    "myTrips": "سفرهای من",
+    "myTripsSubtitle": "مشاهده و مدیریت سفرهای خود",
+    "messages": "پیام‌ها",
+    "messagesSubtitle": "اعلان‌ها و چت‌ها",
+    "settings": "تنظیمات",
+    "subscription": "اشتراک",
+    "aiQuota": "سهمیه هوش مصنوعی",
+    "quotaRemaining": "{{remaining}} از {{total}} سفر هوشمند باقی‌مانده",
+    "upgrade": "ارتقاء طرح",
+    "editProfile": "ویرایش پروفایل",
+    "content": "محتوا",
+    "preferences": "ترجیحات",
+    "tabs": {
+      "trips": "سفرهای من",
+      "tours": "تورهای من",
+      "saved": "ذخیره شده"
+    },
+    "tripsList": {
+      "upcoming": "آینده",
+      "past": "گذشته",
+      "emptyState": "هنوز سفری ندارید"
+    },
+    "inbox": {
+      "title": "صندوق ورودی",
+      "notifications": "اعلان‌ها",
+      "chats": "چت‌ها",
+      "emptyState": "هنوز پیامی ندارید"
+    }
+  },
+  "tripDetail": {
+    "aiReasoning": "استدلال هوش مصنوعی",
+    "itinerary": "برنامه سفر",
+    "tripDetails": "جزئیات سفر",
+    "travelers": "مسافر",
+    "traveler": "مسافر",
+    "budget": "بودجه",
+    "day": "روز"
+  },
+  "tourDetail": {
+    "aboutTour": "درباره این تور",
+    "highlights": "نکات برجسته",
+    "whatsIncluded": "موارد شامل شده",
+    "maxParticipants": "حداکثر شرکت‌کنندگان",
+    "difficulty": "سختی"
+  },
+  "placeDetail": {
+    "about": "درباره",
+    "hours": "ساعات کاری",
+    "tips": "نکات",
+    "getDirections": "مسیریابی",
+    "reviews": "نظرات",
+    "kmAway": "کیلومتر دورتر"
   }
 }
