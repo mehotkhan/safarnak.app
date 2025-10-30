@@ -67,10 +67,11 @@ export const createTrip = async (
       .insert(trips)
       .values({
         userId,
+        title: destination || 'Untitled Trip',
         destination: destination || 'Untitled Trip',
         startDate: input.startDate,
         endDate: input.endDate,
-        budget: input.budget,
+        budget: input.budget != null ? Math.round(Number(input.budget)) : null,
         travelers,
         preferences: description,
         accommodation,
