@@ -127,6 +127,9 @@
     "plugins": {
       "@release-it/conventional-changelog": {
         "preset": "angular"
+      },
+      "./scripts/release-it-plugins/update-app-version.js": {
+        "versionFile": "app.config.js"
       }
     }
   }
