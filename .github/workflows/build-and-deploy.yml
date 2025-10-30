@@ -122,8 +122,22 @@ jobs:
           else console.log('ℹ️  Build-only (no version change)');
           NODE
 
-      - name: Apply version bump (update package.json and app.config.js)
-        if: steps.version_bump.outputs.should_release == 'true'
+      - name: Check if version actually changed
+        id: version_changed
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          NEW_VERSION=${{ steps.version_bump.outputs.version }}
+          
+          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Version will change: $CURRENT_VERSION → $NEW_VERSION"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  Version unchanged: $CURRENT_VERSION"
+          fi
+
+      - name: Apply version bump (update package.json)
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           NEW_VERSION=${{ steps.version_bump.outputs.version }}
           
@@ -216,6 +230,7 @@ jobs:
         run: chmod +x android/gradlew
 
       - name: Build Android APK (with versioned code)
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           cd android
           ./gradlew assembleRelease \
@@ -234,6 +249,7 @@ jobs:
           REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
 
       - name: List APK files
+        if: steps.version_changed.outputs.changed == 'true'
         working-directory: android/app/build/outputs/apk/release
         run: |
           echo "=== Generated APK files ==="
@@ -253,6 +269,7 @@ jobs:
           fi
 
       - name: Read version info
+        if: steps.version_changed.outputs.changed == 'true'
         id: version
         run: |
           VERSION=$(node -p "require('./package.json').version")
@@ -282,6 +299,7 @@ jobs:
           echo "📱 App Version: $VERSION ($(echo $VERSION | cut -d. -f1).$(echo $VERSION | cut -d. -f2).$(echo $VERSION | cut -d. -f3))"
 
       - name: Rename APK with descriptive name
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           cd android/app/build/outputs/apk/release
           echo "=== Renaming APK file ==="
@@ -316,6 +334,7 @@ jobs:
           fi
 
       - name: Verify APK file before upload
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           APK_PATH="android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk"
           echo "Checking APK file: $APK_PATH"
@@ -332,6 +351,7 @@ jobs:
           fi
 
       - name: Upload APK artifact
+        if: steps.version_changed.outputs.changed == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: safarnak-android-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
@@ -340,6 +360,7 @@ jobs:
           compression-level: 0
           
       - name: Generate commit list for release notes
+        if: steps.version_changed.outputs.changed == 'true'
         id: commits
         run: |
           # Fetch all tags to ensure we have the latest releases
@@ -373,7 +394,7 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Commit version bump if changed
-        if: steps.version_bump.outputs.should_release == 'true'
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -382,7 +403,7 @@ jobs:
           git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
-        if: steps.version_bump.outputs.should_release == 'true'
+        if: steps.version_changed.outputs.changed == 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version_code.outputs.version }}
