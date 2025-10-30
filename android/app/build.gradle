@@ -93,7 +93,7 @@ android {
         applicationId 'ir.mohet.safarnak'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Resolve versionName and versionCode from environment/package.json
+        // Resolve versionName and versionCode from environment/package.json (CI friendly)
         // 1) ANDROID_VERSION_CODE (int) can override versionCode
         // 2) APP_VERSION (semver) can override versionName
         // 3) Fallback versionName to package.json version
