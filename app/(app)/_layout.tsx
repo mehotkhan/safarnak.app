@@ -25,28 +25,29 @@ export default function AppLayout() {
           backgroundColor: isDark ? '#1e1e1e' : '#fff',
           borderTopColor: isDark ? '#333' : '#e9ecef',
           borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 88 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 14 : 8,
-          paddingTop: 12,
+          height: Platform.OS === 'ios' ? 64 : 56,
+          paddingBottom: 0,
+          paddingTop: 6,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: 8,
+          paddingVertical: 0,
+          justifyContent: 'flex-end',
         },
         tabBarIconStyle: {
           marginTop: 0,
-          marginBottom: 6,
+          marginBottom: 0,
         },
       }}
     >
       <Tabs.Screen
         name='(feed)'
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'home' : 'home-outline'}
-              size={28}
+              size={size + 4}
               color={color}
             />
           ),
@@ -56,10 +57,10 @@ export default function AppLayout() {
       <Tabs.Screen
         name='(explore)'
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'search' : 'search-outline'}
-              size={28}
+              size={size + 4}
               color={color}
             />
           ),
@@ -69,10 +70,10 @@ export default function AppLayout() {
       <Tabs.Screen
         name='(trips)'
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? 'add-circle' : 'add-circle-outline'}
-              size={32}
+              name={focused ? 'compass' : 'compass-outline'}
+              size={size + 4}
               color={color}
             />
           ),
@@ -82,10 +83,10 @@ export default function AppLayout() {
       <Tabs.Screen
         name='(profile)'
         options={{
-          tabBarIcon: ({ focused, color }) => (
+          tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
               name={focused ? 'person' : 'person-outline'}
-              size={28}
+              size={size + 4}
               color={color}
             />
           ),
