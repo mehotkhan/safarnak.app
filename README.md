@@ -9,7 +9,7 @@
 [![GraphQL Codegen](https://img.shields.io/badge/GraphQL-Codegen-purple)](https://the-guild.dev/graphql/codegen)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.6.2-blue)](https://github.com/mehotkhan/safarnak.app/releases)
+[![Version](https://img.shields.io/badge/Version-0.8.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
 **Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
@@ -63,7 +63,7 @@ flowchart LR
 
   subgraph Shared["Shared"]
     E["graphql/ - Schema and Operations"]
-    F["drizzle/ - DB schema"]
+    F["database/ - DB schemas"]
   end
 
   subgraph Worker["Cloudflare Worker GraphQL API"]
@@ -178,7 +178,7 @@ yarn dev  # Runs both worker (8787) and client (8081)
 
 ```bash
 yarn android           # Android (legacy)
-yarn android:newarch   # Android (new architecture)
+yarn android:newarch   # Android (New Architecture)
 yarn web               # Web browser
 ```
 
@@ -237,15 +237,266 @@ graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)
 └── queries/          # Query definitions (.graphql files)
 
-drizzle/               # 🗄️ Database schema (worker-only, not used by client)
-├── schema.ts         # Database schema
+database/              # 🗄️ Database schemas (worker-only, not used by client)
+├── drizzle.ts        # Drizzle ORM schema
 └── migrations/       # SQL migrations
 ```
+
+## 🗄️ Database Model (ER Diagram)
+
+```mermaid
+erDiagram
+    USERS ||--o{ MESSAGES : sends
+    USERS ||--o{ SUBSCRIPTIONS : has
+    USERS ||--o{ USER_PREFERENCES : has
+    USERS ||--o{ TRIPS : creates
+    USERS ||--o{ TOURS : creates
+    USERS ||--o{ POSTS : authors
+    USERS ||--o{ COMMENTS : writes
+    USERS ||--o{ REACTIONS : adds
+    USERS ||--o{ PAYMENTS : makes
+    USERS ||--o{ DEVICES : owns
+    USERS ||--o{ SESSIONS : has
+    USERS ||--o{ NOTIFICATIONS : receives
+
+    TRIPS ||--o{ ITINERARIES : has
+    TRIPS ||--o{ PLANS : based_on
+    TRIPS ||--o{ THOUGHTS : generated_by
+    TRIPS ||--o{ MESSAGES : discusses
+
+    TOURS ||--o{ TRIPS : includes
+    TOURS ||--o{ PAYMENTS : requires
+    TOURS ||--o{ NOTIFICATIONS : sends
+
+    PLANS ||--o{ LOCATIONS : includes
+    PLANS ||--o{ PLACES : visits
+
+    POSTS ||--o{ COMMENTS : has
+    POSTS ||--o{ REACTIONS : has
+    POSTS ||--|{ TRIPS : shares
+    POSTS ||--|{ TOURS : shares
+    POSTS ||--|{ PLANS : shares
+
+    LOCATIONS ||--o{ PLACES : contains
+
+    CACHE }|..|{ EXTERNAL_API : stores
+
+    SUBSCRIPTIONS ||--|{ USERS : for
+    SUBSCRIPTIONS ||--o{ PAYMENTS : via
+
+    USERS {
+        int id PK
+        string name
+        string username UK
+        string passwordHash
+        string email UK
+        string phone
+        string avatar "R2 URL"
+        boolean isActive
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    USER_PREFERENCES {
+        int id PK
+        int userId FK
+        json interests
+        json budgetRange
+        string travelStyle
+        json preferredDestinations
+        json dietaryRestrictions
+        string embedding "Vectorize"
+        timestamp updatedAt
+    }
+
+    TRIPS {
+        int id PK
+        int userId FK
+        string title
+        date startDate
+        date endDate
+        string destination
+        int budget
+        string status
+        boolean aiGenerated
+        json metadata
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    ITINERARIES {
+        int id PK
+        int tripId FK
+        int day
+        json activities
+        json accommodations
+        json transport
+        string notes
+        int costEstimate
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    PLANS {
+        int id PK
+        int tripId FK
+        json mapData "stops, directions"
+        json details
+        string aiOutput
+        timestamp createdAt
+    }
+
+    TOURS {
+        int id PK
+        int creatorId FK "USERS"
+        string title
+        text description
+        int price
+        json participants "array userIds"
+        string groupChatId
+        boolean isActive
+        timestamp createdAt
+        timestamp updatedAt
+    }
+
+    MESSAGES {
+        string id PK
+        text content
+        int userId FK
+        int tripId FK
+        int tourId FK
+        string type
+        json metadata
+        boolean isRead
+        timestamp createdAt
+    }
+
+    POSTS {
+        int id PK
+        int userId FK
+        text content
+        json attachments "R2 URLs"
+        string type "plan/trip/tour"
+        int relatedId "trip/tour/plan Id"
+        timestamp createdAt
+    }
+
+    COMMENTS {
+        int id PK
+        int postId FK
+        int userId FK
+        text content
+        timestamp createdAt
+    }
+
+    REACTIONS {
+        int id PK
+        int postId FK
+        int commentId FK
+        int userId FK
+        string emoji
+        timestamp createdAt
+    }
+
+    PAYMENTS {
+        int id PK
+        int userId FK
+        int tourId FK
+        int subscriptionId FK
+        string transactionId
+        int amount
+        string status
+        timestamp createdAt
+    }
+
+    SUBSCRIPTIONS {
+        int id PK
+        int userId FK
+        string tier "free/member/pro"
+        date startDate
+        date endDate
+        boolean active
+        timestamp createdAt
+    }
+
+    DEVICES {
+        int id PK
+        int userId FK
+        string deviceId UK
+        string type
+        timestamp lastSeen
+    }
+
+    SESSIONS {
+        string id PK "KV key"
+        int userId FK
+        string token
+        timestamp expiresAt
+    }
+
+    NOTIFICATIONS {
+        int id PK
+        int userId FK
+        string type "tour invite/payment/etc"
+        json data
+        boolean read
+        timestamp createdAt
+    }
+
+    LOCATIONS {
+        int id PK
+        string name UK
+        string country
+        json coordinates
+        text description
+        json popularActivities
+        int averageCost
+        string embedding "Vectorize"
+        string imageUrl "R2"
+        timestamp createdAt
+    }
+
+    PLACES {
+        int id PK
+        string name
+        int locationId FK
+        string type "market/room/etc"
+        text description
+        int price
+        string ownerId "userId"
+        json coordinates
+        string embedding "Vectorize"
+        string imageUrl "R2"
+        timestamp createdAt
+    }
+
+    THOUGHTS {
+        int id PK
+        int tripId FK
+        text step "AI reasoning step"
+        json data "logs/sources"
+        timestamp createdAt
+    }
+
+    CACHE {
+        string key PK "KV key"
+        json value "cached API data"
+        timestamp expiresAt
+    }
+```
+
+### Data Storage Architecture
+
+- **D1 (Relational DB with Drizzle)**: Users, user preferences, trips, itineraries, plans, tours, messages, posts, comments, reactions, payments, subscriptions (tiers), devices, notifications, locations, places, thoughts.
+- **KV (Key-Value Store)**: Sessions (user tokens), cache (external API data like TripAdvisor, web searches).
+- **Vectorize (Vector DB)**: Embeddings (user preferences, destinations, places, activities for similarity searches).
+- **R2 (Object Storage)**: Avatars, image URLs, galleries, attachments (media, maps, docs).
+- **Durable Objects**: Real-time subscriptions (connection state for GraphQL subs, notifications).
 
 ### Shared (Critical)
 
 - **`graphql/`** - GraphQL schema and operations (shared between client & worker)
-- **`drizzle/`** - Database schema (worker-only, used ONLY in worker code)
+- **`database/`** - Database schemas (worker-only, used ONLY in worker code)
 - **`api/`** - Auto-generated client code (run `yarn codegen` to update)
 
 ---
@@ -390,6 +641,41 @@ tours: toursReducer,
 
 ## 🔧 Configuration
 
+### Environment & Configuration
+
+#### GraphQL Endpoint
+
+The client determines the GraphQL URL in this order:
+
+1. `app.config.js` → `expo.extra.graphqlUrl` (recommended)
+2. `process.env.GRAPHQL_URL` (development only)
+3. `process.env.GRAPHQL_URL_DEV` when `__DEV__` is true
+4. Fallback in dev to `http://192.168.1.51:8787/graphql`
+
+Configure production and development endpoints via environment variables used by `app.config.js`:
+
+```bash
+# .env
+GRAPHQL_URL=https://safarnak.mohet.ir/graphql
+# Optionally for local dev
+GRAPHQL_URL_DEV=http://127.0.0.1:8787/graphql
+```
+
+Relevant sources:
+- `api/client.ts` (URI resolution and auth link)
+- `app.config.js` (`expo.extra.graphqlUrl` derived from env)
+
+#### App Identity (Android)
+
+Customize via env for EAS or local builds:
+
+```bash
+APP_NAME="سفرناک"
+BUNDLE_IDENTIFIER=ir.mohet.safarnak
+APP_SCHEME=safarnak
+ANDROID_VERSION_CODE=800   # optional override
+```
+
 ### Path Aliases
 
 ```typescript
@@ -397,7 +683,6 @@ import { useLoginMutation } from '@api';
 import { useAppDispatch } from '@store/hooks';
 import { login } from '@store/slices/authSlice';
 import { useColorScheme } from '@hooks/useColorScheme';
-import { colors } from '@constants/Colors';
 import Colors from '@constants/Colors';
 ```
 
@@ -434,12 +719,18 @@ yarn codegen:watch    # Watch mode
 
 # Build
 yarn android          # Run on Android
+yarn build:debug      # EAS debug build (Android)
 yarn build:release    # Build release APK
+yarn build:local      # Local gradle release build
 
 # Utilities
 yarn clean            # Clear caches
 yarn lint             # Check code quality
 yarn lint:fix         # Fix issues
+ 
+# Versioning & Commits
+yarn commit:generate  # Generate a conventional commit message
+yarn version:minor    # Release-it minor bump (CI)
 ```
 
 ---
@@ -557,7 +848,7 @@ const { t } = useTranslation();
 - **`graphql/`** - Shared schema and operations (used by both client & worker)
 - **`api/`** - Auto-generated client code only (client-side GraphQL hooks)
 - **`worker/`** - Server-only resolvers (entry: `worker/index.ts`)
-- **`drizzle/`** - Worker-only database schema (never imported in client code)
+- **`database/`** - Worker-only database schemas (never imported in client code)
 
 ### Auto-Generated Code
 

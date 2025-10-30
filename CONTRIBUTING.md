@@ -68,7 +68,7 @@ safarnak.app/
 ├── worker/          # Server-side GraphQL resolvers
 ├── graphql/         # Shared GraphQL schema and operations
 ├── api/             # Client-side API layer with auto-generated hooks
-├── drizzle/         # Database schema and migrations
+├── database/        # Database schemas and migrations
 ├── store/           # Redux state management
 ├── app/             # Expo Router pages
 ├── components/      # React components
@@ -105,7 +105,7 @@ yarn codegen
 
 ```bash
 # 1. Update schema
-# Edit drizzle/schema.ts
+# Edit database/drizzle.ts
 
 # 2. Generate migration
 yarn db:generate

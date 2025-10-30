@@ -1,3 +1,150 @@
+Safarnak App – Cursor AI Repository Rules
+
+Project Overview
+- Single-root monorepo for a full-stack, offline-first travel app.
+- Client: Expo React Native (Android/iOS/Web) with NativeWind v4.
+- Server: Cloudflare Worker (GraphQL Yoga), Cloudflare D1 via Drizzle ORM.
+- Shared: GraphQL schema and operations under `graphql/` used by both client and worker.
+- Worker-only: `database/` schemas; NEVER import from this in client code.
+
+Current Stack (as of v0.8.0)
+- TypeScript ~5.9.3
+- React 19.1.0, React Native 0.81.5, Expo ~54.0.20
+- Expo Router ~6.0.13, NativeWind ^4.1.21, Tailwind ^3.4.17
+- Apollo Client 3.8.0, GraphQL ^16.11.0, GraphQL Yoga ^5.16.0
+- Drizzle ORM ^0.44.7 (Worker-only), Cloudflare D1
+- Subscriptions: `graphql-workers-subscriptions` ^0.1.6 with Durable Objects
+- ESLint ^9.38.0, Prettier ^3.6.2
+
+Repository Structure
+```
+worker/                 # Cloudflare Worker resolvers and entry
+graphql/                # Shared GraphQL schema + operations
+api/                    # Client GraphQL types & hooks (generated)
+database/               # Database schemas & migrations (worker-only)
+store/                  # Redux Toolkit store, slices, middleware
+app/                    # Expo Router pages
+components/             # UI components & contexts
+constants/, hooks/, locales/ ...
+```
+
+Worker
+- Entry point: `worker/index.ts` (defined in `wrangler.toml` main).
+- Uses `readGraphQLSchema` from `graphql/schema-loader.ts`.
+- Resolvers under `worker/queries`, `worker/mutations`, `worker/subscriptions`.
+- Subscriptions enabled with Durable Object `SubscriptionPool`.
+
+GraphQL & Codegen
+- Schema: `graphql/schema.graphql`.
+- Operations: `graphql/queries/*.graphql`.
+- Generate client code: `yarn codegen` → `api/types.ts`, `api/hooks.ts`.
+- Never edit `api/types.ts` or `api/hooks.ts` manually.
+
+Path Aliases (TypeScript & Metro)
+- Use ONLY path aliases; avoid all relative imports.
+```
+"@/*"           → "./*"
+"@components/*" → "./components/*"
+"@graphql/*"    → "./graphql/*"
+"@database/*"   → "./database/*"   # Worker-only; do not import in client
+"@worker/*"     → "./worker/*"
+"@api"          → "./api"
+"@api/*"        → "./api/*"
+"@store"        → "./store"
+"@store/*"      → "./store/*"
+"@hooks"        → "./hooks"
+"@hooks/*"      → "./hooks/*"
+"@constants"    → "./constants"
+"@constants/*"  → "./constants/*"
+```
+
+GraphQL Endpoint Configuration (Client)
+- Preferred: set `expo.extra.graphqlUrl` via `app.config.js` (reads from env `GRAPHQL_URL`).
+- Dev-only: `process.env.GRAPHQL_URL` or `GRAPHQL_URL_DEV` when `__DEV__` is true.
+- Fallback in dev: `http://192.168.1.51:8787/graphql` (update for your LAN if needed).
+- Sources: `api/client.ts`, `app.config.js`.
+
+Critical Rules
+1) Never add `"type": "module"` to `package.json`.
+2) Use `eslint.config.mjs`; do not convert ESLint config type.
+3) Keep strict separation:
+   - `graphql/` is shared between client and worker.
+   - `api/` is client-only, generated.
+   - `worker/` is server-only code.
+   - `database/` is worker-only. DO NOT import it in client.
+4) Always run `yarn codegen` after changing GraphQL schema or operations.
+5) Never manually edit generated files (`api/types.ts`, `api/hooks.ts`).
+6) Use path aliases exclusively; avoid relative imports entirely.
+7) Styling: Prefer NativeWind Tailwind classes via `className` over inline styles.
+8) Before testing APIs locally, run `yarn db:migrate` to apply migrations.
+9) Worker entry is `worker/index.ts`; do not change `wrangler.toml` main without reason.
+
+Auth & Client Patterns
+- PBKDF2 (100k, SHA-256, 16-byte salt) hashing in worker utilities.
+- Token: SHA-256 of `userId + username + timestamp`, stored in Redux + AsyncStorage.
+- Apollo auth link adds `Authorization: Bearer <token>`.
+- Auth pages under `app/auth`, auto-redirects based on Redux `isAuthenticated`.
+
+Subscriptions
+- `graphql-workers-subscriptions` with Durable Object `SubscriptionPool`.
+- GraphiQL available at `/graphql` with WS subscriptions in dev.
+
+Commands
+Development
+- `yarn dev`              # Start worker (8787) + Expo dev server
+- `yarn start`            # Expo dev server only
+- `yarn worker:dev`       # Worker only
+
+GraphQL
+- `yarn codegen`          # Generate types & hooks
+- `yarn codegen:watch`    # Watch mode
+
+Database
+- `yarn db:generate`      # Generate migration from schema
+- `yarn db:migrate`       # Apply migrations to local D1
+- `yarn db:studio`        # Drizzle Studio
+
+Build
+- `yarn android`          # Run on Android
+- `yarn android:newarch`  # New Architecture
+- `yarn build:debug`      # EAS debug build (Android)
+- `yarn build:release`    # EAS release build (Android)
+- `yarn build:local`      # Local Gradle release
+
+Quality & Utilities
+- `yarn lint` / `yarn lint:fix`
+- `yarn clean`
+
+Versioning & Releases (CI-driven)
+- Source of truth: `package.json` version.
+- Commit conventions power release bumps via release-it in CI:
+  - `feat:` → minor
+  - `fix:`  → patch
+  - others → build only
+- APK metadata: versionName from `package.json`; versionCode derived or overridden by `ANDROID_VERSION_CODE`.
+
+Debugging Tips
+- Metro issues: `yarn clean` then restart.
+- Worker: check `wrangler` logs, `http://localhost:8787/graphql`.
+- Type errors: ensure schema, run `yarn codegen`.
+- DB issues: inspect `.wrangler/state/v3/d1/`, re-run `yarn db:migrate`.
+
+Security
+- Validate all resolver inputs; fail fast on invalid data.
+- Drizzle ORM prevents SQL injection.
+- Keep tokens and secrets out of client code.
+
+Performance
+- Use `React.memo`, `useCallback`, `useMemo` prudently.
+- Keep Redux state lean; leverage Apollo cache appropriately.
+
+When Making Changes
+- Follow existing patterns and directory ownership.
+- Prefer path aliases; avoid relative imports.
+- Update `graphql/schema.graphql` and `graphql/queries/*.graphql` first, then `yarn codegen`.
+- Implement worker resolvers in `worker/*` only.
+- Do not touch generated files or import `database/` in client code.
+
 # Safarnak App - Cursor AI Configuration
 
 ## Project Overview
@@ -9,7 +156,7 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Worker**: Cloudflare Worker backend (`worker/index.ts` - entry point defined in wrangler.toml)
 - **Resolvers**: GraphQL resolvers in `worker/` folder (server-side only)
 - **Shared**: GraphQL schema (`graphql/`) shared between client & worker
-- **Worker-Only**: Drizzle ORM and database schema (`drizzle/`) used ONLY in worker, never in client
+- **Worker-Only**: Drizzle ORM and database schemas (`database/`) used ONLY in worker, never in client
 - **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
 - **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
 
@@ -76,8 +223,8 @@ safarnak.app/                           # Single root directory
 │   ├── api-types.ts                    # API-specific types (ApiError, ApiResponse)
 │   ├── utils.ts                        # Client utility functions (storage, error handling, network checks)
 │   └── index.ts                        # Main API exports (re-exports generated hooks + utils)
-├── drizzle/                            # Database schema (WORKER-ONLY, not used in client)
-│   ├── schema.ts                       # Database schema: users, tours, messages, subscriptions
+├── database/                           # Database schemas (WORKER-ONLY, not used in client)
+│   ├── drizzle.ts                      # Drizzle schema: users, tours, messages, subscriptions
 │   └── migrations/                     # SQL migration files
 ├── store/                              # Redux state management (CLIENT)
 │   ├── index.ts                        # Store configuration with persist
@@ -138,7 +285,7 @@ safarnak.app/                           # Single root directory
 "@/*"           → "./*"              // Root files (use '@/api' not '../api')
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
-"@drizzle/*"    → "./drizzle/*"      // Database schema (worker-only, not for client imports)
+"@database/*"   → "./database/*"     // Database schemas (worker-only, not for client imports)
 "@worker/*"     → "./worker/*"       // Worker resolvers
 "@api"          → "./api"            // API layer (client hooks)
 "@api/*"        → "./api/*"          // API subfolder imports
@@ -195,7 +342,7 @@ import { Subscription } from './subscriptions';
 
 **Important**: Drizzle ORM is only used in worker code, never in client components!
 
-**Schema (drizzle/schema.ts):**
+**Schema (database/drizzle.ts):**
 - Define tables: users, tours, messages, subscriptions
 - Use Drizzle ORM helpers: `integer()`, `text()`, `sqliteTable()`
 - Export tables: `export const users = sqliteTable(...)`
@@ -203,12 +350,12 @@ import { Subscription } from './subscriptions';
 **Client Usage:**
 - Client uses GraphQL queries/mutations (via Apollo Client)
 - Client uses AsyncStorage for local caching (not Drizzle)
-- Client NEVER imports from `drizzle/` directory
+- Client NEVER imports from `database/` directory
 
 **Worker Resolvers:**
 ```typescript
 import { drizzle } from 'drizzle-orm/d1';
-import { users } from '../drizzle/schema';
+import { users } from '../database/drizzle';
 
 const db = drizzle(context.env.DB);
 const user = await db.select().from(users).where(eq(users.id, id)).get();
