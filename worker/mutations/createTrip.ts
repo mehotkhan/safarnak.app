@@ -99,7 +99,7 @@ export const createTrip = async (
       error: error?.stack || String(error),
     });
     // Return a client-facing error key used by the app i18n layer
-    throw new Error('plan.form.errors.generatefailed');
+    throw new Error('plan.form.errors.generateFailed');
   }
 };
 

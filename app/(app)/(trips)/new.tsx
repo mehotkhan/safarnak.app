@@ -104,7 +104,7 @@ export default function CreateTripScreen() {
       const trip = res.data?.createTrip;
       if (trip?.id) {
         Alert.alert(t('plan.form.successTitle'), t('plan.form.generated'), [
-          { text: t('common.ok'), onPress: () => router.replace(`/plan/trip-detail/${trip.id}` as any) },
+          { text: t('common.ok'), onPress: () => router.replace(`/(app)/(trips)/${trip.id}` as any) },
         ]);
       } else {
         console.log('No trip returned in response');

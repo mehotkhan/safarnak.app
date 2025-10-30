@@ -52,10 +52,10 @@ bucket_name = "safarnak-dev"       # Create via: wrangler r2 bucket create safar
 ## Vectorize Index (AI Embeddings)
 ## ============================================================================
 
-[[vectorize]]
-binding = "VECTORIZE"              # Access via env.VECTORIZE
-index_name = "safarnak-embeddings" # Create via: wrangler vectorize index create safarnak-embeddings --dimension 768
-remote = true                        # Use remote Vectorize in local dev (no local support)
+# [[vectorize]]
+# binding = "VECTORIZE"              # Access via env.VECTORIZE
+# index_name = "safarnak-embeddings" # Create via: wrangler vectorize index create safarnak-embeddings --dimension 768
+# remote = true                        # Use remote Vectorize in local dev (no local support)
 
 
 ## ============================================================================
