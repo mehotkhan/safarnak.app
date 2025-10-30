@@ -87,13 +87,16 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'ir.mohet.safarnak_debug'
+    namespace 'ir.mohet.safarnak'
     defaultConfig {
-        applicationId 'ir.mohet.safarnak_debug'
+        applicationId 'ir.mohet.safarnak'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 800
         versionName "0.8.0"
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -108,6 +111,7 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            applicationIdSuffix ".debug"
         }
         release {
             // Caution! In production, you need to generate your own keystore file.

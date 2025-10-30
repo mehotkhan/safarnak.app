@@ -197,7 +197,8 @@ jobs:
             --no-daemon \
             --stacktrace \
             -x lint \
-            -x test
+            -x test \
+            -PreactNativeArchitectures=arm64-v8a
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -205,6 +206,7 @@ jobs:
           APP_SCHEME: 'safarnak'
           GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+          REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
 
       - name: List APK files
         working-directory: android/app/build/outputs/apk/release
