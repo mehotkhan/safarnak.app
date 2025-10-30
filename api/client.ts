@@ -57,11 +57,13 @@ const httpLink = createHttpLink({
 const authLink = setContext(async (_, { headers }) => {
   // Get the authentication token from AsyncStorage
   let token = null;
+  let userId = null as string | null;
   try {
     const savedUser = await AsyncStorage.getItem('@safarnak_user');
     if (savedUser) {
       const userData = JSON.parse(savedUser);
       token = userData.token;
+      userId = userData.user?.id?.toString?.() ?? null;
     }
   } catch (error) {
     console.error('Error retrieving token:', error);
@@ -71,6 +73,7 @@ const authLink = setContext(async (_, { headers }) => {
     headers: {
       ...headers,
       authorization: token ? `Bearer ${token}` : '',
+      'x-user-id': userId ?? '',
     },
   };
 });

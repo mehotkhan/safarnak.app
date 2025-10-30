@@ -54,7 +54,7 @@ const settings = {
 // GraphQL Yoga Server
 // ============================================================================
 
-const yoga = createYoga<DefaultPublishableContext<Env>>({
+const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
   schema,
   graphiql: {
     subscriptionsProtocol: 'WS',
@@ -68,6 +68,15 @@ const yoga = createYoga<DefaultPublishableContext<Env>>({
     },
   ],
   maskedErrors: false, // Show actual error messages instead of "Unexpected error"
+  context: async ({ request, env, executionCtx }) => {
+    // Derive userId from header (client sends x-user-id).
+    const userIdHeader = request.headers.get('x-user-id');
+    const userId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+
+    // Compose default publishable context and add userId
+    const base = createDefaultPublishableContext({ env, executionCtx, ...settings });
+    return { ...base, userId };
+  },
 });
 
 // ============================================================================
