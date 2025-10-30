@@ -1,4 +1,5 @@
 import { CustomText } from '@components/ui/CustomText';
+import { Stack } from 'expo-router';
 import { View } from 'react-native';
 import CustomButton from '@components/ui/CustomButton';
 import InputField from '@components/ui/InputField';
@@ -25,7 +26,7 @@ export default function RegisterScreen() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/(tabs)');
+      router.replace('/' as any);
     }
   }, [isAuthenticated]);
 
@@ -72,7 +73,7 @@ export default function RegisterScreen() {
 
         await AsyncStorage.setItem('@safarnak_user', JSON.stringify({ user, token }));
         dispatch(login({ user: user as any, token }));
-        router.replace('/(tabs)');
+        router.replace('/' as any);
         Alert.alert(t('login.success.title'), t('login.success.registerSuccess'));
       }
     } catch (error: any) {
@@ -100,6 +101,7 @@ export default function RegisterScreen() {
       className="flex-1 bg-[#f8f9fa]"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Stack.Screen options={{ title: t('login.register.title') }} />
       <View className="flex-1 justify-center px-6">
         <View className="items-center mb-12">
           <CustomText weight='bold' style={{ fontSize: 32, textAlign: 'center', marginBottom: 12, color: '#1a1a1a' }}>

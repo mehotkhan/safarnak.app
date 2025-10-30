@@ -21,7 +21,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 const LANGUAGE_STORAGE_KEY = '@safarnak_language';
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [currentLanguage, setCurrentLanguage] = useState('en');
+  const [currentLanguage, setCurrentLanguage] = useState('fa'); // Default to Persian
   const { i18n } = useTranslation();
 
   const isRTL = currentLanguage === 'fa';
@@ -32,9 +32,16 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       if (savedLanguage) {
         setCurrentLanguage(savedLanguage);
         await i18n.changeLanguage(savedLanguage);
+      } else {
+        // No saved language, use default Persian
+        setCurrentLanguage('fa');
+        await i18n.changeLanguage('fa');
       }
     } catch (error) {
       console.log('Error loading saved language:', error);
+      // Fallback to Persian on error
+      setCurrentLanguage('fa');
+      await i18n.changeLanguage('fa');
     }
   }, [i18n]);
 

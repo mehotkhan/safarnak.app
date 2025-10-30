@@ -5,6 +5,7 @@ import Swiper from 'react-native-swiper';
 import { useTranslation } from 'react-i18next';
 import { useLanguage } from '@components/context/LanguageContext';
 import CustomButton from '@components/ui/CustomButton';
+import { Stack } from 'expo-router';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const splashImage = require('../../assets/images/welcome-splash.png');
@@ -47,6 +48,7 @@ export default function WelcomeScreen() {
 
   return (
     <View className="flex-1 bg-black">
+      <Stack.Screen options={{ title: 'Safarnak' }} />
       <View className="absolute top-0 left-0 right-0 z-10 pt-12 pb-4 px-5 bg-black/30">
         <TouchableOpacity
           onPress={() => router.push('/auth/login' as any)}

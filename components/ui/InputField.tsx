@@ -10,10 +10,12 @@ import {
   TextInputProps,
   ImageSourcePropType,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useLanguage } from '@components/context/LanguageContext';
 
 interface InputFieldProps extends TextInputProps {
-  label: string;
-  icon?: ImageSourcePropType;
+  label?: string;
+  icon?: ImageSourcePropType | string; // Support both image source and icon name
   labelStyle?: string;
   containerStyle?: string;
   inputStyle?: string;
@@ -32,18 +34,40 @@ export default function InputField({
   className = '',
   ...props
 }: InputFieldProps) {
+  const { isRTL } = useLanguage();
+  
+  const renderIcon = () => {
+    if (!icon) return null;
+    
+    if (typeof icon === 'string') {
+      // It's an icon name, use Ionicons
+      return (
+        <Ionicons
+          name={icon as any}
+          size={20}
+          color="#6b7280"
+          style={{ marginLeft: 16 }}
+        />
+      );
+    } else {
+      // It's an image source
+      return <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />;
+    }
+  };
+  
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className={`my-2 w-full ${className}`}>
-          <Text className={`text-xl mb-3 ${labelStyle}`}>{label}</Text>
+          {label && <Text className={`text-xl mb-3 ${labelStyle}`}>{label}</Text>}
           <View
             className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 ${containerStyle}`}
           >
-            {icon && <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />}
+            {renderIcon()}
             <TextInput
-              className={`rounded-full p-4 text-black text-[15px] flex-1 ${inputStyle} text-left placeholder:text-neutral-500`}
+              className={`rounded-full p-4 text-black text-[15px] flex-1 ${inputStyle} ${isRTL ? 'text-right' : 'text-left'} placeholder:text-neutral-500`}
               secureTextEntry={secureTextEntry}
+              style={{ writingDirection: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left' }}
               {...props}
             />
           </View>

@@ -17,9 +17,7 @@ const resources = {
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: Localization.getLocales()[0]?.languageCode?.startsWith('fa')
-    ? 'fa'
-    : 'en', // Default to Persian if device locale is Persian, otherwise English
+  lng: 'fa', // Default to Persian (Farsi)
   fallbackLng: 'en',
   interpolation: {
     escapeValue: false, // React already does escaping

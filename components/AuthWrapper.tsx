@@ -44,7 +44,8 @@ export default function AuthWrapper({
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        router.replace('/(tabs)');
+        // Navigate to default tab (Explore)
+        router.replace('/' as any);
       } else {
         router.replace('/auth/welcome' as any);
       }
