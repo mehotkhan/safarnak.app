@@ -1,0 +1,21 @@
+{
+  "version": "0.0.0",
+  "since": null,
+  "generatedAt": "",
+  "commits": [],
+  "grouped": {
+    "feat": [],
+    "fix": [],
+    "docs": [],
+    "refactor": [],
+    "chore": [],
+    "build": [],
+    "ci": [],
+    "perf": [],
+    "style": [],
+    "test": [],
+    "other": []
+  }
+}
+
+

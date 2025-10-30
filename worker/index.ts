@@ -120,8 +120,33 @@ const subscriptionsFetch = handleSubscriptions({
 });
 
 // Redirect root path to GraphQL endpoint for convenience
-const fetch = (request: Request, env: Env, executionCtx: ExecutionContext) => {
+const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext) => {
   const url = new URL(request.url);
+  // Simple release notes JSON endpoint served from bundled files
+  if (url.pathname.startsWith('/releases')) {
+    const parts = url.pathname.split('/').filter(Boolean); // ["releases", "<version>|latest"]
+    const target = parts[1] || 'latest';
+    try {
+      // Use import.meta to load bundled JSON at build-time
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const data = await (async () => {
+        if (target === 'latest') {
+          // @ts-ignore - JSON import provided by bundler
+          return (await import('./releases/latest.json')).default || (await import('./releases/latest.json'));
+        }
+        // @ts-ignore - JSON import provided by bundler
+        return (await import(`./releases/${target}.json`)).default || (await import(`./releases/${target}.json`));
+      })();
+      return new Response(JSON.stringify(data), {
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+      });
+    } catch (e) {
+      return new Response(JSON.stringify({ error: 'Release notes not found' }), {
+        status: 404,
+        headers: { 'content-type': 'application/json; charset=utf-8' },
+      });
+    }
+  }
   if (url.pathname === '/' || url.pathname === '') {
     return Response.redirect(url.origin + '/graphql', 302);
   }
