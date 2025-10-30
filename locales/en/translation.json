@@ -1,5 +1,6 @@
 {
   "common": {
+    "appName": "Safarnak",
     "home": "Home",
     "tour": "Tour",
     "profile": "Profile",
@@ -14,7 +15,12 @@
     "delete": "Delete",
     "edit": "Edit",
     "share": "Share",
-    "search": "Search"
+    "search": "Search",
+    "create": "Create",
+    "post": "Post",
+    "comments": "Comments",
+    "addComment": "Add a comment...",
+    "version": "Version"
   },
   "home": {
     "title": "Home",
@@ -27,6 +33,15 @@
     "featured": "Featured Tours",
     "popular": "Popular Destinations",
     "bookNow": "Book Now"
+  },
+  "placeDetail": {
+    "title": "Place Details",
+    "about": "About",
+    "hours": "Hours",
+    "tips": "Tips",
+    "getDirections": "Get Directions",
+    "reviews": "reviews",
+    "kmAway": "km away"
   },
   "profile": {
     "title": "Profile",
@@ -142,6 +157,8 @@
       "apartment": "Apartment",
       "camping": "Camping",
       "submit": "Generate AI Trip",
+      "budgetPlaceholder": "$1000",
+      "updated": "Trip updated successfully!",
       "generating": "Generating your perfect trip...",
       "regenerate": "Regenerate Plan"
     }
@@ -245,12 +262,36 @@
     "maxParticipants": "Max Participants",
     "difficulty": "Difficulty"
   },
-  "placeDetail": {
+  "settings": {
+    "receivePush": "Receive push notifications",
+    "locationTracking": "Location Tracking",
+    "allowLocation": "Allow location access",
+    "account": "Account",
+    "accountSettings": "Account Settings",
+    "manageAccount": "Manage your account",
+    "dataManagement": "Data Management",
+    "downloadDeleteData": "Download or delete your data",
     "about": "About",
-    "hours": "Hours",
-    "tips": "Tips",
-    "getDirections": "Get Directions",
-    "reviews": "reviews",
-    "kmAway": "km away"
+    "aboutApp": "About {{app}}",
+    "version": "Version",
+    "aboutDescription": "A travel planning app powered by AI",
+    "accountComingSoon": "Account settings coming soon!",
+    "privacyComingSoon": "Privacy settings coming soon!",
+    "dataManagementComingSoon": "Data management coming soon!"
+  },
+  "me": {
+    "inbox": {
+      "planReady": "Trip Plan Ready",
+      "planReadyMessage": "Your Tokyo trip plan has been generated",
+      "newTour": "New Tour Available",
+      "newTourMessage": "Cherry Blossom Tour is now available for booking",
+      "support": "Message from Support",
+      "supportMessage": "Your subscription has been upgraded",
+      "time": {
+        "2h": "2 hours ago",
+        "1d": "1 day ago",
+        "3d": "3 days ago"
+      }
+    }
   }
 }

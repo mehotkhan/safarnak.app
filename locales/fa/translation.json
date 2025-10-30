@@ -1,5 +1,6 @@
 {
   "common": {
+    "appName": "سفرناک",
     "home": "خانه",
     "tour": "تور",
     "profile": "پروفایل",
@@ -14,7 +15,12 @@
     "delete": "حذف",
     "edit": "ویرایش",
     "share": "اشتراک‌گذاری",
-    "search": "جستجو"
+    "search": "جستجو",
+    "create": "ایجاد",
+    "post": "پست",
+    "comments": "دیدگاه‌ها",
+    "addComment": "افزودن دیدگاه...",
+    "version": "نسخه"
   },
   "home": {
     "title": "خانه",
@@ -142,6 +148,8 @@
       "apartment": "آپارتمان",
       "camping": "کمپینگ",
       "submit": "ایجاد سفر هوشمند",
+      "budgetPlaceholder": "$1000",
+      "updated": "سفر با موفقیت به‌روزرسانی شد!",
       "generating": "در حال ایجاد سفر کامل شما...",
       "regenerate": "ایجاد مجدد برنامه"
     }
@@ -245,7 +253,40 @@
     "maxParticipants": "حداکثر شرکت‌کنندگان",
     "difficulty": "سختی"
   },
+  "settings": {
+    "receivePush": "دریافت اعلان‌های پوش",
+    "locationTracking": "ردیابی موقعیت",
+    "allowLocation": "اجازه دسترسی به موقعیت",
+    "account": "حساب کاربری",
+    "accountSettings": "تنظیمات حساب",
+    "manageAccount": "مدیریت حساب شما",
+    "dataManagement": "مدیریت داده‌ها",
+    "downloadDeleteData": "دانلود یا حذف داده‌ها",
+    "about": "درباره",
+    "aboutApp": "درباره {{app}}",
+    "version": "نسخه",
+    "aboutDescription": "اپلیکیشن برنامه‌ریزی سفر با هوش مصنوعی",
+    "accountComingSoon": "تنظیمات حساب به‌زودی!",
+    "privacyComingSoon": "تنظیمات حریم خصوصی به‌زودی!",
+    "dataManagementComingSoon": "مدیریت داده‌ها به‌زودی!"
+  },
+  "me": {
+    "inbox": {
+      "planReady": "برنامه سفر آماده شد",
+      "planReadyMessage": "برنامه سفر توکیو شما ایجاد شد",
+      "newTour": "تور جدید در دسترس است",
+      "newTourMessage": "تور شکوفه‌های گیلاس برای رزرو آماده است",
+      "support": "پیام از پشتیبانی",
+      "supportMessage": "اشتراک شما ارتقاء یافت",
+      "time": {
+        "2h": "۲ ساعت پیش",
+        "1d": "۱ روز پیش",
+        "3d": "۳ روز پیش"
+      }
+    }
+  },
   "placeDetail": {
+    "title": "جزئیات مکان",
     "about": "درباره",
     "hours": "ساعات کاری",
     "tips": "نکات",
