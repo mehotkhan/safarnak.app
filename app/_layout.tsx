@@ -25,7 +25,7 @@ import '../global.css';
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
-  initialRouteName: 'auth',
+  initialRouteName: '(auth)',
 };
 
 SplashScreen.preventAutoHideAsync();
@@ -75,8 +75,8 @@ export default function RootLayout() {
       <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <AuthWrapper>
           <Stack>
-            <Stack.Screen name='auth' options={{ headerShown: false }} />
-            <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+            <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+            <Stack.Screen name='(app)' options={{ headerShown: false }} />
           </Stack>
         </AuthWrapper>
       </ThemeProvider>

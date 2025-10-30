@@ -44,10 +44,10 @@ export default function AuthWrapper({
   useEffect(() => {
     if (!isLoading) {
       if (isAuthenticated) {
-        // Navigate to default tab (Explore)
-        router.replace('/' as any);
+        // Navigate to main app (feed)
+        router.replace('/(app)/(feed)' as any);
       } else {
-        router.replace('/auth/welcome' as any);
+        router.replace('/(auth)/welcome' as any);
       }
     }
   }, [isAuthenticated, isLoading]);
