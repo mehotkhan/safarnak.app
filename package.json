@@ -2,6 +2,7 @@
   "name": "safarnak-app",
   "version": "0.9.4",
   "main": "expo-router/entry",
+  "license": "MIT",
   "scripts": {
     "dev": "concurrently -k -n worker,expo -c yellow,cyan \"yarn worker:dev\" \"yarn start\"",
     "start": "NEW_ARCH=1 expo start",

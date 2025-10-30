@@ -190,38 +190,54 @@ yarn web               # Web browser
 ### Client-Side (What You'll Modify Most)
 
 ```
-app/                    # 📱 Expo Router file-based pages
-├── auth/              # Authentication pages
-│   ├── login.tsx     # Login page (auto-redirect if logged in)
-│   └── register.tsx   # Registration page
-└── (tabs)/            # Main app tabs
-    ├── index.tsx      # Home screen
-    ├── plan.tsx       # Plan screen
-    └── profile.tsx    # User profile
+app/                     # 📱 Expo Router (route groups + tabs)
+├── (auth)/             # Public routes
+│   ├── login.tsx       # /auth/login
+│   ├── register.tsx    # /auth/register
+│   └── welcome.tsx     # /auth/welcome
+└── (app)/              # Protected routes with tabs
+    ├── (feed)/         # / (home feed)
+    │   ├── index.tsx   # / (feed)
+    │   └── [id].tsx    # /:id (post detail)
+    ├── (explore)/      # /explore
+    │   ├── index.tsx   # /explore
+    │   ├── places/[id].tsx # /explore/places/:id
+    │   └── tours/[id].tsx  # /explore/tours/:id
+    ├── (trips)/        # /trips
+    │   ├── index.tsx   # /trips
+    │   ├── new.tsx     # /trips/new
+    │   └── [id]/       # /trips/:id
+    │       ├── index.tsx
+    │       └── edit.tsx
+    └── (profile)/      # /profile
+        ├── index.tsx   # /profile
+        ├── messages.tsx# /profile/messages
+        ├── trips.tsx   # /profile/trips
+        └── settings.tsx# /profile/settings
 
-components/            # 🎨 Reusable UI components
-├── AuthWrapper.tsx    # Authentication guard
-├── MapView.tsx        # Map component
-└── context/           # React contexts (language, theme)
+components/             # 🎨 Reusable UI components
+├── AuthWrapper.tsx     # Authentication guard
+├── MapView.tsx         # Map component
+└── context/            # React contexts (language, theme)
 
-api/                    # 🌐 GraphQL client (auto-generated)
-├── hooks.ts           # ✨ Generated React hooks
-├── types.ts           # ✨ Generated TypeScript types
-└── client.ts          # Apollo Client setup
+api/                     # 🌐 GraphQL client (auto-generated)
+├── hooks.ts            # ✨ Generated React hooks
+├── types.ts            # ✨ Generated TypeScript types
+└── client.ts           # Apollo Client setup
 
-store/                  # 📦 Redux state
-├── slices/            # State slices
-│   ├── authSlice.ts   # Auth state
-│   └── themeSlice.ts  # Theme state
-└── middleware/        # Redux middleware
+store/                   # 📦 Redux state
+├── slices/             # State slices
+│   ├── authSlice.ts    # Auth state
+│   └── themeSlice.ts   # Theme state
+└── middleware/         # Redux middleware
     └── offlineMiddleware.ts  # Offline queue
 
-constants/              # 📋 App configuration
-hooks/                   # 🪝 Custom React hooks
-locales/                 # 🌍 i18n translations (en, fa)
-global.css              # 🎨 Tailwind CSS directives (NativeWind)
-tailwind.config.js      # 🎨 Tailwind configuration
-babel.config.js         # ⚙️ Babel config (NativeWind preset)
+constants/               # 📋 App configuration
+hooks/                    # 🪝 Custom React hooks
+locales/                  # 🌍 i18n translations (en, fa)
+global.css               # 🎨 Tailwind CSS directives (NativeWind)
+tailwind.config.js       # 🎨 Tailwind configuration
+babel.config.js          # ⚙️ Babel config (NativeWind preset)
 ```
 
 ### Server-Side
@@ -751,7 +767,7 @@ yarn version:minor    # Release-it minor bump (CI)
 4. Apollo adds token → Automatic auth headers
 5. Auto-redirect → Logged-in users can't access auth pages
 
-**Auth Pages**: `app/auth/login.tsx` and `app/auth/register.tsx`  
+**Auth Pages**: `app/(auth)/login.tsx`, `app/(auth)/register.tsx`, `app/(auth)/welcome.tsx`  
 **Auth Guard**: `components/AuthWrapper.tsx`
 
 ---
