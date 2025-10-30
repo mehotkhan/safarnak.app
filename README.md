@@ -236,7 +236,7 @@ graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)
 └── queries/          # Query definitions (.graphql files)
 
-database/              # 🗄️ Database schemas (worker-only, not used by client)
+database/              # 🗄️ Database schemas (worker-only)
 ├── drizzle.ts        # Drizzle ORM schema
 └── migrations/       # SQL migrations
 ```
