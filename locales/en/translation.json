@@ -185,6 +185,7 @@
     "categories": {
       "all": "All",
       "tours": "Tours",
+      "trips": "Trips",
       "places": "Places",
       "popular": "Popular",
       "nearby": "Nearby",
@@ -243,7 +244,18 @@
       "title": "Inbox",
       "notifications": "Notifications",
       "chats": "Chats",
-      "emptyState": "No messages yet"
+      "emptyState": "No messages yet",
+      "planReady": "Trip Plan Ready",
+      "planReadyMessage": "Your Tokyo trip plan has been generated",
+      "newTour": "New Tour Available",
+      "newTourMessage": "Cherry Blossom Tour is now available for booking",
+      "support": "Message from Support",
+      "supportMessage": "Your subscription has been upgraded",
+      "time": {
+        "2h": "2 hours ago",
+        "1d": "1 day ago",
+        "3d": "3 days ago"
+      }
     }
   },
   "tripDetail": {
@@ -278,20 +290,5 @@
     "accountComingSoon": "Account settings coming soon!",
     "privacyComingSoon": "Privacy settings coming soon!",
     "dataManagementComingSoon": "Data management coming soon!"
-  },
-  "me": {
-    "inbox": {
-      "planReady": "Trip Plan Ready",
-      "planReadyMessage": "Your Tokyo trip plan has been generated",
-      "newTour": "New Tour Available",
-      "newTourMessage": "Cherry Blossom Tour is now available for booking",
-      "support": "Message from Support",
-      "supportMessage": "Your subscription has been upgraded",
-      "time": {
-        "2h": "2 hours ago",
-        "1d": "1 day ago",
-        "3d": "3 days ago"
-      }
-    }
   }
 }
