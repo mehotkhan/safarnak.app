@@ -18,7 +18,7 @@ const GIT_IGNORED_PATTERNS = {
   '**/.wrangler': true,
   '**/android/build': true,
   '**/ios/build': true,
-  '**/drizzle/migrations': true,
+  '**/database/migrations': true,
   '**/.git': true,
   '**/dist': true,
   '**/build': true,

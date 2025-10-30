@@ -21,8 +21,8 @@
       "@graphql/*": [
         "./graphql/*"
       ],
-      "@drizzle/*": [
-        "./drizzle/*"
+      "@database/*": [
+        "./database/*"
       ],
       "@worker/*": [
         "./worker/*"
