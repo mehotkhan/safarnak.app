@@ -28,10 +28,6 @@
     "version:minor": "release-it minor --ci",
     "version:major": "release-it major --ci",
     "version:prerelease": "release-it prerelease --ci",
-    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
-    "changelog:all": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "version:info": "node scripts/version-manager.js info",
-    "version:create": "node scripts/version-manager.js",
     "commit:generate": "node scripts/generate-commit-message.js",
     "ios": "expo run:ios"
   },
