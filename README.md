@@ -9,7 +9,7 @@
 [![GraphQL Codegen](https://img.shields.io/badge/GraphQL-Codegen-purple)](https://the-guild.dev/graphql/codegen)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.8.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
+[![Version](https://img.shields.io/badge/Version-0.9.2-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
 **Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
@@ -21,7 +21,6 @@
 - [Architecture Overview](#-architecture-overview)
 - [Quick Start](#-quick-start)
 - [Codebase Structure](#-codebase-structure)
-- [Template System](#-template-system)
 - [How to Add New Features](#-how-to-add-new-features)
 - [Configuration](#-configuration)
 - [Common Commands](#-common-commands)
@@ -197,7 +196,7 @@ app/                    # 📱 Expo Router file-based pages
 │   └── register.tsx   # Registration page
 └── (tabs)/            # Main app tabs
     ├── index.tsx      # Home screen
-    ├── tour.tsx       # Tours list
+    ├── plan.tsx       # Plan screen
     └── profile.tsx    # User profile
 
 components/            # 🎨 Reusable UI components
@@ -501,29 +500,7 @@ erDiagram
 
 ---
 
-## 🧩 Template System
 
-Safarnak leverages a local, untracked UI Template located at `Template/` for rapid UI scaffolding and visual consistency. This folder is intentionally ignored by Git (see `.gitignore`) so it remains a local-only resource during development.
-
-- Source Template repo: `git@github.com:saurabhparyani/avent.git`
-- Local path: `Template/`
-- Purpose: Reference styles, flows, and components (e.g., `CustomButton`, `InputField`, `OAuth`, `(auth)` and `(tabs)` layouts) to redesign Safarnak screens.
-
-Guidelines:
-
-1. Do not import code directly from `Template/` into app modules. Instead, port patterns into `components/`, `constants/`, and `app/` with our path aliases and TypeScript style.
-2. Keep `Template/` updated locally by recloning or pulling the upstream repo if needed. It will never be committed.
-3. When adopting UI patterns, prefer shared components in `components/ui/` and align theme tokens in `constants/Colors.ts`.
-4. Preserve our GraphQL, Redux, and offline-first architecture; UI changes should remain presentation-layer only.
-
-Migration plan snapshot:
-
-- Port `CustomButton`, `InputField`, `OAuth` into `components/ui/` with path aliases.
-- Redesign `app/auth/login.tsx` and `app/auth/register.tsx` to match Template visuals.
-- Align tab layout visuals to Template’s `(tabs)` screens while retaining our routes: `index`, `tour`, `profile`.
-- Integrate primary/neutral colors from Template into `constants/Colors.ts` without breaking dark mode.
-
----
 
 ## 💡 How to Add New Features
 

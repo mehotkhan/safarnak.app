@@ -94,10 +94,7 @@ yarn codegen
 # 4. Create resolvers
 # Add resolver functions to worker/mutations/ or worker/queries/
 
-# 5. Create client wrappers
-# Add wrapper files to api/mutations/ or api/queries/
-
-# 6. Use in components
+# 5. Use in components
 # Import generated hooks in React components
 ```
 
@@ -137,10 +134,9 @@ yarn codegen
 
 ### TypeScript
 
-- **Strict Mode**: Enhanced checking enabled
-- **No `any`**: Use `unknown` if type is truly unknown
-- **Path Aliases**: Use `@/`, `@components/`, `@graphql/`
-- **Type Everything**: Parameters, return values, props
+- **Developer-friendly typing**: Prefer strong types but `any`/`@ts-expect-error` are acceptable during development
+- **Path Aliases**: Use `@/`, `@components/`, `@graphql/`, `@api`, `@store`
+- **Type important surfaces**: Function parameters, return values, component props
 
 ### GraphQL
 
@@ -278,8 +274,8 @@ Safarnak supports English and Persian (Farsi) with RTL layout:
 ### Documentation
 
 - [README.md](README.md) - Project overview and setup
-- [.cursorrules](.cursorrules) - Development guidelines
-- [Architecture Guide](README.md#architecture) - Technical architecture
+- Development guidelines are embedded in repository rules within README and code comments
+- Architecture details in README (Architecture Overview)
 
 ### External Resources
 
