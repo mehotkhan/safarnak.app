@@ -5,6 +5,10 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@components/context/ThemeContext';
 
+export const unstable_settings = {
+  initialRouteName: 'index',
+};
+
 export default function TabLayout() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
@@ -13,7 +17,7 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: isDark ? '#a78bfa' : '#8b5cf6',
+        tabBarActiveTintColor: isDark ? '#4aa3d9' : '#0077be',
         tabBarInactiveTintColor: isDark ? '#666' : '#64748b',
         tabBarLabelStyle: {
           fontSize: 12,
@@ -25,12 +29,12 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name='index'
+        name='plan'
         options={{
-          tabBarLabel: t('common.home'),
+          tabBarLabel: t('common.plan'),
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
-              name={focused ? 'home' : 'home-outline'}
+              name={focused ? 'airplane' : 'airplane-outline'}
               size={24}
               color={color}
             />
@@ -38,12 +42,12 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name='tour'
+        name='index'
         options={{
-          tabBarLabel: t('common.tour'),
+          tabBarLabel: t('common.explore'),
           tabBarIcon: ({ focused, color }) => (
             <Ionicons
-              name={focused ? 'map' : 'map-outline'}
+              name={focused ? 'compass' : 'compass-outline'}
               size={24}
               color={color}
             />
@@ -53,7 +57,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name='profile'
         options={{
-          tabBarLabel: t('common.profile'),
+          tabBarLabel: t('common.me'),
           tabBarIcon: ({ focused, color }) => (
             <FontAwesome
               name={focused ? 'user' : 'user-o'}

@@ -1,5 +1,5 @@
-const tintColorLight = '#2f95dc';
-const tintColorDark = '#fff';
+const tintColorLight = '#0077be';
+const tintColorDark = '#cfe8f6';
 
 export default {
   light: {
@@ -12,8 +12,8 @@ export default {
     border: '#e9ecef',
     shadow: '#000',
     // Template-aligned additions (Persian Turquoise)
-    primary: '#30D5C8', // Persian turquoise
-    primaryMuted: '#4DD8CC', // lighter turquoise
+    primary: '#0077be', // Ocean Blue (primary)
+    primaryMuted: '#4aa3d9', // lighter ocean blue
     neutral100: '#f5f5f5',
     textMuted: '#6b7280',
     danger: '#ef4444',
@@ -29,8 +29,8 @@ export default {
     border: '#333',
     shadow: '#000',
     // Template-aligned additions
-    primary: '#a78bfa', // violet-300
-    primaryMuted: '#8b5cf6', // violet-500
+    primary: '#4aa3d9', // ocean blue light for dark theme
+    primaryMuted: '#3691cf',
     neutral100: '#2a2a2a',
     textMuted: '#9ca3af',
     danger: '#f87171',
