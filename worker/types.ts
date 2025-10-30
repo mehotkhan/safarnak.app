@@ -9,6 +9,9 @@ import { DefaultPublishableContext } from 'graphql-workers-subscriptions';
 export interface Env {
   DB: D1Database;
   SUBSCRIPTION_POOL: DurableObjectNamespace;
+  KV: KVNamespace;           // Key-Value storage for sessions & caches
+  R2: R2Bucket;              // Object storage for media
+  VECTORIZE: VectorizeIndex; // Vector database for embeddings
 }
 
 /**

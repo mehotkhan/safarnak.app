@@ -23,4 +23,29 @@ bindings = [
 tag = "v1"
 new_sqlite_classes = ["SubscriptionPool"]
 
+## ============================================================================
+## KV Namespaces
+## ============================================================================
+
+[[kv_namespaces]]
+binding = "KV"                     # Access via env.KV
+# id = "REPLACE_WITH_PROD_KV_ID"    # Set after running: wrangler kv namespace create safarnak-kv
+# preview_id = "REPLACE_WITH_DEV_KV_ID"
+
+## ============================================================================
+## R2 Buckets
+## ============================================================================
+
+[[r2_buckets]]
+binding = "R2"                     # Access via env.R2
+bucket_name = "safarnak-dev"       # Create via: wrangler r2 bucket create safarnak-dev
+
+## ============================================================================
+## Vectorize Index (AI Embeddings)
+## ============================================================================
+
+[[vectorize]]
+binding = "VECTORIZE"              # Access via env.VECTORIZE
+index_name = "safarnak-embeddings" # Create via: wrangler vectorize index create safarnak-embeddings --dimension 768
+
 
