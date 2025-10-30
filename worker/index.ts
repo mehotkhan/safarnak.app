@@ -122,29 +122,52 @@ const subscriptionsFetch = handleSubscriptions({
 // Redirect root path to GraphQL endpoint for convenience
 const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext) => {
   const url = new URL(request.url);
-  // Simple release notes JSON endpoint served from bundled files
+  // Release notes endpoint backed by GitHub Releases + Compare API
   if (url.pathname.startsWith('/releases')) {
-    const parts = url.pathname.split('/').filter(Boolean); // ["releases", "<version>|latest"]
-    const target = parts[1] || 'latest';
+    const repo = (env as any).GITHUB_REPO || 'mehotkhan/safarnak.app';
+    const ghHeaders: Record<string, string> = {
+      'accept': 'application/vnd.github+json',
+      'user-agent': 'safarnak-worker',
+    };
+    const token = (env as any).GITHUB_TOKEN as string | undefined;
+    if (token) ghHeaders['authorization'] = `Bearer ${token}`;
+
     try {
-      // Use import.meta to load bundled JSON at build-time
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const data = await (async () => {
-        if (target === 'latest') {
-          // @ts-ignore - JSON import provided by bundler
-          return (await import('./releases/latest.json')).default || (await import('./releases/latest.json'));
+      // fetch latest two releases to compute range
+      const relRes = await globalThis.fetch(`https://api.github.com/repos/${repo}/releases?per_page=2`, { headers: ghHeaders });
+      if (!relRes.ok) throw new Error(`releases http ${relRes.status}`);
+      const releases: any[] = await relRes.json();
+      const latest = releases[0];
+      const previous = releases[1];
+      const latestTag = latest?.tag_name;
+      const previousTag = previous?.tag_name;
+
+      let commits: any[] = [];
+      if (latestTag && previousTag) {
+        const cmpRes = await globalThis.fetch(`https://api.github.com/repos/${repo}/compare/${previousTag}...${latestTag}` , { headers: ghHeaders });
+        if (cmpRes.ok) {
+          const cmp: any = await cmpRes.json();
+          commits = (cmp.commits || []).map((c: any) => ({
+            sha: c.sha?.slice(0, 7),
+            message: c.commit?.message || '',
+            author: c.commit?.author?.name || c.author?.login || 'unknown',
+            date: c.commit?.author?.date,
+          }));
         }
-        // @ts-ignore - JSON import provided by bundler
-        return (await import(`./releases/${target}.json`)).default || (await import(`./releases/${target}.json`));
-      })();
-      return new Response(JSON.stringify(data), {
-        headers: { 'content-type': 'application/json; charset=utf-8' },
-      });
-    } catch (e) {
-      return new Response(JSON.stringify({ error: 'Release notes not found' }), {
-        status: 404,
-        headers: { 'content-type': 'application/json; charset=utf-8' },
-      });
+      }
+
+      const payload = {
+        version: latest?.tag_name || null,
+        name: latest?.name || null,
+        createdAt: latest?.created_at || null,
+        publishedAt: latest?.published_at || null,
+        body: latest?.body || '',
+        previous: previous?.tag_name || null,
+        commits,
+      };
+      return new Response(JSON.stringify(payload), { headers: { 'content-type': 'application/json; charset=utf-8' } });
+    } catch (e: any) {
+      return new Response(JSON.stringify({ error: 'Failed to fetch release info', details: String(e?.message || e) }), { status: 502, headers: { 'content-type': 'application/json; charset=utf-8' } });
     }
   }
   if (url.pathname === '/' || url.pathname === '') {
