@@ -1,12 +1,23 @@
 type Query {
   getMessages: [Message!]!
   me: User
+  getTrips(status: String): [Trip!]!
+  getTrip(id: ID!): Trip
+  getTours(category: String, limit: Int): [Tour!]!
+  getTour(id: ID!): Tour
+  getPlaces(category: String, limit: Int): [Place!]!
+  getPlace(id: ID!): Place
 }
 
 type Mutation {
   addMessage(content: String!): Message!
   register(username: String!, password: String!): AuthPayload!
   login(username: String!, password: String!): AuthPayload!
+  createTrip(input: CreateTripInput!): Trip!
+  updateTrip(id: ID!, input: UpdateTripInput!): Trip!
+  deleteTrip(id: ID!): Boolean!
+  bookmarkTour(tourId: ID!): Boolean!
+  bookmarkPlace(placeId: ID!): Boolean!
 }
 
 type Subscription {
@@ -29,4 +40,91 @@ type User {
 type AuthPayload {
   user: User!
   token: String!
+}
+
+type Trip {
+  id: ID!
+  userId: ID!
+  destination: String
+  startDate: String
+  endDate: String
+  budget: Float
+  travelers: Int!
+  preferences: String
+  accommodation: String
+  status: String!
+  aiReasoning: String
+  itinerary: [ItineraryDay!]
+  coordinates: Coordinates
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ItineraryDay {
+  day: Int!
+  title: String!
+  activities: [String!]!
+}
+
+type Coordinates {
+  latitude: Float!
+  longitude: Float!
+}
+
+input CreateTripInput {
+  destination: String
+  startDate: String
+  endDate: String
+  budget: Float
+  travelers: Int!
+  preferences: String
+  accommodation: String
+}
+
+input UpdateTripInput {
+  destination: String
+  startDate: String
+  endDate: String
+  budget: Float
+  travelers: Int
+  preferences: String
+  accommodation: String
+  status: String
+  aiReasoning: String
+  itinerary: String
+}
+
+type Tour {
+  id: ID!
+  title: String!
+  location: String!
+  price: Float!
+  rating: Float!
+  reviews: Int!
+  duration: Int!
+  category: String!
+  description: String!
+  highlights: [String!]!
+  inclusions: [String!]!
+  maxParticipants: Int!
+  difficulty: String!
+  createdAt: String!
+}
+
+type Place {
+  id: ID!
+  name: String!
+  location: String!
+  distance: Float
+  rating: Float!
+  reviews: Int!
+  category: String!
+  isOpen: Boolean!
+  description: String!
+  tips: [String!]!
+  coordinates: Coordinates!
+  phone: String
+  website: String
+  hours: String
+  createdAt: String!
 }

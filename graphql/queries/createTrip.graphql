@@ -1,0 +1,16 @@
+mutation CreateTrip($input: CreateTripInput!) {
+  createTrip(input: $input) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    accommodation
+    aiReasoning
+    coordinates { latitude longitude }
+  }
+}
+
+

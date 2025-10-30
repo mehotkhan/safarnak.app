@@ -1,0 +1,17 @@
+query GetTrips($status: String) {
+  getTrips(status: $status) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    budget
+    accommodation
+    createdAt
+    updatedAt
+  }
+}
+
+

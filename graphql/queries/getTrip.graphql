@@ -1,0 +1,26 @@
+query GetTrip($id: ID!) {
+  getTrip(id: $id) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    accommodation
+    aiReasoning
+    itinerary {
+      day
+      title
+      activities
+    }
+    coordinates {
+      latitude
+      longitude
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+
