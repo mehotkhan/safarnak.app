@@ -3,6 +3,14 @@ main = "worker/index.ts"
 compatibility_date = "2025-10-30"
 workers_dev = true
 
+[observability]
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+persist = true
+
 # Development server configuration
 [dev]
 port = 8787

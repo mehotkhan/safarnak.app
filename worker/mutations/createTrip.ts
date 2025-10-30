@@ -61,31 +61,44 @@ export const createTrip = async (
     longitude: 139.6503,
   };
 
-  // Insert trip
-  const result = await db
-    .insert(trips)
-    .values({
-      userId,
-      destination: destination || 'Untitled Trip',
-      startDate: input.startDate,
-      endDate: input.endDate,
-      budget: input.budget,
-      travelers,
-      preferences: description,
-      accommodation,
-      status: 'in_progress',
-      aiReasoning,
-      itinerary: JSON.stringify(mockItinerary),
-      coordinates: JSON.stringify(mockCoordinates),
-      aiGenerated: true,
-    })
-    .returning()
-    .get();
+  try {
+    // Insert trip
+    const result = await db
+      .insert(trips)
+      .values({
+        userId,
+        destination: destination || 'Untitled Trip',
+        startDate: input.startDate,
+        endDate: input.endDate,
+        budget: input.budget,
+        travelers,
+        preferences: description,
+        accommodation,
+        status: 'in_progress',
+        aiReasoning,
+        itinerary: JSON.stringify(mockItinerary),
+        coordinates: JSON.stringify(mockCoordinates),
+        aiGenerated: true,
+      })
+      .returning()
+      .get();
 
-  return {
-    ...result,
-    itinerary: JSON.parse(result.itinerary || '[]'),
-    coordinates: JSON.parse(result.coordinates || '{}'),
-  };
+    return {
+      ...result,
+      itinerary: JSON.parse(result.itinerary || '[]'),
+      coordinates: JSON.parse(result.coordinates || '{}'),
+    };
+  } catch (error: any) {
+    // Log internal error details for observability without leaking to client
+    console.error('createTrip failed', {
+      userId,
+      destination,
+      hasDates: Boolean(input.startDate || input.endDate),
+      travelers,
+      error: error?.stack || String(error),
+    });
+    // Return a client-facing error key used by the app i18n layer
+    throw new Error('plan.form.errors.generatefailed');
+  }
 };
 

@@ -66,6 +66,23 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
         console.log(`GraphQL Request: ${request.method} ${url.pathname}`);
       },
     },
+    {
+      onResult: ({ result, args }: any) => {
+        // Log GraphQL errors for observability in production
+        const errors = (result as any)?.errors;
+        if (errors && Array.isArray(errors) && errors.length > 0) {
+          try {
+            const operationName = (args as any)?.operationName || 'unknown';
+            console.error('GraphQL Error', {
+              operationName,
+              errors: errors.map((e: any) => ({ message: e.message, path: e.path })),
+            });
+          } catch (_) {
+            // no-op
+          }
+        }
+      },
+    },
   ],
   maskedErrors: false, // Show actual error messages instead of "Unexpected error"
   context: async ({ request, env, executionCtx }) => {
