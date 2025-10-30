@@ -1,6 +1,6 @@
 name = "safarnak-worker"
 main = "worker/index.ts"
-compatibility_date = "2025-10-20"
+compatibility_date = "2025-10-30"
 workers_dev = true
 
 # Development server configuration
@@ -28,9 +28,9 @@ new_sqlite_classes = ["SubscriptionPool"]
 ## ============================================================================
 
 [[kv_namespaces]]
-binding = "KV"                     # Access via env.KV
-# id = "REPLACE_WITH_PROD_KV_ID"    # Set after running: wrangler kv namespace create safarnak-kv
-# preview_id = "REPLACE_WITH_DEV_KV_ID"
+binding = "KV"
+id = "aaa95f080d984c5c854b08ff979a1643"
+preview_id = "157b382a2e4440b7922383de844e79b1"
 
 ## ============================================================================
 ## R2 Buckets
