@@ -8,7 +8,7 @@ import CustomButton from '@components/ui/CustomButton';
 import { Stack } from 'expo-router';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const splashImage = require('../../assets/images/welcome-splash.png');
+const splashImage = require('@assets/images/welcome-splash.png');
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();

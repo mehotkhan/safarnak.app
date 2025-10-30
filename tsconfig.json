@@ -57,6 +57,13 @@
       "@locales/*": [
         "./locales/*"
       ]
+      ,
+      "@assets": [
+        "./assets"
+      ],
+      "@assets/*": [
+        "./assets/*"
+      ]
     },
     "types": [
       "./worker-configuration.d.ts"

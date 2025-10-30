@@ -48,6 +48,23 @@ const getAppConfig = () => {
   const packageJson = JSON.parse(require('fs').readFileSync('./package.json', 'utf8'));
   const appVersion = packageJson.version;
 
+  // Resolve GraphQL URL once here and expose via extras so runtime can read it reliably
+  const isDevRuntime = isDebug || isDevelopment;
+  const graphUrl = isDevRuntime
+    ? (
+        process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV ||
+        process.env.EXPO_PUBLIC_GRAPHQL_URL ||
+        process.env.GRAPHQL_URL_DEV ||
+        process.env.GRAPHQL_URL ||
+        // Dev fallback per repo rule (update to your LAN IP when needed)
+        'http://192.168.1.51:8787/graphql'
+      )
+    : (
+        process.env.EXPO_PUBLIC_GRAPHQL_URL ||
+        process.env.GRAPHQL_URL ||
+        'https://safarnak.mohet.ir/graphql'
+      );
+
   return {
     expo: {
       name: appName,
@@ -117,9 +134,8 @@ const getAppConfig = () => {
         eas: {
           projectId: '90632384-6918-4b7a-bbab-e0998b4a4b63',
         },
-        // Always set production URL in app.config.js
-        // The client will detect __DEV__ mode at runtime to switch to dev URL if needed
-        graphqlUrl: process.env.GRAPHQL_URL || 'https://safarnak.mohet.ir/graphql',
+        // Single source of truth for client GraphQL URL (dev/prod decided above)
+        graphqlUrl: graphUrl,
         appName: process.env.APP_NAME || appName,
         appScheme: process.env.APP_SCHEME || scheme,
         bundleIdentifier: process.env.BUNDLE_IDENTIFIER || bundleIdentifier,

@@ -18,6 +18,7 @@ config.resolver.extraNodeModules = {
   '@hooks': path.resolve(__dirname, 'hooks'),
   '@constants': path.resolve(__dirname, 'constants'),
   '@locales': path.resolve(__dirname, 'locales'),
+  '@assets': path.resolve(__dirname, 'assets'),
 };
 
 // Use resolver.alias for subpath mapping to ensure Metro resolves correctly

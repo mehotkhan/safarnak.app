@@ -26,8 +26,8 @@ export default function AppLayout() {
           borderTopColor: isDark ? '#333' : '#e9ecef',
           borderTopWidth: 1,
           height: Platform.OS === 'ios' ? 88 : 65,
-          paddingBottom: Platform.OS === 'ios' ? 24 : 10,
-          paddingTop: 10,
+          paddingBottom: Platform.OS === 'ios' ? 14 : 8,
+          paddingTop: 12,
           elevation: 0,
           shadowOpacity: 0,
         },
@@ -36,6 +36,7 @@ export default function AppLayout() {
         },
         tabBarIconStyle: {
           marginTop: 0,
+          marginBottom: 6,
         },
       }}
     >

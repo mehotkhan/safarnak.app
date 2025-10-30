@@ -2,48 +2,87 @@ import { ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
-// Get GraphQL URL from environment variables or fallback to defaults
-const getGraphQLURI = (): string => {
-  // Priority 1: Check EAS build environment variables from app.config.js
-  const envGraphQLUrl = Constants.expoConfig?.extra?.graphqlUrl;
-  if (envGraphQLUrl) {
-    console.log('📡 Using GraphQL URL from app.config.js:', envGraphQLUrl);
-    return envGraphQLUrl;
-  }
-
-  // Priority 2: Check process.env variables (from .env file) - only works in development
-  const processEnvGraphQLUrl = process.env.GRAPHQL_URL;
-  if (processEnvGraphQLUrl && __DEV__) {
-    console.log('📡 Using process.env GraphQL URL (dev only):', processEnvGraphQLUrl);
-    return processEnvGraphQLUrl;
-  }
-
-  // Priority 3: Use __DEV__ flag (React Native's development mode indicator)
-  // This is reliable because it's set by Metro bundler and React Native
-  if (__DEV__) {
-    // Development mode - check for development-specific URL
-    const devUrl = process.env.GRAPHQL_URL_DEV;
-    if (devUrl) {
-      console.log('📡 Using development GraphQL URL from env:', devUrl);
-      return devUrl;
-    }
-    // Fallback to local Wrangler server (matches Wrangler network binding)
-    console.log('📡 Using local Wrangler GraphQL URL (dev mode)');
-    return 'http://192.168.1.51:8787/graphql';
-  } else {
-    // Production build (__DEV__ = false) - always use production URL
-    console.log('📡 Using production GraphQL URL');
-    return 'https://safarnak.mohet.ir/graphql';
+// Attempt to infer the LAN host used by Metro/Expo for better dev defaults
+const getDevServerHost = (): string | null => {
+  const hostUri: string | undefined = (Constants.expoConfig as any)?.hostUri || (Constants as any)?.manifest?.hostUri;
+  if (!hostUri) return null;
+  try {
+    const url = new URL(`http://${hostUri}`);
+    return url.hostname || null;
+  } catch {
+    const parts = hostUri.split(':');
+    return parts[0] || null;
   }
 };
 
-const GRAPHQL_URI = getGraphQLURI();
+// Get GraphQL URL from environment variables or fallback to sensible dev defaults
+const getGraphQLURI = (): string => {
+  // Preferred: value embedded by app.config.js extras
+  const fromExtras = Constants.expoConfig?.extra?.graphqlUrl as string | undefined;
+  if (fromExtras) {
+    console.log('📡 Using GraphQL URL from app.config.js:', fromExtras);
+    return fromExtras;
+  }
+
+  // Secondary: EXPO_PUBLIC_* envs (Expo inlines these at build time)
+  const fromEnv = (process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV || process.env.EXPO_PUBLIC_GRAPHQL_URL) as string | undefined;
+  if (fromEnv) {
+    console.log('📡 Using GraphQL URL from EXPO_PUBLIC env:', fromEnv);
+    return fromEnv;
+  }
+
+  // Dev fallback: derive from Metro host if available, else localhost
+  const maybeHost = __DEV__ ? getDevServerHost() : null;
+  const fallbackHost = maybeHost || '127.0.0.1';
+  const local = `http://${fallbackHost}:8787/graphql`;
+  console.log('📡 Using derived fallback GraphQL URL:', local);
+  return local;
+};
+
+export const GRAPHQL_URI = getGraphQLURI();
 
 console.log('GraphQL URI:', GRAPHQL_URI);
 
+// Normalize dev URIs to reachable hosts across simulators/emulators/devices
+const normalizeDevUri = (uri: string) => {
+  try {
+    if (!__DEV__) return uri;
+    const u = new URL(uri);
+
+    // If Expo uses special 198.18.0.1 host, prefer LAN host if known
+    const devHost = getDevServerHost();
+    if (u.hostname === '198.18.0.1' && devHost) {
+      u.hostname = devHost;
+      return u.toString();
+    }
+
+    // Localhost handling
+    const isLocal = u.hostname === '127.0.0.1' || u.hostname === 'localhost';
+    if (!isLocal) return uri;
+
+    if (Platform.OS === 'android') {
+      // Android emulator loopback
+      u.hostname = '10.0.2.2';
+      return u.toString();
+    }
+
+    // On physical devices (Expo Go), replace with LAN host if available
+    if (devHost && Platform.OS !== 'web') {
+      u.hostname = devHost;
+      return u.toString();
+    }
+  } catch {
+    return uri;
+  }
+  return uri;
+};
+
+export const GRAPHQL_URI_NORMALIZED = normalizeDevUri(GRAPHQL_URI);
+
 const httpLink = createHttpLink({
-  uri: GRAPHQL_URI,
+  uri: GRAPHQL_URI_NORMALIZED,
   // Add error handling
   fetch: (uri, options) => {
     console.log('GraphQL Request:', { uri, options });

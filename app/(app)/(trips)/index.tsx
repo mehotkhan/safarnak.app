@@ -144,6 +144,16 @@ export default function PlanScreen() {
             <View className="flex-1 items-center justify-center py-16">
               <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
             </View>
+          ) : error ? (
+            <View className="flex-1 items-center justify-center px-6 py-12">
+              <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
+              <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+                {t('common.error')}
+              </CustomText>
+              <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+                {String((error as any)?.message || 'Failed to load trips')}
+              </CustomText>
+            </View>
           ) : (
             <View className="flex-1 items-center justify-center px-6 py-12">
               <Ionicons name="airplane-outline" size={80} color={isDark ? '#4b5563' : '#d1d5db'} />
