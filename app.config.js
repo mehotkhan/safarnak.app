@@ -62,7 +62,7 @@ const getAppConfig = () => {
     : (
         process.env.EXPO_PUBLIC_GRAPHQL_URL ||
         process.env.GRAPHQL_URL ||
-        'https://safarnak.mohet.ir/graphql'
+        'https://safarnak.app/graphql'
       );
 
   return {

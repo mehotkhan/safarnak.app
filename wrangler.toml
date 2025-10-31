@@ -59,12 +59,12 @@ bucket_name = "safarnak-dev"       # Create via: wrangler r2 bucket create safar
 
 
 ## ============================================================================
-## Build Rules - Load .graphql files as text for schema import
+## Build Rules - Load .graphql and .html files as text
 ## ============================================================================
 
 [[rules]]
 type = "Text"
-globs = ["**/*.graphql"]
+globs = ["**/*.graphql", "**/*.html"]
 fallthrough = false
 
 
