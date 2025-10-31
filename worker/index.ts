@@ -17,6 +17,20 @@ import { Query } from './queries';
 import { Mutation } from './mutations';
 import { Subscription } from './subscriptions';
 import { Env } from './types';
+import landingPageHTML from './landing.html';
+
+// Simple SVG favicon (brand circle with S)
+const faviconSvg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#667eea"/>
+      <stop offset="100%" stop-color="#764ba2"/>
+    </linearGradient>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#g)"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#fff" font-weight="700">س</text>
+</svg>`;
 
 // ============================================================================
 // Resolver Exports
@@ -119,9 +133,30 @@ const subscriptionsFetch = handleSubscriptions({
   ...settings,
 });
 
-// Redirect root path to GraphQL endpoint for convenience
+// Serve landing page at root, GraphQL at /graphql
 const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext) => {
   const url = new URL(request.url);
+  
+  // Favicon
+  if (url.pathname === '/favicon.ico' || url.pathname === '/favicon.svg') {
+    return new Response(faviconSvg, {
+      headers: {
+        'content-type': 'image/svg+xml; charset=utf-8',
+        'cache-control': 'public, max-age=86400',
+      },
+    });
+  }
+  
+  // Landing page at root
+  if (url.pathname === '/' || url.pathname === '') {
+    return new Response(landingPageHTML, {
+      headers: {
+        'content-type': 'text/html; charset=utf-8',
+        'cache-control': 'public, max-age=3600',
+      },
+    });
+  }
+  
   // Release notes endpoint backed by GitHub Releases + Compare API
   if (url.pathname.startsWith('/releases')) {
     const repo = (env as any).GITHUB_REPO || 'mehotkhan/safarnak.app';
@@ -170,10 +205,8 @@ const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext)
       return new Response(JSON.stringify({ error: 'Failed to fetch release info', details: String(e?.message || e) }), { status: 502, headers: { 'content-type': 'application/json; charset=utf-8' } });
     }
   }
-  if (url.pathname === '/' || url.pathname === '') {
-    return Response.redirect(url.origin + '/graphql', 302);
-  }
 
+  // GraphQL endpoint and subscriptions
   return subscriptionsFetch(request, env, executionCtx);
 };
 

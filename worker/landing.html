@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>سفرناک - همراه هوشمند سفرهای شما</title>
+    <meta name="description" content="سفرناک - برنامه سفر آفلاین با قابلیت برنامه‌ریزی، نقشه و مدیریت سفر">
+    <meta property="og:title" content="سفرناک | همراه هوشمند سفرهای شما">
+    <meta property="og:description" content="برنامه‌ریزی هوشمند، نقشه آفلاین و مدیریت کامل سفر در یک اپلیکیشن.">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fa_IR">
+    <meta property="og:url" content="https://safarnak.app">
+    <link rel="canonical" href="https://safarnak.app">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="alternate icon" href="/favicon.ico">
+    <!-- Prevent FOUC: set theme class ASAP -->
+    <script>(function(){try{var t=localStorage.getItem('theme');if(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches){t='dark';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(_){}})();</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .dark .gradient-bg-dark {
+            background: linear-gradient(135deg, #1e3a8a 0%, #581c87 100%);
+        }
+        
+        .feature-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .dark .feature-card:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
+    
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white dark:bg-gray-800 shadow-md z-50 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-reverse space-x-4">
+                    <h1 class="text-2xl font-bold gradient-text">سفرناک</h1>
+                    <span class="text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-3 py-1 rounded-full">نسخه 0.11.0</span>
+                </div>
+                <div class="flex items-center space-x-reverse space-x-4">
+                    <a href="/graphql" class="text-gray-700 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors">GraphQL API</a>
+                    <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
+                        </svg>
+                        <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-24 pb-16 gradient-bg gradient-bg-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center text-white">
+                <h2 class="text-5xl md:text-6xl font-bold mb-6">
+                    سفر بعدی خود را با سفرناک تجربه کنید
+                </h2>
+                <p class="text-xl md:text-2xl mb-8 text-purple-100">
+                    برنامه‌ریزی هوشمند، نقشه آفلاین و مدیریت کامل سفر در یک برنامه
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-4">
+                    <a href="#features" class="bg-white text-purple-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg">
+                        امکانات برنامه
+                    </a>
+                    <a href="/graphql" class="bg-purple-500 bg-opacity-20 backdrop-blur-sm text-white border-2 border-white px-8 py-3 rounded-lg font-semibold hover:bg-opacity-30 transition-colors">
+                        مستندات API
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-bold mb-4">سفرناک چیست؟</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">سفرناک یک همراه هوشمند آفلاین برای برنامه‌ریزی، مدیریت و تجربه‌ی بهتر سفرهای شماست.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
+                    <h4 class="font-bold text-xl mb-2">یکپارچه و سریع</h4>
+                    <p class="text-gray-600 dark:text-gray-300">کل سیستم با TypeScript توسعه یافته و بخش‌های کلاینت، سرور و GraphQL کاملاً هماهنگ هستند.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
+                    <h4 class="font-bold text-xl mb-2">تجربه آفلاین واقعی</h4>
+                    <p class="text-gray-600 dark:text-gray-300">صف‌ها و همگام‌سازی خودکار؛ حتی بدون اینترنت هم می‌توانید برنامه سفر خود را مدیریت کنید.</p>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
+                    <h4 class="font-bold text-xl mb-2">رابط کاربری مدرن</h4>
+                    <p class="text-gray-600 dark:text-gray-300">طراحی مدرن با پشتیبانی کامل از حالت تیره/روشن و زبان فارسی (RTL).</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold mb-4">امکانات برنامه</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">همه چیز که برای سفری عالی نیاز دارید</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="feature-card bg-gray-50 dark:bg-gray-700 p-8 rounded-xl">
+                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3">نقشه آفلاین</h4>
+                    <p class="text-gray-600 dark:text-gray-300">دسترسی به نقشه‌های کامل بدون نیاز به اینترنت، همیشه و همه جا</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div class="feature-card bg-gray-50 dark:bg-gray-700 p-8 rounded-xl">
+                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3">برنامه‌ریزی سفر</h4>
+                    <p class="text-gray-600 dark:text-gray-300">ایجاد برنامه سفر دقیق با جزئیات کامل مکان‌ها و زمان‌بندی</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div class="feature-card bg-gray-50 dark:bg-gray-700 p-8 rounded-xl">
+                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3">سفر گروهی</h4>
+                    <p class="text-gray-600 dark:text-gray-300">برنامه‌ریزی و هماهنگی سفر با دوستان و خانواده</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div class="feature-card bg-gray-50 dark:bg-gray-700 p-8 rounded-xl">
+                    <div class="w-12 h-12 bg-red-100 dark:bg-red-900 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3">کشف مکان‌ها</h4>
+                    <p class="text-gray-600 dark:text-gray-300">جستجو و کشف جاذبه‌های گردشگری، رستوران‌ها و اماکن دیدنی</p>
+                </div>
+
+                <!-- Feature 5 -->
+                <div class="feature-card bg-gray-50 dark:bg-gray-700 p-8 rounded-xl">
+                    <div class="w-12 h-12 bg-yellow-100 dark:bg-yellow-900 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3">زمان‌بندی هوشمند</h4>
+                    <p class="text-gray-600 dark:text-gray-300">بهینه‌سازی مسیر و زمان بازدید از مکان‌های مختلف</p>
+                </div>
+
+                <!-- Feature 6 -->
+                <div class="feature-card bg-gray-50 dark:bg-gray-700 p-8 rounded-xl">
+                    <div class="w-12 h-12 bg-indigo-100 dark:bg-indigo-900 rounded-lg flex items-center justify-center mb-4">
+                        <svg class="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"></path>
+                        </svg>
+                    </div>
+                    <h4 class="text-2xl font-bold mb-3">همگام‌سازی ابری</h4>
+                    <p class="text-gray-600 dark:text-gray-300">ذخیره ایمن اطلاعات و دسترسی از همه دستگاه‌ها</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Safarnak -->
+    <section id="why" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-bold mb-4">چرا سفرناک؟</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">مزیت‌هایی که سفرناک را متفاوت می‌کند</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <ul class="space-y-3 text-lg">
+                    <li>• کاملاً آفلاین: بدون اینترنت هم کار می‌کند</li>
+                    <li>• همگام‌سازی خودکار: پس از اتصال، همه چیز به‌روز می‌شود</li>
+                    <li>• شخصی‌سازی: برنامه سفر مطابق سلیقه و سبک سفر شما</li>
+                    <li>• پشتیبانی از زبان فارسی و راست‌به‌چپ</li>
+                </ul>
+                <ul class="space-y-3 text-lg">
+                    <li>• API قدرتمند GraphQL برای توسعه‌دهندگان</li>
+                    <li>• امنیت: هش رمز عبور PBKDF2 و معماری امن سمت سرور</li>
+                    <li>• ساختار کد تمیز و مستند برای مشارکت آسان</li>
+                    <li>• طراحی مدرن با Tailwind و حالت تیره/روشن</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack Section -->
+    <section class="py-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h3 class="text-4xl font-bold mb-4">تکنولوژی مدرن</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">ساخته شده با جدیدترین تکنولوژی‌های موجود</p>
+            </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+                <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                    <div class="text-4xl mb-3">⚛️</div>
+                    <h5 class="font-bold mb-2">React Native</h5>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">رابط کاربری بومی</p>
+                </div>
+                <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                    <div class="text-4xl mb-3">🔷</div>
+                    <h5 class="font-bold mb-2">TypeScript</h5>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">کدنویسی ایمن</p>
+                </div>
+                <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                    <div class="text-4xl mb-3">☁️</div>
+                    <h5 class="font-bold mb-2">Cloudflare</h5>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">سرور Edge</p>
+                </div>
+                <div class="text-center p-6 bg-white dark:bg-gray-800 rounded-xl shadow-md">
+                    <div class="text-4xl mb-3">🔌</div>
+                    <h5 class="font-bold mb-2">GraphQL</h5>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">API قدرتمند</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Offline First Section -->
+    <section id="offline" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-bold mb-4">آفلاین واقعی</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">صف تغییرات، ذخیره محلی و همگام‌سازی خودکار</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                    <h4 class="font-bold text-xl mb-2">ذخیره محلی</h4>
+                    <p class="text-gray-600 dark:text-gray-300">ذخیره‌ی حالت و داده‌ها در دستگاه برای دسترسی بدون اینترنت.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                    <h4 class="font-bold text-xl mb-2">صف آفلاین</h4>
+                    <p class="text-gray-600 dark:text-gray-300">در زمان قطع اینترنت، عملیات در صف ذخیره شده و پس از اتصال اجرا می‌شوند.</p>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-6">
+                    <h4 class="font-bold text-xl mb-2">همگام‌سازی خودکار</h4>
+                    <p class="text-gray-600 dark:text-gray-300">زمانی که اتصال برقرار شد، همه تغییرات به‌صورت خودکار همگام می‌شود.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- API Section -->
+    <section class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-bold mb-4">API توسعه‌دهندگان</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">GraphQL API با قابلیت‌های پیشرفته</p>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-8 shadow-lg">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <h4 class="text-2xl font-bold mb-4">امکانات API</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 ml-3 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>احراز هویت امن با توکن</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 ml-3 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Subscriptions بلادرنگ</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 ml-3 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>پایگاه داده Cloudflare D1</span>
+                            </li>
+                            <li class="flex items-start">
+                                <svg class="w-6 h-6 text-green-500 ml-3 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                                </svg>
+                                <span>Type-safe با TypeScript</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-bold mb-4">شروع سریع</h4>
+                        <div class="bg-gray-900 rounded-lg p-4 text-green-400 font-mono text-sm overflow-x-auto" dir="ltr">
+                            <pre>query {
+  me {
+    id
+    username
+  }
+  trips {
+    id
+    title
+    startDate
+  }
+}</pre>
+                        </div>
+                        <div class="mt-4">
+                            <a href="/graphql" class="inline-flex items-center bg-purple-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-purple-700 transition-colors">
+                                مستندات کامل GraphQL
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Developer Guide Section -->
+    <section id="developers" class="py-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl font-bold mb-4">راهنمای توسعه‌دهندگان</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400">چگونه یک قابلیت جدید اضافه کنیم؟</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
+                    <h4 class="font-bold text-xl mb-4">مراحل کلی</h4>
+                    <ol class="list-decimal pr-6 space-y-2 text-gray-700 dark:text-gray-300">
+                        <li>تعریف در <code class="px-1 rounded bg-gray-100 dark:bg-gray-700">graphql/schema.graphql</code></li>
+                        <li>ایجاد فایل عملیات در <code class="px-1 rounded bg-gray-100 dark:bg-gray-700">graphql/queries</code></li>
+                        <li>اجرای <code class="px-1 rounded bg-gray-100 dark:bg-gray-700">yarn codegen</code> برای تولید هوک‌ها</li>
+                        <li>پیاده‌سازی ریزالور در <code class="px-1 rounded bg-gray-100 dark:bg-gray-700">worker/queries</code> یا <code class="px-1 rounded bg-gray-100 dark:bg-gray-700">worker/mutations</code></li>
+                        <li>استفاده از هوک‌ها در اپلیکیشن با <code class="px-1 rounded bg-gray-100 dark:bg-gray-700">@api</code></li>
+                    </ol>
+                </div>
+                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow">
+                    <h4 class="font-bold text-xl mb-4">شروع سریع توسعه</h4>
+                    <div class="bg-gray-900 rounded-lg p-4 text-green-400 font-mono text-sm overflow-x-auto" dir="ltr">
+<pre><code># نصب و راه‌اندازی
+ git clone https://github.com/mehotkhan/safarnak.app.git
+ cd safarnak.app
+ yarn install
+ yarn db:migrate
+ yarn codegen
+ yarn dev   # اجرای همزمان Worker و Expo
+</code></pre>
+                    </div>
+                    <div class="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                        مستندات کامل در <a class="text-purple-600 dark:text-purple-400 underline" href="https://github.com/mehotkhan/safarnak.app">GitHub</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="py-20 gradient-bg gradient-bg-dark">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
+                <div>
+                    <div class="text-5xl font-bold mb-2">100%</div>
+                    <div class="text-lg text-purple-200">آفلاین</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold mb-2">0.11.0</div>
+                    <div class="text-lg text-purple-200">نسخه فعلی</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold mb-2">3</div>
+                    <div class="text-lg text-purple-200">پلتفرم</div>
+                </div>
+                <div>
+                    <div class="text-5xl font-bold mb-2">∞</div>
+                    <div class="text-lg text-purple-200">امکانات</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h4 class="text-2xl font-bold mb-4 gradient-text">سفرناک</h4>
+                    <p class="text-gray-400 mb-4">همراه هوشمند سفرهای شما</p>
+                    <p class="text-sm text-gray-500">نسخه 0.11.0 - اکتبر 2025</p>
+                </div>
+                <div>
+                    <h5 class="text-lg font-bold mb-4">لینک‌های مفید</h5>
+                    <ul class="space-y-2">
+                        <li><a href="/graphql" class="text-gray-400 hover:text-white transition-colors">GraphQL API</a></li>
+                        <li><a href="/releases" class="text-gray-400 hover:text-white transition-colors">یادداشت‌های نسخه</a></li>
+                        <li><a href="https://github.com/mehotkhan/safarnak.app" target="_blank" class="text-gray-400 hover:text-white transition-colors">GitHub</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h5 class="text-lg font-bold mb-4">تکنولوژی‌ها</h5>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>React Native & Expo</li>
+                        <li>TypeScript & GraphQL</li>
+                        <li>Cloudflare Workers</li>
+                        <li>Tailwind CSS</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2025 سفرناک. تمام حقوق محفوظ است.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Dark mode toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const html = document.documentElement;
+        
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        if (currentTheme === 'dark') {
+            html.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            html.classList.toggle('dark');
+            const newTheme = html.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', newTheme);
+        });
+        
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

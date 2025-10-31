@@ -12,7 +12,7 @@
 [![Version](https://img.shields.io/badge/Version-0.9.3-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
-**Live Demo**: [safarnak.mohet.ir](https://safarnak.mohet.ir) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
+**Live Demo**: [safarnak.app](https://safarnak.app) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
 
 ---
 
@@ -649,7 +649,7 @@ Configure production and development endpoints via environment variables used by
 
 ```bash
 # .env
-GRAPHQL_URL=https://safarnak.mohet.ir/graphql
+GRAPHQL_URL=https://safarnak.app/graphql
 # Optionally for local dev
 GRAPHQL_URL_DEV=http://127.0.0.1:8787/graphql
 ```
