@@ -244,7 +244,8 @@ jobs:
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
           APP_NAME: 'Safarnak'
           APP_SCHEME: 'safarnak'
-          GRAPHQL_URL: 'https://safarnak.mohet.ir/graphql'
+          EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
+          GRAPHQL_URL: 'https://safarnak.app/graphql'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
 
