@@ -11,8 +11,9 @@
     <meta property="og:locale" content="fa_IR">
     <meta property="og:url" content="https://safarnak.app">
     <link rel="canonical" href="https://safarnak.app">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="alternate icon" href="/favicon.ico">
+    <link rel="icon" href="/favicon.ico" type="image/png">
+    <link rel="apple-touch-icon" href="/favicon-192.png">
+    <link rel="shortcut icon" href="/favicon.ico">
     <script>(function(){try{var t=localStorage.getItem('theme');if(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches){t='dark';}if(t==='dark'){document.documentElement.classList.add('dark');}}catch(_){}})();</script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -129,11 +130,19 @@
             .logo-text {
                 font-size: 2.75rem;
             }
+            .logo-text + img {
+                height: 2.75rem;
+                width: 2.75rem;
+            }
         }
 
         @media (min-width: 1024px) {
             .logo-text {
                 font-size: 3.25rem;
+            }
+            .logo-text + img {
+                height: 3.25rem;
+                width: 3.25rem;
             }
         }
 
@@ -181,8 +190,9 @@
             <div class="flex justify-between items-center h-24">
                 <!-- Logo -->
                 <div class="flex items-center space-x-reverse space-x-6">
-                    <a href="/" class="logo-text hover:scale-105 transition-transform duration-200">
-                        سفرناک
+                    <a href="/" class="flex items-center space-x-reverse space-x-3 hover:scale-105 transition-transform duration-200">
+                        <span class="logo-text">سفرناک</span>
+                        <img src="/assets/logo-64.png" alt="سفرناک" class="logo-icon align-middle" style="height: 2.25rem; width: 2.25rem;" />
                     </a>
                     <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 text-primary border border-primary/20 dark:border-primary/30">
                         v0.13.1
@@ -855,8 +865,9 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
-                    <a href="/" class="block">
-                        <h4 class="text-2xl font-bold mb-4 gradient-text hover:opacity-80 transition-opacity">سفرناک</h4>
+                    <a href="/" class="flex items-center gap-3 mb-4">
+                        <h4 class="text-2xl font-bold gradient-text hover:opacity-80 transition-opacity">سفرناک</h4>
+                        <img src="/assets/logo-64.png" alt="سفرناک" class="w-8 h-8" />
                     </a>
                     <p class="text-gray-400 mb-4 leading-relaxed">شبکه اجتماعی مسافران ایرانی. برنامه‌ریزی سفر، پیدا کردن هم‌سفر و به‌اشتراک‌گذاری تجربیات.</p>
                     <p class="text-sm text-gray-500">نسخه 0.13.1</p>

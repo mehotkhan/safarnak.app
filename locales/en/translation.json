@@ -100,22 +100,26 @@
   "welcome": {
     "skip": "Skip",
     "next": "Next",
-    "getStarted": "Start",
+    "getStarted": "Get Started",
     "onboarding1": {
-      "title": "Plan Your Perfect Trip",
-      "description": "Effortlessly create custom itineraries tailored to your style, from daily plans to must-see spots."
+      "title": "Smart Trip Planning",
+      "description": "Plan your trips easily with AI. Enter your destination, dates, budget and preferences to get a complete daily itinerary with activities, accommodation and special recommendations."
     },
     "onboarding2": {
-      "title": "Discover Hidden Gems",
-      "description": "Explore local favorites and unique experiences wherever you go. Your trip, curated just for you."
+      "title": "Find Travel Companions",
+      "description": "Connect with other travelers, join tours and create group trips. You no longer need to travel alone. Search for existing tours or publish your trip for others to join."
     },
     "onboarding3": {
-      "title": "Stay Organized & Relax",
-      "description": "Keep all your travel details in one place, so you can focus on making memories without the stress."
+      "title": "Share Your Experiences",
+      "description": "Share your trips, beautiful places and experiences with the community. Learn from others and help others plan their trips. Inspire and be inspired."
     },
     "onboarding4": {
-      "title": "Ready to Start?",
-      "description": "Join thousands of travelers planning amazing trips. Sign in or create your account to begin your journey."
+      "title": "Discover Tours & Places",
+      "description": "Explore thousands of organized tours and discover amazing places. Find restaurants, markets, hotels and attractions at your destination with real reviews and ratings."
+    },
+    "onboarding5": {
+      "title": "Ready to Start Your Journey?",
+      "description": "Join thousands of Iranian travelers planning amazing trips. Sign in or create your account to start planning, sharing and discovering."
     }
   },
   "oauth": {

@@ -67,4 +67,9 @@ type = "Text"
 globs = ["**/*.graphql", "**/*.html"]
 fallthrough = false
 
+[[rules]]
+type = "Data"
+globs = ["**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp"]
+fallthrough = false
+
 

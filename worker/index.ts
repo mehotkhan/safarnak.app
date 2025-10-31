@@ -19,18 +19,12 @@ import { Subscription } from './subscriptions';
 import { Env } from './types';
 import landingPageHTML from './landing.html';
 
-// Simple SVG favicon (brand circle with S) - using primary color
-const faviconSvg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <defs>
-    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0077be"/>
-      <stop offset="100%" stop-color="#1e3a8a"/>
-    </linearGradient>
-  </defs>
-  <circle cx="32" cy="32" r="30" fill="url(#g)"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#fff" font-weight="700">س</text>
-</svg>`;
+// Import logo assets
+import favicon16 from './assets/favicon-16.png';
+import favicon32 from './assets/favicon-32.png';
+import favicon192 from './assets/favicon-192.png';
+import logo64 from './assets/logo-64.png';
+import logo200 from './assets/logo-200.png';
 
 // ============================================================================
 // Resolver Exports
@@ -137,27 +131,56 @@ const subscriptionsFetch = handleSubscriptions({
 const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext) => {
   const url = new URL(request.url);
   
-  // Favicon
-  if (url.pathname === '/favicon.ico' || url.pathname === '/favicon.svg') {
-    return new Response(faviconSvg, {
+  // Favicon routes
+  if (url.pathname === '/favicon.ico') {
+    return new Response(favicon32, {
       headers: {
-        'content-type': 'image/svg+xml; charset=utf-8',
+        'content-type': 'image/png',
+        'cache-control': 'public, max-age=86400',
+      },
+    });
+  }
+  if (url.pathname === '/favicon-16.png') {
+    return new Response(favicon16, {
+      headers: {
+        'content-type': 'image/png',
+        'cache-control': 'public, max-age=86400',
+      },
+    });
+  }
+  if (url.pathname === '/favicon-32.png') {
+    return new Response(favicon32, {
+      headers: {
+        'content-type': 'image/png',
+        'cache-control': 'public, max-age=86400',
+      },
+    });
+  }
+  if (url.pathname === '/favicon-192.png') {
+    return new Response(favicon192, {
+      headers: {
+        'content-type': 'image/png',
         'cache-control': 'public, max-age=86400',
       },
     });
   }
   
-  // Serve static assets (images)
-  if (url.pathname.startsWith('/assets/')) {
-    try {
-      const assetPath = url.pathname.replace('/assets/', '');
-      // In Cloudflare Workers, we need to import assets at build time
-      // For now, we'll use a fetch to R2 or serve from external URL
-      // For local dev, we can embed or use a CDN
-      return new Response(null, { status: 404 });
-    } catch (_) {
-      return new Response(null, { status: 404 });
-    }
+  // Serve static logo assets
+  if (url.pathname === '/assets/logo-64.png') {
+    return new Response(logo64, {
+      headers: {
+        'content-type': 'image/png',
+        'cache-control': 'public, max-age=86400',
+      },
+    });
+  }
+  if (url.pathname === '/assets/logo-200.png') {
+    return new Response(logo200, {
+      headers: {
+        'content-type': 'image/png',
+        'cache-control': 'public, max-age=86400',
+      },
+    });
   }
   
   // Landing page at root

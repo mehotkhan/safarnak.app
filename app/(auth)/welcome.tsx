@@ -9,6 +9,8 @@ import { Stack } from 'expo-router';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const splashImage = require('@assets/images/welcome-splash.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const logoBeta = require('@assets/logo-beta-transparent.png');
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
@@ -42,6 +44,12 @@ export default function WelcomeScreen() {
       description: t('welcome.onboarding4.description'),
       image: splashImage,
     },
+    {
+      id: 5,
+      title: t('welcome.onboarding5.title'),
+      description: t('welcome.onboarding5.description'),
+      image: splashImage,
+    },
   ];
 
   const isLastSlide = activeIndex === onboarding.length - 1;
@@ -50,12 +58,15 @@ export default function WelcomeScreen() {
     <View className="flex-1 bg-black">
       <Stack.Screen options={{ title: t('common.appName') }} />
       <View className="absolute top-0 left-0 right-0 z-10 pt-12 pb-4 px-5 bg-black/30">
-        <TouchableOpacity
-          onPress={() => router.push('/(auth)/login' as any)}
-          className={isRTL ? 'self-start' : 'self-end'}
-        >
-          <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
-        </TouchableOpacity>
+        <View className="flex-row items-center justify-between">
+          <Image source={logoBeta} className="w-12 h-12" resizeMode="contain" />
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/login' as any)}
+            className={isRTL ? 'self-start' : 'self-end'}
+          >
+            <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <Swiper
@@ -80,14 +91,16 @@ export default function WelcomeScreen() {
         ))}
       </Swiper>
 
-      <View className="absolute bottom-10 left-0 right-0 px-6 z-20 m">
+      <View className="absolute bottom-10 left-0 right-0 px-6 z-20">
         <CustomButton
           title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
-          onPress={() =>
-            isLastSlide
-              ? router.push('/auth/login' as any)
-              : swiperRef.current?.scrollBy(1)
-          }
+          onPress={() => {
+            if (isLastSlide) {
+              router.push('/(auth)/login' as any);
+            } else {
+              swiperRef.current?.scrollBy(1);
+            }
+          }}
           bgVariant="primary"
           className="shadow-xl"
         />
