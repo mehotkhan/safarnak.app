@@ -93,36 +93,169 @@
         .dark .feature-card:hover {
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
         }
+
+        .logo-text {
+            font-size: 2.25rem;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+            display: inline-block;
+            text-shadow: 0 0 30px rgba(0, 119, 190, 0.2);
+        }
+
+        .logo-text::before {
+            content: 'سفرناک';
+            position: absolute;
+            top: 0;
+            right: 0;
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: blur(8px);
+            opacity: 0.4;
+            z-index: -1;
+        }
+
+        .logo-text::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            right: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, transparent, var(--gradient-start), var(--gradient-end), transparent);
+            opacity: 0.4;
+            border-radius: 2px;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-text:hover::after {
+            transform: scaleX(1);
+        }
+
+        @media (min-width: 640px) {
+            .logo-text {
+                font-size: 2.75rem;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .logo-text {
+                font-size: 3.25rem;
+            }
+        }
+
+        .nav-link {
+            position: relative;
+            padding: 0.625rem 1.25rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 0.5rem;
+        }
+
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            bottom: 0.25rem;
+            right: 50%;
+            transform: translateX(50%);
+            width: 0;
+            height: 2.5px;
+            background: linear-gradient(90deg, transparent, var(--gradient-start), transparent);
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 2px;
+        }
+
+        .nav-link:hover::before {
+            width: calc(100% - 2.5rem);
+        }
+
+        .nav-link:hover {
+            color: var(--gradient-start);
+            transform: translateY(-1px);
+        }
+
+        .nav-link:active {
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300">
     
     <!-- Navigation -->
-    <nav class="fixed top-0 w-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-md z-50 transition-colors duration-300">
+    <nav class="fixed top-0 w-full bg-white/98 dark:bg-gray-900/98 backdrop-blur-lg shadow-sm border-b border-gray-200/60 dark:border-gray-700/60 z-50 transition-all duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-reverse space-x-4">
-                    <a href="/" class="text-2xl font-bold gradient-text hover:opacity-80 transition-opacity">سفرناک</a>
-                    <span class="text-xs bg-primary/10 dark:bg-primary/20 text-primary px-3 py-1 rounded-full">نسخه 0.13.1</span>
+            <div class="flex justify-between items-center h-24">
+                <!-- Logo -->
+                <div class="flex items-center space-x-reverse space-x-6">
+                    <a href="/" class="logo-text hover:scale-105 transition-transform duration-200">
+                        سفرناک
+                    </a>
+                    <span class="hidden sm:inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gradient-to-r from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 text-primary border border-primary/20 dark:border-primary/30">
+                        v0.13.1
+                    </span>
                 </div>
-                <div class="flex items-center space-x-reverse space-x-4">
-                    <a href="#download" class="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium">دانلود</a>
-                    <a href="#features" class="text-gray-700 dark:text-gray-300 hover:text-primary transition-colors font-medium">امکانات</a>
-                    <button id="themeToggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-                        <svg id="sunIcon" class="w-5 h-5 hidden dark:block" fill="currentColor" viewBox="0 0 20 20">
+
+                <!-- Navigation Links -->
+                <div class="hidden md:flex items-center space-x-reverse space-x-0.5">
+                    <a href="#features" class="nav-link text-gray-700 dark:text-gray-300">
+                        امکانات
+                    </a>
+                    <a href="#about" class="nav-link text-gray-700 dark:text-gray-300">
+                        درباره
+                    </a>
+                    <a href="#download" class="nav-link text-gray-700 dark:text-gray-300">
+                        دانلود
+                    </a>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center space-x-reverse space-x-3">
+                    <!-- Mobile Menu Button -->
+                    <button id="mobileMenuToggle" class="md:hidden p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                    <!-- Theme Toggle -->
+                    <button id="themeToggle" class="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-110" aria-label="Toggle theme">
+                        <svg id="sunIcon" class="w-5 h-5 text-gray-700 dark:text-yellow-400 hidden dark:block transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"></path>
                         </svg>
-                        <svg id="moonIcon" class="w-5 h-5 block dark:hidden" fill="currentColor" viewBox="0 0 20 20">
+                        <svg id="moonIcon" class="w-5 h-5 text-gray-700 dark:text-gray-300 block dark:hidden transition-transform duration-200" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
                         </svg>
                     </button>
+                </div>
+            </div>
+
+            <!-- Mobile Menu -->
+            <div id="mobileMenu" class="hidden md:hidden pb-4 border-t border-gray-200 dark:border-gray-700 mt-2 pt-4">
+                <div class="flex flex-col space-y-2">
+                    <a href="#features" class="nav-link text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                        امکانات
+                    </a>
+                    <a href="#about" class="nav-link text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                        درباره
+                    </a>
+                    <a href="#download" class="nav-link text-gray-700 dark:text-gray-300 py-2 px-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+                        دانلود
+                    </a>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Hero Section -->
-    <section class="pt-32 pb-20 gradient-bg gradient-bg-dark">
+    <section class="pt-40 pb-20 gradient-bg gradient-bg-dark">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center text-white">
                 <h2 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
@@ -732,13 +865,41 @@
             localStorage.setItem('theme', newTheme);
         });
         
+        // Mobile menu toggle
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenu = document.getElementById('mobileMenu');
+        
+        if (mobileMenuToggle && mobileMenu) {
+            mobileMenuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                // Toggle hamburger icon to X
+                const icon = mobileMenuToggle.querySelector('svg');
+                if (icon) {
+                    icon.classList.toggle('rotate-90');
+                }
+            });
+        }
+        
+        // Close mobile menu when clicking on a link
+        const mobileMenuLinks = mobileMenu?.querySelectorAll('a');
+        mobileMenuLinks?.forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('hidden');
+            });
+        });
+        
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
                 const target = document.querySelector(this.getAttribute('href'));
                 if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    const offset = 80; // Account for fixed navbar
+                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                    window.scrollTo({
+                        top: targetPosition,
+                        behavior: 'smooth'
+                    });
                 }
             });
         });
