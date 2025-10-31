@@ -131,18 +131,18 @@
                     <span class="text-yellow-300">تجربیات را به‌اشتراک بگذارید</span>
                 </h2>
                 <p class="text-xl md:text-2xl mb-10 text-white/90 max-w-3xl mx-auto leading-relaxed">
-                    به بزرگ‌ترین شبکه اجتماعی مسافران ایرانی بپیوندید. سفرهای خود را برنامه‌ریزی کنید، 
+                    شبکه اجتماعی مسافران ایرانی در حال ساخت. سفرهای خود را برنامه‌ریزی کنید، 
                     هم‌سفرهای جدید پیدا کنید و خاطرات سفر را با جامعه سفرناک به‌اشتراک بگذارید.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
                     <a href="#download" class="bg-white text-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                        دانلود رایگان
+                        دانلود نسخه بتا
                     </a>
                     <a href="#features" class="bg-primary/20 backdrop-blur-sm text-white border-2 border-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary/30 transition-all">
                         بیشتر بدانید
                     </a>
                 </div>
-                <p class="text-sm text-white/80">✓ رایگان • ✓ بدون تبلیغات • ✓ آفلاین کار می‌کند</p>
+                <p class="text-sm text-white/80">✓ نسخه بتا • ✓ در حال توسعه • ⚠️ فقط برای تست</p>
             </div>
         </div>
     </section>
@@ -539,18 +539,40 @@
         </div>
     </section>
 
-    <!-- Developer Section -->
-    <section id="developers" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+    <!-- Download & Developer Section -->
+    <section id="download" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-4xl md:text-5xl font-bold mb-6">دانلود و توسعه</h3>
+                <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed mb-6">
+                    سفرناک با معماری مدرن و API قدرتمند ساخته شده است. نسخه فعلی در حال توسعه است و فقط برای تست و توسعه در دسترس می‌باشد.
+                    <span class="block mt-2 text-base text-red-600 dark:text-red-400 font-semibold">⚠️ این نسخه برای استفاده در تولید آماده نیست و فقط برای توسعه و آزمایش است.</span>
+                </p>
+                <div class="inline-flex items-center bg-yellow-100 dark:bg-yellow-900/30 border border-yellow-300 dark:border-yellow-700 rounded-lg px-6 py-3 mb-8">
+                    <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    <span class="text-yellow-800 dark:text-yellow-300 font-semibold">نسخه بتا - فقط برای تست و توسعه</span>
+                </div>
+            </div>
+
+            <!-- Download Button -->
             <div class="text-center mb-16">
-                <h3 class="text-4xl md:text-5xl font-bold mb-6">منطقه توسعه‌دهندگان</h3>
-                <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">
-                    سفرناک با معماری مدرن و API قدرتمند ساخته شده است. توسعه‌دهندگان می‌توانند از API GraphQL 
-                    و مستندات کامل برای توسعه اپلیکیشن‌های خود استفاده کنند.
+                <a href="https://github.com/mehotkhan/safarnak.app/releases" target="_blank" class="inline-flex items-center justify-center bg-green-600 dark:bg-green-500 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 mb-4">
+                    <svg class="w-7 h-7 ml-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7C22 8.67 21.33 8 20.5 8zM15.53 2.16l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.74-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
+                    </svg>
+                    دانلود نسخه Android (بتا)
+                </a>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
+                    ✓ فقط Android • ✓ رایگان • ✓ بدون تبلیغات • ⚠️ نسخه آزمایشی برای تست
                 </p>
             </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- Developer Resources -->
+            <div class="mb-12">
+                <h4 class="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">منابع توسعه‌دهندگان</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <!-- GraphQL API -->
                 <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
                     <div class="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mb-6">
@@ -645,46 +667,8 @@
                     </a>
                 </div>
 
-                <!-- Releases -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
-                    <div class="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">نسخه‌ها</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        دانلود آخرین نسخه‌های APK و مشاهده تغییرات در Release Notes.
-                    </p>
-                    <a href="https://github.com/mehotkhan/safarnak.app/releases" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
-                        مشاهده نسخه‌ها
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </a>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Download Section -->
-    <section id="download" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h3 class="text-4xl md:text-5xl font-bold mb-6">آماده شروع هستید؟</h3>
-            <p class="text-xl text-gray-600 dark:text-gray-400 mb-10 leading-relaxed">
-                سفرناک را همین الان دانلود کنید و سفر خود را شروع کنید. رایگان، بدون تبلیغات و با تمام امکانات.
-            </p>
-            <div class="flex justify-center items-center mb-8">
-                <a href="https://github.com/mehotkhan/safarnak.app/releases" target="_blank" class="flex items-center justify-center bg-green-600 dark:bg-green-500 text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                    <svg class="w-7 h-7 ml-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7C22 8.67 21.33 8 20.5 8zM15.53 2.16l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.74-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
-                    </svg>
-                    دانلود برای Android
-                </a>
-            </div>
-            <p class="text-sm text-gray-500 dark:text-gray-400">
-                ✓ فقط Android • ✓ رایگان • ✓ بدون تبلیغات • ✓ نسخه بتا
-            </p>
         </div>
     </section>
 
@@ -710,7 +694,7 @@
                 <div>
                     <h5 class="text-lg font-bold mb-4">توسعه‌دهندگان</h5>
                     <ul class="space-y-2">
-                        <li><a href="#developers" class="text-gray-400 hover:text-white transition-colors">منطقه توسعه‌دهندگان</a></li>
+                        <li><a href="#download" class="text-gray-400 hover:text-white transition-colors">دانلود و توسعه</a></li>
                         <li><a href="/graphql" class="text-gray-400 hover:text-white transition-colors">GraphQL API</a></li>
                         <li><a href="https://github.com/mehotkhan/safarnak.app" target="_blank" class="text-gray-400 hover:text-white transition-colors">GitHub</a></li>
                         <li><a href="https://github.com/mehotkhan/safarnak.app/issues" target="_blank" class="text-gray-400 hover:text-white transition-colors">گزارش مشکل</a></li>
