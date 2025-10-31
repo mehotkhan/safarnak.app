@@ -10,7 +10,7 @@ import { Stack } from 'expo-router';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const splashImage = require('@assets/images/welcome-splash.png');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const logoBeta = require('@assets/logo-beta-transparent.png');
+const logoBeta = require('@assets/images/icon.png');
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
