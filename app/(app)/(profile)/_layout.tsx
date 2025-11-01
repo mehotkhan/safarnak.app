@@ -6,28 +6,25 @@ export default function ProfileLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: false,
+        headerShown: true,
       }}
     >
       <Stack.Screen name="index" />
       <Stack.Screen 
         name="trips" 
         options={{
-          headerShown: true,
           title: t('me.myTrips'),
         }}
       />
       <Stack.Screen 
         name="messages" 
         options={{
-          headerShown: true,
           title: t('me.inbox.title'),
         }}
       />
       <Stack.Screen 
         name="settings" 
         options={{
-          headerShown: true,
           title: t('profile.settings'),
         }}
       />

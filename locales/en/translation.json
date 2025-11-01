@@ -10,6 +10,7 @@
     "loading": "Loading...",
     "error": "Error",
     "save": "Save",
+    "saving": "Saving...",
     "cancel": "Cancel",
     "ok": "OK",
     "delete": "Delete",
@@ -20,7 +21,9 @@
     "post": "Post",
     "comments": "Comments",
     "addComment": "Add a comment...",
-    "version": "Version"
+    "version": "Version",
+    "success": "Success",
+    "offline": "Offline"
   },
   "home": {
     "title": "Home",
@@ -40,24 +43,11 @@
     "hours": "Hours",
     "tips": "Tips",
     "getDirections": "Get Directions",
+    "openingNavigation": "Opening map navigation...",
+    "bookmarkAdded": "Added to bookmarks",
+    "bookmarkRemoved": "Removed from bookmarks",
     "reviews": "reviews",
     "kmAway": "km away"
-  },
-  "profile": {
-    "title": "Profile",
-    "description": "Manage your account settings, preferences, and personal information. View your travel history and saved locations.",
-    "settings": "Settings",
-    "history": "Travel History",
-    "saved": "Saved Locations",
-    "language": "Language",
-    "theme": "Theme",
-    "lightMode": "Light Mode",
-    "darkMode": "Dark Mode",
-    "notifications": "Notifications",
-    "privacy": "Privacy",
-    "logout": "Logout",
-    "logoutConfirm": "Are you sure you want to logout?",
-    "welcome": "Welcome, {{name}}!"
   },
   "login": {
     "title": "Welcome to SafarNak",
@@ -138,7 +128,9 @@
     "viewPlan": "View Plan",
     "editPlan": "Edit Plan",
     "deletePlan": "Delete Plan",
+    "deleteConfirm": "Are you sure you want to delete this trip?",
     "shareAsPost": "Share as Post",
+    "shareMessage": "Check out my trip to {{destination}}! {{startDate}} - {{endDate}}",
     "inProgress": "In Progress",
     "completed": "Completed",
     "form": {
@@ -154,6 +146,7 @@
       "preferencesPlaceholder": "e.g., Adventure, Culture, Food, Family-friendly",
       "travelers": "Number of Travelers",
       "travelersPlaceholder": "1",
+      "budget": "Budget",
       "datePlaceholder": "YYYY-MM-DD",
       "accommodation": "Accommodation Preference",
       "hotel": "Hotel",
@@ -164,8 +157,14 @@
       "budgetPlaceholder": "$1000",
       "updated": "Trip updated successfully!",
       "generating": "Generating your perfect trip...",
-      "regenerate": "Regenerate Plan"
+      "regenerate": "Regenerate Plan",
+      "regenerateConfirm": "Are you sure you want to regenerate this trip plan?",
+      "regenerated": "Trip plan regenerated!",
+      "editComingSoon": "Edit functionality coming soon!"
     }
+  },
+  "plan.errors": {
+    "loadFailed": "Failed to load trips"
   },
   "plan.form.errors": {
     "destinationRequired": "Destination and dates are required",
@@ -226,6 +225,8 @@
     "myTripsSubtitle": "View and manage your trips",
     "messages": "Messages",
     "messagesSubtitle": "Notifications and chats",
+    "payments": "Payments",
+    "paymentsSubtitle": "View payment history",
     "settings": "Settings",
     "subscription": "Subscription",
     "aiQuota": "AI Quota",
@@ -262,6 +263,41 @@
       }
     }
   },
+  "messages": {
+    "online": "Online",
+    "typePlaceholder": "Type a message...",
+    "chats": "Chats",
+    "archived": "Archived",
+    "showArchived": "View Archived",
+    "showActive": "View Active",
+    "noArchivedChats": "No archived chats",
+    "chatOptions": "Chat Options",
+    "archive": "Archive",
+    "unarchive": "Unarchive",
+    "deleteChat": "Delete Chat",
+    "deleteChatConfirm": "Are you sure you want to delete this chat? This action cannot be undone.",
+    "time": {
+      "justNow": "Just now",
+      "hoursAgo": "{{count}}h ago",
+      "yesterday": "Yesterday",
+      "daysAgo": "{{count}}d ago"
+    },
+    "mockChat1": {
+      "lastMessage": "I'm planning a trip there next spring. Any recommendations?"
+    },
+    "mockChat2": {
+      "lastMessage": "Thanks for the tips! I'll check them out."
+    },
+    "mockChat3": {
+      "lastMessage": "Have you been to the Swiss Alps? I need some advice!"
+    },
+    "mockChat4": {
+      "lastMessage": "Sure, I'd love to share my itinerary with you."
+    },
+    "mockChat5": {
+      "lastMessage": "The food tour was amazing! Highly recommend it."
+    }
+  },
   "tripDetail": {
     "aiReasoning": "AI Reasoning",
     "itinerary": "Itinerary",
@@ -279,6 +315,8 @@
     "difficulty": "Difficulty"
   },
   "settings": {
+    "title": "Settings",
+    "subtitle": "Account and app settings",
     "receivePush": "Receive push notifications",
     "locationTracking": "Location Tracking",
     "allowLocation": "Allow location access",
@@ -291,8 +329,191 @@
     "aboutApp": "About {{app}}",
     "version": "Version",
     "aboutDescription": "A travel planning app powered by AI",
+    "privacySubtitle": "Privacy and security",
     "accountComingSoon": "Account settings coming soon!",
     "privacyComingSoon": "Privacy settings coming soon!",
     "dataManagementComingSoon": "Data management coming soon!"
+  },
+  "feed": {
+    "newPost": {
+      "title": "Create Post",
+      "postType": "Post Type",
+      "types": {
+        "trip": "Trip",
+        "place": "Place",
+        "experience": "Experience",
+        "photo": "Photo"
+      },
+      "titleLabel": "Title",
+      "titlePlaceholder": "Give your post a catchy title...",
+      "locationLabel": "Location",
+      "locationPlaceholder": "Where was this?",
+      "contentLabel": "Content",
+      "contentPlaceholder": "Share your story, tips, or thoughts...",
+      "photosLabel": "Photos",
+      "addPhotos": "Add Photos",
+      "postButton": "Post",
+      "posting": "Posting...",
+      "successMessage": "Post created successfully!",
+      "imagePickerTitle": "Select Image",
+      "imagePickerMessage": "Image picker coming soon!",
+      "errors": {
+        "titleContentRequired": "Title and content are required"
+      }
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your account settings, preferences, and personal information. View your travel history and saved locations.",
+    "guest": "Guest",
+    "trips": "Trips",
+    "posts": "Posts",
+    "followers": "Followers",
+    "settings": "Settings",
+    "history": "Travel History",
+    "saved": "Saved Locations",
+    "language": "Language",
+    "languageSubtitle": "Change app language",
+    "theme": "Theme",
+    "lightMode": "Light Mode",
+    "darkMode": "Dark Mode",
+    "notifications": "Notifications",
+    "privacy": "Privacy",
+    "logout": "Logout",
+    "logoutConfirm": "Are you sure you want to logout?",
+    "welcome": "Welcome, {{name}}!",
+    "edit": {
+      "title": "Edit Profile",
+      "changeAvatar": "Change Avatar",
+      "changeAvatarMessage": "Photo picker coming soon!",
+      "changePhoto": "Change Photo",
+      "nameLabel": "Name",
+      "namePlaceholder": "Your full name",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "Your username",
+      "emailLabel": "Email",
+      "emailPlaceholder": "your@email.com",
+      "phoneLabel": "Phone",
+      "phonePlaceholder": "+1234567890",
+      "bioLabel": "Bio",
+      "bioPlaceholder": "Tell us about yourself...",
+      "locationLabel": "Location",
+      "locationPlaceholder": "City, Country",
+      "websiteLabel": "Website",
+      "websitePlaceholder": "https://yourwebsite.com",
+      "successMessage": "Profile updated successfully!"
+    }
+  },
+  "payments": {
+    "title": "Payments",
+    "emptyState": "No payments yet",
+    "tabs": {
+      "all": "All",
+      "tours": "Tours",
+      "subscriptions": "Subscriptions"
+    },
+    "status": {
+      "completed": "Completed",
+      "pending": "Pending",
+      "failed": "Failed"
+    },
+    "amount": "Amount",
+    "transactionId": "Transaction ID"
+  },
+  "subscription": {
+    "title": "Subscription",
+    "header": "Choose Your Plan",
+    "description": "Unlock unlimited AI trip planning and premium features",
+    "popular": "Popular",
+    "month": "month",
+    "aiQuota": "{{quota}} AI trips per month",
+    "currentPlan": "Current Plan",
+    "selectPlan": "Select Plan",
+    "confirmTitle": "Confirm Subscription",
+    "confirmMessage": "Upgrade to {{plan}} plan?",
+    "successMessage": "Subscription updated successfully!",
+    "features": {
+      "basicAI": "5 AI trips per month",
+      "limitedTrips": "Limited trip storage",
+      "communityAccess": "Community access",
+      "advancedAI": "50 AI trips per month",
+      "unlimitedTrips": "Unlimited trip storage",
+      "prioritySupport": "Priority support",
+      "offlineMaps": "Offline maps",
+      "customItineraries": "Custom itineraries",
+      "premiumAI": "200 AI trips per month",
+      "unlimitedEverything": "Unlimited everything",
+      "dedicatedSupport": "Dedicated support",
+      "advancedAnalytics": "Advanced analytics",
+      "teamCollaboration": "Team collaboration",
+      "customBranding": "Custom branding"
+    },
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "q1": "Can I cancel anytime?",
+      "a1": "Yes! You can cancel your subscription at any time. No long-term commitments.",
+      "q2": "What happens to my unused AI quota?",
+      "a2": "AI quota resets monthly and does not carry over.",
+      "q3": "Can I change plans later?",
+      "a3": "Absolutely! You can upgrade or downgrade your plan at any time."
+    }
+  },
+  "tourBooking": {
+    "title": "Book Tour",
+    "participants": "Participants",
+    "selectDate": "Select Date",
+    "contactInfo": "Contact Information",
+    "fullName": "Full Name",
+    "fullNamePlaceholder": "John Doe",
+    "email": "Email",
+    "emailPlaceholder": "john@example.com",
+    "phone": "Phone",
+    "phonePlaceholder": "+1234567890",
+    "specialRequests": "Special Requests",
+    "specialRequestsPlaceholder": "Any dietary restrictions, accessibility needs, etc.",
+    "agreeTerms": "I agree to the terms and conditions",
+    "pricePerPerson": "Price per person",
+    "total": "Total",
+    "confirmBooking": "Confirm Booking",
+    "processing": "Processing...",
+    "successMessage": "Booking confirmed! Check your email for details.",
+    "errors": {
+      "requiredFields": "Please fill in all required fields",
+      "agreeTerms": "Please agree to the terms and conditions"
+    }
+  },
+  "location": {
+    "avgCost": "Avg. Cost",
+    "population": "Population",
+    "bestTime": "Best Time",
+    "about": "About",
+    "popularActivities": "Popular Activities",
+    "nearbyPlaces": "Nearby Places",
+    "availableTours": "Available Tours"
+  },
+  "userProfile": {
+    "posts": "Posts",
+    "trips": "Trips",
+    "followers": "Followers",
+    "following": "Following",
+    "follow": "Follow",
+    "message": "Message",
+    "joined": "Joined"
+  },
+  "notifications": {
+    "details": "Notification",
+    "deleteTitle": "Delete Notification",
+    "deleteMessage": "Are you sure you want to delete this notification?",
+    "deleteNotification": "Delete Notification",
+    "markAsRead": "Mark as Read",
+    "markedAsRead": "Marked as read",
+    "timeAgo": {
+      "minutes": "{{count}} minutes ago",
+      "hours": "{{count}} hours ago",
+      "days": "{{count}} days ago"
+    }
+  },
+  "map": {
+    "loading": "Loading Map..."
   }
 }

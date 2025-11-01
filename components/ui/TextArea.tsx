@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { TextInput, View } from 'react-native';
-import { useLanguage } from '@components/context/LanguageContext';
+import { TextInput, View, I18nManager } from 'react-native';
 import { CustomText } from '@components/ui/CustomText';
 
 interface Props {
@@ -13,7 +12,6 @@ interface Props {
 }
 
 export default function TextArea({ label, value, onChangeText, placeholder, className, rows = 6 }: Props) {
-  const { isRTL } = useLanguage();
   const minHeight = useMemo(() => rows * 24, [rows]);
   const [autoHeight, setAutoHeight] = useState<number>(minHeight);
 
@@ -35,10 +33,9 @@ export default function TextArea({ label, value, onChangeText, placeholder, clas
           const h = e.nativeEvent.contentSize?.height || minHeight;
           setAutoHeight(h < minHeight ? minHeight : h);
         }}
-        className={`rounded-2xl p-4 text-black text-[15px] bg-neutral-100 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 ${isRTL ? 'text-right' : 'text-left'}`}
+        className={`rounded-2xl p-4 text-black text-[15px] bg-neutral-100 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800`}
         style={{
-          writingDirection: isRTL ? 'rtl' : 'ltr',
-          textAlign: isRTL ? 'right' : 'left',
+          textAlign: I18nManager.isRTL ? 'right' : 'left',
           minHeight,
           height: autoHeight,
         }}

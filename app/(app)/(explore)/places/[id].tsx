@@ -60,13 +60,13 @@ export default function PlaceDetailScreen() {
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
     Alert.alert(
-      'Success',
-      isBookmarked ? 'Removed from bookmarks' : 'Added to bookmarks'
+      t('common.success'),
+      isBookmarked ? t('placeDetail.bookmarkRemoved') : t('placeDetail.bookmarkAdded')
     );
   };
 
   const handleGetDirections = () => {
-    Alert.alert('Directions', 'Opening map navigation...');
+    Alert.alert(t('placeDetail.getDirections'), t('placeDetail.openingNavigation'));
   };
 
   const location = {

@@ -20,7 +20,7 @@ export default function AppLayout() {
         headerShown: false,
         tabBarActiveTintColor: isDark ? Colors.dark.primary : Colors.light.primary,
         tabBarInactiveTintColor: isDark ? '#666' : '#9ca3af',
-        tabBarShowLabel: false, // Modern icon-only design
+        tabBarShowLabel: false,
         tabBarStyle: {
           backgroundColor: isDark ? '#1e1e1e' : '#fff',
           borderTopColor: isDark ? '#333' : '#e9ecef',
@@ -28,11 +28,14 @@ export default function AppLayout() {
           height: Platform.OS === 'ios' ? 64 : 56,
           paddingBottom: 0,
           paddingTop: 6,
+          paddingLeft: 0,
+          paddingRight: 0,
           elevation: 0,
           shadowOpacity: 0,
         },
         tabBarItemStyle: {
-          paddingVertical: 0,
+          paddingTop: 0,
+          paddingBottom: 0,
           justifyContent: 'flex-end',
         },
         tabBarIconStyle: {

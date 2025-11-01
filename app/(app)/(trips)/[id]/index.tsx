@@ -31,14 +31,14 @@ export default function TripDetailScreen() {
   const handleRegenerate = () => {
     Alert.alert(
       t('plan.form.regenerate'),
-      'Are you sure you want to regenerate this trip plan?',
+      t('plan.form.regenerateConfirm'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
           text: t('common.ok'),
           onPress: () => {
             // Implement regeneration logic
-            Alert.alert('Success', 'Trip plan regenerated!');
+            Alert.alert(t('common.success'), t('plan.form.regenerated'));
           },
         },
       ]
@@ -46,14 +46,18 @@ export default function TripDetailScreen() {
   };
 
   const handleEdit = () => {
-    Alert.alert('Edit', 'Edit functionality coming soon!');
+    Alert.alert(t('common.edit'), t('plan.form.editComingSoon'));
   };
 
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `Check out my trip to ${trip.destination}! ${trip.startDate} - ${trip.endDate}`,
-        title: trip.destination,
+        message: t('plan.shareMessage', {
+          destination: trip.destination || '',
+          startDate: trip.startDate || '',
+          endDate: trip.endDate || '',
+        }),
+        title: trip.destination || t('plan.title'),
       });
     } catch (error) {
       console.error('Error sharing:', error);
@@ -63,7 +67,7 @@ export default function TripDetailScreen() {
   const handleDelete = () => {
     Alert.alert(
       t('plan.deletePlan'),
-      'Are you sure you want to delete this trip?',
+      t('plan.deleteConfirm'),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {

@@ -10,6 +10,7 @@
     "loading": "در حال بارگذاری...",
     "error": "خطا",
     "save": "ذخیره",
+    "saving": "در حال ذخیره...",
     "cancel": "لغو",
     "ok": "تایید",
     "delete": "حذف",
@@ -20,7 +21,9 @@
     "post": "پست",
     "comments": "دیدگاه‌ها",
     "addComment": "افزودن دیدگاه...",
-    "version": "نسخه"
+    "version": "نسخه",
+    "success": "موفقیت",
+    "offline": "آفلاین"
   },
   "home": {
     "title": "خانه",
@@ -33,22 +36,6 @@
     "featured": "تورهای ویژه",
     "popular": "مقاصد محبوب",
     "bookNow": "همین الان رزرو کنید"
-  },
-  "profile": {
-    "title": "پروفایل",
-    "description": "تنظیمات حساب کاربری، ترجیحات و اطلاعات شخصی خود را مدیریت کنید. تاریخچه سفر و مکان‌های ذخیره شده خود را مشاهده کنید.",
-    "settings": "تنظیمات",
-    "history": "تاریخچه سفر",
-    "saved": "مکان‌های ذخیره شده",
-    "language": "زبان",
-    "theme": "تم",
-    "lightMode": "حالت روشن",
-    "darkMode": "حالت تیره",
-    "notifications": "اعلان‌ها",
-    "privacy": "حریم خصوصی",
-    "logout": "خروج",
-    "logoutConfirm": "آیا مطمئن هستید که می‌خواهید خارج شوید؟",
-    "welcome": "خوش آمدید، {{name}}!"
   },
   "login": {
     "title": "به سفرناک خوش آمدید",
@@ -129,7 +116,9 @@
     "viewPlan": "مشاهده برنامه",
     "editPlan": "ویرایش برنامه",
     "deletePlan": "حذف برنامه",
+    "deleteConfirm": "آیا مطمئن هستید که می‌خواهید این سفر را حذف کنید؟",
     "shareAsPost": "اشتراک‌گذاری به عنوان پست",
+    "shareMessage": "سفر من به {{destination}} را ببینید! {{startDate}} - {{endDate}}",
     "inProgress": "در حال انجام",
     "completed": "تکمیل شده",
     "form": {
@@ -145,6 +134,7 @@
       "preferencesPlaceholder": "مثلاً: ماجراجویی، فرهنگ، غذا، خانوادگی",
       "travelers": "تعداد مسافران",
       "travelersPlaceholder": "۱",
+      "budget": "بودجه",
       "datePlaceholder": "YYYY-MM-DD",
       "accommodation": "ترجیح اقامتگاه",
       "hotel": "هتل",
@@ -155,8 +145,14 @@
       "budgetPlaceholder": "$1000",
       "updated": "سفر با موفقیت به‌روزرسانی شد!",
       "generating": "در حال ایجاد سفر کامل شما...",
-      "regenerate": "ایجاد مجدد برنامه"
+      "regenerate": "ایجاد مجدد برنامه",
+      "regenerateConfirm": "آیا مطمئن هستید که می‌خواهید این برنامه سفر را مجدداً ایجاد کنید؟",
+      "regenerated": "برنامه سفر مجدداً ایجاد شد!",
+      "editComingSoon": "قابلیت ویرایش به‌زودی اضافه می‌شود!"
     }
+  },
+  "plan.errors": {
+    "loadFailed": "بارگذاری سفرها ناموفق بود"
   },
   "plan.form.errors": {
     "destinationRequired": "مقصد و تاریخ‌ها الزامی است",
@@ -217,6 +213,8 @@
     "myTripsSubtitle": "مشاهده و مدیریت سفرهای خود",
     "messages": "پیام‌ها",
     "messagesSubtitle": "اعلان‌ها و چت‌ها",
+    "payments": "پرداخت‌ها",
+    "paymentsSubtitle": "مشاهده تاریخچه پرداخت",
     "settings": "تنظیمات",
     "subscription": "اشتراک",
     "aiQuota": "سهمیه هوش مصنوعی",
@@ -270,6 +268,8 @@
     "difficulty": "سختی"
   },
   "settings": {
+    "title": "تنظیمات",
+    "subtitle": "تنظیمات حساب کاربری و برنامه",
     "receivePush": "دریافت اعلان‌های پوش",
     "locationTracking": "ردیابی موقعیت",
     "allowLocation": "اجازه دسترسی به موقعیت",
@@ -282,6 +282,7 @@
     "aboutApp": "درباره {{app}}",
     "version": "نسخه",
     "aboutDescription": "اپلیکیشن برنامه‌ریزی سفر با هوش مصنوعی",
+    "privacySubtitle": "حریم خصوصی و امنیت",
     "accountComingSoon": "تنظیمات حساب به‌زودی!",
     "privacyComingSoon": "تنظیمات حریم خصوصی به‌زودی!",
     "dataManagementComingSoon": "مدیریت داده‌ها به‌زودی!"
@@ -292,7 +293,227 @@
     "hours": "ساعات کاری",
     "tips": "نکات",
     "getDirections": "مسیریابی",
+    "openingNavigation": "در حال باز کردن مسیریابی...",
+    "bookmarkAdded": "به نشانه‌ها اضافه شد",
+    "bookmarkRemoved": "از نشانه‌ها حذف شد",
     "reviews": "نظرات",
     "kmAway": "کیلومتر دورتر"
+  },
+  "feed": {
+    "newPost": {
+      "title": "ایجاد پست",
+      "postType": "نوع پست",
+      "types": {
+        "trip": "سفر",
+        "place": "مکان",
+        "experience": "تجربه",
+        "photo": "عکس"
+      },
+      "titleLabel": "عنوان",
+      "titlePlaceholder": "یک عنوان جذاب برای پست خود بنویسید...",
+      "locationLabel": "مکان",
+      "locationPlaceholder": "این کجا بود؟",
+      "contentLabel": "محتوا",
+      "contentPlaceholder": "داستان، نکات یا افکار خود را به‌اشتراک بگذارید...",
+      "photosLabel": "عکس‌ها",
+      "addPhotos": "افزودن عکس",
+      "postButton": "انتشار",
+      "posting": "در حال انتشار...",
+      "successMessage": "پست با موفقیت ایجاد شد!",
+      "imagePickerTitle": "انتخاب عکس",
+      "imagePickerMessage": "انتخاب عکس به‌زودی اضافه می‌شود!",
+      "errors": {
+        "titleContentRequired": "عنوان و محتوا الزامی است"
+      }
+    }
+  },
+  "profile": {
+    "title": "پروفایل",
+    "description": "تنظیمات حساب کاربری، ترجیحات و اطلاعات شخصی خود را مدیریت کنید. تاریخچه سفر و مکان‌های ذخیره شده خود را مشاهده کنید.",
+    "guest": "مهمان",
+    "trips": "سفرها",
+    "posts": "پست‌ها",
+    "followers": "دنبال‌کنندگان",
+    "settings": "تنظیمات",
+    "history": "تاریخچه سفر",
+    "saved": "مکان‌های ذخیره شده",
+    "language": "زبان",
+    "languageSubtitle": "تغییر زبان برنامه",
+    "theme": "تم",
+    "lightMode": "حالت روشن",
+    "darkMode": "حالت تیره",
+    "notifications": "اعلان‌ها",
+    "privacy": "حریم خصوصی",
+    "logout": "خروج",
+    "logoutConfirm": "آیا مطمئن هستید که می‌خواهید خارج شوید؟",
+    "welcome": "خوش آمدید، {{name}}!",
+    "edit": {
+      "title": "ویرایش پروفایل",
+      "changeAvatar": "تغییر آواتار",
+      "changeAvatarMessage": "انتخاب عکس به‌زودی اضافه می‌شود!",
+      "changePhoto": "تغییر عکس",
+      "nameLabel": "نام",
+      "namePlaceholder": "نام کامل شما",
+      "usernameLabel": "نام کاربری",
+      "usernamePlaceholder": "نام کاربری شما",
+      "emailLabel": "ایمیل",
+      "emailPlaceholder": "your@email.com",
+      "phoneLabel": "تلفن",
+      "phonePlaceholder": "+1234567890",
+      "bioLabel": "بیوگرافی",
+      "bioPlaceholder": "درباره خودتان بگویید...",
+      "locationLabel": "مکان",
+      "locationPlaceholder": "شهر، کشور",
+      "websiteLabel": "وب‌سایت",
+      "websitePlaceholder": "https://yourwebsite.com",
+      "successMessage": "پروفایل با موفقیت به‌روزرسانی شد!"
+    }
+  },
+  "payments": {
+    "title": "پرداخت‌ها",
+    "emptyState": "هنوز پرداختی وجود ندارد",
+    "tabs": {
+      "all": "همه",
+      "tours": "تورها",
+      "subscriptions": "اشتراک‌ها"
+    },
+    "status": {
+      "completed": "تکمیل شده",
+      "pending": "در انتظار",
+      "failed": "ناموفق"
+    },
+    "amount": "مبلغ",
+    "transactionId": "شماره تراکنش"
+  },
+  "subscription": {
+    "title": "اشتراک",
+    "header": "طرح خود را انتخاب کنید",
+    "description": "برنامه‌ریزی نامحدود سفر با هوش مصنوعی و ویژگی‌های ویژه را فعال کنید",
+    "popular": "محبوب",
+    "month": "ماه",
+    "aiQuota": "{{quota}} سفر هوشمند در ماه",
+    "currentPlan": "طرح فعلی",
+    "selectPlan": "انتخاب طرح",
+    "confirmTitle": "تایید اشتراک",
+    "confirmMessage": "ارتقاء به طرح {{plan}}؟",
+    "successMessage": "اشتراک با موفقیت به‌روزرسانی شد!",
+    "features": {
+      "basicAI": "5 سفر هوشمند در ماه",
+      "limitedTrips": "ذخیره‌سازی محدود سفر",
+      "communityAccess": "دسترسی به جامعه",
+      "advancedAI": "50 سفر هوشمند در ماه",
+      "unlimitedTrips": "ذخیره‌سازی نامحدود سفر",
+      "prioritySupport": "پشتیبانی اولویت‌دار",
+      "offlineMaps": "نقشه‌های آفلاین",
+      "customItineraries": "برنامه‌های سفارشی",
+      "premiumAI": "200 سفر هوشمند در ماه",
+      "unlimitedEverything": "همه چیز نامحدود",
+      "dedicatedSupport": "پشتیبانی اختصاصی",
+      "advancedAnalytics": "تحلیل‌های پیشرفته",
+      "teamCollaboration": "همکاری تیمی",
+      "customBranding": "برندسازی سفارشی"
+    },
+    "faq": {
+      "title": "سوالات متداول",
+      "q1": "آیا می‌توانم در هر زمان لغو کنم؟",
+      "a1": "بله! می‌توانید اشتراک خود را در هر زمان لغو کنید. بدون تعهد بلندمدت.",
+      "q2": "چه اتفاقی برای سهمیه هوش مصنوعی استفاده نشده من می‌افتد؟",
+      "a2": "سهمیه هوش مصنوعی هر ماه بازنشانی می‌شود و به ماه بعد منتقل نمی‌شود.",
+      "q3": "آیا می‌توانم بعداً طرح را تغییر دهم؟",
+      "a3": "کاملاً! می‌توانید طرح خود را در هر زمان ارتقاء یا کاهش دهید."
+    }
+  },
+  "messages": {
+    "online": "آنلاین",
+    "typePlaceholder": "پیام بنویسید...",
+    "chats": "چت‌ها",
+    "archived": "بایگانی شده",
+    "showArchived": "مشاهده بایگانی",
+    "showActive": "مشاهده فعال",
+    "noArchivedChats": "چت بایگانی شده‌ای وجود ندارد",
+    "chatOptions": "گزینه‌های چت",
+    "archive": "بایگانی",
+    "unarchive": "حذف از بایگانی",
+    "deleteChat": "حذف چت",
+    "deleteChatConfirm": "آیا مطمئن هستید که می‌خواهید این چت را حذف کنید؟ این عمل قابل بازگشت نیست.",
+    "time": {
+      "justNow": "همین الان",
+      "hoursAgo": "{{count}} ساعت پیش",
+      "yesterday": "دیروز",
+      "daysAgo": "{{count}} روز پیش"
+    },
+    "mockChat1": {
+      "lastMessage": "من دارم برای بهار بعد برنامه‌ریزی می‌کنم. پیشنهادی داری؟"
+    },
+    "mockChat2": {
+      "lastMessage": "ممنون بابت نکات! حتما بررسی می‌کنم."
+    },
+    "mockChat3": {
+      "lastMessage": "تا حالا به کوه‌های آلپ سوئیس رفتی؟ نیاز به مشاوره دارم!"
+    },
+    "mockChat4": {
+      "lastMessage": "البته، خوشحال می‌شم برنامه سفرم رو باهات به اشتراک بذارم."
+    },
+    "mockChat5": {
+      "lastMessage": "تور غذا فوق‌العاده بود! قویاً توصیه می‌کنم."
+    }
+  },
+  "tourBooking": {
+    "title": "رزرو تور",
+    "participants": "شرکت‌کنندگان",
+    "selectDate": "انتخاب تاریخ",
+    "contactInfo": "اطلاعات تماس",
+    "fullName": "نام کامل",
+    "fullNamePlaceholder": "نام و نام خانوادگی",
+    "email": "ایمیل",
+    "emailPlaceholder": "john@example.com",
+    "phone": "تلفن",
+    "phonePlaceholder": "+1234567890",
+    "specialRequests": "درخواست‌های خاص",
+    "specialRequestsPlaceholder": "محدودیت‌های غذایی، نیازهای دسترسی و غیره",
+    "agreeTerms": "با شرایط و ضوابط موافقم",
+    "pricePerPerson": "قیمت هر نفر",
+    "total": "مجموع",
+    "confirmBooking": "تایید رزرو",
+    "processing": "در حال پردازش...",
+    "successMessage": "رزرو تایید شد! برای جزئیات ایمیل خود را بررسی کنید.",
+    "errors": {
+      "requiredFields": "لطفاً تمام فیلدهای الزامی را پر کنید",
+      "agreeTerms": "لطفاً با شرایط و ضوابط موافقت کنید"
+    }
+  },
+  "location": {
+    "avgCost": "هزینه متوسط",
+    "population": "جمعیت",
+    "bestTime": "بهترین زمان",
+    "about": "درباره",
+    "popularActivities": "فعالیت‌های محبوب",
+    "nearbyPlaces": "مکان‌های نزدیک",
+    "availableTours": "تورهای موجود"
+  },
+  "userProfile": {
+    "posts": "پست‌ها",
+    "trips": "سفرها",
+    "followers": "دنبال‌کنندگان",
+    "following": "دنبال‌شده‌ها",
+    "follow": "دنبال کردن",
+    "message": "پیام",
+    "joined": "عضو شده"
+  },
+  "notifications": {
+    "details": "اعلان",
+    "deleteTitle": "حذف اعلان",
+    "deleteMessage": "آیا مطمئن هستید که می‌خواهید این اعلان را حذف کنید؟",
+    "deleteNotification": "حذف اعلان",
+    "markAsRead": "علامت‌گذاری به عنوان خوانده شده",
+    "markedAsRead": "به عنوان خوانده شده علامت‌گذاری شد",
+    "timeAgo": {
+      "minutes": "{{count}} دقیقه پیش",
+      "hours": "{{count}} ساعت پیش",
+      "days": "{{count}} روز پیش"
+    }
+  },
+  "map": {
+    "loading": "در حال بارگذاری نقشه..."
   }
 }

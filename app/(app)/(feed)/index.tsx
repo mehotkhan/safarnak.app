@@ -24,13 +24,14 @@ const mockFeedItems = [
       id: '1',
       name: 'Sarah Johnson',
       username: 'sarah_travels',
-      avatar: 'https://via.placeholder.com/100',
+      avatar: 'https://picsum.photos/seed/sarah/100/100',
     },
     content: {
       title: 'Amazing Week in Tokyo',
       description: 'Just got back from an incredible week exploring Tokyo. The cherry blossoms were in full bloom! 🌸',
-      images: ['https://via.placeholder.com/400x300'],
+      images: ['https://picsum.photos/seed/tokyo-japan/400/300'],
       location: 'Tokyo, Japan',
+      locationId: '1',
       likes: 234,
       comments: 45,
       shares: 12,
@@ -44,13 +45,14 @@ const mockFeedItems = [
       id: '2',
       name: 'Mike Chen',
       username: 'mike_adventures',
-      avatar: 'https://via.placeholder.com/100',
+      avatar: 'https://picsum.photos/seed/mike/100/100',
     },
     content: {
       title: 'Hidden Gem in the Alps',
       description: 'Found this amazing hiking trail in the Swiss Alps. Highly recommended for adventure seekers!',
-      images: ['https://via.placeholder.com/400x300'],
+      images: ['https://picsum.photos/seed/swiss-alps/400/300'],
       location: 'Swiss Alps',
+      locationId: '2',
       likes: 567,
       comments: 89,
       shares: 34,
@@ -64,13 +66,14 @@ const mockFeedItems = [
       id: '3',
       name: 'Emma Wilson',
       username: 'emma_explorer',
-      avatar: 'https://via.placeholder.com/100',
+      avatar: 'https://picsum.photos/seed/emma/100/100',
     },
     content: {
       title: 'Italian Food Journey',
       description: 'Spent a week eating my way through Rome, Florence, and Venice. Every meal was perfection! 🍝',
-      images: ['https://via.placeholder.com/400x300'],
+      images: ['https://picsum.photos/seed/italy-rome/400/300'],
       location: 'Italy',
+      locationId: '3',
       likes: 890,
       comments: 123,
       shares: 56,
@@ -95,6 +98,8 @@ interface FeedItemProps {
   onComment: () => void;
   onShare: () => void;
   onUserPress: () => void;
+  onPostPress: () => void;
+  onLocationPress?: () => void;
 }
 
 const FeedItem = ({ 
@@ -104,7 +109,9 @@ const FeedItem = ({
   onLike, 
   onComment, 
   onShare,
-  onUserPress 
+  onUserPress,
+  onPostPress,
+  onLocationPress
 }: FeedItemProps) => {
   const [liked, setLiked] = useState(false);
 
@@ -120,15 +127,42 @@ const FeedItem = ({
         onPress={onUserPress}
         className="flex-row items-center px-4 py-3"
       >
-        <View className="w-10 h-10 rounded-full bg-gray-200 dark:bg-neutral-800 mr-3" />
+        <View className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
+          <Image
+            source={{ uri: item.user.avatar }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
+        </View>
         <View className="flex-1">
           <CustomText weight="bold" className="text-base text-black dark:text-white">
             {item.user.name}
           </CustomText>
           <View className="flex-row items-center">
-            <CustomText className="text-sm text-gray-500 dark:text-gray-400">
-              {item.content.location}
-            </CustomText>
+            {item.content.locationId ? (
+              <TouchableOpacity
+                onPress={e => {
+                  e.stopPropagation();
+                  onLocationPress?.();
+                }}
+                className="flex-row items-center"
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="location-outline"
+                  size={14}
+                  color={isDark ? '#9ca3af' : '#6b7280'}
+                  style={{ marginRight: 4 }}
+                />
+                <CustomText className="text-sm text-gray-500 dark:text-gray-400">
+                  {item.content.location}
+                </CustomText>
+              </TouchableOpacity>
+            ) : (
+              <CustomText className="text-sm text-gray-500 dark:text-gray-400">
+                {item.content.location}
+              </CustomText>
+            )}
             <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
               • {item.content.timestamp}
             </CustomText>
@@ -144,11 +178,15 @@ const FeedItem = ({
       </TouchableOpacity>
 
       {/* Image */}
-      <View className="w-full h-80 bg-gray-200 dark:bg-neutral-800">
-        <View className="flex-1 items-center justify-center">
-          <Ionicons name="image-outline" size={80} color="#9ca3af" />
+      <TouchableOpacity onPress={onPostPress} activeOpacity={0.9}>
+        <View className="w-full h-80 bg-gray-200 dark:bg-neutral-800">
+          <Image
+            source={{ uri: item.content.images[0] }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
         </View>
-      </View>
+      </TouchableOpacity>
 
       {/* Actions */}
       <View className="flex-row items-center px-4 py-3">
@@ -162,7 +200,10 @@ const FeedItem = ({
             {liked ? item.content.likes + 1 : item.content.likes}
           </CustomText>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onComment} className="flex-row items-center mr-4">
+        <TouchableOpacity onPress={() => {
+          onComment();
+          onPostPress();
+        }} className="flex-row items-center mr-4">
           <Ionicons 
             name="chatbubble-outline" 
             size={26} 
@@ -193,17 +234,19 @@ const FeedItem = ({
       </View>
 
       {/* Content */}
-      <View className="px-4 pb-4">
-        <CustomText weight="bold" className="text-base text-black dark:text-white mb-1">
-          {item.content.title}
-        </CustomText>
-        <CustomText className="text-sm text-gray-700 dark:text-gray-300">
-          <CustomText weight="bold" className="text-black dark:text-white">
-            {item.user.username}
-          </CustomText>{' '}
-          {item.content.description}
-        </CustomText>
-      </View>
+      <TouchableOpacity onPress={onPostPress} activeOpacity={0.9}>
+        <View className="px-4 pb-4">
+          <CustomText weight="bold" className="text-base text-black dark:text-white mb-1">
+            {item.content.title}
+          </CustomText>
+          <CustomText className="text-sm text-gray-700 dark:text-gray-300">
+            <CustomText weight="bold" className="text-black dark:text-white">
+              {item.user.username}
+            </CustomText>{' '}
+            {item.content.description}
+          </CustomText>
+        </View>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -225,16 +268,24 @@ export default function HomeScreen() {
     console.log('Like pressed');
   };
 
-  const handleComment = () => {
-    console.log('Comment pressed');
+  const handleComment = (postId: string) => {
+    router.push(`/(app)/(feed)/${postId}` as any);
   };
 
   const handleShare = () => {
     console.log('Share pressed');
   };
 
-  const handleUserPress = () => {
-    console.log('User pressed');
+  const handleUserPress = (userId: string) => {
+    router.push(`/(app)/(explore)/users/${userId}` as any);
+  };
+
+  const handlePostPress = (postId: string) => {
+    router.push(`/(app)/(feed)/${postId}` as any);
+  };
+
+  const handleLocationPress = (locationId: string) => {
+    router.push(`/(app)/(explore)/locations/${locationId}` as any);
   };
 
   return (
@@ -245,17 +296,23 @@ export default function HomeScreen() {
       <View className="px-4 pt-12 pb-3 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
         <View className="flex-row items-center justify-between">
           <CustomText weight="bold" className="text-2xl text-black dark:text-white">
-            Safarnak
+            {t('common.appName')}
           </CustomText>
           <View className="flex-row items-center">
-            <TouchableOpacity className="w-10 h-10 items-center justify-center mr-2">
+            <TouchableOpacity 
+              className="w-10 h-10 items-center justify-center mr-2"
+              onPress={() => router.push('/(app)/(feed)/new' as any)}
+            >
               <Ionicons 
-                name="notifications-outline" 
-                size={26} 
+                name="add-circle-outline" 
+                size={28} 
                 color={isDark ? '#9ca3af' : '#6b7280'} 
               />
             </TouchableOpacity>
-            <TouchableOpacity className="w-10 h-10 items-center justify-center">
+            <TouchableOpacity 
+              className="w-10 h-10 items-center justify-center mr-2"
+              onPress={() => router.push('/(app)/(profile)/messages' as any)}
+            >
               <Ionicons 
                 name="mail-outline" 
                 size={26} 
@@ -269,13 +326,16 @@ export default function HomeScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row mt-3 -mx-4 px-4"
+          className="flex-row mt-3"
+          contentContainerStyle={{ paddingLeft: 16, paddingRight: 16 }}
         >
-          {categories.map(category => (
+          {categories.map((category, index) => (
             <TouchableOpacity
               key={category.id}
               onPress={() => setSelectedCategory(category.id)}
-              className={`flex-row items-center px-4 py-2 rounded-full mr-2 ${
+              className={`flex-row items-center px-4 py-2 rounded-full ${
+                index < categories.length - 1 ? 'mr-2' : ''
+              } ${
                 selectedCategory === category.id
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-900'
@@ -316,9 +376,11 @@ export default function HomeScreen() {
             isDark={isDark}
             t={t}
             onLike={handleLike}
-            onComment={handleComment}
+            onComment={() => handleComment(item.id)}
             onShare={handleShare}
-            onUserPress={handleUserPress}
+            onUserPress={() => handleUserPress(item.user.id)}
+            onPostPress={() => handlePostPress(item.id)}
+            onLocationPress={item.content.locationId ? () => handleLocationPress(item.content.locationId) : undefined}
           />
         )}
         refreshing={refreshing}

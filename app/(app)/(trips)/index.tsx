@@ -65,7 +65,7 @@ const TripCard = ({ trip, onPress, isDark, t }: TripCardProps) => {
           color={isDark ? '#9ca3af' : '#6b7280'}
         />
         <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {trip?.travelers ?? 1} {trip?.travelers === 1 ? 'traveler' : 'travelers'}
+          {trip?.travelers ?? 1} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
         </CustomText>
         <Ionicons
           name="wallet-outline"
@@ -151,7 +151,7 @@ export default function PlanScreen() {
                 {t('common.error')}
               </CustomText>
               <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
-                {String((error as any)?.message || 'Failed to load trips')}
+                {String((error as any)?.message || t('plan.errors.loadFailed'))}
               </CustomText>
             </View>
           ) : (

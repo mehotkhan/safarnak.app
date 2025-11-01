@@ -1,9 +1,8 @@
-import { View, Text, TouchableOpacity, Image, I18nManager } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import Swiper from 'react-native-swiper';
 import { useTranslation } from 'react-i18next';
-import { useLanguage } from '@components/context/LanguageContext';
 import CustomButton from '@components/ui/CustomButton';
 import { Stack } from 'expo-router';
 
@@ -14,10 +13,8 @@ const logoBeta = require('@assets/images/icon.png');
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
-  const { currentLanguage } = useLanguage();
   const swiperRef = useRef<Swiper>(null);
   const [activeIndex, setActiveIndex] = useState(0);
-  const isRTL = currentLanguage === 'fa' || I18nManager.isRTL;
 
   const onboarding = [
     {
@@ -62,7 +59,7 @@ export default function WelcomeScreen() {
           <Image source={logoBeta} className="w-12 h-12" resizeMode="contain" />
           <TouchableOpacity
             onPress={() => router.push('/(auth)/login' as any)}
-            className={isRTL ? 'self-start' : 'self-end'}
+            className="self-end"
           >
             <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
           </TouchableOpacity>
@@ -75,11 +72,11 @@ export default function WelcomeScreen() {
         dot={<View className="w-8 h-1 mx-1 bg-white/40 rounded" />}
         activeDot={<View className="w-8 h-1 mx-1 bg-[#30D5C8] rounded" />}
         onIndexChanged={(index) => setActiveIndex(index)}
-        containerStyle={isRTL ? { transform: [{ scaleX: -1 }] } : {}}
+        containerStyle={{}}
         paginationStyle={{ bottom: 20 }}
       >
         {onboarding.map((item) => (
-          <View key={item.id} className="flex-1" style={isRTL ? { transform: [{ scaleX: -1 }] } : {}}>
+          <View key={item.id} className="flex-1">
             <Image source={item.image} className="absolute w-full h-full" resizeMode="cover" />
             <View className="flex-1 justify-end pb-28 px-5">
               <View className="bg-white/90 rounded-2xl p-6 shadow-lg">

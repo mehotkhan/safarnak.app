@@ -11,7 +11,7 @@ import {
   ImageSourcePropType,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLanguage } from '@components/context/LanguageContext';
+import { I18nManager } from 'react-native';
 
 interface InputFieldProps extends TextInputProps {
   label?: string;
@@ -34,8 +34,6 @@ export default function InputField({
   className = '',
   ...props
 }: InputFieldProps) {
-  const { isRTL } = useLanguage();
-  
   const renderIcon = () => {
     if (!icon) return null;
     
@@ -46,12 +44,12 @@ export default function InputField({
           name={icon as any}
           size={20}
           color="#6b7280"
-          style={{ marginLeft: 16 }}
+          style={{ marginStart: 16, transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }}
         />
       );
     } else {
       // It's an image source
-      return <Image source={icon} className={`w-6 h-6 ml-4 ${iconStyle}`} />;
+      return <Image source={icon} className={`w-6 h-6 ${iconStyle}`} style={{ marginStart: 16, transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }} />;
     }
   };
   
@@ -61,13 +59,14 @@ export default function InputField({
         <View className={`my-2 w-full ${className}`}>
           {label && <Text className={`text-xl mb-3 ${labelStyle}`}>{label}</Text>}
           <View
-            className={`flex flex-row justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 ${containerStyle}`}
+            className={`justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 ${containerStyle}`}
+            style={{ flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row' }}
           >
             {renderIcon()}
             <TextInput
-              className={`rounded-full p-4 text-black text-[15px] flex-1 ${inputStyle} ${isRTL ? 'text-right' : 'text-left'} placeholder:text-neutral-500`}
+              className={`rounded-full p-4 text-black text-[15px] flex-1 ${inputStyle} placeholder:text-neutral-500`}
               secureTextEntry={secureTextEntry}
-              style={{ writingDirection: isRTL ? 'rtl' : 'ltr', textAlign: isRTL ? 'right' : 'left' }}
+              style={{ textAlign: I18nManager.isRTL ? 'right' : 'left' }}
               {...props}
             />
           </View>

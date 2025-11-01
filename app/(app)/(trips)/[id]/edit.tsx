@@ -39,7 +39,7 @@ export default function EditTripScreen() {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      Alert.alert(t('common.success'), t('plan.form.updated', { defaultValue: 'Trip updated successfully!' }));
+      Alert.alert(t('common.success'), t('plan.form.updated'));
       router.back();
     }, 1000);
   };
@@ -88,8 +88,8 @@ export default function EditTripScreen() {
         />
 
         <InputField
-          label={t('plan.form.budget', { defaultValue: 'Budget' })}
-          placeholder={t('plan.form.budgetPlaceholder', { defaultValue: '$1000' })}
+          label={t('plan.form.budget')}
+          placeholder={t('plan.form.budgetPlaceholder')}
           value={formData.budget}
           onChangeText={(text: string) => setFormData({ ...formData, budget: text })}
           keyboardType="number-pad"

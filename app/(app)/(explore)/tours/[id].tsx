@@ -24,6 +24,7 @@ const mockTour = {
   reviews: 156,
   duration: 7,
   category: 'culture',
+  image: 'https://picsum.photos/seed/tokyo-tour-detail/800/600',
   description:
     'Experience the magical beauty of cherry blossoms in full bloom across Tokyo. This 7-day tour includes visits to the most scenic spots, traditional tea ceremonies, and authentic Japanese cuisine.',
   highlights: [
@@ -48,19 +49,7 @@ export default function TourDetailScreen() {
   const [isBookmarked, setIsBookmarked] = useState(false);
 
   const handleJoinTour = () => {
-    Alert.alert(
-      'Join Tour',
-      `Would you like to join "${tour.title}" for $${tour.price}?`,
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.ok'),
-          onPress: () => {
-            Alert.alert('Success', 'Tour booking request sent!');
-          },
-        },
-      ]
-    );
+    router.push(`/(app)/(explore)/tours/${id}/book` as any);
   };
 
   const handleBookmark = () => {
@@ -88,9 +77,11 @@ export default function TourDetailScreen() {
       <ScrollView className="flex-1">
         {/* Image */}
         <View className="h-64 bg-gray-200 dark:bg-neutral-800">
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="image-outline" size={80} color="#9ca3af" />
-          </View>
+          <Image
+            source={{ uri: tour.image }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
         </View>
 
         <View className="px-6 py-4">

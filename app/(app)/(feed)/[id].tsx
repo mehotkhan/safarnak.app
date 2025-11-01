@@ -6,6 +6,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -21,12 +22,12 @@ const mockPost = {
     id: '1',
     name: 'Sarah Johnson',
     username: 'sarah_travels',
-    avatar: 'https://via.placeholder.com/100',
+    avatar: 'https://picsum.photos/seed/sarah/100/100',
   },
   content: {
     title: 'Amazing Week in Tokyo',
     description: 'Just got back from an incredible week exploring Tokyo. The cherry blossoms were in full bloom! The city is a perfect blend of traditional culture and modern innovation. I visited Senso-ji Temple, explored Shibuya, and had the best ramen of my life in a tiny shop in Shinjuku.',
-    images: ['https://via.placeholder.com/400x300'],
+    images: ['https://picsum.photos/seed/tokyo-japan/400/300'],
     location: 'Tokyo, Japan',
     likes: 234,
     comments: [
@@ -76,7 +77,13 @@ export default function PostDetailScreen() {
       <ScrollView className="flex-1">
         {/* User Header */}
         <View className="flex-row items-center px-4 py-4 border-b border-gray-200 dark:border-neutral-800">
-          <View className="w-12 h-12 rounded-full bg-gray-200 dark:bg-neutral-800 mr-3" />
+          <View className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
+            <Image
+              source={{ uri: mockPost.user.avatar }}
+              className="w-full h-full"
+              resizeMode="cover"
+            />
+          </View>
           <View className="flex-1">
             <CustomText weight="bold" className="text-base text-black dark:text-white">
               {mockPost.user.name}
@@ -98,9 +105,11 @@ export default function PostDetailScreen() {
 
         {/* Image */}
         <View className="w-full h-96 bg-gray-200 dark:bg-neutral-800">
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="image-outline" size={100} color="#9ca3af" />
-          </View>
+          <Image
+            source={{ uri: mockPost.content.images[0] }}
+            className="w-full h-full"
+            resizeMode="cover"
+          />
         </View>
 
         {/* Actions */}
@@ -175,7 +184,7 @@ export default function PostDetailScreen() {
       <View className="flex-row items-center px-4 py-3 border-t border-gray-200 dark:border-neutral-800 bg-white dark:bg-black">
         <View className="w-8 h-8 rounded-full bg-gray-200 dark:bg-neutral-800 mr-3" />
         <TextInput
-          placeholder={t('common.addComment', { defaultValue: 'Add a comment...' })}
+          placeholder={t('common.addComment')}
           placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
           value={commentText}
           onChangeText={setCommentText}

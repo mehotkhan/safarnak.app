@@ -19,34 +19,37 @@ const mockTours = [
     id: '1',
     title: 'Cherry Blossom Tour',
     location: 'Tokyo, Japan',
+    locationId: '1',
     price: 1200,
     rating: 4.8,
     reviews: 156,
     duration: 7,
     category: 'culture',
-    image: 'https://via.placeholder.com/300x200',
+    image: 'https://picsum.photos/seed/tokyo-tour/300/200',
   },
   {
     id: '2',
     title: 'Alps Hiking Adventure',
     location: 'Swiss Alps',
+    locationId: '2',
     price: 2500,
     rating: 4.9,
     reviews: 89,
     duration: 10,
     category: 'adventure',
-    image: 'https://via.placeholder.com/300x200',
+    image: 'https://picsum.photos/seed/alps-hiking/300/200',
   },
   {
     id: '3',
     title: 'Italian Food Experience',
     location: 'Rome, Italy',
+    locationId: '3',
     price: 1800,
     rating: 4.7,
     reviews: 234,
     duration: 5,
     category: 'food',
-    image: 'https://via.placeholder.com/300x200',
+    image: 'https://picsum.photos/seed/italian-food/300/200',
   },
 ];
 
@@ -55,6 +58,7 @@ const mockPlaces = [
     id: '1',
     name: 'Senso-ji Temple',
     location: 'Asakusa, Tokyo',
+    locationId: '1',
     distance: 2.3,
     rating: 4.6,
     category: 'culture',
@@ -64,6 +68,7 @@ const mockPlaces = [
     id: '2',
     name: 'Central Park',
     location: 'New York, USA',
+    locationId: '4',
     distance: 5.1,
     rating: 4.8,
     category: 'nature',
@@ -82,20 +87,22 @@ const categories = [
 interface TourCardProps {
   tour: any;
   onPress: () => void;
+  onLocationPress?: () => void;
   isDark: boolean;
   t: any;
 }
 
-const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => (
+const TourCard = ({ tour, onPress, onLocationPress, isDark, t }: TourCardProps) => (
   <TouchableOpacity
     onPress={onPress}
     className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-4 border border-gray-200 dark:border-neutral-800"
   >
     <View className="h-48 bg-gray-200 dark:bg-neutral-800">
-      {/* Placeholder for image */}
-      <View className="flex-1 items-center justify-center">
-        <Ionicons name="image-outline" size={60} color="#9ca3af" />
-      </View>
+      <Image
+        source={{ uri: tour.image }}
+        className="w-full h-full"
+        resizeMode="cover"
+      />
     </View>
     <View className="p-4">
       <CustomText
@@ -104,7 +111,11 @@ const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => (
       >
         {tour.title}
       </CustomText>
-      <View className="flex-row items-center mb-2">
+      <TouchableOpacity
+        onPress={() => onLocationPress?.()}
+        className="flex-row items-center mb-2 self-start"
+        activeOpacity={0.7}
+      >
         <Ionicons
           name="location-outline"
           size={14}
@@ -113,7 +124,7 @@ const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => (
         <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
           {tour.location}
         </CustomText>
-      </View>
+      </TouchableOpacity>
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center">
           <Ionicons name="star" size={16} color="#fbbf24" />
@@ -147,11 +158,12 @@ const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => (
 interface PlaceCardProps {
   place: any;
   onPress: () => void;
+  onLocationPress?: () => void;
   isDark: boolean;
   t: any;
 }
 
-const PlaceCard = ({ place, onPress, isDark, t }: PlaceCardProps) => (
+const PlaceCard = ({ place, onPress, onLocationPress, isDark, t }: PlaceCardProps) => (
   <TouchableOpacity
     onPress={onPress}
     className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
@@ -164,7 +176,11 @@ const PlaceCard = ({ place, onPress, isDark, t }: PlaceCardProps) => (
         >
           {place.name}
         </CustomText>
-        <View className="flex-row items-center">
+        <TouchableOpacity
+          onPress={() => onLocationPress?.()}
+          className="flex-row items-center self-start"
+          activeOpacity={0.7}
+        >
           <Ionicons
             name="location-outline"
             size={14}
@@ -173,7 +189,7 @@ const PlaceCard = ({ place, onPress, isDark, t }: PlaceCardProps) => (
           <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
             {place.distance} {t('explore.placeCard.distance')}
           </CustomText>
-        </View>
+        </TouchableOpacity>
       </View>
       <View
         className={`px-3 py-1 rounded-full ${
@@ -223,9 +239,24 @@ export default function ExploreScreen() {
     router.push(`/(app)/(explore)/places/${placeId}` as any);
   };
 
+  const handleLocationPress = (locationId: string) => {
+    router.push(`/(app)/(explore)/locations/${locationId}` as any);
+  };
+
   const handleFilterPress = () => {
     // Open filter modal
     console.log('Open filters');
+  };
+
+  const handleSearchPress = () => {
+    if (searchQuery.trim()) {
+      // If there's a search query, could navigate to search results
+      // For now, navigate to first location as placeholder
+      router.push('/(app)/(explore)/locations/1' as any);
+    } else {
+      // Just focus on search input or navigate to location browse
+      router.push('/(app)/(explore)/locations/1' as any);
+    }
   };
 
   return (
@@ -242,7 +273,10 @@ export default function ExploreScreen() {
 
         {/* Search Bar */}
         <View className="flex-row items-center mb-4">
-          <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-neutral-900 rounded-full px-4 py-3 mr-3">
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/(explore)/locations/1' as any)}
+            className="flex-1 flex-row items-center bg-gray-100 dark:bg-neutral-900 rounded-full px-4 py-3 mr-3"
+          >
             <Ionicons
               name="search"
               size={20}
@@ -256,7 +290,7 @@ export default function ExploreScreen() {
               onSubmitEditing={handleSearch}
               className="flex-1 ml-2 text-black dark:text-white"
             />
-          </View>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={handleFilterPress}
             className="w-12 h-12 bg-primary rounded-full items-center justify-center"
@@ -269,7 +303,7 @@ export default function ExploreScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          className="flex-row -mx-6 px-6"
+          className="flex-row "
         >
           {categories.map(category => (
             <TouchableOpacity
@@ -352,6 +386,7 @@ export default function ExploreScreen() {
               key={tour.id}
               tour={tour}
               onPress={() => handleTourPress(tour.id)}
+              onLocationPress={() => handleLocationPress(tour.locationId)}
               isDark={isDark}
               t={t}
             />
@@ -362,6 +397,7 @@ export default function ExploreScreen() {
               key={place.id}
               place={place}
               onPress={() => handlePlacePress(place.id)}
+              onLocationPress={() => handleLocationPress(place.locationId)}
               isDark={isDark}
               t={t}
             />
@@ -371,7 +407,7 @@ export default function ExploreScreen() {
 
       {/* Floating Search Button */}
       <TouchableOpacity
-        onPress={handleSearch}
+        onPress={handleSearchPress}
         className="absolute bottom-8 right-6 w-16 h-16 bg-primary rounded-full items-center justify-center shadow-lg"
         style={{
           shadowColor: '#000',

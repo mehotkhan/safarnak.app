@@ -26,6 +26,21 @@ export default function ExploreLayout() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen 
+        name="users/[id]" 
+        options={{
+          headerShown: true,
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="locations/[id]" 
+        options={{
+          headerShown: true,
+          title: t('placeDetail.title'),
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }

@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
+import { LanguageSwitcher } from '@components/context/LanguageSwitcher';
+import { ThemeToggle } from '@components/ui/ThemeToggle';
 import { useTheme } from '@components/context/ThemeContext';
 import Colors from '@constants/Colors';
 import { useState } from 'react';
@@ -54,19 +56,19 @@ export default function SettingsScreen() {
   const [locationTracking, setLocationTracking] = useState(false);
 
   const handleAccountSettings = () => {
-    Alert.alert(t('profile.settings'), t('settings.accountComingSoon', { defaultValue: 'Account settings coming soon!' }));
+    Alert.alert(t('profile.settings'), t('settings.accountComingSoon'));
   };
 
   const handlePrivacy = () => {
-    Alert.alert(t('profile.privacy'), t('settings.privacyComingSoon', { defaultValue: 'Privacy settings coming soon!' }));
+    Alert.alert(t('profile.privacy'), t('settings.privacyComingSoon'));
   };
 
   const handleDataManagement = () => {
-    Alert.alert(t('settings.dataManagement'), t('settings.dataManagementComingSoon', { defaultValue: 'Data management coming soon!' }));
+    Alert.alert(t('settings.dataManagement'), t('settings.dataManagementComingSoon'));
   };
 
   const handleAbout = () => {
-    Alert.alert(t('settings.about'), `${t('common.appName')} v0.9.2\n\n${t('settings.aboutDescription', { defaultValue: 'A travel planning app powered by AI' })}`);
+    Alert.alert(t('settings.about'), `${t('common.appName')} v0.9.2\n\n${t('settings.aboutDescription')}`);
   };
 
   return (
@@ -78,6 +80,20 @@ export default function SettingsScreen() {
           {t('me.preferences')}
         </CustomText>
         <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
+          <SettingRow
+            icon="language-outline"
+            title={t('profile.language')}
+            subtitle={t('profile.languageSubtitle')}
+            rightComponent={<LanguageSwitcher />}
+            isDark={isDark}
+          />
+          <SettingRow
+            icon={isDark ? 'moon' : 'sunny'}
+            title={t('profile.theme')}
+            subtitle={isDark ? t('profile.darkMode') : t('profile.lightMode')}
+            rightComponent={<ThemeToggle />}
+            isDark={isDark}
+          />
           <SettingRow
             icon="notifications-outline"
             title={t('profile.notifications')}
@@ -122,7 +138,7 @@ export default function SettingsScreen() {
           <SettingRow
             icon="shield-outline"
             title={t('profile.privacy')}
-            subtitle="Privacy and security"
+            subtitle={t('settings.privacySubtitle')}
             onPress={handlePrivacy}
             isDark={isDark}
           />

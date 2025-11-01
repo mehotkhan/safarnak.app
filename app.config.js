@@ -116,6 +116,7 @@ const getAppConfig = () => {
       },
       plugins: [
         'expo-router',
+        'expo-localization',
         [
           'expo-location',
           {
@@ -139,6 +140,7 @@ const getAppConfig = () => {
         appName: process.env.APP_NAME || appName,
         appScheme: process.env.APP_SCHEME || scheme,
         bundleIdentifier: process.env.BUNDLE_IDENTIFIER || bundleIdentifier,
+        supportsRTL: true,
       },
     },
   };
