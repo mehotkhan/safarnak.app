@@ -3,7 +3,7 @@
 
 import { drizzle } from 'drizzle-orm/d1';
 
-import { messages } from '@database/drizzle';
+import { messages } from '@database/schema';
 import { ResolverContext } from '../types';
 
 export const getMessages = async (

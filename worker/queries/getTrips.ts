@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
-import { trips } from '@database/drizzle';
+import { trips } from '@database/schema';
 import type { Env, GraphQLContext } from '../types';
 
 export const getTrips = async (

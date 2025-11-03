@@ -18,7 +18,7 @@ import {
   places,
   thoughts,
   subscriptions,
-} from './drizzle';
+} from './schema';
 
 // ============================================================================
 // ENUMS

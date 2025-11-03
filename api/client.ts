@@ -422,7 +422,7 @@ export const client = new ApolloClient({
         });
         
         try {
-          const { syncApolloToDrizzle } = await import('@drizzle/client');
+          const { syncApolloToDrizzle } = await import('@database/client');
           
           const normalizedCache = cache.extract();
           if (Object.keys(normalizedCache).length > 0) {

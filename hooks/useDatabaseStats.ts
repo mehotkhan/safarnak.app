@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { getDatabaseStats, getPendingMutationsDetails, type DatabaseStats } from '@drizzle/client';
+import { getDatabaseStats, getPendingMutationsDetails, type DatabaseStats } from '@database/client';
 import { sqliteStorage } from '@api';
 
 export function useDatabaseStats() {

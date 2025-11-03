@@ -6,7 +6,7 @@ Project Overview
 - Server: Cloudflare Worker (GraphQL Yoga), Cloudflare D1 via Drizzle ORM.
 - Shared: GraphQL schema and operations under `graphql/` used by both client and worker.
 - Worker-only: `database/` schemas (legacy, server-only); NEVER import from this in client code.
-- Shared Drizzle: `drizzle/` unified schema (base, server, client) used by both client and worker.
+- Database: `database/` folder contains all database schemas - legacy worker schema (integer IDs), unified schema (base/server/client with text IDs), and client utilities.
 
 Current Stack (as of v0.17.0)
 - TypeScript ~5.9.3
@@ -22,8 +22,11 @@ Repository Structure
 worker/                 # Cloudflare Worker resolvers and entry
 graphql/                # Shared GraphQL schema + operations
 api/                    # Client GraphQL types & hooks (generated, with automatic Drizzle sync)
-database/               # Database schemas & migrations (worker-only, legacy)
-drizzle/                # Unified Drizzle schema (base, server, client) + client utilities
+database/               # Database schemas & migrations + client utilities
+├── drizzle.ts        # Legacy worker-only schema (integer IDs) - for migrations
+├── schema.ts         # Unified schema (base, server, client tables with text IDs)
+├── client.ts         # Client database utilities (db, sync, stats)
+└── index.ts          # Main exports
 store/                  # Redux Toolkit store, slices, middleware
 app/                    # Expo Router pages
 components/             # UI components & contexts
@@ -48,9 +51,7 @@ Path Aliases (TypeScript & Metro)
 "@/*"           → "./*"
 "@components/*" → "./components/*"
 "@graphql/*"    → "./graphql/*"
-"@database/*"   → "./database/*"   # Worker-only; do not import in client
-"@drizzle"      → "./drizzle"      # Unified Drizzle schema & client utilities
-"@drizzle/*"    → "./drizzle/*"
+"@database/*"   → "./database/*"   # All database schemas & client utilities
 "@worker/*"     → "./worker/*"
 "@api"          → "./api"
 "@api/*"        → "./api/*"
@@ -78,8 +79,11 @@ Critical Rules
    - `graphql/` is shared between client and worker.
    - `api/` is client-only, generated hooks with automatic Drizzle sync.
    - `worker/` is server-only code.
-   - `database/` is worker-only (legacy). DO NOT import it in client.
-   - `drizzle/` is unified schema: base tables shared, server/client extensions separate.
+   - `database/` contains:
+     * `drizzle.ts` - Legacy worker-only schema (integer IDs) - used by worker resolvers
+     * `schema.ts` - Unified schema (base/server/client) with text IDs - shared between client and worker
+     * `client.ts` - Client database utilities (only import in client code)
+     * `index.ts` - Exports all schemas and utilities
 4) Always run `yarn codegen` after changing GraphQL schema or operations.
 5) Never manually edit generated files (`api/types.ts`, `api/hooks.ts`).
 6) Use path aliases exclusively; avoid relative imports entirely.

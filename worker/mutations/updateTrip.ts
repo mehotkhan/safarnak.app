@@ -1,6 +1,6 @@
 import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { trips } from '@database/drizzle';
+import { trips } from '@database/schema';
 import type { GraphQLContext } from '../types';
 
 interface UpdateTripInput {

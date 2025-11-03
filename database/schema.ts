@@ -1,39 +1,92 @@
-import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
+/**
+ * Unified Database Schema
+ * 
+ * Single source of truth for all database table definitions.
+ * Uses shared column objects to reduce duplication and improve maintainability.
+ * 
+ * 1. SERVER SCHEMA (Integer IDs - for Cloudflare D1)
+ *    - Used by worker resolvers and migrations
+ *    - Integer autoIncrement IDs for database storage
+ *    - Converted to string IDs at GraphQL resolver boundaries
+ * 
+ * 2. CLIENT SCHEMA (Text IDs - for local SQLite cache)
+ *    - Used by client-side expo-sqlite database
+ *    - Text IDs to match GraphQL ID type (string)
+ *    - Includes sync metadata for offline support
+ * 
+ * IMPORTANT:
+ * - Server schema: integer IDs, used by drizzle.config.ts for migrations
+ * - Client schema: text IDs, matches GraphQL ID type
+ * - Worker converts integer → string when returning GraphQL responses
+ * - Worker converts string → integer when receiving GraphQL inputs
+ */
+
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 
- 
-// Users table - core user information
-export const users = sqliteTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+// ============================================================================
+// SHARED COLUMN DEFINITIONS
+// ============================================================================
+
+// Common timestamp columns
+const timestampColumns = {
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+};
+
+// Common sync metadata columns (for client cached tables)
+const syncMetadataColumns = {
+  cachedAt: integer('cached_at').default(sql`(strftime('%s', 'now'))`),
+  lastSyncAt: integer('last_sync_at'),
+};
+
+const pendingColumn = {
+  pending: integer('pending', { mode: 'boolean' }).default(false),
+};
+
+// Shared user fields (without ID)
+const userFields = {
   name: text('name').notNull(),
-  username: text('username').unique().notNull(),
-  passwordHash: text('password_hash').notNull(),
-  email: text('email').unique(),
+  username: text('username').notNull(),
+  email: text('email'),
   phone: text('phone'),
   avatar: text('avatar'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
+};
 
-// Tours table - travel experiences and packages
-export const tours = sqliteTable('tours', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+// Shared trip fields (without ID and userId)
+const tripFields = {
+  title: text('title'),
+  destination: text('destination'),
+  startDate: text('start_date'),
+  endDate: text('end_date'),
+  budget: real('budget'),
+  travelers: integer('travelers').default(1),
+  preferences: text('preferences'),
+  accommodation: text('accommodation'),
+  status: text('status').default('in_progress'),
+  aiReasoning: text('ai_reasoning'),
+  itinerary: text('itinerary'),
+  coordinates: text('coordinates'),
+};
+
+// Shared tour fields (without ID)
+const tourFields = {
   title: text('title').notNull(),
   description: text('description'),
   shortDescription: text('short_description'),
-  price: integer('price').notNull(), // Price in USD (stored as cents)
+  price: real('price').notNull(),
   currency: text('currency').default('USD'),
-  rating: integer('rating').default(0), // stored as integer (4.5 * 10 = 45)
+  rating: real('rating').default(0),
   reviews: integer('reviews').default(0),
-  duration: integer('duration').notNull(), // Duration in days
+  duration: integer('duration').notNull(),
   durationType: text('duration_type').default('days'),
   location: text('location').notNull(),
   coordinates: text('coordinates'),
   category: text('category').notNull(),
   difficulty: text('difficulty').default('easy'),
-  highlights: text('highlights'), // JSON string array
-  inclusions: text('inclusions'), // JSON string array
+  highlights: text('highlights'),
+  inclusions: text('inclusions'),
   maxParticipants: integer('max_participants'),
   minParticipants: integer('min_participants').default(1),
   imageUrl: text('image_url'),
@@ -41,22 +94,72 @@ export const tours = sqliteTable('tours', {
   tags: text('tags'),
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isFeatured: integer('is_featured', { mode: 'boolean' }).default(false),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
+};
 
-// Messages table - real-time communication
-export const messages = sqliteTable('messages', {
-  id: text('id').primaryKey(),
+// Shared place fields (without ID)
+const placeFields = {
+  name: text('name').notNull(),
+  location: text('location').notNull(),
+  distance: real('distance'),
+  rating: real('rating').default(0),
+  reviews: integer('reviews').default(0),
+  type: text('type').notNull(), // Use 'type' to match existing database schema
+  isOpen: integer('is_open', { mode: 'boolean' }).default(true),
+  description: text('description').notNull(),
+  tips: text('tips'),
+  coordinates: text('coordinates').notNull(),
+  phone: text('phone'),
+  website: text('website'),
+  hours: text('hours'),
+};
+
+// Shared message fields (without ID and userId)
+const messageFields = {
   content: text('content').notNull(),
-  userId: integer('user_id').references(() => users.id),
   type: text('type').default('text'),
   metadata: text('metadata'),
   isRead: integer('is_read', { mode: 'boolean' }).default(false),
+};
+
+// ============================================================================
+// SERVER SCHEMA (Integer IDs - Cloudflare D1)
+// Used by worker resolvers and migrations
+// ============================================================================
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ...userFields,
+  passwordHash: text('password_hash').notNull(), // Server-only
+  username: text('username').unique().notNull(), // Override to add unique constraint
+  email: text('email').unique(), // Override to add unique constraint
+  ...timestampColumns,
+});
+
+export const trips = sqliteTable('trips', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  ...tripFields,
+  budget: integer('budget'), // Override: integer for server, real for client
+  aiGenerated: integer('ai_generated', { mode: 'boolean' }).default(true),
+  metadata: text('metadata'),
+  ...timestampColumns,
+});
+
+export const tours = sqliteTable('tours', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  ...tourFields,
+  price: integer('price').notNull(), // Override: integer for server (cents)
+  rating: integer('rating').default(0), // Override: integer for server
+  ...timestampColumns,
+});
+
+export const messages = sqliteTable('messages', {
+  id: text('id').primaryKey(),
+  ...messageFields,
+  userId: integer('user_id').references(() => users.id),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-// GraphQL subscriptions management
 export const subscriptions = sqliteTable('subscriptions', {
   id: text('id').primaryKey(),
   connectionId: text('connection_id').notNull(),
@@ -70,8 +173,6 @@ export const subscriptions = sqliteTable('subscriptions', {
   expiresAt: text('expires_at'),
 });
 
-// Additional tables
-
 export const userPreferences = sqliteTable('user_preferences', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').references(() => users.id).notNull().unique(),
@@ -84,27 +185,6 @@ export const userPreferences = sqliteTable('user_preferences', {
   updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
-export const trips = sqliteTable('trips', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  title: text('title'),
-  destination: text('destination'),
-  startDate: text('start_date'),
-  endDate: text('end_date'),
-  budget: integer('budget'),
-  travelers: integer('travelers').default(1),
-  preferences: text('preferences'),
-  accommodation: text('accommodation'),
-  status: text('status').default('in_progress'), // 'in_progress', 'completed', 'cancelled'
-  aiReasoning: text('ai_reasoning'),
-  itinerary: text('itinerary'), // JSON string
-  coordinates: text('coordinates'), // JSON string: {latitude, longitude}
-  aiGenerated: integer('ai_generated', { mode: 'boolean' }).default(true),
-  metadata: text('metadata'),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
-
 export const itineraries = sqliteTable('itineraries', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   tripId: integer('trip_id').references(() => trips.id).notNull(),
@@ -114,8 +194,7 @@ export const itineraries = sqliteTable('itineraries', {
   transport: text('transport'),
   notes: text('notes'),
   costEstimate: integer('cost_estimate'),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+  ...timestampColumns,
 });
 
 export const plans = sqliteTable('plans', {
@@ -208,22 +287,11 @@ export const locations = sqliteTable('locations', {
 
 export const places = sqliteTable('places', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  name: text('name').notNull(),
-  location: text('location').notNull(),
+  ...placeFields,
   locationId: integer('location_id').references(() => locations.id),
-  distance: integer('distance'), // in km
-  rating: integer('rating').default(0), // stored as integer (4.5 * 10 = 45)
-  reviews: integer('reviews').default(0),
-  type: text('type').notNull(), // category
-  description: text('description'),
-  tips: text('tips'), // JSON string array
-  isOpen: integer('is_open', { mode: 'boolean' }).default(true),
-  hours: text('hours'), // JSON string
-  phone: text('phone'),
-  website: text('website'),
+  rating: integer('rating').default(0), // Override: integer for server
   price: integer('price'),
   ownerId: integer('owner_id').references(() => users.id),
-  coordinates: text('coordinates'), // JSON string: {latitude, longitude}
   embedding: text('embedding'),
   imageUrl: text('image_url'),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
@@ -238,7 +306,7 @@ export const thoughts = sqliteTable('thoughts', {
 });
 
 // ============================================================================
-// RELATIONSHIPS
+// SERVER RELATIONSHIPS
 // ============================================================================
 
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -257,6 +325,14 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   places: many(places),
 }));
 
+export const tripsRelations = relations(trips, ({ many, one }) => ({
+  user: one(users, { fields: [trips.userId], references: [users.id] }),
+  itineraries: many(itineraries),
+  plans: many(plans),
+  messages: many(messages),
+  thoughts: many(thoughts),
+}));
+
 export const toursRelations = relations(tours, ({ many }) => ({
   payments: many(payments),
   messages: many(messages),
@@ -272,14 +348,6 @@ export const subscriptionsRelations = relations(subscriptions, ({ one }) => ({
 
 export const userPreferencesRelations = relations(userPreferences, ({ one }) => ({
   user: one(users, { fields: [userPreferences.userId], references: [users.id] }),
-}));
-
-export const tripsRelations = relations(trips, ({ many, one }) => ({
-  user: one(users, { fields: [trips.userId], references: [users.id] }),
-  itineraries: many(itineraries),
-  plans: many(plans),
-  messages: many(messages),
-  thoughts: many(thoughts),
 }));
 
 export const itinerariesRelations = relations(itineraries, ({ one }) => ({
@@ -340,16 +408,82 @@ export const thoughtsRelations = relations(thoughts, ({ one }) => ({
 }));
 
 // ============================================================================
-// EXPORTS
+// CLIENT SCHEMA (Text IDs - Local SQLite Cache)
+// Used by client-side expo-sqlite database for offline support
+// Text IDs match GraphQL ID type (string)
+// Shared fields are reused from above definitions
 // ============================================================================
 
-export const schema = {
+export const cachedUsers = sqliteTable('cached_users', {
+  id: text('id').primaryKey(),
+  ...userFields,
+  username: text('username').notNull(), // No unique constraint on client cache
+  ...timestampColumns,
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+export const cachedTrips = sqliteTable('cached_trips', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull(), // Text ID for GraphQL compatibility
+  ...tripFields,
+  ...timestampColumns,
+  ...syncMetadataColumns,
+  ...pendingColumn,
+  deletedAt: integer('deleted_at'),
+});
+
+export const cachedTours = sqliteTable('cached_tours', {
+  id: text('id').primaryKey(),
+  ...tourFields,
+  ...timestampColumns,
+  ...syncMetadataColumns,
+});
+
+export const cachedPlaces = sqliteTable('cached_places', {
+  id: text('id').primaryKey(),
+  ...placeFields,
+  ...timestampColumns,
+  ...syncMetadataColumns,
+});
+
+export const cachedMessages = sqliteTable('cached_messages', {
+  id: text('id').primaryKey(),
+  ...messageFields,
+  userId: text('user_id'), // Text ID for GraphQL compatibility
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+export const pendingMutations = sqliteTable('pending_mutations', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  operationName: text('operation_name').notNull(),
+  variables: text('variables').notNull(),
+  mutation: text('mutation').notNull(),
+  queuedAt: integer('queued_at').default(sql`(strftime('%s', 'now'))`),
+  retries: integer('retries').default(0),
+  lastError: text('last_error'),
+});
+
+export const syncMetadata = sqliteTable('sync_metadata', {
+  entityType: text('entity_type').primaryKey(),
+  lastSyncAt: integer('last_sync_at'),
+  schemaVersion: integer('schema_version').default(1),
+});
+
+// ============================================================================
+// SCHEMA EXPORTS
+// ============================================================================
+
+// Server schema (for worker and migrations)
+export const serverSchema = {
   users,
+  trips,
   tours,
   messages,
   subscriptions,
   userPreferences,
-  trips,
   itineraries,
   plans,
   posts,
@@ -364,4 +498,16 @@ export const schema = {
   thoughts,
 };
 
-export default schema;
+// Legacy export name (for drizzle.config.ts and backward compatibility)
+export const schema = serverSchema;
+
+// Client schema (for local database)
+export const clientSchema = {
+  cachedUsers,
+  cachedTrips,
+  cachedTours,
+  cachedPlaces,
+  cachedMessages,
+  pendingMutations,
+  syncMetadata,
+};

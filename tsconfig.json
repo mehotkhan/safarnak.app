@@ -24,12 +24,6 @@
       "@database/*": [
         "./database/*"
       ],
-      "@drizzle": [
-        "./drizzle"
-      ],
-      "@drizzle/*": [
-        "./drizzle/*"
-      ],
       "@worker/*": [
         "./worker/*"
       ],

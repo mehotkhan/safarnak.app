@@ -4,7 +4,7 @@
 import { eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 
-import { users } from '@database/drizzle';
+import { users } from '@database/schema';
 import { ResolverContext } from '../types';
 import { verifyPassword, generateToken } from '../utilities/utils';
 

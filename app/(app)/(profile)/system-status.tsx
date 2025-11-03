@@ -13,7 +13,7 @@ import { useAppDispatch } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
 import { clearAllUserData } from '@api';
 import Colors from '@constants/Colors';
-import { formatTimestamp } from '@drizzle/client';
+import { formatTimestamp } from '@database/client';
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';

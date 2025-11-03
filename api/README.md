@@ -239,7 +239,7 @@ const user = cache['User:123']; // Direct access
 
 **Drizzle Database (SQL Queries)**:
 ```typescript
-import { getLocalDB, cachedTrips } from '@drizzle/client';
+import { getLocalDB, cachedTrips } from '@database/client';
 import { eq, and, desc } from 'drizzle-orm';
 
 const db = await getLocalDB();
@@ -315,7 +315,7 @@ const { data } = useGetTripsQuery();
 
 **Local-First Query (Advanced)**:
 ```typescript
-import { getLocalDB, cachedTrips } from '@drizzle/client';
+import { getLocalDB, cachedTrips } from '@database/client';
 
 const db = await getLocalDB();
 const localTrips = await db.select().from(cachedTrips);

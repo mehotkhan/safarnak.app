@@ -43,6 +43,20 @@
       "when": 1761820715270,
       "tag": "0005_ambiguous_viper",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1762197253507,
+      "tag": "0006_sharp_yellowjacket",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1762197378498,
+      "tag": "0007_neat_ronan",
+      "breakpoints": true
     }
   ]
 }

@@ -108,7 +108,7 @@ flowchart TB
 
   subgraph Shared["🔗 Shared Layer"]
     H["graphql/ - Schema + Operations"]
-    I["drizzle/ - Unified Schema"]
+    I["database/ - Unified Schema"]
   end
 
   subgraph Worker["⚡ Server Layer (Cloudflare Workers)"]
@@ -156,7 +156,7 @@ flowchart TB
   subgraph Data["Data Layer"]
     D1["Apollo Client<br/>api/client.ts"]
     D2["Redux Store<br/>store/index.ts"]
-    D3["Local DB<br/>drizzle/client.ts"]
+      D3["Local DB<br/>database/client.ts"]
   end
 
   subgraph Storage["Storage Layer"]
@@ -700,13 +700,13 @@ graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)
 └── queries/          # Query definitions (.graphql files)
 
-database/              # 🗄️ Database schemas (worker-only, legacy)
-├── drizzle.ts        # Drizzle ORM schema (server-side only)
-
-drizzle/               # 🗄️ Unified Drizzle schema (shared + client)
-├── schema.ts         # All table definitions (base, server, client)
+database/              # 🗄️ Database schemas and client utilities
+├── schema.ts         # Unified schema with shared field definitions (server + client tables)
+├── server-schema.ts  # Server-only schema export (for migrations - excludes client cached tables)
 ├── client.ts         # Client utilities (db, sync, stats)
-└── index.ts          # Main exports
+├── index.ts          # Main exports (schema + client utilities)
+├── types.ts          # Database types
+└── migrations/       # Drizzle migrations (server database only)
 ```
 
 ## 🧭 Routing & URLs
@@ -1045,7 +1045,7 @@ type Tour {
 # graphql/queries/getTours.graphql
 query GetTours($category: String, $limit: Int) {
   getTours(category: $category, limit: $limit) {
-    id
+      id
     title
     location
     price
@@ -1257,7 +1257,8 @@ yarn start            # Expo dev server only
 yarn worker:dev       # Worker only
 
 # Database
-yarn db:migrate       # Apply migrations
+yarn db:generate      # Generate migration from schema changes (server tables only)
+yarn db:migrate       # Apply migrations to local D1 (server database)
 yarn db:studio        # Open Drizzle Studio
 
 # GraphQL
@@ -1395,8 +1396,10 @@ const { t } = useTranslation();
 - **`graphql/`** - Shared schema and operations (used by both client & worker)
 - **`api/`** - Auto-generated client code only (client-side GraphQL hooks with automatic Drizzle sync)
 - **`worker/`** - Server-only resolvers (entry: `worker/index.ts`)
-- **`database/`** - Worker-only database schemas (never imported in client code)
-- **`drizzle/`** - Unified Drizzle schema (base, server, client extensions) + client utilities
+- **`database/`** - Database schemas (unified schema with shared fields) + client utilities
+  - `schema.ts` - Unified schema with shared field definitions (server + client tables)
+  - `server-schema.ts` - Server-only export (for migrations, excludes client cached tables)
+  - `client.ts` - Client database utilities (local SQLite, sync, stats)
 
 ### Auto-Generated Code
 
@@ -1420,29 +1423,40 @@ Safarnak implements a comprehensive **offline-first architecture** with automati
 
 ### Unified Drizzle Schema
 
-The app uses a **single Drizzle schema** (`drizzle/`) that defines:
+The app uses a **unified Drizzle schema** (`database/schema.ts`) with shared field definitions to reduce duplication. The schema defines:
 
-1. **Base Tables** (`drizzle/schema.ts`): Core tables shared between server and client
-   - `usersBase`, `tripsBase`, `toursBase`, `placesBase`, `messagesBase`
-   - All use `text('id')` to match GraphQL ID type (string)
+1. **Server Tables** (`database/schema.ts`): Server-only tables with integer IDs (users, trips, tours, messages, etc.)
+   - Used by worker resolvers and Cloudflare D1 migrations
+   - Defined using shared field objects (`userFields`, `tripFields`, `tourFields`, etc.) to reduce duplication
+   - Integer IDs for database storage, converted to string IDs at GraphQL resolver boundaries
 
-2. **Server Extensions**: Server-only fields and tables
-   - `users` table with `passwordHash` field
-   - Server-only tables: `subscriptions`, `userPreferences`
-
-3. **Client Extensions**: Client-only cached tables with sync metadata
-   - `cachedUsers`, `cachedTrips`, `cachedTours`, `cachedPlaces`, `cachedMessages`
-   - Sync metadata: `cachedAt`, `lastSyncAt`, `pending`, `deletedAt`
+2. **Client Cached Tables** (`database/schema.ts`): Client-only tables with text IDs (cachedUsers, cachedTrips, etc.)
+   - Used by client-side expo-sqlite database for offline support
+   - Reuses shared field definitions from server tables via spread operator
+   - Text IDs to match GraphQL ID type (string)
+   - Includes sync metadata columns (cachedAt, lastSyncAt, pending, deletedAt)
    - Sync management: `pendingMutations`, `syncMetadata`
+
+3. **Shared Field Definitions**: Common columns extracted into reusable objects
+   - `userFields`, `tripFields`, `tourFields`, `placeFields`, `messageFields`
+   - `timestampColumns`, `syncMetadataColumns`, `pendingColumn`
+   - Reduces duplication and improves maintainability
 
 ### Folder Structure
 
 ```
-drizzle/
-├── schema.ts    # All table definitions (base, server, client)
-├── client.ts    # Client utilities (db, sync, stats)
-└── index.ts     # Main exports
+database/
+├── schema.ts         # Unified schema with shared field definitions (server + client tables)
+├── server-schema.ts  # Server-only export (for drizzle.config.ts migrations)
+├── client.ts         # Client utilities (db, sync, stats)
+├── index.ts          # Main exports
+└── types.ts          # TypeScript types and enums
 ```
+
+**Important**: 
+- `drizzle.config.ts` points to `server-schema.ts` to ensure only server tables are included in migrations
+- Client cached tables are auto-migrated on app initialization (see `database/client.ts`)
+- Server tables use integer IDs, client cached tables use text IDs for GraphQL compatibility
 
 ### GraphQL Query System with Automatic Sync
 
@@ -1515,7 +1529,7 @@ function TripsScreen() {
 #### Query Local Database
 
 ```typescript
-import { getLocalDB, cachedTrips } from '@drizzle/client';
+import { getLocalDB, cachedTrips } from '@database/client';
 import { eq, desc } from 'drizzle-orm';
 
 const db = await getLocalDB();
@@ -1529,7 +1543,7 @@ const trips = await db
 #### Get Database Statistics
 
 ```typescript
-import { getDatabaseStats } from '@drizzle/client';
+import { getDatabaseStats } from '@database/client';
 
 const stats = await getDatabaseStats();
 console.log(stats.entities.trips.count); // Number of cached trips
@@ -1552,7 +1566,7 @@ The app includes a comprehensive system status page (`app/(app)/(profile)/system
 - **Storage**: SQLite databases (`apollo_cache.db` + `safarnak_local.db`)
 - **ID Types**: Server uses integers, Client/GraphQL use strings (automatic conversion)
 
-For more details, see the offline architecture implementation in `drizzle/` folder.
+For more details, see the offline architecture implementation in `database/` folder.
 
 ---
 

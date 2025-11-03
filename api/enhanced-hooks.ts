@@ -12,7 +12,7 @@
 import { useEffect } from 'react';
 import { QueryHookOptions, MutationHookOptions, QueryResult, MutationTuple, OperationVariables } from '@apollo/client';
 import { client } from './client';
-import { syncApolloToDrizzle } from '@drizzle/client';
+import { syncApolloToDrizzle } from '@database/client';
 // Import generated hooks as functions
 import {
   useMeQuery as useMeQueryRaw,
