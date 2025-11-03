@@ -7,7 +7,7 @@ Project Overview
 - Shared: GraphQL schema and operations under `graphql/` used by both client and worker.
 - Worker-only: `database/` schemas; NEVER import from this in client code.
 
-Current Stack (as of v0.9.2)
+Current Stack (as of v0.17.0)
 - TypeScript ~5.9.3
 - React 19.1.0, React Native 0.81.5, Expo ~54.0.20
 - Expo Router ~6.0.13, NativeWind ^4.1.21, Tailwind ^3.4.17
@@ -59,10 +59,13 @@ Path Aliases (TypeScript & Metro)
 ```
 
 GraphQL Endpoint Configuration (Client)
-- Preferred: set `expo.extra.graphqlUrl` via `app.config.js` (reads from env `GRAPHQL_URL`).
-- Dev-only: `process.env.GRAPHQL_URL` or `GRAPHQL_URL_DEV` when `__DEV__` is true.
-- Fallback in dev: `http://192.168.1.51:8787/graphql` (update for your LAN if needed).
-- Sources: `api/client.ts`, `app.config.js`.
+- Preferred: set `expo.extra.graphqlUrl` via `app.config.js` (reads from env vars).
+- Environment variables (in priority order):
+  - `EXPO_PUBLIC_GRAPHQL_URL_DEV` or `EXPO_PUBLIC_GRAPHQL_URL` (Expo inlines these at build time)
+  - `GRAPHQL_URL_DEV` or `GRAPHQL_URL` (runtime env vars)
+- Dev fallback: `http://192.168.1.51:8787/graphql` (or auto-derived from Metro host)
+- Production default: `https://safarnak.app/graphql`
+- Sources: `api/client.ts` (URI resolution), `app.config.js` (configures `expo.extra.graphqlUrl`)
 
 Critical Rules
 1) Never add `"type": "module"` to `package.json`.
@@ -83,7 +86,7 @@ Auth & Client Patterns
 - PBKDF2 (100k, SHA-256, 16-byte salt) hashing in worker utilities.
 - Token: SHA-256 of `userId + username + timestamp`, stored in Redux + AsyncStorage.
 - Apollo auth link adds `Authorization: Bearer <token>`.
-- Auth pages under `app/auth`, auto-redirects based on Redux `isAuthenticated`.
+- Auth pages under `app/(auth)`, auto-redirects based on Redux `isAuthenticated`.
 
 Subscriptions
 - `graphql-workers-subscriptions` with Durable Object `SubscriptionPool`.
@@ -200,15 +203,18 @@ safarnak.app/                           # Single root directory
 ├── worker/                             # GraphQL resolvers (SERVER-SIDE ONLY)
 │   ├── index.ts                        # Cloudflare Worker entry point (main export, witnesses resolvers + GraphQL Yoga)
 │   ├── types.ts                        # Server-specific types
-│   ├── queries/                        # Query resolvers: getMessages, me
-│   ├── mutations/                      # Mutation resolvers: register, login, addMessage
+│   ├── queries/                        # Query resolvers: getMessages, me, getTrips, getTrip
+│   ├── mutations/                      # Mutation resolvers: register, login, addMessage, createTrip, updateTrip
 │   ├── subscriptions/                  # Subscription resolvers: newMessages
 │   └── utilities/                       # Password hashing (PBKDF2), token generation
 ├── graphql/                            # SHARED between client & worker
 │   ├── schema.graphql                  # Pure GraphQL schema definition
 │   ├── queries/                        # Query definitions (.graphql files)
 │   │   ├── addMessage.graphql
+│   │   ├── createTrip.graphql
 │   │   ├── getMessages.graphql
+│   │   ├── getTrip.graphql
+│   │   ├── getTrips.graphql
 │   │   ├── login.graphql
 │   │   ├── me.graphql
 │   │   └── register.graphql
@@ -236,15 +242,17 @@ safarnak.app/                           # Single root directory
 │       └── offlineMiddleware.ts        # Offline mutation queue
 ├── app/                                # Expo Router pages (CLIENT)
 │   ├── _layout.tsx                     # Root layout with providers
-│   ├── auth/                           # Authentication pages
+│   ├── (auth)/                         # Authentication route group (public routes)
 │   │   ├── _layout.tsx                # Auth routing layout
+│   │   ├── welcome.tsx                # Welcome/onboarding page
 │   │   ├── login.tsx                  # Login page (with auto-redirect for logged-in users)
 │   │   └── register.tsx               # Registration page (with auto-redirect for logged-in users)
-│   └── (tabs)/                         # Tab navigation group
-│       ├── _layout.tsx                 # Tab layout
-│       ├── index.tsx                   # Home screen with MapView
-│       ├── plan.tsx                    # Plan screen
-│       └── profile.tsx                 # User profile with logout
+│   └── (app)/                          # Main app route group (protected routes with tabs)
+│       ├── _layout.tsx                 # Tab bar layout (feed, explore, trips, profile)
+│       ├── (feed)/                     # Feed tab - social posts
+│       ├── (explore)/                  # Explore tab - search & discovery
+│       ├── (trips)/                    # Trips tab - trip management
+│       └── (profile)/                  # Profile tab - user account
 ├── components/                         # React components (CLIENT)
 │   ├── AuthWrapper.tsx                 # Authentication guard component
 │   ├── MapView.tsx                     # Interactive Leaflet map (WebView-based)
@@ -318,8 +326,8 @@ safarnak.app/                           # Single root directory
 - `index.ts` - Main exports (re-exports all hooks and utilities)
 
 **Server-Side (worker/):**
-- `queries/` - Query resolver functions (getMessages, me)
-- `mutations/` - Mutation resolver functions (register, login, addMessage)
+- `queries/` - Query resolver functions (getMessages, me, getTrips, getTrip)
+- `mutations/` - Mutation resolver functions (register, login, addMessage, createTrip, updateTrip)
 - `subscriptions/` - Subscription resolvers (newMessages)
 - `utilities/` - Password hashing, token generation
 
@@ -384,15 +392,17 @@ const user = await db.select().from(users).where(eq(users.id, id)).get();
 4. Apollo Client adds token to headers via `authLink`
 
 **Auth Pages:**
-- `app/auth/login.tsx` - Dedicated login page with auto-redirect if already logged in
-- `app/auth/register.tsx` - Dedicated registration page with auto-redirect if already logged in
-- Both pages check `isAuthenticated` from Redux and redirect to `/(tabs)` if user is logged in
-- AuthWrapper redirects unauthenticated users to `/auth/login`
+- `app/(auth)/welcome.tsx` - Welcome/onboarding page
+- `app/(auth)/login.tsx` - Dedicated login page with auto-redirect if already logged in
+- `app/(auth)/register.tsx` - Dedicated registration page with auto-redirect if already logged in
+- Both pages check `isAuthenticated` from Redux and redirect to `/(app)` if user is logged in
+- AuthWrapper redirects unauthenticated users to `/(auth)/login`
 
 **Routing & Navigation:**
-- Root initial route: `auth` (see `app/_layout.tsx` `unstable_settings.initialRouteName`)
-- Auth stack: `app/auth/_layout.tsx` defines `login` and `register`
-- Main app stack: `/(tabs)` group for primary screens
+- Root initial route: `(auth)` (see `app/_layout.tsx` `unstable_settings.initialRouteName`)
+- Auth stack: `app/(auth)/_layout.tsx` defines `welcome`, `login`, and `register`
+- Main app stack: `(app)` route group with 4 tabs: `(feed)`, `(explore)`, `(trips)`, `(profile)`
+- Route groups use parentheses and don't appear in URLs (e.g., `(auth)` → `/auth`, `(app)` → `/`)
 
 ### 4. Offline-First Strategy
 
@@ -641,8 +651,9 @@ const { t } = useTranslation();
 - `locales/fa/translation.json`
 
 **RTL Support:**
-- Automatically detected from language
-- Use `I18nManager` for manual control
+- RTL layout toggling is currently disabled (Android `supportsRtl=false`)
+- Translations work without forcing RTL layout
+- Language switching works for English and Persian (Farsi)
 
 ## Key Configuration Files
 
@@ -685,8 +696,8 @@ const { t } = useTranslation();
 - Imported in `app/_layout.tsx` for global availability
 
 **drizzle.config.ts** - Database
-- Schema location: `drizzle/schema.ts`
-- Migrations: `drizzle/migrations/`
+- Schema location: `database/drizzle.ts`
+- Migrations: `database/migrations/`
 - Dialect: SQLite
 
 ## Critical Rules
@@ -756,7 +767,7 @@ const { t } = useTranslation();
 3. Type everything strictly with enhanced checking
 4. Run linter before committing
 5. Test both online and offline scenarios
-6. Ensure RTL layout works for Persian
+6. Test language switching (English/Persian)
 7. Run `yarn codegen` after GraphQL changes
 8. Never manually edit auto-generated files
 
@@ -772,7 +783,7 @@ const { t } = useTranslation();
 
 ### Adding New Database Tables (Worker-Only)
 
-1. **Update Schema**: Add table to `drizzle/schema.ts` (worker-only, not used by client)
+1. **Update Schema**: Add table to `database/drizzle.ts` (worker-only, not used by client)
 2. **Generate Migration**: Run `yarn db:generate`
 3. **Apply Migration**: Run `yarn db:migrate`
 4. **Update GraphQL Schema**: Add types to `graphql/schema.graphql` if exposing data to client
@@ -783,7 +794,7 @@ const { t } = useTranslation();
 1. **Create Component**: Add to `components/ui/` or `components/`
 2. **Add Types**: Define TypeScript interfaces
 3. **Add Translations**: Update `locales/en/` and `locales/fa/`
-4. **Test RTL**: Ensure Persian layout works correctly
+4. **Test Language Switching**: Ensure translations work in both English and Persian
 
 ---
 

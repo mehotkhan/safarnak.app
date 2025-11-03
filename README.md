@@ -9,7 +9,7 @@
 [![GraphQL Codegen](https://img.shields.io/badge/GraphQL-Codegen-purple)](https://the-guild.dev/graphql/codegen)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.9.3-blue)](https://github.com/mehotkhan/safarnak.app/releases)
+[![Version](https://img.shields.io/badge/Version-0.17.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
 **Live Demo**: [safarnak.app](https://safarnak.app) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
@@ -21,6 +21,8 @@
 - [Architecture Overview](#-architecture-overview)
 - [Quick Start](#-quick-start)
 - [Codebase Structure](#-codebase-structure)
+- [Routing & URLs](#-routing--urls)
+- [Database Model](#-database-model-er-diagram)
 - [How to Add New Features](#-how-to-add-new-features)
 - [Configuration](#-configuration)
 - [Common Commands](#-common-commands)
@@ -29,21 +31,56 @@
 - [Authentication Flow](#-authentication-flow)
 - [Internationalization](#-internationalization)
 - [Key Concepts](#-key-concepts)
+- [Offline-First Plan (Summary)](#-offline-first-plan-summary)
+- [Technical Review & Checklist (Summary)](#-technical-review--checklist-summary)
+- [Contributing](#-contributing)
+- [Code of Conduct](#-code-of-conduct)
+- [Suggested Improvements](#-suggested-improvements)
 - [License](#-license)
 - [Resources](#-resources)
 
 ## 📚 What is This?
 
-A full-stack **Android-only** travel app with **perfect separation** between client (React Native) and server (Cloudflare Workers) code in a **single-root monorepo**.
+**Safarnak** (سفرناک) is a full-stack **offline-first travel companion** that helps users discover destinations, plan trips, and share travel experiences. Built with **React Native** (Expo) and **Cloudflare Workers**, it uses a **single-root monorepo** architecture with clear separation between client and server code.
 
 ### Key Concepts
 
-- **Client** (React Native): Expo app with Redux, Apollo Client, NativeWind v4 styling, offline-first architecture
-- **Server** (Cloudflare Workers): Serverless GraphQL API with Cloudflare D1 database
-- **Shared** (GraphQL): Type-safe GraphQL schema shared between client and server
-- **Worker-Only** (Drizzle): Database schema only used in worker, never in client
+- **Client** (React Native): Expo app with Redux state management, Apollo Client for GraphQL, NativeWind v4 for styling, and offline-first architecture
+- **Server** (Cloudflare Workers): Serverless GraphQL API using GraphQL Yoga, with Cloudflare D1 (SQLite) database
+- **Shared** (GraphQL): Type-safe GraphQL schema and operations shared between client and worker
+- **Worker-Only** (Drizzle ORM): Database schemas only used in worker code, **never imported in client**
 - **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
-- **Codegen**: Auto-generates TypeScript types and React hooks from GraphQL schema
+- **Codegen**: Auto-generates TypeScript types and React Apollo hooks from GraphQL schema
+
+### 📖 Learning Path for New Developers
+
+If you're new to this project, follow this path to get up to speed:
+
+#### Day 1: Setup & Understanding
+1. **Quick Start** (15 min) → Clone, install, and run the app locally
+2. **Architecture Overview** (10 min) → Understand the system architecture and data flow
+3. **Codebase Structure** (15 min) → Explore folder organization and key files
+
+#### Day 2: Core Concepts
+4. **GraphQL Workflow** (20 min) → Learn how schema → codegen → hooks works
+5. **Key Concepts** (10 min) → Understand perfect separation (client/worker/shared)
+6. **Routing & URLs** (10 min) → Learn Expo Router file-based routing
+
+#### Day 3: Hands-On Practice
+7. **How to Add Features** (30 min) → Follow the complete workflow example
+8. **Styling with NativeWind** (15 min) → Learn Tailwind CSS for React Native
+9. **Authentication Flow** (10 min) → Understand how auth works
+
+#### Day 4: Advanced Topics
+10. **Offline-First Plan** (15 min) → Understand the local-first architecture
+11. **Technical Review** (20 min) → Be aware of current limitations and priorities
+12. **Contributing Guide** → Read `CONTRIBUTING.md` for PR guidelines
+
+#### Quick Reference
+- **Need to add a feature?** → See "How to Add New Features"
+- **Having issues?** → Check "Development Tips"
+- **Want to understand architecture?** → Read "Architecture Overview"
+- **Looking for what's next?** → Check "Suggested Improvements & Roadmap"
 
 ---
 
@@ -152,92 +189,162 @@ flowchart LR
 
 ### Prerequisites
 
-- Node.js 20+
-- Yarn package manager
+- **Node.js 20+** (check with `node --version`)
+- **Yarn** package manager (install via `npm install -g yarn`)
+- **Android Studio** (for Android development)
+- **Git** (for cloning the repository)
 
-### Setup (5 minutes)
+### Setup (5-10 minutes)
 
 ```bash
-# Clone and install
+# 1. Clone the repository
 git clone https://github.com/mehotkhan/safarnak.app.git
 cd safarnak.app
+
+# 2. Install dependencies
 yarn install
 
-# Setup database
+# 3. Setup local database (Cloudflare D1)
 yarn db:migrate
 
-# Generate GraphQL types
+# 4. Generate GraphQL types and hooks
 yarn codegen
 
-# Start development
-yarn dev  # Runs both worker (8787) and client (8081)
+# 5. Start development servers
+yarn dev  # Runs both worker (port 8787) and Expo client (port 8081)
 ```
 
-### Run on Device
+This will start:
+- **Cloudflare Worker** on `http://localhost:8787` (GraphQL API)
+- **Expo Dev Server** on `http://localhost:8081` (React Native app)
+
+### Run on Device/Emulator
 
 ```bash
-yarn android           # Android (legacy)
-yarn android:newarch   # Android (New Architecture)
-yarn web               # Web browser
+# Android (New Architecture - recommended)
+yarn android:newarch
+
+# Android (Legacy Architecture)
+yarn android
+
+# Web browser
+yarn web
+
+# iOS (macOS only, not actively tested)
+yarn ios
 ```
 
-**Note**: This app primarily targets Android. iOS support is available but not actively tested. The codebase supports iOS/Android/Web through Expo.
+### First Time Setup Tips
+
+- **Worker URL**: If you see connection errors, check that the worker is running on port 8787
+- **GraphQL Playground**: Visit `http://localhost:8787/graphql` to test GraphQL queries
+- **Metro Bundler**: If you see cache issues, run `yarn clean` and restart
+- **Database**: The local D1 database is stored in `.wrangler/state/v3/d1/`
+
+### Verify Installation
+
+1. Check worker is running: Visit `http://localhost:8787/graphql` - you should see GraphQL Playground
+2. Check Expo: Open Expo Go app on your phone or press `w` for web
+3. Try a query: In GraphQL Playground, run `{ me { id username } }` (after logging in)
 
 ---
 
 ## 📁 Codebase Structure
 
-### Client-Side (What You'll Modify Most)
+### Client-Side (React Native - What You'll Modify Most)
 
 ```
-app/                     # 📱 Expo Router (route groups + tabs)
-├── (auth)/             # Public routes
-│   ├── login.tsx       # /auth/login
-│   ├── register.tsx    # /auth/register
-│   └── welcome.tsx     # /auth/welcome
-└── (app)/              # Protected routes with tabs
-    ├── (feed)/         # / (home feed)
-    │   ├── index.tsx   # / (feed)
-    │   └── [id].tsx    # /:id (post detail)
-    ├── (explore)/      # /explore
-    │   ├── index.tsx   # /explore
+app/                          # 📱 Expo Router pages (file-based routing)
+├── _layout.tsx              # Root layout with providers
+├── (auth)/                  # Auth route group (public routes)
+│   ├── _layout.tsx         # Auth stack layout
+│   ├── welcome.tsx         # /auth/welcome
+│   ├── login.tsx           # /auth/login
+│   └── register.tsx        # /auth/register
+└── (app)/                   # Main app group (protected routes)
+    ├── _layout.tsx         # Tab bar layout (4 tabs: feed, explore, trips, profile)
+    ├── (feed)/             # Feed tab
+    │   ├── index.tsx       # / (home feed)
+    │   ├── [id].tsx        # /:id (post detail)
+    │   └── new.tsx         # /new (create post)
+    ├── (explore)/          # Explore tab
+    │   ├── index.tsx       # /explore
     │   ├── places/[id].tsx # /explore/places/:id
-    │   └── tours/[id].tsx  # /explore/tours/:id
-    ├── (trips)/        # /trips
-    │   ├── index.tsx   # /trips
-    │   ├── new.tsx     # /trips/new
-    │   └── [id]/       # /trips/:id
-    │       ├── index.tsx
-    │       └── edit.tsx
-    └── (profile)/      # /profile
-        ├── index.tsx   # /profile
-        ├── messages.tsx# /profile/messages
-        ├── trips.tsx   # /profile/trips
-        └── settings.tsx# /profile/settings
+    │   ├── tours/[id].tsx  # /explore/tours/:id
+    │   ├── tours/[id]/book.tsx # /explore/tours/:id/book
+    │   ├── locations/[id].tsx  # /explore/locations/:id
+    │   └── users/[id].tsx  # /explore/users/:id
+    ├── (trips)/            # Trips tab
+    │   ├── index.tsx       # /trips (trip list)
+    │   ├── new.tsx         # /trips/new (create trip)
+    │   └── [id]/           # /trips/:id
+    │       ├── index.tsx   # Trip details
+    │       └── edit.tsx    # Edit trip
+    └── (profile)/          # Profile tab
+        ├── index.tsx       # /profile
+        ├── edit.tsx        # /profile/edit
+        ├── trips.tsx       # /profile/trips
+        ├── messages.tsx    # /profile/messages
+        ├── messages/[id].tsx # /profile/messages/:id
+        ├── notifications/[id].tsx # /profile/notifications/:id
+        ├── payments.tsx    # /profile/payments
+        ├── subscription.tsx # /profile/subscription
+        └── settings.tsx    # /profile/settings
 
-components/             # 🎨 Reusable UI components
-├── AuthWrapper.tsx     # Authentication guard
-├── MapView.tsx         # Map component
-└── context/            # React contexts (language, theme)
+components/                   # 🎨 Reusable UI components
+├── AuthWrapper.tsx          # Authentication guard (redirects unauthenticated)
+├── MapView.tsx              # Interactive map component (Leaflet-based)
+├── context/                 # React contexts
+│   ├── LanguageContext.tsx  # Language switching (EN/FA)
+│   ├── LanguageSwitcher.tsx # Language selector UI
+│   └── ThemeContext.tsx     # Dark/light theme management
+└── ui/                      # Themed UI components
+    ├── Themed.tsx           # Theme-aware View/Text
+    ├── CustomText.tsx       # i18n-aware text with font weights
+    ├── CustomButton.tsx     # Styled button component
+    ├── InputField.tsx       # Form input with icons
+    ├── TextArea.tsx         # Multi-line text input
+    ├── DatePicker.tsx       # Date selection component
+    ├── Divider.tsx          # Section divider
+    ├── ThemeToggle.tsx      # Dark mode toggle
+    └── OfflineIndicator.tsx # Network status indicator
 
-api/                     # 🌐 GraphQL client (auto-generated)
-├── hooks.ts            # ✨ Generated React hooks
-├── types.ts            # ✨ Generated TypeScript types
-└── client.ts           # Apollo Client setup
+api/                          # 🌐 GraphQL client layer
+├── hooks.ts                 # ✨ Auto-generated React Apollo hooks
+├── types.ts                 # ✨ Auto-generated TypeScript types
+├── client.ts                # Apollo Client setup (auth, cache, links)
+├── utils.ts                 # API utilities (storage, error handling)
+├── api-types.ts             # API-specific types (ApiError, ApiResponse)
+└── index.ts                 # Main exports (re-exports hooks)
 
-store/                   # 📦 Redux state
-├── slices/             # State slices
-│   ├── authSlice.ts    # Auth state
-│   └── themeSlice.ts   # Theme state
-└── middleware/         # Redux middleware
-    └── offlineMiddleware.ts  # Offline queue
+store/                        # 📦 Redux Toolkit state management
+├── index.ts                 # Store configuration with Redux Persist
+├── hooks.ts                 # Typed hooks (useAppDispatch, useAppSelector)
+├── slices/                  # Redux slices
+│   ├── authSlice.ts         # Authentication state (user, token, isAuthenticated)
+│   └── themeSlice.ts        # Theme state (isDark)
+└── middleware/              # Redux middleware
+    └── offlineMiddleware.ts # Offline mutation queue
 
-constants/               # 📋 App configuration
-hooks/                    # 🪝 Custom React hooks
-locales/                  # 🌍 i18n translations (en, fa)
-global.css               # 🎨 Tailwind CSS directives (NativeWind)
-tailwind.config.js       # 🎨 Tailwind configuration
-babel.config.js          # ⚙️ Babel config (NativeWind preset)
+constants/                    # 📋 App constants
+├── app.ts                   # App-wide constants
+├── Colors.ts                # Color palette (light/dark themes)
+└── index.ts                 # Exports
+
+hooks/                        # 🪝 Custom React hooks
+├── useColorScheme.ts        # System color scheme hook
+├── useClientOnlyValue.ts    # Platform-specific value hook
+├── useFontFamily.ts         # Font family hook
+└── useGraphBackendReachable.ts # Network connectivity hook
+
+locales/                      # 🌍 i18n translation files
+├── en/translation.json      # English translations
+└── fa/translation.json      # Persian (Farsi) translations
+
+global.css                    # 🎨 Tailwind CSS directives (@tailwind base/components/utilities)
+tailwind.config.js           # 🎨 Tailwind configuration (NativeWind v4)
+babel.config.js              # ⚙️ Babel config (NativeWind preset)
+metro.config.js              # 📦 Metro bundler config (path aliases, NativeWind)
 ```
 
 ### Server-Side
@@ -256,6 +363,54 @@ database/              # 🗄️ Database schemas (worker-only)
 ├── drizzle.ts        # Drizzle ORM schema
 └── migrations/       # SQL migrations
 ```
+
+## 🧭 Routing & URLs
+
+Safarnak uses **Expo Router** with file-based routing. Routes are organized into groups using parentheses (which don't appear in URLs).
+
+### Auth Routes (Public)
+- `/auth/welcome` – Onboarding/Welcome screen
+- `/auth/login` – User login
+- `/auth/register` – User registration
+
+### App Routes (Protected - Requires Authentication)
+
+#### Feed Tab (`(feed)`)
+- `/` – Home feed (social posts from community)
+- `/:id` – Post detail view with comments
+- `/new` – Create new post
+
+#### Explore Tab (`(explore)`)
+- `/explore` – Main explore/search page
+- `/explore/places/:id` – Place details page
+- `/explore/tours/:id` – Tour details page
+- `/explore/tours/:id/book` – Tour booking page
+- `/explore/locations/:id` – Location details page
+- `/explore/users/:id` – User profile (public view)
+
+#### Trips Tab (`(trips)`)
+- `/trips` – User's trip list
+- `/trips/new` – Create new trip (AI-powered)
+- `/trips/:id` – Trip details view
+- `/trips/:id/edit` – Edit trip
+
+#### Profile Tab (`(profile)`)
+- `/profile` – User profile home
+- `/profile/edit` – Edit profile
+- `/profile/trips` – User's trips list
+- `/profile/messages` – Messages inbox
+- `/profile/messages/:id` – Individual message/conversation
+- `/profile/notifications` – Notifications list
+- `/profile/notifications/:id` – Notification detail
+- `/profile/payments` – Payment history
+- `/profile/subscription` – Subscription management
+- `/profile/settings` – App settings
+
+### Route Organization
+- Route groups `(auth)` and `(app)` don't appear in URLs
+- Tab groups `(feed)`, `(explore)`, `(trips)`, `(profile)` don't appear in URLs
+- Dynamic routes use `[id]` in file names
+- Nested routes create URL paths (e.g., `trips/[id]/edit.tsx` → `/trips/:id/edit`)
 
 ## 🗄️ Database Model (ER Diagram)
 
@@ -520,51 +675,105 @@ erDiagram
 
 ## 💡 How to Add New Features
 
-### Adding a GraphQL Query/Mutation
+### Complete Workflow: Adding a GraphQL Query/Mutation
 
-1. **Define in GraphQL Schema**:
+This is the **standard workflow** for adding new features. Follow these steps:
+
+#### Step 1: Define in GraphQL Schema
 ```graphql
 # graphql/schema.graphql
 type Query {
-  getTours: [Tour!]!
+  getTours(category: String, limit: Int): [Tour!]!
+}
+
+type Tour {
+  id: ID!
+  title: String!
+  location: String!
+  price: Float!
+  # ... other fields
 }
 ```
 
-2. **Create Operation File**:
+#### Step 2: Create Operation File
 ```graphql
 # graphql/queries/getTours.graphql
-query GetTours {
-  getTours {
-      id
-      name
+query GetTours($category: String, $limit: Int) {
+  getTours(category: $category, limit: $limit) {
+    id
+    title
     location
+    price
+    rating
+    reviews
   }
 }
 ```
 
-3. **Run Codegen**:
+#### Step 3: Run GraphQL Codegen
 ```bash
 yarn codegen
 ```
 
-4. **Implement Resolver**:
+This generates:
+- `api/types.ts` - TypeScript types for `Tour`, `GetToursQuery`, etc.
+- `api/hooks.ts` - React hooks like `useGetToursQuery()`
+
+#### Step 4: Implement Resolver (Worker)
 ```typescript
 // worker/queries/getTours.ts
-export const getTours = async (_: any, __: any, context: any) => {
+import { drizzle } from 'drizzle-orm/d1';
+import { tours } from '@database/drizzle';
+import { eq, and } from 'drizzle-orm';
+
+export const getTours = async (
+  _: any,
+  { category, limit }: { category?: string; limit?: number },
+  context: any
+) => {
   const db = drizzle(context.env.DB);
-  return await db.select().from(tours).all();
+  let query = db.select().from(tours).where(eq(tours.isActive, true));
+  
+  if (category) {
+    query = query.where(eq(tours.category, category));
+  }
+  
+  const results = await query.limit(limit || 100).all();
+  return results;
 };
 ```
 
-5. **Use in Component**:
+Don't forget to export it:
 ```typescript
-import { useGetToursQuery } from '@api';
+// worker/queries/index.ts
+export * from './getTours';
+```
 
-function ToursScreen() {
-  const { data, loading } = useGetToursQuery();
-  // ...use data
+#### Step 5: Use in Component
+```typescript
+// app/(app)/(explore)/tours/index.tsx
+import { useGetToursQuery } from '@api';
+import { ActivityIndicator, View } from 'react-native';
+
+export default function ToursScreen() {
+  const { data, loading, error } = useGetToursQuery({
+    variables: { category: 'adventure', limit: 10 }
+  });
+
+  if (loading) return <ActivityIndicator />;
+  if (error) return <Text>Error: {error.message}</Text>;
+
+  return (
+    <View>
+      {data?.getTours.map(tour => (
+        <TourCard key={tour.id} tour={tour} />
+      ))}
+    </View>
+  );
 }
 ```
+
+**Important**: After changing the GraphQL schema or operations, **always run `yarn codegen`** before using the new hooks.
 
 ### Adding a New UI Component
 
@@ -821,7 +1030,7 @@ The app uses custom colors defined in `tailwind.config.js`:
 
 ## 🌍 Internationalization
 
-Supports English and Persian (Farsi) with automatic RTL:
+Supports English and Persian (Farsi). Note: RTL layout toggling is currently disabled (Android `supportsRtl=false`); translations work without forcing RTL.
 
 ```typescript
 import { useTranslation } from 'react-i18next';
@@ -858,6 +1067,109 @@ Always use aliases, never relative imports:
 - ❌ `../../api`, `../store/hooks`
 
 ---
+
+## 📶 Offline-First Plan (Summary)
+
+This app follows a local-first approach with background sync. Highlights:
+
+- Shared SQLite-first schema: keep server D1 and client DB schemas aligned; consider a shared `@dbschema` later
+- Platform DB adapters: expo-sqlite (native) and PGlite (web); strict platform gating
+- Data access: read from local DB first; network fetch upserts into local; writes are optimistic with a pending queue
+- Sync engine: push pending mutations (backoff, idempotent IDs) and pull deltas via server `since` params
+- Conflict resolution: last-write-wins via `updatedAt`; server canonicalizes
+- Apollo: treat as network layer; optional cache persistence if Drizzle fully backs UI
+- Networking: NetInfo + HEAD probe to drive sync and gates
+- Client schema/versioning: `schema_version`, `lastSyncAt` tracking and light migrations
+- Security: avoid sensitive data in client DB; plan for encryption if needed
+
+See `OFFLINE_PLAN.md` for full details.
+
+---
+
+## 🔍 Technical Review & Checklist (Summary)
+
+Top risks (from v0.9.4 review):
+
+- Auth verification missing on server; `x-user-id` is trusted; tokens unsigned and unverified
+- Error exposure in prod (`maskedErrors: false`)
+- Limited input validation beyond `createTrip`
+- No unit/integration tests; relaxed linting rules
+
+Priority actions:
+
+- Implement signed token verification (HMAC or JWT) and derive `context.userId` from verified token only
+- Remove `x-user-id` usage; enable `maskedErrors: true` in production
+- Add zod validation to all resolvers and ownership checks to user-scoped ops
+- Establish a minimal test suite (auth + trips) and tighten ESLint gradually
+
+See `TECHNICAL_REVIEW.md` for the complete checklist.
+
+---
+
+## 🤝 Contributing
+
+Please read `CONTRIBUTING.md` for setup, workflow, and PR checklist.
+
+---
+
+## 🧭 Code of Conduct
+
+Community guidelines are in `CODE_OF_CONDUCT.md`.
+
+---
+
+## 📝 Suggested Improvements & Roadmap
+
+This section outlines potential features and improvements. These are suggestions, not commitments.
+
+### 🎯 Priority Features (Near-term)
+
+#### Offline & Sync Management
+- **Offline Downloads Manager**: UI to manage cached trips, tours, and places for offline access
+- **Sync Queue Screen**: View pending offline mutations with retry controls
+- **Data Management**: Clear cache, view storage usage, selective data purge
+
+#### Trip Planning Enhancements
+- **Itinerary Editor**: Day-by-day editable view using `itineraries` table
+- **AI Planner Chat**: Conversational interface for refining trips using `thoughts` table
+- **Trip Map View**: Visual map showing trip activities and locations
+- **Trip Export/Share**: Export itinerary as PDF or ICS calendar file
+
+#### Explore & Discovery
+- **Global Search**: Unified search across tours, places, locations, and users
+- **Advanced Filters**: Price range, rating, duration, distance with saved filter sets
+- **Bookmarks System**: Implement UI for `bookmarkTour` and `bookmarkPlace` mutations
+- **Location/Tour/Place Indexes**: Dedicated browse pages for each content type
+
+### 🚀 Future Enhancements
+
+#### Social Features
+- **Rich Post Composer**: Multi-image upload, location tagging, trip linking
+- **Comments Thread**: Full-screen comment view with reactions
+- **Enhanced User Profiles**: Public profiles with posts, trips, and places showcase
+
+#### Profile & Settings
+- **Travel Preferences**: Edit `user_preferences` (interests, budget, style, dietary)
+- **Device Management**: View and revoke logged-in devices using `devices` table
+- **Billing History**: Detailed payment history with receipts from `payments` table
+- **Notification Settings**: Per-category notification preferences
+
+#### Commerce
+- **My Bookings**: List of purchased tours from `payments.tourId`
+- **Booking Details**: Receipt, cancellation, refund status
+- **Checkout Flow**: Dedicated checkout page with payment integration
+
+### 💡 Where We're Going
+
+The project is currently at **v0.17.0** (alpha stage). Our focus is on:
+
+1. **Stability**: Fixing authentication security issues, adding input validation
+2. **Core Features**: Completing trip planning, explore, and social features
+3. **Offline Support**: Implementing the full offline-first architecture plan
+4. **Testing**: Adding unit and integration tests
+5. **Documentation**: Improving developer experience and onboarding
+
+See `TECHNICAL_REVIEW.md` for current technical debt and priorities.
 
 ## 📄 License
 
