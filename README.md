@@ -281,7 +281,7 @@ flowchart TB
   end
 
   subgraph ServerStorage["Server Storage"]
-    subgraph D1["Cloudflare D1"]
+    subgraph D1DB["Cloudflare D1"]
       S1["users"]
       S2["trips"]
       S3["tours"]
@@ -295,10 +295,10 @@ flowchart TB
       V1["User Preferences<br/>Embeddings"]
       V2["Locations<br/>Embeddings"]
     end
-    subgraph R2["R2 Storage"]
-      R1["avatars/"]
-      R2["images/"]
-      R3["attachments/"]
+    subgraph R2Storage["R2 Storage"]
+      R2Avatars["avatars/"]
+      R2Images["images/"]
+      R2Attachments["attachments/"]
     end
   end
 
