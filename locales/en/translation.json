@@ -23,7 +23,9 @@
     "addComment": "Add a comment...",
     "version": "Version",
     "success": "Success",
-    "offline": "Offline"
+    "offline": "Offline",
+    "retry": "Retry",
+    "back": "Back"
   },
   "home": {
     "title": "Home",
@@ -166,6 +168,8 @@
   "plan.errors": {
     "loadFailed": "Failed to load trips"
   },
+  "plan.notFound": "Trip Not Found",
+  "plan.tripNotFound": "The trip you're looking for doesn't exist or was deleted.",
   "plan.form.errors": {
     "destinationRequired": "Destination and dates are required",
     "descriptionMin": "Please add at least 10 characters to describe your plan",
@@ -240,6 +244,7 @@
       "tours": "My Tours",
       "saved": "Saved"
     },
+    "system": "System",
     "tripsList": {
       "upcoming": "Upcoming",
       "past": "Past",
@@ -515,5 +520,49 @@
   },
   "map": {
     "loading": "Loading Map..."
+  },
+  "systemStatus": {
+    "title": "System Status",
+    "subtitle": "Network & Cache Stats",
+    "network": "Network Status",
+    "onlineStatus": "Online Status",
+    "online": "Online",
+    "offline": "Offline",
+    "backendStatus": "Backend Server",
+    "reachable": "Reachable",
+    "unreachable": "Unreachable",
+    "connectionType": "Connection Type",
+    "cacheStats": "SQLite Cache Statistics",
+    "cacheSize": "Cache Size",
+    "storedData": "Stored data",
+    "cacheKeys": "Cache Keys",
+    "cachedItems": "Cached items",
+    "infoTitle": "About This System",
+    "infoDescription": "Your data is cached locally in SQLite for offline access. When offline, the app uses cached data. Changes sync automatically when connection is restored.",
+    "databaseStats": "Database Statistics",
+    "entityBreakdown": "Entity Breakdown",
+    "trips": "Trips",
+    "users": "Users",
+    "messages": "Messages",
+    "tours": "Tours",
+    "places": "Places",
+    "totalEntities": "Total Entities",
+    "pendingCount": "Pending",
+    "deletedCount": "Deleted",
+    "lastSynced": "Last Synced",
+    "never": "Never",
+    "pendingMutations": "Pending Mutations",
+    "pendingMutationsTotal": "Total Pending",
+    "pendingMutationsErrors": "With Errors",
+    "oldestPending": "Oldest Queued",
+    "syncStatus": "Sync Status",
+    "syncStatusByEntity": "Sync Status by Entity",
+    "schemaVersion": "Schema Version",
+    "storageBreakdown": "Storage Breakdown",
+    "apolloCache": "Apollo Cache",
+    "localDatabase": "Local Database",
+    "cachedAt": "Cached At",
+    "oldestCached": "Oldest",
+    "newestCached": "Newest"
   }
 }

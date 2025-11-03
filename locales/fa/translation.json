@@ -23,7 +23,9 @@
     "addComment": "افزودن دیدگاه...",
     "version": "نسخه",
     "success": "موفقیت",
-    "offline": "آفلاین"
+    "offline": "آفلاین",
+    "retry": "تلاش مجدد",
+    "back": "بازگشت"
   },
   "home": {
     "title": "خانه",
@@ -154,6 +156,8 @@
   "plan.errors": {
     "loadFailed": "بارگذاری سفرها ناموفق بود"
   },
+  "plan.notFound": "سفر پیدا نشد",
+  "plan.tripNotFound": "سفری که دنبال آن می‌گردید وجود ندارد یا حذف شده است.",
   "plan.form.errors": {
     "destinationRequired": "مقصد و تاریخ‌ها الزامی است",
     "descriptionMin": "حداقل ۱۰ کاراکتر برای توضیح برنامه وارد کنید",
@@ -228,6 +232,7 @@
       "tours": "تورهای من",
       "saved": "ذخیره شده"
     },
+    "system": "سیستم",
     "tripsList": {
       "upcoming": "آینده",
       "past": "گذشته",
@@ -515,5 +520,49 @@
   },
   "map": {
     "loading": "در حال بارگذاری نقشه..."
+  },
+  "systemStatus": {
+    "title": "وضعیت سیستم",
+    "subtitle": "آمار شبکه و کش",
+    "network": "وضعیت شبکه",
+    "onlineStatus": "وضعیت آنلاین",
+    "online": "آنلاین",
+    "offline": "آفلاین",
+    "backendStatus": "سرور بک‌اند",
+    "reachable": "در دسترس",
+    "unreachable": "غیرقابل دسترس",
+    "connectionType": "نوع اتصال",
+    "cacheStats": "آمار کش SQLite",
+    "cacheSize": "حجم کش",
+    "storedData": "داده‌های ذخیره شده",
+    "cacheKeys": "کلیدهای کش",
+    "cachedItems": "آیتم‌های کش شده",
+    "infoTitle": "درباره این سیستم",
+    "infoDescription": "داده‌های شما به صورت محلی در SQLite ذخیره می‌شوند تا در حالت آفلاین قابل دسترس باشند. در حالت آفلاین، برنامه از داده‌های کش استفاده می‌کند. تغییرات به صورت خودکار همگام‌سازی می‌شوند.",
+    "databaseStats": "آمار پایگاه داده",
+    "entityBreakdown": "جزئیات موجودیت‌ها",
+    "trips": "سفرها",
+    "users": "کاربران",
+    "messages": "پیام‌ها",
+    "tours": "تورها",
+    "places": "مکان‌ها",
+    "totalEntities": "مجموع موجودیت‌ها",
+    "pendingCount": "در انتظار",
+    "deletedCount": "حذف شده",
+    "lastSynced": "آخرین همگام‌سازی",
+    "never": "هرگز",
+    "pendingMutations": "تغییرات در انتظار",
+    "pendingMutationsTotal": "مجموع در انتظار",
+    "pendingMutationsErrors": "با خطا",
+    "oldestPending": "قدیمی‌ترین صف",
+    "syncStatus": "وضعیت همگام‌سازی",
+    "syncStatusByEntity": "وضعیت همگام‌سازی بر اساس موجودیت",
+    "schemaVersion": "نسخه اسکیما",
+    "storageBreakdown": "جزئیات ذخیره‌سازی",
+    "apolloCache": "کش Apollo",
+    "localDatabase": "پایگاه داده محلی",
+    "cachedAt": "کش شده در",
+    "oldestCached": "قدیمی‌ترین",
+    "newestCached": "جدیدترین"
   }
 }

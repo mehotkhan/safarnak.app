@@ -1,20 +1,15 @@
-import { View, Image, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomText } from '@components/ui/CustomText';
-import CustomButton from '@components/ui/CustomButton';
-import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { logout } from '@store/slices/authSlice';
+import { useAppSelector } from '@store/hooks';
 import { useTheme } from '@components/context/ThemeContext';
 import Colors from '@constants/Colors';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const appIcon = require('@assets/images/icon.png');
-
-const USER_STORAGE_KEY = '@safarnak_user';
 
 interface MenuItemProps {
   icon: any;
@@ -76,28 +71,9 @@ const MenuItem = ({
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const dispatch = useAppDispatch();
   const router = useRouter();
   const { user } = useAppSelector(state => state.auth);
 
-  const handleLogout = () => {
-    Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('profile.logout'),
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await AsyncStorage.removeItem(USER_STORAGE_KEY);
-            dispatch(logout());
-            router.replace('/(auth)/login' as any);
-          } catch (error) {
-            console.log('Error during logout:', error);
-          }
-        },
-      },
-    ]);
-  };
 
   const handleMyTrips = () => {
     router.push('/(app)/(profile)/trips' as any);
@@ -229,12 +205,6 @@ export default function ProfileScreen() {
 
         {/* Menu */}
         <View className="px-6">
-          <CustomText
-            weight="bold"
-            className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
-          >
-            {t('me.content')}
-          </CustomText>
           <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
             <MenuItem
               icon="airplane-outline"
@@ -269,22 +239,17 @@ export default function ProfileScreen() {
               isDark={isDark}
               color={isDark ? Colors.dark.primary : Colors.light.primary}
             />
+            <MenuItem
+              icon="stats-chart-outline"
+              title={t('systemStatus.title', { defaultValue: 'System Status' })}
+              subtitle={t('systemStatus.subtitle', {
+                defaultValue: 'Network & Cache Stats',
+              })}
+              onPress={() => router.push('/(app)/(profile)/system-status' as any)}
+              isDark={isDark}
+              color={isDark ? Colors.dark.primary : Colors.light.primary}
+            />
           </View>
-
-          {/* Logout */}
-          <CustomButton
-            title={t('profile.logout')}
-            onPress={handleLogout}
-            bgVariant="danger"
-            IconLeft={() => (
-              <Ionicons
-                name="log-out-outline"
-                size={20}
-                color="#fff"
-                style={{ marginRight: 8 }}
-              />
-            )}
-          />
           <View className="h-8" />
         </View>
       </ScrollView>

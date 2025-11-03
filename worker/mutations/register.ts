@@ -74,6 +74,17 @@ export const register = async (
     // Generate secure token
     const token = await generateToken(userId, username);
 
+    // Store token in KV for validation (key: token:${token}, value: userId)
+    // Token expires after 30 days
+    try {
+      await context.env.KV?.put(`token:${token}`, userId.toString(), {
+        expirationTtl: 60 * 60 * 24 * 30, // 30 days in seconds
+      });
+    } catch (error) {
+      console.warn('Failed to store token in KV:', error);
+      // Continue even if KV storage fails - token is still returned
+    }
+
     return {
       user: {
         id: user.id.toString(),

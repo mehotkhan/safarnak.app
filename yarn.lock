@@ -3827,6 +3827,11 @@ anymatch@^3.0.3, anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
+apollo3-cache-persist@^0.15.0:
+  version "0.15.0"
+  resolved "https://registry.yarnpkg.com/apollo3-cache-persist/-/apollo3-cache-persist-0.15.0.tgz#aee23062bc811f3bc15369b850002f54195a6572"
+  integrity sha512-asxhPOHGddgXYvY4/Wa+XLODYpjci/kPB4zdy82D0tVGzVmvO4lqp3k06NtzHvd//gd9kCnTaG8iziwAcXZYjw==
+
 arg@^5.0.2:
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/arg/-/arg-5.0.2.tgz#c81433cc427c92c4dcf4865142dbca6f15acd59c"
@@ -3993,6 +3998,11 @@ available-typed-arrays@^1.0.7:
   integrity sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==
   dependencies:
     possible-typed-array-names "^1.0.0"
+
+await-lock@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/await-lock/-/await-lock-2.2.2.tgz#a95a9b269bfd2f69d22b17a321686f551152bcef"
+  integrity sha512-aDczADvlvTGajTDjcjpJMqRkOF6Qdz3YbPZm/PyW6tKPkx2hlYBzxMhEywM/tU72HrVZjgl5VCdRuMlA7pZ8Gw==
 
 axe-core@^4.10.0:
   version "4.11.0"
@@ -5855,6 +5865,13 @@ expo-splash-screen@~31.0.10:
   integrity sha512-i6g9IK798mae4yvflstQ1HkgahIJ6exzTCTw4vEdxV0J2SwiW3Tj+CwRjf0te7Zsb+7dDQhBTmGZwdv00VER2A==
   dependencies:
     "@expo/prebuild-config" "^54.0.3"
+
+expo-sqlite@^16.0.8:
+  version "16.0.8"
+  resolved "https://registry.yarnpkg.com/expo-sqlite/-/expo-sqlite-16.0.8.tgz#c2fb269ebc601d79c20cb1c83423e8d695013848"
+  integrity sha512-xw776gFgH4ZM5oGs0spSLNmkHO/kJ/EuRXGzE4/22yII9EmG84vm7aM/M2aEb8taBTqwhSGYUpkwkRT5YFFmsg==
+  dependencies:
+    await-lock "^2.2.2"
 
 expo-status-bar@~3.0.8:
   version "3.0.8"

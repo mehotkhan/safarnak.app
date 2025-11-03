@@ -5,7 +5,8 @@ Project Overview
 - Client: Expo React Native (Android/iOS/Web) with NativeWind v4.
 - Server: Cloudflare Worker (GraphQL Yoga), Cloudflare D1 via Drizzle ORM.
 - Shared: GraphQL schema and operations under `graphql/` used by both client and worker.
-- Worker-only: `database/` schemas; NEVER import from this in client code.
+- Worker-only: `database/` schemas (legacy, server-only); NEVER import from this in client code.
+- Shared Drizzle: `drizzle/` unified schema (base, server, client) used by both client and worker.
 
 Current Stack (as of v0.17.0)
 - TypeScript ~5.9.3
@@ -20,8 +21,9 @@ Repository Structure
 ```
 worker/                 # Cloudflare Worker resolvers and entry
 graphql/                # Shared GraphQL schema + operations
-api/                    # Client GraphQL types & hooks (generated)
-database/               # Database schemas & migrations (worker-only)
+api/                    # Client GraphQL types & hooks (generated, with automatic Drizzle sync)
+database/               # Database schemas & migrations (worker-only, legacy)
+drizzle/                # Unified Drizzle schema (base, server, client) + client utilities
 store/                  # Redux Toolkit store, slices, middleware
 app/                    # Expo Router pages
 components/             # UI components & contexts
@@ -47,6 +49,8 @@ Path Aliases (TypeScript & Metro)
 "@components/*" → "./components/*"
 "@graphql/*"    → "./graphql/*"
 "@database/*"   → "./database/*"   # Worker-only; do not import in client
+"@drizzle"      → "./drizzle"      # Unified Drizzle schema & client utilities
+"@drizzle/*"    → "./drizzle/*"
 "@worker/*"     → "./worker/*"
 "@api"          → "./api"
 "@api/*"        → "./api/*"
@@ -72,9 +76,10 @@ Critical Rules
 2) Use `eslint.config.mjs`; do not convert ESLint config type.
 3) Keep strict separation:
    - `graphql/` is shared between client and worker.
-   - `api/` is client-only, generated.
+   - `api/` is client-only, generated hooks with automatic Drizzle sync.
    - `worker/` is server-only code.
-   - `database/` is worker-only. DO NOT import it in client.
+   - `database/` is worker-only (legacy). DO NOT import it in client.
+   - `drizzle/` is unified schema: base tables shared, server/client extensions separate.
 4) Always run `yarn codegen` after changing GraphQL schema or operations.
 5) Never manually edit generated files (`api/types.ts`, `api/hooks.ts`).
 6) Use path aliases exclusively; avoid relative imports entirely.
@@ -159,7 +164,8 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Worker**: Cloudflare Worker backend (`worker/index.ts` - entry point defined in wrangler.toml)
 - **Resolvers**: GraphQL resolvers in `worker/` folder (server-side only)
 - **Shared**: GraphQL schema (`graphql/`) shared between client & worker
-- **Worker-Only**: Drizzle ORM and database schemas (`database/`) used ONLY in worker, never in client
+- **Worker-Only**: Database schemas (`database/`) used ONLY in worker, never in client (legacy)
+- **Shared Drizzle**: Unified schema (`drizzle/`) with base tables shared, server/client extensions separate
 - **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
 - **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
 
@@ -224,14 +230,18 @@ safarnak.app/                           # Single root directory
 │   └── index.ts                         # Shared exports only
 ├── api/                                # Client API layer (CLIENT-SIDE ONLY)
 │   ├── client.ts                       # Apollo Client setup with auth link
+│   ├── enhanced-hooks.ts               # Wraps auto-generated hooks with automatic Drizzle sync
 │   ├── hooks.ts                        # 🤖 Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 │   ├── types.ts                        # 🤖 Auto-generated GraphQL types
-│   ├── api-types.ts                    # API-specific types (ApiError, ApiResponse)
-│   ├── utils.ts                        # Client utility functions (storage, error handling, network checks)
-│   └── index.ts                        # Main API exports (re-exports generated hooks + utils)
-├── database/                           # Database schemas (WORKER-ONLY, not used in client)
+│   ├── utils.ts                        # Client utility functions (storage, error handling, network checks, logout, API types)
+│   └── index.ts                        # Main API exports (re-exports enhanced hooks + all utilities)
+├── database/                           # Database schemas (WORKER-ONLY, legacy, not used in client)
 │   ├── drizzle.ts                      # Drizzle schema: users, tours, messages, subscriptions
 │   └── migrations/                     # SQL migration files
+├── drizzle/                            # Unified Drizzle schema (shared + client)
+│   ├── schema.ts                       # All table definitions (base, server, client)
+│   ├── client.ts                       # Client utilities (db, sync, stats)
+│   └── index.ts                        # Main exports
 ├── store/                              # Redux state management (CLIENT)
 │   ├── index.ts                        # Store configuration with persist
 │   ├── hooks.ts                        # Typed useAppDispatch, useAppSelector
@@ -293,7 +303,9 @@ safarnak.app/                           # Single root directory
 "@/*"           → "./*"              // Root files (use '@/api' not '../api')
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
-"@database/*"   → "./database/*"     // Database schemas (worker-only, not for client imports)
+"@database/*"   → "./database/*"     // Database schemas (worker-only, legacy, not for client imports)
+"@drizzle"      → "./drizzle"        // Unified Drizzle schema & client utilities
+"@drizzle/*"    → "./drizzle/*"
 "@worker/*"     → "./worker/*"       // Worker resolvers
 "@api"          → "./api"            // API layer (client hooks)
 "@api/*"        → "./api/*"          // API subfolder imports
@@ -318,12 +330,12 @@ safarnak.app/                           # Single root directory
 - `generated/schema.d.ts` - Worker schema declarations
 
 **Client-Side (api/):**
-- `client.ts` - Apollo Client setup with auth link
+- `client.ts` - Apollo Client setup with auth link and SQLite cache persistence
+- `enhanced-hooks.ts` - Wraps auto-generated hooks with automatic Drizzle sync
 - `hooks.ts` - Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 - `types.ts` - Auto-generated GraphQL types
-- `api-types.ts` - API-specific types (ApiError, ApiResponse)
-- `utils.ts` - Utility functions (storage, error handling, network checks)
-- `index.ts` - Main exports (re-exports all hooks and utilities)
+- `utils.ts` - Utility functions (storage, error handling, network checks, logout)
+- `index.ts` - Main exports (re-exports enhanced hooks + all utilities)
 
 **Server-Side (worker/):**
 - `queries/` - Query resolver functions (getMessages, me, getTrips, getTrip)
@@ -346,33 +358,48 @@ import { Subscription } from './subscriptions';
 3. Run `yarn codegen` to generate `api/types.ts` and `api/hooks.ts`
 4. Import from `@api` in client components (never import raw `.graphql` files)
 
-### 2. Database Patterns (Worker-Only)
+### 2. Database Patterns
 
-**Important**: Drizzle ORM is only used in worker code, never in client components!
+**Unified Drizzle Schema (drizzle/):**
+- `drizzle/schema.ts` - All table definitions (base, server extensions, client extensions)
+- Base tables: `usersBase`, `tripsBase`, `toursBase`, `placesBase`, `messagesBase` (shared)
+- Server extensions: `users` (with passwordHash), `subscriptions`, `userPreferences`
+- Client extensions: `cachedUsers`, `cachedTrips`, etc. (with sync metadata: cachedAt, lastSyncAt, pending)
 
-**Schema (database/drizzle.ts):**
-- Define tables: users, tours, messages, subscriptions
-- Use Drizzle ORM helpers: `integer()`, `text()`, `sqliteTable()`
-- Export tables: `export const users = sqliteTable(...)`
+**Worker Usage (database/ - legacy):**
+- Worker uses `database/drizzle.ts` for server-side D1 database
+- Uses integer IDs (autoIncrement) for database storage
+- Converts to string IDs for GraphQL responses
+- **DO NOT import from `database/` in client code**
 
-**Client Usage:**
-- Client uses GraphQL queries/mutations (via Apollo Client)
-- Client uses AsyncStorage for local caching (not Drizzle)
-- Client NEVER imports from `database/` directory
+**Client Usage (drizzle/):**
+- Client uses `drizzle/client.ts` for local expo-sqlite database
+- Uses text IDs to match GraphQL ID type (string)
+- Automatic Apollo cache sync via `syncApolloToDrizzle()`
+- Enhanced hooks automatically sync to Drizzle after every query/mutation
 
 **Worker Resolvers:**
 ```typescript
 import { drizzle } from 'drizzle-orm/d1';
-import { users } from '../database/drizzle';
+import { users } from '@database/drizzle'; // Legacy worker schema
 
 const db = drizzle(context.env.DB);
 const user = await db.select().from(users).where(eq(users.id, id)).get();
 ```
 
+**Client Local Database:**
+```typescript
+import { getLocalDB, cachedTrips } from '@drizzle/client';
+import { eq } from 'drizzle-orm';
+
+const db = await getLocalDB();
+const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, userId));
+```
+
 **Migrations:**
-- Generate: `yarn db:generate`
-- Apply: `yarn db:migrate`
-- Never edit migrations manually
+- Generate: `yarn db:generate` (for server database)
+- Apply: `yarn db:migrate` (for server database)
+- Client database: Auto-migrated on app initialization (see `drizzle/client.ts`)
 
 ### 3. Authentication
 
@@ -406,16 +433,34 @@ const user = await db.select().from(users).where(eq(users.id, id)).get();
 
 ### 4. Offline-First Strategy
 
-**Client-Side:**
-- Redux Persist - State survives app restarts
-- AsyncStorage - User data cached locally
-- Offline Middleware - Queue mutations when offline
-- NetInfo - Detect connection status
+**Client-Side Storage:**
+- **Apollo Cache (SQLite)**: Normalized GraphQL cache in `apollo_cache.db`
+- **Drizzle Cache (SQLite)**: Structured relational cache in `safarnak_local.db`
+- **AsyncStorage**: Mutation queue for offline operations
+- **Redux Persist**: UI state survives app restarts
 
-**Sync Strategy:**
-- Queue failed mutations
-- Retry when connection restored
-- Optimistic UI updates
+**Automatic Sync:**
+- **Enhanced Hooks** (`api/enhanced-hooks.ts`): Wraps all auto-generated Apollo hooks
+- Automatically calls `syncApolloToDrizzle()` after every query/mutation
+- Event-driven sync (no timers/polling) - triggers on completion
+- Uses `cache-and-network` fetch policy for optimal offline support
+
+**Sync Mechanism:**
+- Apollo cache → Drizzle sync happens automatically via `syncApolloToDrizzle()`
+- Extracts normalized data from Apollo cache
+- Upserts into Drizzle cached tables with sync metadata
+- Background sync doesn't block UI
+
+**Offline Capabilities:**
+- Query local Drizzle database even when offline
+- Queue mutations when offline (AsyncStorage + Redux middleware)
+- Automatic sync when connection restored
+- Real-time database statistics available
+
+**Network Detection:**
+- NetInfo - Detect connection status
+- Backend reachability check via HEAD probe
+- System status page shows network + database stats
 
 ### 5. Styling with NativeWind v4 (Tailwind CSS)
 
@@ -695,16 +740,22 @@ const { t } = useTranslation();
 - `@tailwind utilities` - Utility classes
 - Imported in `app/_layout.tsx` for global availability
 
-**drizzle.config.ts** - Database
-- Schema location: `database/drizzle.ts`
+**drizzle.config.ts** - Database (Worker)
+- Schema location: `database/drizzle.ts` (worker-only, legacy)
 - Migrations: `database/migrations/`
 - Dialect: SQLite
+
+**drizzle/** - Unified Drizzle Schema
+- `schema.ts` - All table definitions (base, server, client)
+- `client.ts` - Client database utilities (db instance, sync, stats)
+- `index.ts` - Main exports
+- Client uses expo-sqlite, auto-migrated on initialization
 
 ## Critical Rules
 
 1. **Never add `"type": "module"` to package.json** - causes metro.config.js to fail
 2. **Use eslint.config.mjs** - ES module config works without "type": "module"
-3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only, Drizzle is worker-only
+3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only, `database/` is worker-only (legacy), `drizzle/` is unified schema (base shared, server/client extensions separate)
 4. **GraphQL Codegen**: Always run `yarn codegen` after modifying schema or operations
 5. **Worker code is server-only** - Never import from client code
 6. **Use path aliases** - Avoid relative imports
@@ -781,13 +832,20 @@ const { t } = useTranslation();
 4. **Create Resolvers**: Add resolver functions to `worker/mutations/` or `worker/queries/`
 5. **Use in Components**: Import generated hooks directly from `api/` (e.g., `import { useLoginMutation } from 'api'`)
 
-### Adding New Database Tables (Worker-Only)
+### Adding New Database Tables
 
-1. **Update Schema**: Add table to `database/drizzle.ts` (worker-only, not used by client)
-2. **Generate Migration**: Run `yarn db:generate`
-3. **Apply Migration**: Run `yarn db:migrate`
-4. **Update GraphQL Schema**: Add types to `graphql/schema.graphql` if exposing data to client
-5. **Generate Client Code**: Run `yarn codegen` to create client hooks
+**For Server (Worker):**
+1. **Update Schema**: Add table to `database/drizzle.ts` (worker-only, legacy)
+2. **Update Unified Schema**: Also add to `drizzle/schema.ts` as base table or server extension
+3. **Generate Migration**: Run `yarn db:generate`
+4. **Apply Migration**: Run `yarn db:migrate`
+5. **Update GraphQL Schema**: Add types to `graphql/schema.graphql` if exposing data to client
+6. **Generate Client Code**: Run `yarn codegen` to create client hooks
+
+**For Client (if needed):**
+1. **Update Unified Schema**: Add cached table to `drizzle/schema.ts` as client extension
+2. **Client auto-migration**: Tables created automatically on app initialization
+3. **Automatic Sync**: Apollo cache automatically syncs to new cached tables
 
 ### Adding New UI Components
 

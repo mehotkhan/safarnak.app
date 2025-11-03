@@ -12,6 +12,7 @@ config.resolver.extraNodeModules = {
   '@components': path.resolve(__dirname, 'components'),
   '@graphql': path.resolve(__dirname, 'graphql'),
   '@database': path.resolve(__dirname, 'database'),
+  '@drizzle': path.resolve(__dirname, 'drizzle'),
   '@worker': path.resolve(__dirname, 'worker'),
   '@api': path.resolve(__dirname, 'api'),
   '@store': path.resolve(__dirname, 'store'),

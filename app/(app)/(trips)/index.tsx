@@ -89,7 +89,11 @@ export default function PlanScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const { data, loading, error, refetch } = useGetTripsQuery();
+  // Use cache-and-network for better offline support
+  const { data, loading, error, refetch } = useGetTripsQuery({
+    fetchPolicy: 'cache-and-network', // Try cache first, then network
+    errorPolicy: 'all', // Return partial data even on error
+  });
   const trips = useMemo(() => data?.getTrips ?? [], [data]);
   const [refreshing, setRefreshing] = useState(false);
   const onRefresh = useCallback(async () => {

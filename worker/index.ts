@@ -94,9 +94,38 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
   ],
   maskedErrors: false, // Show actual error messages instead of "Unexpected error"
   context: async ({ request, env, executionCtx }) => {
-    // Derive userId from header (client sends x-user-id).
-    const userIdHeader = request.headers.get('x-user-id');
-    const userId = userIdHeader ? parseInt(userIdHeader, 10) : undefined;
+    let userId: number | undefined;
+
+    // Try to get userId from Authorization Bearer token
+    const authHeader = request.headers.get('authorization');
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      
+      // Validate token by looking it up in KV storage
+      // Token format: stored in KV as `token:${token}` -> userId
+      try {
+        const storedUserId = await env.KV?.get(`token:${token}`);
+        if (storedUserId) {
+          userId = parseInt(storedUserId, 10);
+          if (isNaN(userId)) {
+            userId = undefined;
+          }
+        }
+      } catch (error) {
+        console.warn('Token validation error:', error);
+      }
+    }
+
+    // Fallback: Try x-user-id header (for backward compatibility or direct access)
+    if (!userId) {
+      const userIdHeader = request.headers.get('x-user-id');
+      if (userIdHeader) {
+        userId = parseInt(userIdHeader, 10);
+        if (isNaN(userId)) {
+          userId = undefined;
+        }
+      }
+    }
 
     // Compose default publishable context and add userId
     const base = createDefaultPublishableContext({ env, executionCtx, ...settings });

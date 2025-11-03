@@ -12,6 +12,7 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { useSystemStatus } from '@hooks/useSystemStatus';
 
 const { width } = Dimensions.get('window');
 
@@ -257,6 +258,10 @@ export default function HomeScreen() {
   const router = useRouter();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
+  const { isOnline, isBackendReachable } = useSystemStatus();
+  
+  // Show offline icon if offline OR backend unreachable
+  const isOffline = !isOnline || !isBackendReachable;
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -299,6 +304,20 @@ export default function HomeScreen() {
             {t('common.appName')}
           </CustomText>
           <View className="flex-row items-center">
+            {/* Offline Status Indicator - Links to System Status */}
+            {isOffline && (
+              <TouchableOpacity
+                className="mr-2"
+                onPress={() => router.push('/(app)/(profile)/system-status' as any)}
+                activeOpacity={0.7}
+              >
+                <Ionicons 
+                  name="cloud-offline-outline" 
+                  size={24} 
+                  color="#ef4444" 
+                />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity 
               className="w-10 h-10 items-center justify-center mr-2"
               onPress={() => router.push('/(app)/(feed)/new' as any)}

@@ -19,6 +19,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { client } from '@api';
 import { persistor, store } from '@store';
 import { useAppSelector } from '@store/hooks';
+import { processQueue } from '@store/middleware/offlineMiddleware';
+import NetInfo from '@react-native-community/netinfo';
+import { AppState } from 'react-native';
 import '../i18n';
 import '../global.css';
 
@@ -30,11 +33,14 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
-// Suppress harmless shadowOffset warning from react-native-reanimated
-// This is a known issue with react-native-reanimated and React Native's New Architecture
-// The warning is cosmetic and doesn't affect functionality
+// Suppress harmless warnings
+// - shadowOffset warning from react-native-reanimated (cosmetic, doesn't affect functionality)
+// - "Network request failed" from whatwg-fetch (expected when offline)
+// - Uncaught Apollo errors when offline
 if (__DEV__) {
   const originalWarn = console.warn;
+  const originalError = console.error;
+  
   console.warn = (...args: any[]) => {
     const message = args[0]?.toString() || '';
     const fullMessage = args.map(arg => String(arg)).join(' ');
@@ -45,7 +51,80 @@ if (__DEV__) {
     ) {
       return;
     }
+    // Ignore "Network request failed" warnings from whatwg-fetch (expected when offline)
+    if (
+      fullMessage.includes('Network request failed') ||
+      fullMessage.includes('fetch.umd.js')
+    ) {
+      return;
+    }
     originalWarn.apply(console, args);
+  };
+  
+  // Suppress uncaught Apollo errors when offline
+  console.error = (...args: any[]) => {
+    const message = args[0]?.toString() || '';
+    const fullMessage = args.map(arg => String(arg)).join(' ');
+    // Suppress Apollo network errors (expected when offline)
+    if (
+      (message.includes('ApolloError') || fullMessage.includes('ApolloError')) &&
+      (fullMessage.includes('Network request failed') || fullMessage.includes('Failed to fetch'))
+    ) {
+      // Only log as debug, not error
+      console.debug('🌐 Apollo network error (offline/unreachable):', fullMessage);
+      return;
+    }
+    originalError.apply(console, args);
+  };
+  
+  // Handle uncaught promise rejections (Apollo errors)
+  if (typeof ErrorUtils !== 'undefined' && ErrorUtils.getGlobalHandler) {
+    const originalHandler = ErrorUtils.getGlobalHandler();
+    ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
+      const errorMessage = error?.message || String(error);
+      const errorStack = error?.stack || '';
+      
+      // Suppress Apollo network errors
+      if (
+        (errorMessage.includes('ApolloError') || errorStack.includes('ApolloError')) &&
+        (errorMessage.includes('Network request failed') || errorMessage.includes('Failed to fetch'))
+      ) {
+        if (__DEV__) {
+          console.debug('🌐 Suppressed uncaught Apollo network error (offline):', errorMessage);
+        }
+        return;
+      }
+      
+      // Call original handler for other errors
+      if (originalHandler) {
+        originalHandler(error, isFatal);
+      }
+    });
+  }
+  
+  // Also handle unhandled promise rejections
+  const originalRejectionHandler = (global as any).onunhandledrejection;
+  (global as any).onunhandledrejection = (event: any) => {
+    const error = event?.reason || event;
+    const errorMessage = error?.message || String(error);
+    const errorStack = error?.stack || '';
+    
+    // Suppress Apollo network errors
+    if (
+      (errorMessage?.includes('ApolloError') || errorStack?.includes('ApolloError')) &&
+      (errorMessage?.includes('Network request failed') || errorMessage?.includes('Failed to fetch'))
+    ) {
+      if (__DEV__) {
+        console.debug('🌐 Suppressed unhandled Apollo network error (offline):', errorMessage);
+      }
+      event?.preventDefault?.();
+      return;
+    }
+    
+    // Call original handler for other errors
+    if (originalRejectionHandler) {
+      originalRejectionHandler(event);
+    }
   };
 }
 
@@ -71,6 +150,39 @@ export default function RootLayout() {
   // Component that needs theme state (inside providers)
   function ThemedApp() {
     const isDark = useAppSelector(state => state.theme.isDark);
+
+    // Process offline queue when connection is restored
+    useEffect(() => {
+      const unsubscribe = NetInfo.addEventListener(state => {
+        if (state.isConnected) {
+          processQueue();
+        }
+      });
+
+      // Process queue on app foreground
+      const subscription = AppState.addEventListener('change', nextAppState => {
+        if (nextAppState === 'active') {
+          NetInfo.fetch().then(state => {
+            if (state.isConnected) {
+              processQueue();
+            }
+          });
+        }
+      });
+
+      // Process queue on initial mount if online
+      NetInfo.fetch().then(state => {
+        if (state.isConnected) {
+          processQueue();
+        }
+      });
+
+      return () => {
+        unsubscribe();
+        subscription?.remove();
+      };
+    }, []);
+
     return (
       <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
         <AuthWrapper>

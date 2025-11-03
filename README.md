@@ -86,93 +86,433 @@ If you're new to this project, follow this path to get up to speed:
 
 ## 🏗️ Architecture Overview
 
-### System Architecture
+### System Architecture (High-Level)
+
+```mermaid
+flowchart TB
+  subgraph Client["📱 Client Layer (React Native + Expo)"]
+    subgraph UI["UI Layer"]
+      A["app/ - Expo Router Pages"]
+      B["components/ - UI Components"]
+    end
+    subgraph State["State Management"]
+      C["store/ - Redux + Persist"]
+      D["api/ - Apollo Client + Enhanced Hooks"]
+    end
+    subgraph Local["Local Storage"]
+      E["Apollo Cache<br/>(SQLite)"]
+      F["Drizzle Cache<br/>(SQLite)"]
+      G["AsyncStorage<br/>(Mutation Queue)"]
+    end
+  end
+
+  subgraph Shared["🔗 Shared Layer"]
+    H["graphql/ - Schema + Operations"]
+    I["drizzle/ - Unified Schema"]
+  end
+
+  subgraph Worker["⚡ Server Layer (Cloudflare Workers)"]
+    J["worker/ - GraphQL Resolvers"]
+    K["GraphQL Yoga Server"]
+    L["D1 Database<br/>(SQLite)"]
+    M["KV Store<br/>(Sessions/Cache)"]
+    N["Vectorize<br/>(Embeddings)"]
+    O["R2 Storage<br/>(Media Files)"]
+  end
+
+  A --> C
+  B --> C
+  C --> D
+  D --> E
+  D --> F
+  D --> G
+  D <-->|HTTPS GraphQL<br/>Auth Headers| K
+  K --> J
+  J --> L
+  J --> M
+  J --> N
+  J --> O
+  H --> D
+  H --> K
+  I --> F
+  I --> L
+```
+
+### Client Architecture (Detailed)
+
+```mermaid
+flowchart TB
+  subgraph Component["React Components"]
+    C1["app/*.tsx<br/>Pages"]
+    C2["components/*.tsx<br/>UI Components"]
+  end
+
+  subgraph Hooks["Hook Layer"]
+    H1["Enhanced Hooks<br/>api/enhanced-hooks.ts"]
+    H2["Custom Hooks<br/>hooks/*.ts"]
+    H3["Redux Hooks<br/>store/hooks.ts"]
+  end
+
+  subgraph Data["Data Layer"]
+    D1["Apollo Client<br/>api/client.ts"]
+    D2["Redux Store<br/>store/index.ts"]
+    D3["Local DB<br/>drizzle/client.ts"]
+  end
+
+  subgraph Storage["Storage Layer"]
+    S1["Apollo Cache<br/>apollo_cache.db"]
+    S2["Drizzle Cache<br/>safarnak_local.db"]
+    S3["AsyncStorage<br/>Mutation Queue"]
+    S4["Redux Persist<br/>AsyncStorage"]
+  end
+
+  C1 --> H1
+  C2 --> H1
+  C1 --> H3
+  H1 --> D1
+  H2 --> D3
+  H3 --> D2
+  D1 --> S1
+  D1 --> S2
+  D2 --> S4
+  D3 --> S2
+  D1 --> S3
+```
+
+### Data Flow Architecture
 
 ```mermaid
 flowchart LR
-  subgraph Client["React Native Client Expo"]
-    A["app/ - Expo Router pages"]
-    B["components/ - UI and contexts"]
-    C["store/ - Redux with Persist"]
-    D["api/ - Apollo Client with generated hooks"]
+  subgraph Query["Query Flow"]
+    Q1["Component"] --> Q2["Enhanced Hook"]
+    Q2 --> Q3["Apollo Client"]
+    Q3 --> Q4["GraphQL Server"]
+    Q4 --> Q5["D1 Database"]
+    Q5 --> Q4
+    Q4 --> Q3
+    Q3 --> Q6["Apollo Cache"]
+    Q6 --> Q7["Auto Sync"]
+    Q7 --> Q8["Drizzle Cache"]
+    Q2 --> Q1
   end
 
-  subgraph Shared["Shared"]
-    E["graphql/ - Schema and Operations"]
-    F["database/ - DB schemas"]
+  subgraph Mutation["Mutation Flow"]
+    M1["Component"] --> M2["Enhanced Hook"]
+    M2 --> M3{"Online?"}
+    M3 -->|Yes| M4["Apollo Client"]
+    M3 -->|No| M5["Queue in<br/>AsyncStorage"]
+    M4 --> M6["GraphQL Server"]
+    M6 --> M7["D1 Database"]
+    M7 --> M6
+    M6 --> M4
+    M4 --> M8["Apollo Cache"]
+    M8 --> M9["Auto Sync"]
+    M9 --> M10["Drizzle Cache"]
+    M5 --> M11["Process Queue<br/>on Reconnect"]
+    M11 --> M4
   end
-
-  subgraph Worker["Cloudflare Worker GraphQL API"]
-    G["worker/ - Resolvers and GraphQL Yoga"]
-    H["D1 Database SQLite"]
-  end
-
-  A --> D
-  B --> D
-  C --> D
-  D <-->|HTTPS GraphQL| G
-  G --> H
-  E --> D
-  E --> G
-  F --> G
-  F --> H
 ```
 
-### Runtime Data Flow (example: Login)
+### Offline-First Sync Architecture
+
+```mermaid
+sequenceDiagram
+  participant UI as UI Component
+  participant EH as Enhanced Hook
+  participant AC as Apollo Client
+  participant API as GraphQL API
+  participant ACache as Apollo Cache<br/>(SQLite)
+  participant DCache as Drizzle Cache<br/>(SQLite)
+  participant Queue as Mutation Queue<br/>(AsyncStorage)
+
+  Note over UI,Queue: Online Scenario
+  UI->>EH: useGetTripsQuery()
+  EH->>AC: Query with cache-and-network
+  AC->>API: GraphQL Request
+  API-->>AC: Response Data
+  AC->>ACache: Persist to SQLite
+  AC-->>EH: onCompleted callback
+  EH->>DCache: syncApolloToDrizzle()
+  DCache-->>EH: Sync complete
+  EH-->>UI: Return data
+
+  Note over UI,Queue: Offline Mutation
+  UI->>EH: useCreateTripMutation()
+  EH->>AC: Mutation request
+  AC->>API: GraphQL Request
+  API-->>AC: Network Error
+  AC->>Queue: Queue mutation
+  AC-->>EH: Error (handled)
+  EH->>DCache: Optimistic update
+  DCache-->>EH: Update complete
+  EH-->>UI: Optimistic UI update
+
+  Note over UI,Queue: Online Sync
+  AC->>Queue: Check pending mutations
+  Queue-->>AC: Return queued mutations
+  AC->>API: Process queued mutations
+  API-->>AC: Success
+  AC->>Queue: Remove from queue
+  AC->>DCache: Mark as synced
+```
+
+### Storage Layer Architecture
+
+```mermaid
+flowchart TB
+  subgraph ClientStorage["Client Storage"]
+    subgraph Apollo["Apollo Cache"]
+      A1["apollo_cache.db<br/>(SQLite)"]
+      A2["Normalized Cache<br/>Key-Value Pairs"]
+    end
+    subgraph Drizzle["Drizzle Cache"]
+      D1["safarnak_local.db<br/>(SQLite)"]
+      D2["cachedTrips"]
+      D3["cachedUsers"]
+      D4["cachedTours"]
+      D5["syncMetadata"]
+      D6["pendingMutations"]
+    end
+    subgraph Async["AsyncStorage"]
+      AS1["@safarnak_user<br/>(Auth Data)"]
+      AS2["Mutation Queue<br/>(Offline)"]
+      AS3["Redux Persist<br/>(UI State)"]
+    end
+  end
+
+  subgraph ServerStorage["Server Storage"]
+    subgraph D1["Cloudflare D1"]
+      S1["users"]
+      S2["trips"]
+      S3["tours"]
+      S4["messages"]
+    end
+    subgraph KV["Cloudflare KV"]
+      K1["token:xxx<br/>(Sessions)"]
+      K2["cache:xxx<br/>(API Cache)"]
+    end
+    subgraph Vector["Vectorize"]
+      V1["User Preferences<br/>Embeddings"]
+      V2["Locations<br/>Embeddings"]
+    end
+    subgraph R2["R2 Storage"]
+      R1["avatars/"]
+      R2["images/"]
+      R3["attachments/"]
+    end
+  end
+
+  A1 --> A2
+  D1 --> D2
+  D1 --> D3
+  D1 --> D4
+  D1 --> D5
+  D1 --> D6
+  A2 -.->|Auto Sync| D2
+  A2 -.->|Auto Sync| D3
+  A2 -.->|Auto Sync| D4
+  D2 -.->|Sync| S2
+  D3 -.->|Sync| S1
+  D4 -.->|Sync| S3
+```
+
+### Authentication Flow
 
 ```mermaid
 sequenceDiagram
   participant U as User
-  participant RN as React Native App
-  participant AP as Apollo Client
-  participant API as GraphQL API Worker
-  participant DB as D1 SQLite
+  participant UI as Login Screen
+  participant AC as Apollo Client
+  participant AL as Auth Link
+  participant API as GraphQL API
+  participant KV as KV Store
+  participant DB as D1 Database
+  participant RS as Redux Store
+  participant AS as AsyncStorage
 
-  U->>RN: Tap Login
-  RN->>AP: login username password
-  AP->>API: POST graphql login
-  API->>DB: Verify credentials PBKDF2
-  DB-->>API: user row
-  API-->>AP: user token
-  AP->>RN: Update Redux and Persist
-  RN-->>U: Navigate to tabs
+  U->>UI: Enter credentials
+  UI->>AC: useLoginMutation()
+  AC->>AL: Add Bearer token header
+  AL->>API: POST /graphql (login)
+  API->>DB: Verify user (PBKDF2)
+  DB-->>API: User record
+  API->>API: Generate token (SHA-256)
+  API->>KV: Store token:userId (30 days)
+  KV-->>API: Stored
+  API-->>AC: Return user + token
+  AC->>RS: Dispatch login action
+  RS->>AS: Persist user data
+  AC->>AS: Store token
+  RS-->>UI: Update auth state
+  UI-->>U: Navigate to app
+
+  Note over AC,API: Subsequent Requests
+  UI->>AC: useGetTripsQuery()
+  AC->>AL: Get token from AsyncStorage
+  AL->>API: POST /graphql (Authorization: Bearer token)
+  API->>KV: Verify token:userId
+  KV-->>API: userId
+  API->>DB: Query trips for userId
+  DB-->>API: Trips data
+  API-->>AC: Return trips
 ```
 
-### Dev-time GraphQL Pipeline
+### Error Handling Architecture
 
 ```mermaid
-flowchart LR
-  SCHEMA["graphql/schema.graphql"]
-  OPS["graphql/queries/*.graphql"]
-  CODEGEN["yarn codegen"]
-  TYPES["api/types.ts"]
-  HOOKS["api/hooks.ts"]
-  APP["app/* uses @api hooks"]
+flowchart TB
+  subgraph Network["Network Errors"]
+    N1["Apollo Request"] --> N2{"Network<br/>Available?"}
+    N2 -->|No| N3["Catch Network Error"]
+    N2 -->|Yes| N4{"Backend<br/>Reachable?"}
+    N4 -->|No| N3
+    N4 -->|Yes| N5["Process Request"]
+    N3 --> N6["Error Link"]
+    N6 --> N7["Suppress Network Errors<br/>(Expected when offline)"]
+    N7 --> N8["Use Cached Data<br/>(errorPolicy: all)"]
+  end
 
-  SCHEMA --> CODEGEN
-  OPS --> CODEGEN
-  CODEGEN --> TYPES
-  CODEGEN --> HOOKS
-  HOOKS --> APP
-  TYPES --> APP
+  subgraph GraphQL["GraphQL Errors"]
+    G1["GraphQL Response"] --> G2{"Has<br/>Errors?"}
+    G2 -->|Yes| G3["Error Link"]
+    G3 --> G4["Log in Dev Mode"]
+    G4 --> G5["Return Partial Data<br/>(if available)"]
+    G2 -->|No| G6["Process Successfully"]
+  end
+
+  subgraph Component["Component Error Handling"]
+    C1["Enhanced Hook"] --> C2{"Error<br/>Present?"}
+    C2 -->|Yes| C3["onError Callback"]
+    C3 --> C4["Display Error UI"]
+    C4 --> C5["Show Retry Button"]
+    C2 -->|No| C6["Render Data"]
+  end
+
+  N8 --> C1
+  G5 --> C1
+  G6 --> C1
 ```
 
-### Offline-first Flow (client)
+### Network Status & Connectivity
 
 ```mermaid
-flowchart LR
-  MUT["Dispatch mutation"]
-  MID["offlineMiddleware"]
-  NET{"Online?"}
-  QUEUE["Persist queue AsyncStorage"]
-  SEND["Apollo mutate"]
-  RETRY["On reconnect"]
+flowchart TB
+  subgraph Detection["Status Detection"]
+    D1["NetInfo<br/>Listener"] --> D2["Network State"]
+    D3["Backend Probe<br/>checkBackendReachable()"] --> D4["Backend State"]
+    D2 --> D5["useSystemStatus Hook"]
+    D4 --> D5
+  end
 
-  MUT --> MID
-  MID --> NET
-  NET -- No --> QUEUE
-  NET -- Yes --> SEND
-  QUEUE --> RETRY --> SEND
+  subgraph UI["UI Updates"]
+    D5 --> U1["Update isOnline"]
+    D5 --> U2["Update isBackendReachable"]
+    U1 --> U3["Offline Icon<br/>(Home Page)"]
+    U2 --> U3
+    U3 --> U4["System Status Page"]
+  end
+
+  subgraph Actions["Offline Actions"]
+    U1 --> A1{"isOnline = false?"}
+    A1 -->|Yes| A2["Disable Mutations"]
+    A1 -->|Yes| A3["Queue Mutations"]
+    A2 --> A4["Show Offline Indicator"]
+    A3 --> A4
+    A1 -->|No| A5{"isBackendReachable = false?"}
+    A5 -->|Yes| A2
+    A5 -->|Yes| A3
+    A5 -->|No| A6["Normal Operation"]
+  end
+
+  subgraph Sync["Auto Sync on Reconnect"]
+    A2 --> S1["Monitor Network"]
+    S1 --> S2{"Connection<br/>Restored?"}
+    S2 -->|Yes| S3["processQueue()"]
+    S3 --> S4["Retry Queued Mutations"]
+    S4 --> S5["Update UI"]
+  end
+```
+
+### Dev-time GraphQL Codegen Pipeline
+
+```mermaid
+flowchart TB
+  subgraph Input["Source Files"]
+    I1["graphql/schema.graphql<br/>Type Definitions"]
+    I2["graphql/queries/*.graphql<br/>Operations"]
+  end
+
+  subgraph Codegen["Code Generation"]
+    C1["yarn codegen"] --> C2["GraphQL Codegen"]
+    C2 --> C3["Parse Schema"]
+    C2 --> C4["Parse Operations"]
+    C3 --> C5["Generate Types"]
+    C4 --> C6["Generate Hooks"]
+  end
+
+  subgraph Output["Generated Files"]
+    C5 --> O1["api/types.ts<br/>TypeScript Types"]
+    C6 --> O2["api/hooks.ts<br/>React Apollo Hooks"]
+  end
+
+  subgraph Enhancement["Hook Enhancement"]
+    O2 --> E1["api/enhanced-hooks.ts"]
+    E1 --> E2["Wrap with Drizzle Sync"]
+    E2 --> E3["Add Error Handling"]
+    E3 --> E4["Set Default Policies"]
+  end
+
+  subgraph Usage["App Usage"]
+    E4 --> U1["Export from @api"]
+    U1 --> U2["Import in Components"]
+    U2 --> U3["Use Enhanced Hooks"]
+  end
+
+  I1 --> C1
+  I2 --> C1
+  U3 --> U4["Automatic Offline Support"]
+```
+
+### Complete Request Lifecycle
+
+```mermaid
+sequenceDiagram
+  participant C as Component
+  participant EH as Enhanced Hook
+  participant AC as Apollo Client
+  participant EL as Error Link
+  participant AL as Auth Link
+  participant API as GraphQL API
+  participant DB as D1 Database
+  participant Cache as Apollo Cache
+  participant Drizzle as Drizzle Cache
+
+  C->>EH: useGetTripsQuery()
+  EH->>AC: Query with cache-and-network
+  AC->>Cache: Check cache first
+  Cache-->>AC: Return cached data (if available)
+  AC-->>C: Render with cached data (optimistic)
+  AC->>AL: Add auth headers
+  AL->>API: POST /graphql
+  API-->>AC: Response or Error
+  alt Success
+    AC->>Cache: Update cache
+    Cache->>EH: onCompleted callback
+    EH->>Drizzle: syncApolloToDrizzle()
+    Drizzle-->>EH: Sync complete
+    EH->>AC: Update with network data
+    AC-->>C: Re-render with fresh data
+  else Network Error
+    AC->>EL: Network error detected
+    EL->>EL: Suppress error (offline expected)
+    EL-->>AC: Continue with cached data
+    AC-->>C: Use cached data (errorPolicy: all)
+  else GraphQL Error
+    AC->>EL: GraphQL error detected
+    EL->>EL: Log error (dev mode)
+    EL-->>AC: Return partial data
+    AC-->>C: Render with partial data
+  end
 ```
 
 ### How It Works
@@ -180,8 +520,9 @@ flowchart LR
 1. **Define GraphQL Schema** (`graphql/schema.graphql`) - Shared between client and worker
 2. **Define Operations** (`graphql/queries/*.graphql`) - Queries and mutations
 3. **Run Codegen** - Auto-generates TypeScript types and React hooks in `api/`
-4. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic
-5. **Use in App** (`app/`, `components/`) - Import generated hooks from `@api`
+4. **Enhanced Hooks** - Automatically wrap generated hooks with Drizzle sync and offline support
+5. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic
+6. **Use in App** (`app/`, `components/`) - Import enhanced hooks from `@api`
 
 ---
 
@@ -359,9 +700,13 @@ graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)
 └── queries/          # Query definitions (.graphql files)
 
-database/              # 🗄️ Database schemas (worker-only)
-├── drizzle.ts        # Drizzle ORM schema
-└── migrations/       # SQL migrations
+database/              # 🗄️ Database schemas (worker-only, legacy)
+├── drizzle.ts        # Drizzle ORM schema (server-side only)
+
+drizzle/               # 🗄️ Unified Drizzle schema (shared + client)
+├── schema.ts         # All table definitions (base, server, client)
+├── client.ts         # Client utilities (db, sync, stats)
+└── index.ts          # Main exports
 ```
 
 ## 🧭 Routing & URLs
@@ -1048,9 +1393,10 @@ const { t } = useTranslation();
 ### Perfect Separation
 
 - **`graphql/`** - Shared schema and operations (used by both client & worker)
-- **`api/`** - Auto-generated client code only (client-side GraphQL hooks)
+- **`api/`** - Auto-generated client code only (client-side GraphQL hooks with automatic Drizzle sync)
 - **`worker/`** - Server-only resolvers (entry: `worker/index.ts`)
 - **`database/`** - Worker-only database schemas (never imported in client code)
+- **`drizzle/`** - Unified Drizzle schema (base, server, client extensions) + client utilities
 
 ### Auto-Generated Code
 
@@ -1068,21 +1414,145 @@ Always use aliases, never relative imports:
 
 ---
 
-## 📶 Offline-First Plan (Summary)
+## 📶 Offline-First Architecture
 
-This app follows a local-first approach with background sync. Highlights:
+Safarnak implements a comprehensive **offline-first architecture** with automatic data synchronization. The system uses a unified Drizzle schema that works seamlessly between client and server, with automatic Apollo cache synchronization to enable advanced SQL queries on cached data.
 
-- Shared SQLite-first schema: keep server D1 and client DB schemas aligned; consider a shared `@dbschema` later
-- Platform DB adapters: expo-sqlite (native) and PGlite (web); strict platform gating
-- Data access: read from local DB first; network fetch upserts into local; writes are optimistic with a pending queue
-- Sync engine: push pending mutations (backoff, idempotent IDs) and pull deltas via server `since` params
-- Conflict resolution: last-write-wins via `updatedAt`; server canonicalizes
-- Apollo: treat as network layer; optional cache persistence if Drizzle fully backs UI
-- Networking: NetInfo + HEAD probe to drive sync and gates
-- Client schema/versioning: `schema_version`, `lastSyncAt` tracking and light migrations
-- Security: avoid sensitive data in client DB; plan for encryption if needed
+### Unified Drizzle Schema
 
-See `OFFLINE_PLAN.md` for full details.
+The app uses a **single Drizzle schema** (`drizzle/`) that defines:
+
+1. **Base Tables** (`drizzle/schema.ts`): Core tables shared between server and client
+   - `usersBase`, `tripsBase`, `toursBase`, `placesBase`, `messagesBase`
+   - All use `text('id')` to match GraphQL ID type (string)
+
+2. **Server Extensions**: Server-only fields and tables
+   - `users` table with `passwordHash` field
+   - Server-only tables: `subscriptions`, `userPreferences`
+
+3. **Client Extensions**: Client-only cached tables with sync metadata
+   - `cachedUsers`, `cachedTrips`, `cachedTours`, `cachedPlaces`, `cachedMessages`
+   - Sync metadata: `cachedAt`, `lastSyncAt`, `pending`, `deletedAt`
+   - Sync management: `pendingMutations`, `syncMetadata`
+
+### Folder Structure
+
+```
+drizzle/
+├── schema.ts    # All table definitions (base, server, client)
+├── client.ts    # Client utilities (db, sync, stats)
+└── index.ts     # Main exports
+```
+
+### GraphQL Query System with Automatic Sync
+
+All GraphQL queries and mutations automatically sync to the local Drizzle database:
+
+1. **Query Flow**:
+   ```
+   Component → Enhanced Hook (useGetTripsQuery) → Apollo Client → GraphQL Server
+                                                       ↓
+                                                  Apollo Cache
+                                                       ↓
+                                              Automatic Sync
+                                                       ↓
+                                                  Drizzle DB
+   ```
+
+2. **Enhanced Hooks** (`api/enhanced-hooks.ts`):
+   - Wraps all auto-generated Apollo hooks
+   - Automatically calls `syncApolloToDrizzle()` after every query/mutation
+   - Uses `cache-and-network` fetch policy for optimal offline support
+   - Handles errors gracefully with `errorPolicy: 'all'`
+
+3. **Sync Mechanism**:
+   - **Event-driven**: Triggers on query/mutation completion (no timers/polling)
+   - **Automatic**: No manual sync calls needed
+   - **Background**: Sync happens in background, doesn't block UI
+
+### Data Storage
+
+The app uses three storage layers:
+
+1. **Apollo Cache (SQLite)**: Normalized GraphQL cache
+   - Single table: `apollo_cache` with key-value pairs
+   - Stored as JSON string in SQLite
+   - Handles GraphQL query responses automatically
+
+2. **Drizzle Cache (SQLite)**: Structured relational cache
+   - Separate tables per entity type (`cachedTrips`, `cachedUsers`, etc.)
+   - Enables advanced SQL queries (filtering, sorting, aggregations)
+   - Sync metadata for offline management
+
+3. **AsyncStorage**: Mutation queue
+   - Stores pending mutations when offline
+   - Automatically processed when connection restored
+
+### Offline Capabilities
+
+- **Read**: Query local Drizzle database even when offline
+- **Write**: Queue mutations when offline, sync when online
+- **Sync**: Automatic bidirectional sync when connection restored
+- **Statistics**: Real-time database statistics (entity counts, sync status, pending mutations)
+
+### Usage Examples
+
+#### Query with Automatic Sync
+
+```typescript
+import { useGetTripsQuery } from '@api';
+
+function TripsScreen() {
+  // Automatically syncs to Drizzle after query completes
+  const { data, loading, error } = useGetTripsQuery({
+    fetchPolicy: 'cache-and-network', // Default in enhanced hooks
+  });
+  
+  // Data is now in both Apollo cache and Drizzle database
+}
+```
+
+#### Query Local Database
+
+```typescript
+import { getLocalDB, cachedTrips } from '@drizzle/client';
+import { eq, desc } from 'drizzle-orm';
+
+const db = await getLocalDB();
+const trips = await db
+  .select()
+  .from(cachedTrips)
+  .where(eq(cachedTrips.userId, userId))
+  .orderBy(desc(cachedTrips.cachedAt));
+```
+
+#### Get Database Statistics
+
+```typescript
+import { getDatabaseStats } from '@drizzle/client';
+
+const stats = await getDatabaseStats();
+console.log(stats.entities.trips.count); // Number of cached trips
+console.log(stats.pendingMutations.total); // Pending mutations
+```
+
+### System Status
+
+The app includes a comprehensive system status page (`app/(app)/(profile)/system-status.tsx`) that shows:
+- Network connectivity status
+- Backend reachability
+- Database statistics (entity counts, sync status, storage usage)
+- Pending mutations queue
+- Sync timestamps per entity type
+
+### Technical Details
+
+- **Sync Triggers**: On query/mutation completion (event-driven, no polling)
+- **Performance**: Sync runs in background, doesn't block UI
+- **Storage**: SQLite databases (`apollo_cache.db` + `safarnak_local.db`)
+- **ID Types**: Server uses integers, Client/GraphQL use strings (automatic conversion)
+
+For more details, see the offline architecture implementation in `drizzle/` folder.
 
 ---
 
@@ -1165,9 +1635,9 @@ The project is currently at **v0.17.0** (alpha stage). Our focus is on:
 
 1. **Stability**: Fixing authentication security issues, adding input validation
 2. **Core Features**: Completing trip planning, explore, and social features
-3. **Offline Support**: Implementing the full offline-first architecture plan
+3. **Offline Support**: ✅ **Implemented** - Unified Drizzle schema with automatic Apollo sync (see [Offline-First Architecture](#-offline-first-architecture))
 4. **Testing**: Adding unit and integration tests
-5. **Documentation**: Improving developer experience and onboarding
+5. **Documentation**: ✅ **Updated** - Comprehensive docs in README
 
 See `TECHNICAL_REVIEW.md` for current technical debt and priorities.
 

@@ -2,9 +2,9 @@ import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { useTheme } from '@components/context/ThemeContext';
 import { Platform } from 'react-native';
 import Colors from '@constants/Colors';
+import { useAppSelector } from '@store/hooks';
 
 export const unstable_settings = {
   initialRouteName: '(feed)',
@@ -12,7 +12,8 @@ export const unstable_settings = {
 
 export default function AppLayout() {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
+  // Use Redux directly instead of ThemeContext to avoid provider dependency issues
+  const isDark = useAppSelector(state => state.theme.isDark);
 
   return (
     <Tabs

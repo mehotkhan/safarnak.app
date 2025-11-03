@@ -1,10 +1,12 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Alert,
   Share,
+  ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -16,17 +18,116 @@ import MapView from '@components/MapView';
 import { useGetTripQuery } from '@api';
 import Colors from '@constants/Colors';
 
-// Live data from GraphQL
-
 export default function TripDetailScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
-  const { data, loading, error, refetch } = useGetTripQuery({ variables: { id: tripId } });
+  const [refreshing, setRefreshing] = useState(false);
+  
+  // Use cache-first for offline support, with skip if no tripId
+  const { data, loading, error, refetch } = useGetTripQuery({
+    variables: { id: tripId },
+    skip: !tripId,
+    fetchPolicy: 'cache-and-network', // Try cache first, then network
+    errorPolicy: 'all', // Return partial data even on error
+  });
+  
   const trip = data?.getTrip as any;
   const showMap = !!trip?.coordinates;
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  // Loading state
+  if (loading && !trip) {
+    return (
+      <View className="flex-1 bg-white dark:bg-black">
+        <Stack.Screen
+          options={{
+            title: t('plan.viewPlan'),
+            headerShown: true,
+          }}
+        />
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+          <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+            {t('common.loading')}
+          </CustomText>
+        </View>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error && !trip) {
+    return (
+      <View className="flex-1 bg-white dark:bg-black">
+        <Stack.Screen
+          options={{
+            title: t('plan.viewPlan'),
+            headerShown: true,
+          }}
+        />
+        <ScrollView 
+          className="flex-1 px-6 py-12"
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        >
+          <View className="items-center">
+            <Ionicons name="warning-outline" size={64} color="#ef4444" />
+            <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+              {t('common.error')}
+            </CustomText>
+            <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-4">
+              {(error as any)?.message || t('plan.errors.loadFailed')}
+            </CustomText>
+            <CustomButton
+              title={t('common.retry')}
+              onPress={onRefresh}
+              IconLeft={() => (
+                <Ionicons name="refresh" size={20} color="#fff" style={{ marginRight: 8 }} />
+              )}
+            />
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // No trip data
+  if (!trip && !loading) {
+    return (
+      <View className="flex-1 bg-white dark:bg-black">
+        <Stack.Screen
+          options={{
+            title: t('plan.viewPlan'),
+            headerShown: true,
+          }}
+        />
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="document-outline" size={64} color={isDark ? '#4b5563' : '#d1d5db'} />
+          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+            {t('plan.notFound')}
+          </CustomText>
+          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-4">
+            {t('plan.tripNotFound')}
+          </CustomText>
+          <CustomButton
+            title={t('common.back')}
+            onPress={() => router.back()}
+            bgVariant="secondary"
+          />
+        </View>
+      </View>
+    );
+  }
 
   const handleRegenerate = () => {
     Alert.alert(
@@ -102,7 +203,10 @@ export default function TripDetailScreen() {
         }}
       />
 
-      <ScrollView className="flex-1">
+      <ScrollView 
+        className="flex-1"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
         {/* Map View */}
         {showMap && location && (
           <View className="h-64 bg-gray-100 dark:bg-neutral-900">
