@@ -13,6 +13,9 @@ import { getServerDB } from '@database/server';
 import { notifications } from '@database/server';
 import { createId } from '@database/utils';
 
+// ExecutionContext is a global type from Cloudflare Workers runtime
+// It's defined in worker-configuration.d.ts
+
 // Create schema for publishing (only needed for publishable context)
 const schema = makeExecutableSchema({
   typeDefs: readGraphQLSchema(),

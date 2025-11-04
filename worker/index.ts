@@ -17,9 +17,15 @@ import { Query } from './queries';
 import { Mutation } from './mutations';
 import { Subscription } from './subscriptions';
 import { Env } from './types';
-import landingPageHTML from './landing.html';
+import packageJson from '../package.json';
 
-// Import logo assets
+// Define __DEV__ for worker (Cloudflare Workers don't have NODE_ENV)
+// In production, this will be false; in development, it can be true
+// eslint-disable-next-line no-var
+var __DEV__: boolean = false;
+
+// Import assets (types are declared in worker/assets.d.ts and worker/html.d.ts)
+import landingPageHTML from './landing.html';
 import favicon16 from './assets/favicon-16.png';
 import favicon32 from './assets/favicon-32.png';
 import favicon192 from './assets/favicon-192.png';
@@ -160,7 +166,7 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
 const baseFetch = (
   request: Request,
   env: Env,
-  executionCtx: ExecutionContext
+  executionCtx: ExecutionContext // ExecutionContext is a global type in Cloudflare Workers
 ) =>
   yoga.handleRequest(
     request,
@@ -177,7 +183,11 @@ const subscriptionsFetch = handleSubscriptions({
 });
 
 // Serve landing page at root, GraphQL at /graphql
-const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext) => {
+const fetch = async (
+  request: Request,
+  env: Env,
+  executionCtx: ExecutionContext // ExecutionContext is a global type in Cloudflare Workers
+) => {
   const url = new URL(request.url);
   
   // Favicon routes
@@ -234,7 +244,13 @@ const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext)
   
   // Landing page at root
   if (url.pathname === '/' || url.pathname === '') {
-    return new Response(landingPageHTML, {
+    // Replace version placeholders in landing page HTML with actual version from package.json
+    const version = packageJson.version || '0.0.0';
+    const htmlWithVersion = landingPageHTML
+      .replace(/{{VERSION}}/g, `v${version}`)
+      .replace(/{{VERSION_PLAIN}}/g, version);
+    
+    return new Response(htmlWithVersion, {
       headers: {
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'public, max-age=3600',

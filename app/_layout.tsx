@@ -216,7 +216,7 @@ export default function RootLayout() {
             <LanguageProvider>
               <CustomThemeProvider>
                 <NotificationWrapper>
-                  <ThemedApp />
+                <ThemedApp />
                 </NotificationWrapper>
               </CustomThemeProvider>
             </LanguageProvider>
