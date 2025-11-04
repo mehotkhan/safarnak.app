@@ -1,14 +1,14 @@
-import { drizzle } from 'drizzle-orm/d1';
 import { eq, desc } from 'drizzle-orm';
-import { trips } from '@database/schema';
-import type { Env, GraphQLContext } from '../types';
+import { getServerDB } from '@database/server';
+import { trips } from '@database/server';
+import type { GraphQLContext } from '../types';
 
 export const getTrips = async (
   _: any,
   { status }: { status?: string },
   context: GraphQLContext
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
 
   // Get user ID from context (assuming auth middleware sets this)
   const userId = context.userId;
@@ -43,7 +43,7 @@ export const getTrip = async (
   { id }: { id: string },
   context: GraphQLContext
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
 
   const userId = context.userId;
   if (!userId) {
@@ -53,7 +53,7 @@ export const getTrip = async (
   const result = await db
     .select()
     .from(trips)
-    .where(eq(trips.id, parseInt(id)))
+    .where(eq(trips.id, id))
     .get();
 
   if (!result) {

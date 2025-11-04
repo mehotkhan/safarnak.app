@@ -2,9 +2,9 @@
 // Handles adding new messages to the database and publishing to subscriptions
 
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
-
-import { messages } from '@database/schema';
+import { getServerDB } from '@database/server';
+import { messages } from '@database/server';
+import { createId } from '@database/utils';
 import { ResolverContext } from '../types';
 
 interface AddMessageArgs {
@@ -16,8 +16,8 @@ export const addMessage = async (
   { content }: AddMessageArgs,
   context: ResolverContext
 ) => {
-  const db = drizzle(context.env.DB);
-  const id = crypto.randomUUID();
+  const db = getServerDB(context.env.DB);
+  const id = createId();
 
   await db.insert(messages).values({ id, content }).run();
 

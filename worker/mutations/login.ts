@@ -2,9 +2,8 @@
 // Handles user authentication with password verification and token generation
 
 import { eq } from 'drizzle-orm';
-import { drizzle } from 'drizzle-orm/d1';
-
-import { users } from '@database/schema';
+import { getServerDB } from '@database/server';
+import { users } from '@database/server';
 import { ResolverContext } from '../types';
 import { verifyPassword, generateToken } from '../utilities/utils';
 
@@ -19,7 +18,7 @@ export const login = async (
   context: ResolverContext
 ) => {
   try {
-    const db = drizzle(context.env.DB);
+    const db = getServerDB(context.env.DB);
 
     // Validate input
     if (!username || !password) {
@@ -47,10 +46,10 @@ export const login = async (
     // Generate secure token
     const token = await generateToken(user.id, username);
 
-    // Store token in KV for validation (key: token:${token}, value: userId)
+    // Store token in KV for validation (key: token:${token}, value: userId UUID)
     // Token expires after 30 days (optional: can set expiration)
     try {
-      await context.env.KV?.put(`token:${token}`, user.id.toString(), {
+      await context.env.KV?.put(`token:${token}`, user.id, {
         expirationTtl: 60 * 60 * 24 * 30, // 30 days in seconds
       });
     } catch (error) {
@@ -60,7 +59,7 @@ export const login = async (
 
     return {
       user: {
-        id: user.id.toString(),
+        id: user.id, // Already a UUID string
         name: user.name,
         username: user.username,
         createdAt: user.createdAt,

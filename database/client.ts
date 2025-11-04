@@ -1,10 +1,13 @@
 /**
- * Client Database Utilities
+ * Client Database Adapter
  * 
- * All client-side database functionality in one file:
- * - Database instance & initialization
- * - Apollo cache sync
- * - Database statistics
+ * Expo SQLite adapter for client-side offline database.
+ * Provides database instance, Apollo cache sync, and statistics.
+ * 
+ * Usage:
+ *   import { getLocalDB, syncApolloToDrizzle } from '@database/client';
+ *   const db = await getLocalDB();
+ *   await syncApolloToDrizzle(apolloCache);
  */
 
 import * as SQLite from 'expo-sqlite';
@@ -112,11 +115,21 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         reviews INTEGER NOT NULL DEFAULT 0,
         duration INTEGER NOT NULL,
         category TEXT NOT NULL,
-        description TEXT NOT NULL,
+        description TEXT,
+        short_description TEXT,
+        currency TEXT DEFAULT 'USD',
+        duration_type TEXT DEFAULT 'days',
+        coordinates TEXT,
+        difficulty TEXT DEFAULT 'easy',
         highlights TEXT,
         inclusions TEXT,
         max_participants INTEGER,
-        difficulty TEXT NOT NULL DEFAULT 'easy',
+        min_participants INTEGER DEFAULT 1,
+        image_url TEXT,
+        gallery TEXT,
+        tags TEXT,
+        is_active INTEGER DEFAULT 1,
+        is_featured INTEGER DEFAULT 0,
         created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         cached_at INTEGER DEFAULT (strftime('%s', 'now')),
@@ -130,7 +143,7 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         distance REAL,
         rating REAL NOT NULL DEFAULT 0,
         reviews INTEGER NOT NULL DEFAULT 0,
-        category TEXT NOT NULL,
+        type TEXT NOT NULL,
         is_open INTEGER NOT NULL DEFAULT 1,
         description TEXT NOT NULL,
         tips TEXT,
@@ -302,7 +315,7 @@ function transformEntity(entityType: EntityType, data: any): Record<string, any>
           distance: data.distance ? parseFloat(String(data.distance)) : null,
           rating: parseFloat(String(data.rating || 0)),
           reviews: parseInt(String(data.reviews || 0), 10),
-          category: data.category || '',
+          type: data.category || data.type || '',
           isOpen: data.isOpen !== false,
           description: data.description || '',
           tips: data.tips ? JSON.stringify(data.tips) : null,
@@ -507,4 +520,3 @@ export function formatTimestamp(timestamp: number | null): string {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
 }
-

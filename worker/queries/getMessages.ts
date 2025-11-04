@@ -1,9 +1,8 @@
 // Query resolver for getMessages
 // Handles retrieving all messages from the database
 
-import { drizzle } from 'drizzle-orm/d1';
-
-import { messages } from '@database/schema';
+import { getServerDB } from '@database/server';
+import { messages } from '@database/server';
 import { ResolverContext } from '../types';
 
 export const getMessages = async (
@@ -11,6 +10,6 @@ export const getMessages = async (
   _args: unknown,
   context: ResolverContext
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
   return await db.select().from(messages).all();
 };

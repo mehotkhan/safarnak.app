@@ -1,6 +1,21 @@
-// Server schema (integer IDs) - for worker resolvers and migrations
+/**
+ * Database Module Exports
+ * 
+ * Central export point for all database functionality.
+ * 
+ * SERVER USAGE:
+ *   import { getServerDB, users, trips } from '@database/server';
+ *   const db = getServerDB(context.env.DB);
+ * 
+ * CLIENT USAGE:
+ *   import { getLocalDB, syncApolloToDrizzle } from '@database/client';
+ *   const db = await getLocalDB();
+ */
+
+// Server exports (Cloudflare D1)
+export { getServerDB, type ServerDB } from './server';
 export {
-  // Tables
+  // Server tables
   users,
   trips,
   tours,
@@ -43,9 +58,19 @@ export {
   schema, // Legacy name for drizzle.config.ts
 } from './schema';
 
-// Client schema (text IDs) - for local SQLite cache
+// Client exports (Expo SQLite)
 export {
-  // Cached tables
+  getLocalDB,
+  schema as clientDbSchema,
+  syncApolloToDrizzle,
+  getDatabaseStats,
+  getPendingMutationsDetails,
+  formatTimestamp,
+  type DatabaseStats,
+  type EntityStats,
+} from './client';
+export {
+  // Client cached tables
   cachedUsers,
   cachedTrips,
   cachedTours,
@@ -57,17 +82,8 @@ export {
   clientSchema,
 } from './schema';
 
-// Client database utilities
-export { 
-  getLocalDB, 
-  schema as clientDbSchema, 
-  syncApolloToDrizzle, 
-  getDatabaseStats, 
-  getPendingMutationsDetails, 
-  formatTimestamp 
-} from './client';
-export type { DatabaseStats, EntityStats } from './client';
+// Utilities
+export { createId, isValidId } from './utils';
 
-// Type and enum exports
+// Type exports
 export * from './types';
-

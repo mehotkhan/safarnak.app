@@ -113,12 +113,12 @@ export async function verifyPassword(
 
 /**
  * Generate a secure authentication token
- * @param userId - User ID
+ * @param userId - User ID (UUID string)
  * @param username - Username
  * @returns Hex-encoded SHA-256 hash token
  */
 export async function generateToken(
-  userId: number,
+  userId: string,
   username: string
 ): Promise<string> {
   const timestamp = Date.now();

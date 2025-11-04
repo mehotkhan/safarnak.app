@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/d1';
-import { trips } from '@database/schema';
+import { getServerDB } from '@database/server';
+import { trips } from '@database/server';
 import type { GraphQLContext } from '../types';
 
 interface CreateTripInput {
@@ -17,7 +17,7 @@ export const createTrip = async (
   { input }: { input: CreateTripInput },
   context: GraphQLContext
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
 
   const userId = context.userId;
   if (!userId) {

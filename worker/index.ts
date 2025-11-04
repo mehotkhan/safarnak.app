@@ -62,7 +62,7 @@ const settings = {
 // GraphQL Yoga Server
 // ============================================================================
 
-const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
+const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
   schema,
   graphiql: {
     subscriptionsProtocol: 'WS',
@@ -94,7 +94,7 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
   ],
   maskedErrors: false, // Show actual error messages instead of "Unexpected error"
   context: async ({ request, env, executionCtx }) => {
-    let userId: number | undefined;
+    let userId: string | undefined;
 
     // Try to get userId from Authorization Bearer token
     const authHeader = request.headers.get('authorization');
@@ -102,14 +102,11 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
       
       // Validate token by looking it up in KV storage
-      // Token format: stored in KV as `token:${token}` -> userId
+      // Token format: stored in KV as `token:${token}` -> userId (UUID string)
       try {
         const storedUserId = await env.KV?.get(`token:${token}`);
         if (storedUserId) {
-          userId = parseInt(storedUserId, 10);
-          if (isNaN(userId)) {
-            userId = undefined;
-          }
+          userId = storedUserId; // Already a UUID string, no parsing needed
         }
       } catch (error) {
         console.warn('Token validation error:', error);
@@ -120,10 +117,7 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: number }>({
     if (!userId) {
       const userIdHeader = request.headers.get('x-user-id');
       if (userIdHeader) {
-        userId = parseInt(userIdHeader, 10);
-        if (isNaN(userId)) {
-          userId = undefined;
-        }
+        userId = userIdHeader; // Already a UUID string
       }
     }
 

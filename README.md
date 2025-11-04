@@ -701,12 +701,13 @@ graphql/               # 📡 Shared GraphQL
 └── queries/          # Query definitions (.graphql files)
 
 database/              # 🗄️ Database schemas and client utilities
-├── schema.ts         # Unified schema with shared field definitions (server + client tables)
-├── server-schema.ts  # Server-only schema export (for migrations - excludes client cached tables)
+├── schema.ts         # Unified schema with UUIDs (server + client tables)
+├── server.ts         # Server adapter (Cloudflare D1)
 ├── client.ts         # Client utilities (db, sync, stats)
-├── index.ts          # Main exports (schema + client utilities)
+├── index.ts          # Main exports (schema + adapters)
 ├── types.ts          # Database types
-└── migrations/       # Drizzle migrations (server database only)
+└── utils.ts          # UUID utilities
+migrations/           # Server-only migrations (Cloudflare D1, at project root)
 ```
 
 ## 🧭 Routing & URLs
@@ -1397,9 +1398,10 @@ const { t } = useTranslation();
 - **`api/`** - Auto-generated client code only (client-side GraphQL hooks with automatic Drizzle sync)
 - **`worker/`** - Server-only resolvers (entry: `worker/index.ts`)
 - **`database/`** - Database schemas (unified schema with shared fields) + client utilities
-  - `schema.ts` - Unified schema with shared field definitions (server + client tables)
-  - `server-schema.ts` - Server-only export (for migrations, excludes client cached tables)
+  - `schema.ts` - Unified schema with UUIDs (server + client tables)
+  - `server.ts` - Server adapter for Cloudflare D1
   - `client.ts` - Client database utilities (local SQLite, sync, stats)
+  - `migrations/` - Server-only migrations (located at project root)
 
 ### Auto-Generated Code
 
@@ -1421,19 +1423,21 @@ Always use aliases, never relative imports:
 
 Safarnak implements a comprehensive **offline-first architecture** with automatic data synchronization. The system uses a unified Drizzle schema that works seamlessly between client and server, with automatic Apollo cache synchronization to enable advanced SQL queries on cached data.
 
-### Unified Drizzle Schema
+### Unified Drizzle Schema with UUIDs
 
-The app uses a **unified Drizzle schema** (`database/schema.ts`) with shared field definitions to reduce duplication. The schema defines:
+The app uses a **unified Drizzle schema** (`database/schema.ts`) with **UUID-based IDs** for consistency across server and client. The schema defines:
 
-1. **Server Tables** (`database/schema.ts`): Server-only tables with integer IDs (users, trips, tours, messages, etc.)
+1. **Server Tables** (`database/schema.ts`): Server-only tables with UUID (text) IDs
    - Used by worker resolvers and Cloudflare D1 migrations
+   - All IDs are UUIDs (`text('id').primaryKey().$defaultFn(() => createId())`)
+   - No ID conversions needed - UUIDs work seamlessly with GraphQL `ID!` type
    - Defined using shared field objects (`userFields`, `tripFields`, `tourFields`, etc.) to reduce duplication
-   - Integer IDs for database storage, converted to string IDs at GraphQL resolver boundaries
+   - Server-only fields: `passwordHash` (users), `aiGenerated` (trips), etc.
 
-2. **Client Cached Tables** (`database/schema.ts`): Client-only tables with text IDs (cachedUsers, cachedTrips, etc.)
+2. **Client Cached Tables** (`database/schema.ts`): Client-only tables with UUID (text) IDs
    - Used by client-side expo-sqlite database for offline support
+   - Same UUID format as server tables - perfect consistency
    - Reuses shared field definitions from server tables via spread operator
-   - Text IDs to match GraphQL ID type (string)
    - Includes sync metadata columns (cachedAt, lastSyncAt, pending, deletedAt)
    - Sync management: `pendingMutations`, `syncMetadata`
 
@@ -1442,21 +1446,33 @@ The app uses a **unified Drizzle schema** (`database/schema.ts`) with shared fie
    - `timestampColumns`, `syncMetadataColumns`, `pendingColumn`
    - Reduces duplication and improves maintainability
 
+4. **UUID Generation** (`database/utils.ts`): Runtime-optimized UUID generation
+   - **Cloudflare Workers**: Uses native `crypto.randomUUID()` (fastest, most secure)
+   - **React Native Expo**: Uses `crypto.getRandomValues()` with manual UUID construction
+   - **Fallback**: Math.random() only if crypto APIs unavailable (with dev warning)
+   - RFC 4122 compliant UUID v4 format
+
 ### Folder Structure
 
 ```
 database/
-├── schema.ts         # Unified schema with shared field definitions (server + client tables)
-├── server-schema.ts  # Server-only export (for drizzle.config.ts migrations)
+├── schema.ts         # Unified schema with UUIDs (server + client tables)
+├── server.ts         # Server adapter (Cloudflare D1)
 ├── client.ts         # Client utilities (db, sync, stats)
 ├── index.ts          # Main exports
-└── types.ts          # TypeScript types and enums
+├── types.ts          # TypeScript types and enums
+└── utils.ts          # UUID utilities
+migrations/           # Server-only migrations (Cloudflare D1, at project root)
 ```
 
 **Important**: 
-- `drizzle.config.ts` points to `server-schema.ts` to ensure only server tables are included in migrations
+- `drizzle.config.ts` points to `schema.ts` (exports `serverSchema` as `schema`)
+- Migrations are stored at project root (`migrations/`) since they're server-only
 - Client cached tables are auto-migrated on app initialization (see `database/client.ts`)
-- Server tables use integer IDs, client cached tables use text IDs for GraphQL compatibility
+- **All tables use UUID (text) IDs** - no more integer/string conversions!
+- Server adapter (`database/server.ts`): `getServerDB(d1)` for Cloudflare D1
+- Client adapter (`database/client.ts`): `getLocalDB()` for Expo SQLite
+- UUIDs generated via `createId()` from `database/utils.ts` (runtime-optimized)
 
 ### GraphQL Query System with Automatic Sync
 

@@ -34,8 +34,8 @@ All systems integrate with Cloudflare Workers and are accessible via the GraphQL
 Primary relational database for structured data. Uses SQLite via Cloudflare D1, managed through Drizzle ORM.
 
 ### Schema Location
-- **File**: `database/drizzle.ts`
-- **Migrations**: `database/migrations/`
+- **File**: `database/schema.ts` (unified schema with UUIDs)
+- **Migrations**: `migrations/` (server-only, located at project root)
 
 ### Tables
 
@@ -70,21 +70,50 @@ Primary relational database for structured data. Uses SQLite via Cloudflare D1, 
 - **payments**: Payment records with currency (default: IRR/Toman)
 
 ### Key Features
+- **UUID IDs**: All tables use UUID (text) IDs for consistency across server and client
 - **TypeScript**: Full type safety via Drizzle schema
 - **Relations**: Defined via `relations()` for type-safe joins
 - **JSON Fields**: Complex data stored as JSON (coordinates, metadata, arrays)
 - **Timestamps**: Auto-managed via `sql\`(CURRENT_TIMESTAMP)\``
 - **Currency**: Default IRR (Iranian Rial/Toman)
+- **Unified Schema**: Single source of truth with shared field definitions
+- **Adapters**: Clean separation via `server.ts` (D1) and `client.ts` (SQLite)
 
 ### Access Pattern
+
+**Server (Cloudflare Workers)**:
 ```typescript
-import { drizzle } from 'drizzle-orm/d1';
-import { users, tours } from '@database/drizzle';
+import { getServerDB } from '@database/server';
+import { users, trips } from '@database/server';
+import { eq } from 'drizzle-orm';
 
 // In worker resolver
-const db = drizzle(context.env.DB);
+const db = getServerDB(context.env.DB);
 const user = await db.select().from(users).where(eq(users.id, userId)).get();
+// userId is a UUID string - no conversions needed!
 ```
+
+**Client (React Native Expo)**:
+```typescript
+import { getLocalDB, syncApolloToDrizzle } from '@database/client';
+import { cachedTrips } from '@database/client';
+import { eq } from 'drizzle-orm';
+
+// Get local database
+const db = await getLocalDB();
+const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, userId)).all();
+
+// Sync Apollo cache to Drizzle (automatic via enhanced hooks)
+await syncApolloToDrizzle(apolloCache);
+```
+
+### UUID System
+
+All tables use **UUID (text) IDs** for consistency:
+- **Server**: UUIDs generated via `createId()` (uses `crypto.randomUUID()` in Workers)
+- **Client**: Same UUID format - perfect sync compatibility
+- **GraphQL**: UUIDs match `ID!` scalar type perfectly
+- **No conversions**: IDs are strings everywhere - eliminates parseInt/toString bugs
 
 ### Commands
 ```bash
@@ -468,7 +497,7 @@ yarn dev
 
 ### Schema Changes (D1)
 ```bash
-# 1. Edit database/drizzle.ts
+# 1. Edit database/schema.ts
 # 2. Generate migration
 yarn db:generate
 

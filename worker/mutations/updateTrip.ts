@@ -1,6 +1,6 @@
-import { drizzle } from 'drizzle-orm/d1';
 import { eq } from 'drizzle-orm';
-import { trips } from '@database/schema';
+import { getServerDB } from '@database/server';
+import { trips } from '@database/server';
 import type { GraphQLContext } from '../types';
 
 interface UpdateTripInput {
@@ -21,7 +21,7 @@ export const updateTrip = async (
   { id, input }: { id: string; input: UpdateTripInput },
   context: GraphQLContext
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
 
   const userId = context.userId;
   if (!userId) {
@@ -32,7 +32,7 @@ export const updateTrip = async (
   const existing = await db
     .select()
     .from(trips)
-    .where(eq(trips.id, parseInt(id)))
+    .where(eq(trips.id, id))
     .get();
 
   if (!existing) {
@@ -63,7 +63,7 @@ export const updateTrip = async (
   const result = await db
     .update(trips)
     .set(updateData)
-    .where(eq(trips.id, parseInt(id)))
+    .where(eq(trips.id, id))
     .returning()
     .get();
 
@@ -79,7 +79,7 @@ export const deleteTrip = async (
   { id }: { id: string },
   context: GraphQLContext
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
 
   const userId = context.userId;
   if (!userId) {
@@ -90,7 +90,7 @@ export const deleteTrip = async (
   const existing = await db
     .select()
     .from(trips)
-    .where(eq(trips.id, parseInt(id)))
+    .where(eq(trips.id, id))
     .get();
 
   if (!existing) {
@@ -102,7 +102,7 @@ export const deleteTrip = async (
   }
 
   // Delete trip
-  await db.delete(trips).where(eq(trips.id, parseInt(id)));
+  await db.delete(trips).where(eq(trips.id, id));
 
   return true;
 };
