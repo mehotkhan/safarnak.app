@@ -1,0 +1,15 @@
+query GetAlerts {
+  getAlerts {
+    id
+    type
+    title
+    message
+    step
+    totalSteps
+    tripId
+    userId
+    read
+    createdAt
+  }
+}
+

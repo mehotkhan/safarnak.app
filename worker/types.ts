@@ -12,6 +12,7 @@ export interface Env {
   KV: KVNamespace;           // Key-Value storage for sessions & caches
   R2: R2Bucket;              // Object storage for media
   VECTORIZE: VectorizeIndex; // Vector database for embeddings
+  TRIP_CREATION_WORKFLOW: Workflow; // Workflow for trip creation notifications
 }
 
 /**

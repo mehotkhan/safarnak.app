@@ -26,7 +26,7 @@ export {
   useCreateTripMutation,
 } from './enhanced-hooks';
 
-// Export lazy queries, suspense queries, and all types
+// Export lazy queries, suspense queries, subscriptions, and all types
 export {
   useMeLazyQuery,
   useMeSuspenseQuery,
@@ -36,6 +36,8 @@ export {
   useGetTripSuspenseQuery,
   useGetMessagesLazyQuery,
   useGetMessagesSuspenseQuery,
+  useGetAlertsQuery,
+  useNewAlertsSubscription,
 } from './hooks';
 
 // Export all types

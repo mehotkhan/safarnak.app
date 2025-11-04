@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   View,
   ScrollView,
@@ -36,6 +36,18 @@ export default function TripDetailScreen() {
   
   const trip = data?.getTrip as any;
   const showMap = !!trip?.coordinates;
+  const isPending = trip?.status === 'pending';
+
+  // Auto-refresh if trip is pending (every 3 seconds)
+  useEffect(() => {
+    if (!isPending) return;
+    
+    const interval = setInterval(() => {
+      refetch();
+    }, 3000); // Refresh every 3 seconds while pending
+
+    return () => clearInterval(interval);
+  }, [isPending, refetch]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -215,6 +227,23 @@ export default function TripDetailScreen() {
         )}
 
         <View className="px-6 py-4">
+          {/* Pending Status Banner */}
+          {trip?.status === 'pending' && (
+            <View className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-4">
+              <View className="flex-row items-center">
+                <ActivityIndicator size="small" color={isDark ? '#fbbf24' : '#f59e0b'} style={{ marginRight: 12 }} />
+                <View className="flex-1">
+                  <CustomText weight="bold" className="text-base text-yellow-800 dark:text-yellow-200 mb-1">
+                    {t('plan.form.processing')}
+                  </CustomText>
+                  <CustomText className="text-sm text-yellow-700 dark:text-yellow-300">
+                    {t('plan.form.waitingMessage')}
+                  </CustomText>
+                </View>
+              </View>
+            </View>
+          )}
+
           {/* Trip Info */}
           <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
             <View className="flex-row items-center mb-3">

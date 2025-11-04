@@ -17,6 +17,11 @@ export type CreateTripMutationVariables = Exact<{
 
 export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
 
+export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetAlertsQuery = { __typename?: 'Query', getAlerts: Array<{ __typename?: 'Alert', id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string }> };
+
 export type GetMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -48,6 +53,11 @@ export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name: string, username: string, createdAt: string } | null };
+
+export type NewAlertsSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type NewAlertsSubscription = { __typename?: 'Subscription', newAlerts: { __typename?: 'Alert', id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string } };
 
 export type RegisterMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -138,6 +148,54 @@ export function useCreateTripMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateTripMutationHookResult = ReturnType<typeof useCreateTripMutation>;
 export type CreateTripMutationResult = Apollo.MutationResult<CreateTripMutation>;
 export type CreateTripMutationOptions = Apollo.BaseMutationOptions<CreateTripMutation, CreateTripMutationVariables>;
+export const GetAlertsDocument = gql`
+    query GetAlerts {
+  getAlerts {
+    id
+    type
+    title
+    message
+    step
+    totalSteps
+    tripId
+    userId
+    read
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetAlertsQuery__
+ *
+ * To run a query within a React component, call `useGetAlertsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetAlertsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetAlertsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetAlertsQuery(baseOptions?: Apollo.QueryHookOptions<GetAlertsQuery, GetAlertsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetAlertsQuery, GetAlertsQueryVariables>(GetAlertsDocument, options);
+      }
+export function useGetAlertsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetAlertsQuery, GetAlertsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetAlertsQuery, GetAlertsQueryVariables>(GetAlertsDocument, options);
+        }
+export function useGetAlertsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetAlertsQuery, GetAlertsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetAlertsQuery, GetAlertsQueryVariables>(GetAlertsDocument, options);
+        }
+export type GetAlertsQueryHookResult = ReturnType<typeof useGetAlertsQuery>;
+export type GetAlertsLazyQueryHookResult = ReturnType<typeof useGetAlertsLazyQuery>;
+export type GetAlertsSuspenseQueryHookResult = ReturnType<typeof useGetAlertsSuspenseQuery>;
+export type GetAlertsQueryResult = Apollo.QueryResult<GetAlertsQuery, GetAlertsQueryVariables>;
 export const GetMessagesDocument = gql`
     query GetMessages {
   getMessages {
@@ -370,6 +428,44 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const NewAlertsDocument = gql`
+    subscription NewAlerts {
+  newAlerts {
+    id
+    type
+    title
+    message
+    step
+    totalSteps
+    tripId
+    userId
+    read
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useNewAlertsSubscription__
+ *
+ * To run a query within a React component, call `useNewAlertsSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useNewAlertsSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useNewAlertsSubscription({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useNewAlertsSubscription(baseOptions?: Apollo.SubscriptionHookOptions<NewAlertsSubscription, NewAlertsSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<NewAlertsSubscription, NewAlertsSubscriptionVariables>(NewAlertsDocument, options);
+      }
+export type NewAlertsSubscriptionHookResult = ReturnType<typeof useNewAlertsSubscription>;
+export type NewAlertsSubscriptionResult = Apollo.SubscriptionResult<NewAlertsSubscription>;
 export const RegisterDocument = gql`
     mutation Register($username: String!, $password: String!) {
   register(username: $username, password: $password) {

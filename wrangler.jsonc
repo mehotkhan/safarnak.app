@@ -1,0 +1,100 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "safarnak-worker",
+  "main": "worker/index.ts",
+  "compatibility_date": "2025-10-11",
+  "workers_dev": true,
+
+  // Observability
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true,
+    },
+  },
+
+  // Development server configuration
+  "dev": {
+    "port": 8787,
+    "host": "0.0.0.0",
+  },
+
+  // D1 Database
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "my-d1-db",
+      "database_id": "e4dd65e6-4417-4c6e-b1f8-5e96f3d22643",
+      "migrations_dir": "migrations",
+    },
+  ],
+
+  // Durable Objects
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "SUBSCRIPTION_POOL",
+        "class_name": "SubscriptionPool",
+      },
+    ],
+  },
+
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["SubscriptionPool"],
+    },
+  ],
+
+  // Workflows
+  "workflows": [
+    {
+      "name": "TripCreationWorkflow",
+      "binding": "TRIP_CREATION_WORKFLOW",
+      "class_name": "TripCreationWorkflow",
+    },
+  ],
+
+  // KV Namespaces
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "aaa95f080d984c5c854b08ff979a1643",
+      "preview_id": "157b382a2e4440b7922383de844e79b1",
+    },
+  ],
+
+  // R2 Buckets
+  "r2_buckets": [
+    {
+      "binding": "R2",
+      "bucket_name": "safarnak-dev",
+    },
+  ],
+
+  // Vectorize Index (commented out)
+  // "vectorize": [
+  //   {
+  //     "binding": "VECTORIZE",
+  //     "index_name": "safarnak-embeddings",
+  //     "remote": true,
+  //   },
+  // ],
+
+  // Build Rules
+  "rules": [
+    {
+      "type": "Text",
+      "globs": ["**/*.graphql", "**/*.html"],
+      "fallthrough": false,
+    },
+    {
+      "type": "Data",
+      "globs": ["**/*.png", "**/*.jpg", "**/*.jpeg", "**/*.webp"],
+      "fallthrough": false,
+    },
+  ],
+}
+

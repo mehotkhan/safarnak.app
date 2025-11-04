@@ -14,6 +14,20 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
+export type Alert = {
+  __typename?: 'Alert';
+  createdAt: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  read?: Maybe<Scalars['Boolean']['output']>;
+  step?: Maybe<Scalars['Int']['output']>;
+  title: Scalars['String']['output'];
+  totalSteps?: Maybe<Scalars['Int']['output']>;
+  tripId?: Maybe<Scalars['ID']['output']>;
+  type: Scalars['String']['output'];
+  userId: Scalars['ID']['output'];
+};
+
 export type AuthPayload = {
   __typename?: 'AuthPayload';
   token: Scalars['String']['output'];
@@ -126,6 +140,7 @@ export type Place = {
 
 export type Query = {
   __typename?: 'Query';
+  getAlerts: Array<Alert>;
   getMessages: Array<Message>;
   getPlace?: Maybe<Place>;
   getPlaces: Array<Place>;
@@ -170,6 +185,7 @@ export type QueryGetTripsArgs = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  newAlerts: Alert;
   newMessages: Message;
 };
 

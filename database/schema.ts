@@ -151,8 +151,8 @@ export const messages = sqliteTable('messages', {
 
 export const subscriptions = sqliteTable('subscriptions', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  connectionId: text('connection_id').notNull(),
-  connectionPoolId: text('connection_pool_id').notNull(),
+  connectionId: text('connectionId').notNull(), // camelCase to match graphql-workers-subscriptions
+  connectionPoolId: text('connectionPoolId').notNull(), // camelCase to match graphql-workers-subscriptions
   subscription: text('subscription').notNull(),
   topic: text('topic').notNull(),
   filter: text('filter'),

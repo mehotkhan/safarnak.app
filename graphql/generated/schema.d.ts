@@ -17,6 +17,15 @@ declare module '*/@graphql/createTrip.graphql' {
 }
     
 
+declare module '*/@graphql/getAlerts.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetAlerts: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/getMessages.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -57,6 +66,15 @@ declare module '*/@graphql/me.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const Me: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/newAlerts.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const NewAlerts: DocumentNode;
 
   export default defaultDocument;
 }

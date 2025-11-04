@@ -91,6 +91,32 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
         }
       },
     },
+    {
+      // Cleanup old subscriptions periodically (only on WebSocket upgrade requests)
+      onRequest: async ({ request, env }: any) => {
+        // Only cleanup on WebSocket upgrade requests (subscription connections)
+        const upgradeHeader = request.headers.get('upgrade');
+        if (upgradeHeader?.toLowerCase() === 'websocket') {
+          try {
+            // Clean up subscriptions older than 1 hour or inactive connections
+            // Use a more aggressive cleanup to prevent constraint violations
+            const db = env.DB;
+            const result = await db.exec(`
+              DELETE FROM subscriptions 
+              WHERE is_active = 0 
+              OR (expires_at IS NOT NULL AND expires_at < datetime('now'))
+              OR (created_at < datetime('now', '-1 hour'))
+            `);
+            if (__DEV__ && result.meta.changes > 0) {
+              console.log(`🧹 Cleaned up ${result.meta.changes} old subscriptions`);
+            }
+          } catch (error) {
+            // Log but don't fail requests if cleanup fails
+            console.warn('Failed to cleanup subscriptions:', error);
+          }
+        }
+      },
+    },
   ],
   maskedErrors: false, // Show actual error messages instead of "Unexpected error"
   context: async ({ request, env, executionCtx }) => {
@@ -216,54 +242,7 @@ const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext)
     });
   }
   
-  // Release notes endpoint backed by GitHub Releases + Compare API
-  if (url.pathname.startsWith('/releases')) {
-    const repo = (env as any).GITHUB_REPO || 'mehotkhan/safarnak.app';
-    const ghHeaders: Record<string, string> = {
-      'accept': 'application/vnd.github+json',
-      'user-agent': 'safarnak-worker',
-    };
-    const token = (env as any).GITHUB_TOKEN as string | undefined;
-    if (token) ghHeaders['authorization'] = `Bearer ${token}`;
-
-    try {
-      // fetch latest two releases to compute range
-      const relRes = await globalThis.fetch(`https://api.github.com/repos/${repo}/releases?per_page=2`, { headers: ghHeaders });
-      if (!relRes.ok) throw new Error(`releases http ${relRes.status}`);
-      const releases: any[] = await relRes.json();
-      const latest = releases[0];
-      const previous = releases[1];
-      const latestTag = latest?.tag_name;
-      const previousTag = previous?.tag_name;
-
-      let commits: any[] = [];
-      if (latestTag && previousTag) {
-        const cmpRes = await globalThis.fetch(`https://api.github.com/repos/${repo}/compare/${previousTag}...${latestTag}` , { headers: ghHeaders });
-        if (cmpRes.ok) {
-          const cmp: any = await cmpRes.json();
-          commits = (cmp.commits || []).map((c: any) => ({
-            sha: c.sha?.slice(0, 7),
-            message: c.commit?.message || '',
-            author: c.commit?.author?.name || c.author?.login || 'unknown',
-            date: c.commit?.author?.date,
-          }));
-        }
-      }
-
-      const payload = {
-        version: latest?.tag_name || null,
-        name: latest?.name || null,
-        createdAt: latest?.created_at || null,
-        publishedAt: latest?.published_at || null,
-        body: latest?.body || '',
-        previous: previous?.tag_name || null,
-        commits,
-      };
-      return new Response(JSON.stringify(payload), { headers: { 'content-type': 'application/json; charset=utf-8' } });
-    } catch (e: any) {
-      return new Response(JSON.stringify({ error: 'Failed to fetch release info', details: String(e?.message || e) }), { status: 502, headers: { 'content-type': 'application/json; charset=utf-8' } });
-    }
-  }
+ 
 
   // GraphQL endpoint and subscriptions
   return subscriptionsFetch(request, env, executionCtx);
@@ -276,3 +255,9 @@ const fetch = async (request: Request, env: Env, executionCtx: ExecutionContext)
 export default { fetch };
 
 export const SubscriptionPool = createWsConnectionPoolClass(settings);
+
+// ============================================================================
+// Workflow Exports
+// ============================================================================
+
+export { TripCreationWorkflow } from './workflows/tripCreationWorkflow';

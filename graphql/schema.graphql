@@ -7,6 +7,7 @@ type Query {
   getTour(id: ID!): Tour
   getPlaces(category: String, limit: Int): [Place!]!
   getPlace(id: ID!): Place
+  getAlerts: [Alert!]!
 }
 
 type Mutation {
@@ -22,6 +23,7 @@ type Mutation {
 
 type Subscription {
   newMessages: Message!
+  newAlerts: Alert!
 }
 
 type Message {
@@ -126,5 +128,18 @@ type Place {
   phone: String
   website: String
   hours: String
+  createdAt: String!
+}
+
+type Alert {
+  id: ID!
+  type: String!
+  title: String!
+  message: String!
+  step: Int
+  totalSteps: Int
+  tripId: ID
+  userId: ID!
+  read: Boolean
   createdAt: String!
 }

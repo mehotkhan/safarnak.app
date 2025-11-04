@@ -2,6 +2,7 @@ import { ApolloProvider } from '@apollo/client';
 import AuthWrapper from '@components/AuthWrapper';
 import { LanguageProvider } from '@components/context/LanguageContext';
 import { ThemeProvider as CustomThemeProvider } from '@components/context/ThemeContext';
+import { NotificationWrapper } from '@components/notifications/NotificationWrapper';
 import {
   DarkTheme,
   DefaultTheme,
@@ -65,6 +66,7 @@ if (__DEV__) {
   console.error = (...args: any[]) => {
     const message = args[0]?.toString() || '';
     const fullMessage = args.map(arg => String(arg)).join(' ');
+    
     // Suppress Apollo network errors (expected when offline)
     if (
       (message.includes('ApolloError') || fullMessage.includes('ApolloError')) &&
@@ -74,6 +76,17 @@ if (__DEV__) {
       console.debug('🌐 Apollo network error (offline/unreachable):', fullMessage);
       return;
     }
+    
+    // Suppress verbose WebSocket error objects (connection errors are expected during retries)
+    if (
+      fullMessage.includes('WebSocket') &&
+      (fullMessage.includes('_bubbles') || fullMessage.includes('Symbol(') || fullMessage.includes('readyState'))
+    ) {
+      // These are verbose error objects from WebSocket, not actual errors
+      console.debug('🌐 WebSocket connection event (expected during retries)');
+      return;
+    }
+    
     originalError.apply(console, args);
   };
   
@@ -202,7 +215,9 @@ export default function RootLayout() {
           <ApolloProvider client={client}>
             <LanguageProvider>
               <CustomThemeProvider>
-                <ThemedApp />
+                <NotificationWrapper>
+                  <ThemedApp />
+                </NotificationWrapper>
               </CustomThemeProvider>
             </LanguageProvider>
           </ApolloProvider>

@@ -8,9 +8,12 @@
  * - Automatic Drizzle sync for offline support
  */
 
-import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, from, split } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { getMainDefinition } from '@apollo/client/utilities';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { createClient } from 'graphql-ws';
 import { persistCache } from 'apollo3-cache-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
@@ -313,6 +316,19 @@ if (__DEV__) {
 
 export const GRAPHQL_URI_NORMALIZED = GRAPHQL_URI.replace(/\/+$/, '');
 
+// Convert HTTP URL to WebSocket URL
+const getWebSocketURI = (): string => {
+  const httpUrl = GRAPHQL_URI_NORMALIZED;
+  // Replace http:// with ws:// and https:// with wss://
+  return httpUrl.replace(/^http/, 'ws');
+};
+
+export const GRAPHQL_WS_URI = getWebSocketURI();
+
+if (__DEV__) {
+  console.log('📡 GraphQL WebSocket URI:', GRAPHQL_WS_URI);
+}
+
 // ============================================================================
 // Apollo Client Setup
 // ============================================================================
@@ -332,6 +348,88 @@ const httpLink = createHttpLink({
     }
   },
 });
+
+// WebSocket link for subscriptions
+const wsLink = new GraphQLWsLink(
+  createClient({
+    url: GRAPHQL_WS_URI,
+    connectionParams: async () => {
+      // Add auth token to WebSocket connection
+      try {
+        const savedUser = await AsyncStorage.getItem('@safarnak_user');
+        if (savedUser) {
+          const userData = JSON.parse(savedUser);
+          const token = userData.token;
+          if (token) {
+            return {
+              authorization: `Bearer ${token}`,
+            };
+          }
+        }
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('⚠️ Error retrieving auth token for WebSocket:', error);
+        }
+      }
+      return {};
+    },
+    shouldRetry: () => true,
+    retryAttempts: Infinity,
+    retryWait: async (retries: number) => {
+      const delay = 1000 * Math.min(retries + 1, 5);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    },
+    on: {
+      opened: () => {
+        if (__DEV__) {
+          console.log('📡 WebSocket connection opened');
+        }
+      },
+      closed: (event: any) => {
+        if (__DEV__) {
+          // Only log unexpected closes (code 1000 is normal closure)
+          const code = event?.code;
+          if (code !== 1000 && code !== 1001) {
+            console.warn('📡 WebSocket connection closed unexpectedly:', code, event?.reason || '');
+          } else {
+            console.log('📡 WebSocket connection closed');
+          }
+        }
+      },
+      error: (error: any) => {
+        // WebSocket errors are common during connection attempts and retries
+        // Only log meaningful errors, not generic connection failures
+        if (__DEV__) {
+          const errorMessage = error?.message || String(error);
+          const errorType = error?.type || '';
+          
+          // Suppress common connection errors that are expected during retries
+          if (
+            !errorMessage.includes('connection') &&
+            !errorMessage.includes('ECONNREFUSED') &&
+            !errorMessage.includes('Network') &&
+            errorType !== 'error'
+          ) {
+            console.warn('📡 WebSocket error:', errorMessage);
+          } else {
+            // Log as debug for connection-related errors (expected during retries)
+            console.debug('📡 WebSocket connection error (will retry):', errorMessage);
+          }
+        }
+      },
+    },
+  })
+);
+
+// Split link: HTTP for queries/mutations, WebSocket for subscriptions
+const splitLink = split(
+  ({ query }: any) => {
+    const definition = getMainDefinition(query);
+    return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
+  },
+  wsLink,
+  httpLink
+);
 
 const authLink = setContext(async (_, { headers }) => {
   try {
@@ -391,7 +489,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }: any) => {
 const cache = new InMemoryCache();
 
 export const client = new ApolloClient({
-  link: from([errorLink, authLink, httpLink]),
+  link: from([errorLink, authLink, splitLink]),
   cache,
   defaultOptions: {
     watchQuery: {

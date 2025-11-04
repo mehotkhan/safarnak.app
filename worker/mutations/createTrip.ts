@@ -75,7 +75,7 @@ export const createTrip = async (
         travelers,
         preferences: description,
         accommodation,
-        status: 'in_progress',
+        status: 'pending',
         aiReasoning,
         itinerary: JSON.stringify(mockItinerary),
         coordinates: JSON.stringify(mockCoordinates),
@@ -83,6 +83,23 @@ export const createTrip = async (
       })
       .returning()
       .get();
+
+    // Trigger workflow for trip creation notifications
+    try {
+      const workflowInstance = await context.env.TRIP_CREATION_WORKFLOW.create({
+        id: `trip-${result.id}`,
+        params: {
+          tripId: result.id.toString(),
+          userId,
+          destination: destination || undefined,
+          preferences: description,
+        },
+      });
+      console.log('Trip creation workflow started:', workflowInstance.id);
+    } catch (workflowError: any) {
+      // Log workflow error but don't fail the mutation
+      console.error('Failed to start trip creation workflow:', workflowError);
+    }
 
     return {
       ...result,

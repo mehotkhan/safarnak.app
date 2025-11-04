@@ -103,9 +103,20 @@ export default function CreateTripScreen() {
 
       const trip = res.data?.createTrip;
       if (trip?.id) {
-        Alert.alert(t('plan.form.successTitle'), t('plan.form.generated'), [
-          { text: t('common.ok'), onPress: () => router.replace(`/(app)/(trips)/${trip.id}` as any) },
-        ]);
+        // Show alert that trip is being generated
+        Alert.alert(
+          t('plan.form.processing'),
+          t('plan.form.waitingMessage'),
+          [
+            { 
+              text: t('common.ok'), 
+              onPress: () => {
+                // Navigate to trip details page with pending status
+                router.replace(`/(app)/(trips)/${trip.id}` as any);
+              }
+            },
+          ]
+        );
       } else {
         console.log('No trip returned in response');
         throw new Error(t('plan.form.errors.generateFailed'));

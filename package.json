@@ -12,10 +12,10 @@
     "build:debug": "eas build --profile debug --platform android",
     "build:release": "eas build --profile release --platform android",
     "build:local": "rm -rf android/app/.cxx android/.gradle android/app/build && npx expo prebuild --platform android --no-install && cd android && ./gradlew clean assembleRelease --no-daemon --max-workers=2 --build-cache --parallel --stacktrace --info",
-    "worker:dev": "wrangler dev --config wrangler.toml --ip 0.0.0.0",
-    "worker:deploy": "wrangler deploy --config wrangler.toml",
+    "worker:dev": "wrangler dev --config wrangler.jsonc --ip 0.0.0.0",
+    "worker:deploy": "wrangler deploy --config wrangler.jsonc",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
-    "db:migrate": "wrangler d1 migrations apply my-d1-db --local --config wrangler.toml",
+    "db:migrate": "wrangler d1 migrations apply my-d1-db --local --config wrangler.jsonc",
     "db:studio": "drizzle-kit studio --config drizzle.config.ts --port 4983",
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",
@@ -58,6 +58,7 @@
     "expo-web-browser": "^15.0.8",
     "graphql": "^16.11.0",
     "graphql-workers-subscriptions": "^0.1.6",
+    "graphql-ws": "^6.0.6",
     "graphql-yoga": "^5.16.0",
     "i18next": "^25.6.0",
     "nativewind": "^4.1.21",
@@ -108,7 +109,7 @@
     "react-test-renderer": "19.1.0",
     "tailwindcss": "^3.4.17",
     "typescript": "~5.9.3",
-    "wrangler": "^4.45.1"
+    "wrangler": "^4.45.4"
   },
   "packageManager": "yarn@1.22.22"
 }

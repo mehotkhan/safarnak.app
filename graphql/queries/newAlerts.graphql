@@ -1,0 +1,15 @@
+subscription NewAlerts {
+  newAlerts {
+    id
+    type
+    title
+    message
+    step
+    totalSteps
+    tripId
+    userId
+    read
+    createdAt
+  }
+}
+

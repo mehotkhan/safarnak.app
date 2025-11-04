@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   ScrollView,
@@ -10,6 +10,8 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { useNewAlertsSubscription, useGetAlertsQuery } from '@api';
+import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
 
 // Mock data
@@ -135,6 +137,105 @@ export default function MessagesScreen() {
   const [selectedTab, setSelectedTab] = useState<'notifications' | 'chats'>('notifications');
   const [showArchived, setShowArchived] = useState(false);
   const [chats, setChats] = useState(mockChatsBase(t));
+  const { user } = useAppSelector(state => state.auth);
+  
+  // Fetch all alerts
+  const { data: alertsData, loading: alertsLoading, refetch: refetchAlerts } = useGetAlertsQuery({
+    skip: !user?.id,
+    fetchPolicy: 'cache-and-network',
+  });
+
+  // Subscribe to new alerts
+  const { data: subscriptionData, error: subscriptionError } = useNewAlertsSubscription({
+    skip: !user?.id, // Only subscribe if user is authenticated
+  });
+
+  // Convert alerts from query to notifications format
+  const alertsNotifications = useMemo(() => {
+    if (!alertsData?.getAlerts) return [];
+    return alertsData.getAlerts
+      .filter(alert => alert.userId === user?.id)
+      .map(alert => ({
+        id: alert.id,
+        type: alert.type,
+        title: alert.title,
+        message: alert.message,
+        time: t('messages.time.justNow'),
+        read: alert.read || false,
+      }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [alertsData?.getAlerts, user?.id, t]);
+
+  const [notifications, setNotifications] = useState([...mockNotificationsBase(t), ...alertsNotifications]);
+
+  // Debug subscription status
+  useEffect(() => {
+    if (subscriptionError) {
+      console.error('[Messages] Subscription error:', subscriptionError);
+    }
+    if (subscriptionData) {
+      console.log('[Messages] Subscription data received:', subscriptionData);
+    }
+  }, [subscriptionData, subscriptionError]);
+
+  // Update notifications when alerts are fetched
+  useEffect(() => {
+    if (alertsNotifications.length > 0) {
+      // Use setTimeout to defer state updates and avoid cascading renders
+      setTimeout(() => {
+        setNotifications(prev => {
+          // Merge with existing, avoiding duplicates
+          const existingIds = new Set(prev.map(n => n.id));
+          const newAlerts = alertsNotifications.filter(a => !existingIds.has(a.id));
+          return [...newAlerts, ...prev];
+        });
+      }, 0);
+    }
+  }, [alertsNotifications]);
+
+  // Update notifications when new alerts arrive via subscription
+  useEffect(() => {
+    if (!subscriptionData?.newAlerts) return;
+    
+    const alert = subscriptionData.newAlerts;
+    console.log('[Messages] New alert received:', alert);
+    
+    // Only show alerts for the current user
+    if (alert.userId !== user?.id) {
+      console.log('[Messages] Alert filtered out - different userId:', alert.userId, 'vs', user?.id);
+      return;
+    }
+    
+    // Refetch alerts to get updated list
+    refetchAlerts();
+    
+    // Use setTimeout to avoid setState in effect directly
+    const timeoutId = setTimeout(() => {
+      setNotifications(prev => {
+        // Check if alert already exists
+        const exists = prev.some(n => n.id === alert.id);
+        if (exists) {
+          console.log('[Messages] Alert already exists, skipping:', alert.id);
+          return prev;
+        }
+        console.log('[Messages] Adding new alert to notifications:', alert);
+        // Add new alert at the beginning
+        return [
+          {
+            id: alert.id,
+            type: alert.type,
+            title: alert.title,
+            message: alert.message,
+            time: t('messages.time.justNow'),
+            read: alert.read || false,
+          },
+          ...prev,
+        ];
+      });
+    }, 0);
+    
+    return () => clearTimeout(timeoutId);
+  }, [subscriptionData?.newAlerts, user?.id, t, refetchAlerts]);
 
   const getIconName = (type: string) => {
     switch (type) {
@@ -188,7 +289,6 @@ export default function MessagesScreen() {
     );
   };
 
-  const mockNotifications = mockNotificationsBase(t);
   const filteredChats = chats.filter(chat => 
     showArchived ? chat.archived : !chat.archived
   );
@@ -242,7 +342,7 @@ export default function MessagesScreen() {
       {/* Content */}
       {selectedTab === 'notifications' ? (
         <ScrollView className="flex-1 px-6 py-4">
-          {mockNotifications.map(notification => (
+          {notifications.map(notification => (
             <TouchableOpacity
               key={notification.id}
               onPress={() => router.push(`/(app)/(profile)/notifications/${notification.id}` as any)}
