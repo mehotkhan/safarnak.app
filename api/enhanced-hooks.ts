@@ -9,7 +9,7 @@
  *   // These hooks automatically sync to Drizzle after queries complete
  */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { QueryHookOptions, MutationHookOptions, QueryResult, MutationTuple, OperationVariables } from '@apollo/client';
 import { client } from './client';
 import { syncApolloToDrizzle } from '@database/client';
@@ -47,21 +47,46 @@ import type {
 /**
  * Sync Apollo cache to Drizzle after query/mutation completes
  * This runs in the background and doesn't block the UI
+ * Uses debouncing to prevent multiple simultaneous sync calls
  */
-const syncToDrizzle = async () => {
-  try {
-    const cache = client.cache.extract();
-    if (Object.keys(cache).length > 0) {
-      await syncApolloToDrizzle(cache);
-      if (__DEV__) {
-        console.log('✅ Synced Apollo cache to Drizzle');
-      }
-    }
-  } catch (error) {
-    if (__DEV__) {
-      console.warn('⚠️ Failed to sync Apollo cache to Drizzle:', error);
-    }
+let syncTimeout: ReturnType<typeof setTimeout> | null = null;
+let isSyncing = false;
+
+const syncToDrizzle = async (debounceMs = 100) => {
+  // Clear any pending sync
+  if (syncTimeout) {
+    clearTimeout(syncTimeout);
+    syncTimeout = null;
   }
+
+  // Debounce sync calls
+  return new Promise<void>((resolve) => {
+    syncTimeout = setTimeout(async () => {
+      // Prevent concurrent syncs
+      if (isSyncing) {
+        resolve();
+        return;
+      }
+
+      try {
+        isSyncing = true;
+        const cache = client.cache.extract();
+        if (Object.keys(cache).length > 0) {
+          await syncApolloToDrizzle(cache);
+          if (__DEV__) {
+            console.log('✅ Synced Apollo cache to Drizzle');
+          }
+        }
+      } catch (error) {
+        if (__DEV__) {
+          console.warn('⚠️ Failed to sync Apollo cache to Drizzle:', error);
+        }
+      } finally {
+        isSyncing = false;
+        resolve();
+      }
+    }, debounceMs);
+  });
 };
 
 /**
@@ -88,7 +113,7 @@ function enhanceQueryHook<TData, TVariables extends OperationVariables = Operati
         if (baseOptions?.onCompleted) {
           await baseOptions.onCompleted(data);
         }
-        // Sync to Drizzle after query completes
+        // Sync to Drizzle after query completes (debounced)
         await syncToDrizzle();
       },
       onError: (error) => {
@@ -103,12 +128,19 @@ function enhanceQueryHook<TData, TVariables extends OperationVariables = Operati
       },
     });
 
-    // Also sync when data changes (for cache updates)
+    // Sync when data changes (for cache-only loads, debounced)
+    // Only sync if we have data and not loading, and skip if onCompleted already handled it
+    const lastDataRef = useRef<string | null>(null);
     useEffect(() => {
       if (result.data && !result.loading) {
-        syncToDrizzle().catch(() => {
-          // Ignore sync errors
-        });
+        // Create a simple hash of the data to detect actual changes
+        const dataHash = JSON.stringify(result.data);
+        if (dataHash !== lastDataRef.current) {
+          lastDataRef.current = dataHash;
+          syncToDrizzle(200).catch(() => {
+            // Ignore sync errors
+          });
+        }
       }
     }, [result.data, result.loading]);
 
@@ -133,7 +165,7 @@ function enhanceMutationHook<TData, TVariables extends OperationVariables = Oper
         if (baseOptions?.onCompleted) {
           await baseOptions.onCompleted(data);
         }
-        // Sync to Drizzle after mutation completes
+        // Sync to Drizzle after mutation completes (debounced)
         await syncToDrizzle();
       },
       onError: (error) => {
@@ -147,15 +179,6 @@ function enhanceMutationHook<TData, TVariables extends OperationVariables = Oper
         });
       },
     });
-
-    // Also sync when data changes (for cache updates)
-    useEffect(() => {
-      if (mutationResult.data && !mutationResult.loading) {
-        syncToDrizzle().catch(() => {
-          // Ignore sync errors
-        });
-      }
-    }, [mutationResult.data, mutationResult.loading]);
 
     return [mutate, mutationResult] as MutationTuple<TData, TVariables>;
   };
@@ -191,9 +214,15 @@ export function useGetTripQuery(
     },
   });
 
+  // Sync when data changes (for cache-only loads, debounced)
+  const lastDataRef = useRef<string | null>(null);
   useEffect(() => {
     if (result.data && !result.loading) {
-      syncToDrizzle().catch(() => {});
+      const dataHash = JSON.stringify(result.data);
+      if (dataHash !== lastDataRef.current) {
+        lastDataRef.current = dataHash;
+        syncToDrizzle(200).catch(() => {});
+      }
     }
   }, [result.data, result.loading]);
 

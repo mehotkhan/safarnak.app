@@ -191,7 +191,7 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_cached_trips_status ON cached_trips(status);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_cached_at ON cached_trips(cached_at);
       CREATE INDEX IF NOT EXISTS idx_cached_tours_category ON cached_tours(category);
-      CREATE INDEX IF NOT EXISTS idx_cached_places_category ON cached_places(category);
+      CREATE INDEX IF NOT EXISTS idx_cached_places_type ON cached_places(type);
       CREATE INDEX IF NOT EXISTS idx_cached_places_location ON cached_places(location);
       CREATE INDEX IF NOT EXISTS idx_pending_mutations_queued_at ON pending_mutations(queued_at);
     `);
