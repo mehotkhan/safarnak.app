@@ -248,6 +248,9 @@
     "tripsList": {
       "upcoming": "Upcoming",
       "past": "Past",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "unnamedTrip": "Unnamed Trip",
       "emptyState": "No trips yet"
     },
     "inbox": {
@@ -322,6 +325,9 @@
   "settings": {
     "title": "Settings",
     "subtitle": "Account and app settings",
+    "appSettings": "App Settings",
+    "accountPrivacy": "Account & Privacy",
+    "dataInfo": "Data & Info",
     "receivePush": "Receive push notifications",
     "locationTracking": "Location Tracking",
     "allowLocation": "Allow location access",
@@ -337,7 +343,12 @@
     "privacySubtitle": "Privacy and security",
     "accountComingSoon": "Account settings coming soon!",
     "privacyComingSoon": "Privacy settings coming soon!",
-    "dataManagementComingSoon": "Data management coming soon!"
+    "dataManagementComingSoon": "Data management coming soon!",
+    "app": "App",
+    "preferences": "Preferences",
+    "privacy": "Privacy",
+    "notifications": "Notifications",
+    "saved": "Settings saved successfully!"
   },
   "feed": {
     "newPost": {
@@ -374,6 +385,8 @@
     "trips": "Trips",
     "posts": "Posts",
     "followers": "Followers",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
     "settings": "Settings",
     "history": "Travel History",
     "saved": "Saved Locations",
@@ -382,11 +395,29 @@
     "theme": "Theme",
     "lightMode": "Light Mode",
     "darkMode": "Dark Mode",
-    "notifications": "Notifications",
-    "privacy": "Privacy",
+    "notificationsTitle": "Notifications",
+    "notificationsSubtitle": "Manage notification preferences",
+    "privacyTitle": "Privacy",
+    "privacySubtitle": "Privacy and security settings",
     "logout": "Logout",
     "logoutConfirm": "Are you sure you want to logout?",
     "welcome": "Welcome, {{name}}!",
+    "accountTitle": "Account",
+    "accountSubtitle": "Manage your account",
+    "preferencesTitle": "Preferences",
+    "preferencesSubtitle": "Travel preferences and interests",
+    "bookmarksTitle": "Bookmarks",
+    "bookmarksSubtitle": "Saved tours and places",
+    "sections": {
+      "myContent": "My Content",
+      "travel": "Travel",
+      "communication": "Communication",
+      "account": "Account & Preferences",
+      "preferences": "Preferences & Settings",
+      "payments": "Payments",
+      "system": "System"
+    },
+    "subscriptionSubtitle": "Manage your subscription plan",
     "edit": {
       "title": "Edit Profile",
       "changeAvatar": "Change Avatar",
@@ -407,6 +438,75 @@
       "websiteLabel": "Website",
       "websitePlaceholder": "https://yourwebsite.com",
       "successMessage": "Profile updated successfully!"
+    },
+    "preferences": {
+      "travelStyle": "Travel Style",
+      "budgetRange": "Budget Range",
+      "interests": "Interests",
+      "dietaryRestrictions": "Dietary Restrictions",
+      "saved": "Preferences saved successfully!"
+    },
+    "account": {
+      "accountInfo": "Account Information",
+      "accountActions": "Account Actions",
+      "dangerZone": "Danger Zone",
+      "username": "Username",
+      "name": "Name",
+      "memberSince": "Member Since",
+      "editProfileSubtitle": "Update your profile information",
+      "changePassword": "Change Password",
+      "changePasswordSubtitle": "Update your password",
+      "changePasswordComingSoon": "Password change feature coming soon!",
+      "changeEmail": "Change Email",
+      "changeEmailSubtitle": "Update your email address",
+      "changeEmailComingSoon": "Email change feature coming soon!",
+      "deleteAccount": "Delete Account",
+      "deleteAccountSubtitle": "Permanently delete your account and all data",
+      "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone and all your data will be permanently deleted.",
+      "deleteAccountComingSoon": "Account deletion feature coming soon!"
+    },
+    "privacy": {
+      "profileVisibility": "Profile Visibility",
+      "dataAnalytics": "Data & Analytics",
+      "location": "Location",
+      "publicProfile": "Public Profile",
+      "publicProfileSubtitle": "Allow others to view your profile",
+      "showActivity": "Show Activity Status",
+      "showActivitySubtitle": "Show when you are online",
+      "dataSharing": "Data Sharing",
+      "dataSharingSubtitle": "Share anonymized data to improve our services",
+      "analytics": "Analytics",
+      "analyticsSubtitle": "Help us improve by sharing usage analytics",
+      "locationTracking": "Location Tracking",
+      "locationTrackingSubtitle": "Allow location access for better trip recommendations",
+      "infoTitle": "Your Privacy Matters",
+      "infoDescription": "We respect your privacy and only use your data to improve your experience. You can change these settings at any time.",
+      "saved": "Privacy settings saved successfully!"
+    },
+    "notifications": {
+      "pushNotifications": "Push Notifications",
+      "emailNotifications": "Email Notifications",
+      "enablePush": "Enable Push Notifications",
+      "enablePushSubtitle": "Receive notifications on your device",
+      "tripUpdates": "Trip Updates",
+      "tripUpdatesSubtitle": "Notifications about your trips",
+      "tourBookings": "Tour Bookings",
+      "tourBookingsSubtitle": "Notifications about tour bookings",
+      "messages": "Messages",
+      "messagesSubtitle": "Notifications about new messages",
+      "promotional": "Promotional",
+      "promotionalSubtitle": "Special offers and promotions",
+      "enableEmail": "Enable Email Notifications",
+      "enableEmailSubtitle": "Receive notifications via email",
+      "infoTitle": "Stay Updated",
+      "infoDescription": "Customize your notification preferences to stay informed about what matters to you. You can change these settings at any time.",
+      "saved": "Notification settings saved successfully!"
+    },
+    "bookmarks": {
+      "tours": "Tours",
+      "places": "Places",
+      "emptyState": "No bookmarked {{type}} yet",
+      "emptyStateSubtitle": "Start exploring and bookmark your favorite {{type}} to save them for later"
     }
   },
   "payments": {

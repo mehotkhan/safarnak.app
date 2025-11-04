@@ -1,51 +1,57 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
-  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
-
-// Mock data
-const mockTrips = [
-  {
-    id: '1',
-    destination: 'Tokyo, Japan',
-    startDate: '2025-12-01',
-    endDate: '2025-12-10',
-    status: 'upcoming',
-  },
-  {
-    id: '2',
-    destination: 'Paris, France',
-    startDate: '2025-03-15',
-    endDate: '2025-03-25',
-    status: 'past',
-  },
-  {
-    id: '3',
-    destination: 'New York, USA',
-    startDate: '2026-06-01',
-    endDate: '2026-06-15',
-    status: 'upcoming',
-  },
-];
+import { useGetTripsQuery } from '@api';
 
 export default function MyTripsScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filteredTrips = mockTrips.filter(trip => trip.status === selectedTab);
+  // Fetch real trips data
+  const { data, loading, error, refetch } = useGetTripsQuery({
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  const trips = useMemo(() => data?.getTrips ?? [], [data]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  const filteredTrips = useMemo(() => {
+    if (selectedTab === 'upcoming') {
+      return trips.filter(trip => 
+        trip.status === 'in_progress' || 
+        (trip.startDate && new Date(trip.startDate) > new Date())
+      );
+    } else {
+      return trips.filter(trip => 
+        trip.status === 'completed' || 
+        (trip.endDate && new Date(trip.endDate) < new Date())
+      );
+    }
+  }, [trips, selectedTab]);
 
   const handleTripPress = (tripId: string) => {
-    router.push(`/plan/trip-detail/${tripId}` as any);
+    router.push(`/(app)/(trips)/${tripId}` as any);
   };
 
   return (
@@ -97,7 +103,30 @@ export default function MyTripsScreen() {
       </View>
 
       {/* Content */}
-      {filteredTrips.length === 0 ? (
+      {loading && filteredTrips.length === 0 ? (
+        <View className="flex-1 items-center justify-center px-6">
+          <CustomText className="text-base text-gray-600 dark:text-gray-400">
+            {t('common.loading')}
+          </CustomText>
+        </View>
+      ) : error && filteredTrips.length === 0 ? (
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons
+            name="alert-circle-outline"
+            size={80}
+            color={isDark ? '#ef4444' : '#dc2626'}
+          />
+          <CustomText
+            weight="bold"
+            className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center"
+          >
+            {t('common.error')}
+          </CustomText>
+          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+            {error.message || t('common.error')}
+          </CustomText>
+        </View>
+      ) : filteredTrips.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6">
           <Ionicons
             name="airplane-outline"
@@ -112,7 +141,12 @@ export default function MyTripsScreen() {
           </CustomText>
         </View>
       ) : (
-        <ScrollView className="flex-1 px-6 py-4">
+        <ScrollView 
+          className="flex-1 px-6 py-4"
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+        >
           {filteredTrips.map(trip => (
             <TouchableOpacity
               key={trip.id}
@@ -123,18 +157,47 @@ export default function MyTripsScreen() {
                 weight="bold"
                 className="text-lg text-black dark:text-white mb-2"
               >
-                {trip.destination}
+                {trip.destination || t('me.tripsList.unnamedTrip', { defaultValue: 'Unnamed Trip' })}
               </CustomText>
-              <View className="flex-row items-center">
-                <Ionicons
-                  name="calendar-outline"
-                  size={16}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                />
-                <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                  {trip.startDate} - {trip.endDate}
-                </CustomText>
-              </View>
+              {(trip.startDate || trip.endDate) && (
+                <View className="flex-row items-center mb-2">
+                  <Ionicons
+                    name="calendar-outline"
+                    size={16}
+                    color={isDark ? '#9ca3af' : '#6b7280'}
+                  />
+                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                    {trip.startDate && trip.endDate 
+                      ? `${trip.startDate} - ${trip.endDate}`
+                      : trip.startDate || trip.endDate}
+                  </CustomText>
+                </View>
+              )}
+              {trip.status && (
+                <View className="flex-row items-center">
+                  <View className={`px-2 py-1 rounded-full ${
+                    trip.status === 'completed' 
+                      ? 'bg-green-100 dark:bg-green-900'
+                      : trip.status === 'in_progress'
+                      ? 'bg-blue-100 dark:bg-blue-900'
+                      : 'bg-gray-100 dark:bg-neutral-800'
+                  }`}>
+                    <CustomText className={`text-xs ${
+                      trip.status === 'completed' 
+                        ? 'text-green-800 dark:text-green-200'
+                        : trip.status === 'in_progress'
+                        ? 'text-blue-800 dark:text-blue-200'
+                        : 'text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {trip.status === 'completed' 
+                        ? t('me.tripsList.completed', { defaultValue: 'Completed' })
+                        : trip.status === 'in_progress'
+                        ? t('me.tripsList.inProgress', { defaultValue: 'In Progress' })
+                        : trip.status}
+                    </CustomText>
+                  </View>
+                </View>
+              )}
             </TouchableOpacity>
           ))}
         </ScrollView>

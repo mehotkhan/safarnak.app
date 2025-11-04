@@ -28,6 +28,48 @@ export default function ProfileLayout() {
           title: t('profile.settings'),
         }}
       />
+      <Stack.Screen 
+        name="account" 
+        options={{
+          title: t('profile.accountTitle'),
+        }}
+      />
+      <Stack.Screen 
+        name="subscription" 
+        options={{
+          title: t('me.subscription'),
+        }}
+      />
+      <Stack.Screen 
+        name="payments" 
+        options={{
+          title: t('me.payments'),
+        }}
+      />
+      <Stack.Screen 
+        name="system-status" 
+        options={{
+          title: t('systemStatus.title', { defaultValue: 'System Status' }),
+        }}
+      />
+      <Stack.Screen 
+        name="bookmarks" 
+        options={{
+          title: t('profile.bookmarksTitle'),
+        }}
+      />
+      <Stack.Screen 
+        name="notifications/[id]" 
+        options={{
+          title: t('notifications.details', { defaultValue: 'Notification Details' }),
+        }}
+      />
+      <Stack.Screen 
+        name="messages/[id]" 
+        options={{
+          title: t('messages.chat', { defaultValue: 'Chat' }),
+        }}
+      />
     </Stack>
   );
 }

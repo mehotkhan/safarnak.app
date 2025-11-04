@@ -2,11 +2,13 @@ import { View, Image, TouchableOpacity, ScrollView } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { useMemo } from 'react';
 
 import { CustomText } from '@components/ui/CustomText';
 import { useAppSelector } from '@store/hooks';
 import { useTheme } from '@components/context/ThemeContext';
 import Colors from '@constants/Colors';
+import { useMeQuery, useGetTripsQuery } from '@api';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const appIcon = require('@assets/images/icon.png');
@@ -72,8 +74,45 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const { user } = useAppSelector(state => state.auth);
-
+  const { user: reduxUser } = useAppSelector(state => state.auth);
+  
+  // Fetch real user data
+  const { data: meData, loading: meLoading } = useMeQuery({
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+  
+  // Fetch trips for stats
+  const { data: tripsData, loading: tripsLoading } = useGetTripsQuery({
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+  
+  const user = meData?.me || reduxUser;
+  const trips = useMemo(() => tripsData?.getTrips ?? [], [tripsData]);
+  
+  // Calculate stats
+  const stats = useMemo(() => {
+    const upcomingTrips = trips.filter(trip => 
+      trip.status === 'in_progress' || 
+      (trip.startDate && new Date(trip.startDate) > new Date())
+    );
+    const pastTrips = trips.filter(trip => 
+      trip.status === 'completed' || 
+      (trip.endDate && new Date(trip.endDate) < new Date())
+    );
+    
+    return {
+      totalTrips: trips.length,
+      upcomingTrips: upcomingTrips.length,
+      pastTrips: pastTrips.length,
+      // TODO: Add posts and followers when social features are implemented
+      posts: 0,
+      followers: 0,
+    };
+  }, [trips]);
+  
+  const statsLoading = meLoading || tripsLoading;
 
   const handleMyTrips = () => {
     router.push('/(app)/(profile)/trips' as any);
@@ -88,11 +127,15 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    router.push('/(app)/(profile)/edit' as any);
+    router.push('/(app)/(profile)/account?edit=true' as any);
   };
 
   const handleSubscription = () => {
     router.push('/(app)/(profile)/subscription' as any);
+  };
+  
+  const handleBookmarks = () => {
+    router.push('/(app)/(profile)/bookmarks' as any);
   };
 
   return (
@@ -100,76 +143,81 @@ export default function ProfileScreen() {
       <Stack.Screen 
         options={{ 
           headerShown: true,
-          title: t('profile.title'),
+          header: () => (
+            <View className="bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
+              <View className="flex-row items-center justify-between px-6 py-4 pt-12">
+                <View className="flex-row items-center flex-1">
+                  <View 
+                    className="w-12 h-12 rounded-full overflow-hidden mr-3"
+                    style={{ 
+                      backgroundColor: isDark ? '#262626' : '#f5f5f5',
+                      borderWidth: 2,
+                      borderColor: isDark ? Colors.dark.primary : Colors.light.primary,
+                    }}
+                  >
+                    <Image
+                      source={appIcon}
+                      className="w-full h-full"
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <CustomText weight="bold" className="text-lg text-black dark:text-white">
+                      {user?.name || t('profile.guest')}
+                    </CustomText>
+                    <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                      {user?.username ? `@${user.username}` : t('profile.description')}
+                    </CustomText>
+                  </View>
+                </View>
+                <TouchableOpacity
+                  onPress={handleEditProfile}
+                  className="w-10 h-10 rounded-full items-center justify-center bg-gray-100 dark:bg-neutral-800"
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={20}
+                    color={isDark ? '#fff' : '#000'}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          ),
         }} 
       />
 
       <ScrollView className="flex-1">
-        {/* Profile Header */}
-        <View className="px-6 pt-6 pb-4 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
-          <View className="flex-row items-center justify-between mb-4">
-            <View className="flex-row items-center flex-1">
-              <View 
-                className="w-20 h-20 rounded-full overflow-hidden mr-4"
-                style={{ 
-                  backgroundColor: isDark ? '#262626' : '#f5f5f5',
-                  borderWidth: 3,
-                  borderColor: isDark ? Colors.dark.primary : Colors.light.primary,
-                }}
-              >
-                <Image
-                  source={appIcon}
-                  className="w-full h-full"
-                  resizeMode="contain"
-                />
-              </View>
-              <View className="flex-1">
-                <CustomText weight="bold" className="text-2xl text-black dark:text-white mb-1">
-                  {user?.name || t('profile.guest')}
-                </CustomText>
-                <CustomText className="text-base text-gray-600 dark:text-gray-400">
-                  {user?.username ? `@${user.username}` : t('profile.description')}
-                </CustomText>
-              </View>
-            </View>
-            <TouchableOpacity
-              onPress={handleEditProfile}
-              className="w-10 h-10 rounded-full items-center justify-center bg-gray-100 dark:bg-neutral-800"
-            >
-              <Ionicons
-                name="create-outline"
-                size={22}
-                color={isDark ? '#fff' : '#000'}
-              />
-            </TouchableOpacity>
-          </View>
-
-          {/* Stats */}
+        {/* Stats */}
+        <View className="px-6 pt-4 pb-4">
           <View className="flex-row items-center justify-around py-4 bg-gray-50 dark:bg-neutral-900 rounded-2xl">
-            <View className="items-center">
+            <TouchableOpacity 
+              className="items-center flex-1"
+              onPress={handleMyTrips}
+              activeOpacity={0.7}
+            >
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                12
+                {statsLoading ? '...' : stats.totalTrips}
               </CustomText>
               <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {t('profile.trips')}
               </CustomText>
-            </View>
+            </TouchableOpacity>
             <View className="w-px h-10 bg-gray-200 dark:bg-neutral-800" />
-            <View className="items-center">
+            <View className="items-center flex-1">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                48
+                {stats.upcomingTrips}
               </CustomText>
               <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {t('profile.posts')}
+                {t('profile.upcoming')}
               </CustomText>
             </View>
             <View className="w-px h-10 bg-gray-200 dark:bg-neutral-800" />
-            <View className="items-center">
+            <View className="items-center flex-1">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                256
+                {stats.pastTrips}
               </CustomText>
               <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {t('profile.followers')}
+                {t('profile.completed')}
               </CustomText>
             </View>
           </View>
@@ -203,14 +251,14 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Menu */}
-        <View className="px-6">
+        {/* Menu - Simplified, no groupings */}
+        <View className="px-6 pb-4">
           <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
             <MenuItem
-              icon="airplane-outline"
-              title={t('me.myTrips')}
-              subtitle={t('me.myTripsSubtitle')}
-              onPress={handleMyTrips}
+              icon="bookmark-outline"
+              title={t('profile.bookmarksTitle')}
+              subtitle={t('profile.bookmarksSubtitle')}
+              onPress={handleBookmarks}
               isDark={isDark}
               color={isDark ? Colors.dark.primary : Colors.light.primary}
             />
@@ -224,18 +272,18 @@ export default function ProfileScreen() {
               color={isDark ? Colors.dark.primary : Colors.light.primary}
             />
             <MenuItem
-              icon="card-outline"
-              title={t('me.payments')}
-              subtitle={t('me.paymentsSubtitle')}
-              onPress={() => router.push('/(app)/(profile)/payments' as any)}
-              isDark={isDark}
-              color={isDark ? Colors.dark.primary : Colors.light.primary}
-            />
-            <MenuItem
               icon="settings-outline"
               title={t('profile.settings')}
               subtitle={t('settings.subtitle')}
               onPress={handleSettings}
+              isDark={isDark}
+              color={isDark ? Colors.dark.primary : Colors.light.primary}
+            />
+            <MenuItem
+              icon="card-outline"
+              title={t('me.payments')}
+              subtitle={t('me.paymentsSubtitle')}
+              onPress={() => router.push('/(app)/(profile)/payments' as any)}
               isDark={isDark}
               color={isDark ? Colors.dark.primary : Colors.light.primary}
             />
