@@ -17,7 +17,7 @@ import { Query } from './queries';
 import { Mutation } from './mutations';
 import { Subscription } from './subscriptions';
 import { Env } from './types';
-import packageJson from '../package.json';
+import { APP_VERSION } from './version';
 
 // Define __DEV__ for worker (Cloudflare Workers don't have NODE_ENV)
 // In production, this will be false; in development, it can be true
@@ -244,8 +244,8 @@ const fetch = async (
   
   // Landing page at root
   if (url.pathname === '/' || url.pathname === '') {
-    // Replace version placeholders in landing page HTML with actual version from package.json
-    const version = packageJson.version || '0.0.0';
+    // Replace version placeholders in landing page HTML with actual version
+    const version = APP_VERSION;
     const htmlWithVersion = landingPageHTML
       .replace(/{{VERSION}}/g, `v${version}`)
       .replace(/{{VERSION_PLAIN}}/g, version);

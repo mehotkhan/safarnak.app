@@ -178,7 +178,7 @@ jobs:
 
       - name: ⚡ Worker build test
         run: |
-          npx wrangler deploy --dry-run --config wrangler.toml
+          npx wrangler deploy --dry-run --config wrangler.jsonc
 
   # ============================================================================
   # Summary
