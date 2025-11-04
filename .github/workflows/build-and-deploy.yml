@@ -83,14 +83,14 @@ jobs:
           const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
           const current = pkg.version.trim();
           
-          // Get commit message
-          let msg = process.env.COMMIT_MSG || '';
-          if (!msg || msg === 'null') {
-            try { msg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
+          // Check latest commit message first
+          let latestMsg = process.env.COMMIT_MSG || '';
+          if (!latestMsg || latestMsg === 'null') {
+            try { latestMsg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
           }
           
-          // Skip bump if commit has [skip ci] or is a version bump commit
-          if (msg.includes('[skip ci]') || msg.includes('chore: bump version') || msg.includes('chore(release)')) {
+          // Skip bump if latest commit has [skip ci] or is a version bump commit
+          if (latestMsg.includes('[skip ci]') || latestMsg.includes('chore: bump version') || latestMsg.includes('chore(release)')) {
             console.log('⏭️  Skipping version bump (version commit or [skip ci])');
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${current}\n`);
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=skip\n`);
@@ -98,28 +98,122 @@ jobs:
             process.exit(0);
           }
           
-          // Determine bump type
-          let bump = 'build';
-          const m = current.split('.').map(n=>parseInt(n,10)||0);
-          if (/^(feat|feature)(\(|:)/.test(msg)) { 
-            m[1]+=1; 
-            m[2]=0; 
-            bump='minor'; 
-          } else if (/^(fix|bugfix)(\(|:)/.test(msg)) { 
-            m[2]+=1; 
-            bump='patch'; 
+          // Fetch all tags to get latest release
+          try {
+            cp.execSync('git fetch --tags --force 2>/dev/null', { stdio: 'ignore' });
+          } catch (e) {
+            console.log('ℹ️  Could not fetch tags, continuing...');
           }
           
-          const next = bump==='build' ? current : `${m[0]}.${m[1]}.${m[2]}`;
+          // Get latest release tag (matching pattern vX.Y.Z)
+          let lastTag = '';
+          try {
+            const tags = cp.execSync('git tag --sort=-version:refname | grep -E "^v[0-9]+\\.[0-9]+\\.[0-9]+$" | head -n 1', { encoding: 'utf8' }).trim();
+            if (tags) {
+              lastTag = tags.split('\n')[0];
+              console.log(`📋 Found last release tag: ${lastTag}`);
+            }
+          } catch (e) {
+            console.log('ℹ️  No previous release tag found');
+          }
+          
+          // Get all commits since last release (or last 50 commits if no tag)
+          let commitMessages = [];
+          try {
+            if (lastTag) {
+              const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges`, { encoding: 'utf8' }).trim();
+              commitMessages = commits.split('\n\n').filter(msg => msg.trim());
+            } else {
+              // No previous tag, check last 50 commits
+              const commits = cp.execSync('git log --pretty=%B --no-merges -50', { encoding: 'utf8' }).trim();
+              commitMessages = commits.split('\n\n').filter(msg => msg.trim());
+            }
+          } catch (e) {
+            console.log('ℹ️  Could not get commits, using latest commit only');
+            commitMessages = [latestMsg];
+          }
+          
+          // Filter out version bump commits and [skip ci] commits
+          commitMessages = commitMessages.filter(msg => {
+            return !msg.includes('[skip ci]') && 
+                   !msg.includes('chore: bump version') && 
+                   !msg.includes('chore(release)');
+          });
+          
+          if (commitMessages.length === 0) {
+            console.log('⏭️  No relevant commits found (all filtered out)');
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${current}\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=skip\n`);
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=false\n`);
+            process.exit(0);
+          }
+          
+          console.log(`📊 Analyzing ${commitMessages.length} commit(s) since last release:`);
+          commitMessages.forEach((msg, i) => {
+            const firstLine = msg.split('\n')[0];
+            console.log(`  ${i + 1}. ${firstLine.substring(0, 60)}${firstLine.length > 60 ? '...' : ''}`);
+          });
+          
+          // Analyze all commits to determine bump type
+          let hasFeat = false;
+          let hasFix = false;
+          let hasBreaking = false;
+          
+          commitMessages.forEach(msg => {
+            const firstLine = msg.trim().split('\n')[0];
+            // Check for features (minor bump)
+            if (/^(feat|feature)(\(|:)/i.test(firstLine)) {
+              hasFeat = true;
+            }
+            // Check for fixes (patch bump)
+            if (/^(fix|bugfix)(\(|:)/i.test(firstLine)) {
+              hasFix = true;
+            }
+            // Check for breaking changes
+            if (msg.includes('BREAKING CHANGE') || /^[^:]+!:/.test(firstLine)) {
+              hasBreaking = true;
+            }
+          });
+          
+          // Determine bump type based on commit analysis
+          let bump = 'build';
+          const m = current.split('.').map(n => parseInt(n, 10) || 0);
+          
+          if (hasBreaking) {
+            // Breaking changes → major bump
+            m[0] += 1;
+            m[1] = 0;
+            m[2] = 0;
+            bump = 'major';
+            console.log('🚨 Breaking changes detected → major version bump');
+          } else if (hasFeat) {
+            // Features → minor bump
+            m[1] += 1;
+            m[2] = 0;
+            bump = 'minor';
+            console.log('✨ Features detected → minor version bump');
+          } else if (hasFix) {
+            // Fixes only → patch bump
+            m[2] += 1;
+            bump = 'patch';
+            console.log('🐛 Fixes detected → patch version bump');
+          } else {
+            console.log('ℹ️  No feat/fix commits detected → build only (no version change)');
+          }
+          
+          const next = bump === 'build' ? current : `${m[0]}.${m[1]}.${m[2]}`;
           const shouldRelease = bump !== 'build';
           
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${next}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=${bump}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=${shouldRelease}\n`);
           
-          console.log(`📦 Current: ${current} -> Next: ${next} (${bump})`);
-          if (shouldRelease) console.log('✅ Will create new release');
-          else console.log('ℹ️  Build-only (no version change)');
+          console.log(`\n📦 Version: ${current} → ${next} (${bump})`);
+          if (shouldRelease) {
+            console.log('✅ Will create new release');
+          } else {
+            console.log('ℹ️  Build-only (no version change)');
+          }
           NODE
 
       - name: Check if version actually changed
