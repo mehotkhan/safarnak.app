@@ -5,15 +5,15 @@ Project Overview
 - Client: Expo React Native (Android/iOS/Web) with NativeWind v4.
 - Server: Cloudflare Worker (GraphQL Yoga), Cloudflare D1 via Drizzle ORM.
 - Shared: GraphQL schema and operations under `graphql/` used by both client and worker.
-- Worker-only: `database/` schemas (legacy, server-only); NEVER import from this in client code.
-- Database: `database/` folder contains all database schemas - legacy worker schema (integer IDs), unified schema (base/server/client with text IDs), and client utilities.
+- Shared: Database schema (`database/schema.ts`) shared between client and worker - unified schema with UUID IDs, separate adapters for server (D1) and client (expo-sqlite).
+- Database: `database/` folder contains unified schema with separate adapters - same table definitions, different database backends.
 
 Current Stack (as of v0.17.0)
 - TypeScript ~5.9.3
 - React 19.1.0, React Native 0.81.5, Expo ~54.0.20
 - Expo Router ~6.0.13, NativeWind ^4.1.21, Tailwind ^3.4.17
 - Apollo Client 3.8.0, GraphQL ^16.11.0, GraphQL Yoga ^5.16.0
-- Drizzle ORM ^0.44.7 (Worker-only), Cloudflare D1
+- Drizzle ORM ^0.44.7 (Shared schema for both server & client), Cloudflare D1 (server), Expo SQLite (client)
 - Subscriptions: `graphql-workers-subscriptions` ^0.1.6 with Durable Objects
 - ESLint ^9.38.0, Prettier ^3.6.2
 
@@ -22,11 +22,14 @@ Repository Structure
 worker/                 # Cloudflare Worker resolvers and entry
 graphql/                # Shared GraphQL schema + operations
 api/                    # Client GraphQL types & hooks (generated, with automatic Drizzle sync)
-database/               # Database schemas & migrations + client utilities
-├── drizzle.ts        # Legacy worker-only schema (integer IDs) - for migrations
-├── schema.ts         # Unified schema (base, server, client tables with text IDs)
-├── client.ts         # Client database utilities (db, sync, stats)
-└── index.ts          # Main exports
+database/               # Shared database schema and adapters
+├── schema.ts         # Unified schema with UUIDs (server + client tables in one file)
+├── server.ts         # Server adapter (Cloudflare D1) - exports getServerDB()
+├── client.ts         # Client adapter (Expo SQLite) - exports getLocalDB(), sync utilities
+├── index.ts          # Main exports (re-exports from schema, server, client)
+├── types.ts          # Database types
+└── utils.ts          # UUID utilities (createId, isValidId)
+migrations/           # Server-only migrations (Cloudflare D1, at project root)
 store/                  # Redux Toolkit store, slices, middleware
 app/                    # Expo Router pages
 components/             # UI components & contexts
@@ -79,10 +82,11 @@ Critical Rules
    - `graphql/` is shared between client and worker.
    - `api/` is client-only, generated hooks with automatic Drizzle sync.
    - `worker/` is server-only code.
-   - `database/` contains:
-     * `drizzle.ts` - Legacy worker-only schema (integer IDs) - used by worker resolvers
-     * `schema.ts` - Unified schema (base/server/client) with text IDs - shared between client and worker
-     * `client.ts` - Client database utilities (only import in client code)
+   - `database/schema.ts` is SHARED between client and worker - single source of truth:
+     * `schema.ts` - Unified schema defining both server tables (users, trips, etc.) and client cached tables (cachedUsers, cachedTrips, etc.) with UUID IDs
+     * `server.ts` - Server adapter: `getServerDB(d1)` for Cloudflare D1 (worker resolvers use this)
+     * `client.ts` - Client adapter: `getLocalDB()` for Expo SQLite (client components use this)
+     * Both adapters import from the same `schema.ts` file, ensuring schema consistency
      * `index.ts` - Exports all schemas and utilities
 4) Always run `yarn codegen` after changing GraphQL schema or operations.
 5) Never manually edit generated files (`api/types.ts`, `api/hooks.ts`).
@@ -155,7 +159,8 @@ When Making Changes
 - Prefer path aliases; avoid relative imports.
 - Update `graphql/schema.graphql` and `graphql/queries/*.graphql` first, then `yarn codegen`.
 - Implement worker resolvers in `worker/*` only.
-- Do not touch generated files or import `database/` in client code.
+- Do not touch generated files (`api/hooks.ts`, `api/types.ts`).
+- Use `@database/server` for worker resolvers, `@database/client` for client components.
 
 # Safarnak App - Cursor AI Configuration
 
@@ -168,8 +173,7 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Worker**: Cloudflare Worker backend (`worker/index.ts` - entry point defined in wrangler.toml)
 - **Resolvers**: GraphQL resolvers in `worker/` folder (server-side only)
 - **Shared**: GraphQL schema (`graphql/`) shared between client & worker
-- **Worker-Only**: Database schemas (`database/`) used ONLY in worker, never in client (legacy)
-- **Shared Drizzle**: Unified schema (`drizzle/`) with base tables shared, server/client extensions separate
+- **Shared Drizzle**: Unified database schema (`database/schema.ts`) shared between client and worker - same table definitions with UUID IDs, separate adapters for server (D1) and client (expo-sqlite)
 - **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
 - **No Workspaces**: This is NOT a Yarn workspace - it's a single package.json project
 
@@ -186,7 +190,7 @@ You are working on **Safarnak**, a full-stack offline-first travel application. 
 - **Redux Persist** ^6.0.0 - Persistent state
 - **Apollo Client** 3.8.0 - GraphQL client
 - **react-i18next** ^16.2.1 - Internationalization (English + Persian/Farsi)
-- **Drizzle ORM** ^0.44.7 - Type-safe database queries (server-side only, Cloudflare D1)
+- **Drizzle ORM** ^0.44.7 - Type-safe database queries (shared schema for both server & client)
 
 ### Backend (Worker)
 - **Cloudflare Workers** - Serverless edge runtime
@@ -239,13 +243,14 @@ safarnak.app/                           # Single root directory
 │   ├── types.ts                        # 🤖 Auto-generated GraphQL types
 │   ├── utils.ts                        # Client utility functions (storage, error handling, network checks, logout, API types)
 │   └── index.ts                        # Main API exports (re-exports enhanced hooks + all utilities)
-├── database/                           # Database schemas (WORKER-ONLY, legacy, not used in client)
-│   ├── drizzle.ts                      # Drizzle schema: users, tours, messages, subscriptions
-│   └── migrations/                     # SQL migration files
-├── drizzle/                            # Unified Drizzle schema (shared + client)
-│   ├── schema.ts                       # All table definitions (base, server, client)
-│   ├── client.ts                       # Client utilities (db, sync, stats)
-│   └── index.ts                        # Main exports
+├── database/                           # Shared database schema and adapters
+│   ├── schema.ts                       # Unified schema with UUIDs (server + client tables in one file)
+│   ├── server.ts                       # Server adapter (Cloudflare D1) - exports getServerDB()
+│   ├── client.ts                       # Client adapter (Expo SQLite) - exports getLocalDB(), sync utilities
+│   ├── index.ts                        # Main exports (re-exports from schema, server, client)
+│   ├── types.ts                        # Database types
+│   └── utils.ts                        # UUID utilities (createId, isValidId)
+├── migrations/                         # Server-only migrations (Cloudflare D1, at project root)
 ├── store/                              # Redux state management (CLIENT)
 │   ├── index.ts                        # Store configuration with persist
 │   ├── hooks.ts                        # Typed useAppDispatch, useAppSelector
@@ -307,9 +312,7 @@ safarnak.app/                           # Single root directory
 "@/*"           → "./*"              // Root files (use '@/api' not '../api')
 "@components/*" → "./components/*"   // UI components
 "@graphql/*"    → "./graphql/*"      // Shared GraphQL definitions
-"@database/*"   → "./database/*"     // Database schemas (worker-only, legacy, not for client imports)
-"@drizzle"      → "./drizzle"        // Unified Drizzle schema & client utilities
-"@drizzle/*"    → "./drizzle/*"
+"@database/*"   → "./database/*"     // Shared database schema & adapters (schema.ts, server.ts, client.ts)
 "@worker/*"     → "./worker/*"       // Worker resolvers
 "@api"          → "./api"            // API layer (client hooks)
 "@api/*"        → "./api/*"          // API subfolder imports
@@ -364,46 +367,51 @@ import { Subscription } from './subscriptions';
 
 ### 2. Database Patterns
 
-**Unified Drizzle Schema (drizzle/):**
-- `drizzle/schema.ts` - All table definitions (base, server extensions, client extensions)
-- Base tables: `usersBase`, `tripsBase`, `toursBase`, `placesBase`, `messagesBase` (shared)
-- Server extensions: `users` (with passwordHash), `subscriptions`, `userPreferences`
-- Client extensions: `cachedUsers`, `cachedTrips`, etc. (with sync metadata: cachedAt, lastSyncAt, pending)
+**Shared Drizzle Schema (database/):**
+- `database/schema.ts` - **Unified schema** defining both server tables and client cached tables with UUID IDs
+- Server tables: `users`, `trips`, `tours`, `messages`, `subscriptions`, etc. (used by worker via `database/server.ts`)
+- Client cached tables: `cachedUsers`, `cachedTrips`, `cachedTours`, etc. (used by client via `database/client.ts`)
+- Both use UUID (text) IDs for consistency - no conversions needed
+- Shared field definitions reduce duplication (`userFields`, `tripFields`, etc.)
 
-**Worker Usage (database/ - legacy):**
-- Worker uses `database/drizzle.ts` for server-side D1 database
-- Uses integer IDs (autoIncrement) for database storage
-- Converts to string IDs for GraphQL responses
-- **DO NOT import from `database/` in client code**
+**Server Usage (Worker):**
+- Worker uses `database/server.ts` → `getServerDB(d1)` for Cloudflare D1 database
+- Imports server tables from `database/schema.ts` (e.g., `users`, `trips`, `tours`)
+- All IDs are UUIDs (text) - work seamlessly with GraphQL `ID!` type
+- Server-only fields: `passwordHash` (users), `aiGenerated` (trips), etc.
 
-**Client Usage (drizzle/):**
-- Client uses `drizzle/client.ts` for local expo-sqlite database
-- Uses text IDs to match GraphQL ID type (string)
+**Client Usage:**
+- Client uses `database/client.ts` → `getLocalDB()` for Expo SQLite database
+- Imports client cached tables from `database/schema.ts` (e.g., `cachedUsers`, `cachedTrips`)
+- Same UUID format as server tables - perfect consistency
 - Automatic Apollo cache sync via `syncApolloToDrizzle()`
 - Enhanced hooks automatically sync to Drizzle after every query/mutation
 
 **Worker Resolvers:**
 ```typescript
-import { drizzle } from 'drizzle-orm/d1';
-import { users } from '@database/drizzle'; // Legacy worker schema
+import { getServerDB, users, trips } from '@database/server';
+import { eq } from 'drizzle-orm';
 
-const db = drizzle(context.env.DB);
-const user = await db.select().from(users).where(eq(users.id, id)).get();
+const db = getServerDB(context.env.DB);
+const user = await db.select().from(users).where(eq(users.id, userId)).get();
+// userId is a UUID string - no conversions needed!
 ```
 
 **Client Local Database:**
 ```typescript
-import { getLocalDB, cachedTrips } from '@drizzle/client';
+import { getLocalDB, cachedTrips } from '@database/client';
 import { eq } from 'drizzle-orm';
 
 const db = await getLocalDB();
-const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, userId));
+const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, userId)).all();
+// Works offline - queries local SQLite database
 ```
 
 **Migrations:**
-- Generate: `yarn db:generate` (for server database)
-- Apply: `yarn db:migrate` (for server database)
-- Client database: Auto-migrated on app initialization (see `drizzle/client.ts`)
+- Generate: `yarn db:generate` (for server database from `database/schema.ts`)
+- Apply: `yarn db:migrate` (for server D1 database)
+- Client database: Auto-migrated on app initialization (see `database/client.ts`)
+- Schema exports: `drizzle.config.ts` points to `schema.ts` (exports `serverSchema` as `schema` for migrations)
 
 ### 3. Authentication
 
@@ -745,21 +753,23 @@ const { t } = useTranslation();
 - Imported in `app/_layout.tsx` for global availability
 
 **drizzle.config.ts** - Database (Worker)
-- Schema location: `database/drizzle.ts` (worker-only, legacy)
-- Migrations: `database/migrations/`
+- Schema location: `database/schema.ts` (exports `serverSchema` as `schema` for migrations)
+- Migrations: `migrations/` (at project root, for D1 database)
 - Dialect: SQLite
 
-**drizzle/** - Unified Drizzle Schema
-- `schema.ts` - All table definitions (base, server, client)
-- `client.ts` - Client database utilities (db instance, sync, stats)
-- `index.ts` - Main exports
+**database/** - Shared Drizzle Schema
+- `schema.ts` - Unified schema with UUIDs (server + client tables in one file)
+- `server.ts` - Server adapter: `getServerDB(d1)` for Cloudflare D1
+- `client.ts` - Client adapter: `getLocalDB()` for Expo SQLite, sync utilities, stats
+- `index.ts` - Main exports (re-exports from schema, server, client)
+- `utils.ts` - UUID utilities (createId, isValidId) - runtime-optimized for each platform
 - Client uses expo-sqlite, auto-migrated on initialization
 
 ## Critical Rules
 
 1. **Never add `"type": "module"` to package.json** - causes metro.config.js to fail
 2. **Use eslint.config.mjs** - ES module config works without "type": "module"
-3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only, `database/` is worker-only (legacy), `drizzle/` is unified schema (base shared, server/client extensions separate)
+3. **Perfect Separation**: GraphQL folder is shared, API folder is client-only, Worker folder is server-only, `database/schema.ts` is SHARED between client and worker (unified schema with separate adapters)
 4. **GraphQL Codegen**: Always run `yarn codegen` after modifying schema or operations
 5. **Worker code is server-only** - Never import from client code
 6. **Use path aliases** - Avoid relative imports
@@ -839,17 +849,28 @@ const { t } = useTranslation();
 ### Adding New Database Tables
 
 **For Server (Worker):**
-1. **Update Schema**: Add table to `database/drizzle.ts` (worker-only, legacy)
-2. **Update Unified Schema**: Also add to `drizzle/schema.ts` as base table or server extension
-3. **Generate Migration**: Run `yarn db:generate`
-4. **Apply Migration**: Run `yarn db:migrate`
-5. **Update GraphQL Schema**: Add types to `graphql/schema.graphql` if exposing data to client
-6. **Generate Client Code**: Run `yarn codegen` to create client hooks
+1. **Update Unified Schema**: Add server table to `database/schema.ts` (e.g., `users`, `trips`, `tours`)
+   - Use UUID (text) IDs: `text('id').primaryKey().$defaultFn(() => createId())`
+   - Add to `serverSchema` export
+2. **Generate Migration**: Run `yarn db:generate` (from `database/schema.ts`)
+3. **Apply Migration**: Run `yarn db:migrate` (for D1 database)
+4. **Update GraphQL Schema**: Add types to `graphql/schema.graphql` if exposing data to client
+5. **Generate Client Code**: Run `yarn codegen` to create client hooks
 
-**For Client (if needed):**
-1. **Update Unified Schema**: Add cached table to `drizzle/schema.ts` as client extension
-2. **Client auto-migration**: Tables created automatically on app initialization
-3. **Automatic Sync**: Apollo cache automatically syncs to new cached tables
+**For Client Cached Tables (if needed):**
+1. **Update Unified Schema**: Add cached table to `database/schema.ts` (e.g., `cachedUsers`, `cachedTrips`)
+   - Reuse shared field definitions from server tables via spread operator
+   - Add sync metadata: `cachedAt`, `lastSyncAt`, `pending`, `deletedAt`
+   - Add to `clientSchema` export
+2. **Client auto-migration**: Tables created automatically on app initialization (see `database/client.ts`)
+3. **Automatic Sync**: Apollo cache automatically syncs to new cached tables via `syncApolloToDrizzle()`
+
+**Key Points:**
+- All tables use UUID (text) IDs for consistency
+- Server and client tables are defined in the same `database/schema.ts` file
+- Server uses `getServerDB(d1)` from `@database/server`
+- Client uses `getLocalDB()` from `@database/client`
+- Both import from the same schema file, ensuring perfect consistency
 
 ### Adding New UI Components
 
@@ -860,4 +881,4 @@ const { t } = useTranslation();
 
 ---
 
-**Remember**: This is a unified monorepo with perfect separation. GraphQL folder is shared, API folder is client-only, Worker folder is server-only. Always run `yarn codegen` after GraphQL changes and never manually edit auto-generated files.
+**Remember**: This is a unified monorepo with perfect separation. GraphQL folder is shared, API folder is client-only, Worker folder is server-only, `database/schema.ts` is SHARED between client and worker (unified schema with separate adapters). Always run `yarn codegen` after GraphQL changes and never manually edit auto-generated files. Use `@database/server` for worker resolvers and `@database/client` for client components.

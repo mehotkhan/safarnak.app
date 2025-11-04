@@ -31,7 +31,7 @@
 - [Authentication Flow](#-authentication-flow)
 - [Internationalization](#-internationalization)
 - [Key Concepts](#-key-concepts)
-- [Offline-First Plan (Summary)](#-offline-first-plan-summary)
+- [Offline-First Architecture](#-offline-first-architecture)
 - [Technical Review & Checklist (Summary)](#-technical-review--checklist-summary)
 - [Contributing](#-contributing)
 - [Code of Conduct](#-code-of-conduct)
@@ -45,10 +45,11 @@
 
 ### Key Concepts
 
-- **Client** (React Native): Expo app with Redux state management, Apollo Client for GraphQL, NativeWind v4 for styling, and offline-first architecture
+- **Client** (React Native): Expo app with Redux state management, Apollo Client for GraphQL, NativeWind v4 for styling, and offline-first architecture with local SQLite database
 - **Server** (Cloudflare Workers): Serverless GraphQL API using GraphQL Yoga, with Cloudflare D1 (SQLite) database
 - **Shared** (GraphQL): Type-safe GraphQL schema and operations shared between client and worker
-- **Worker-Only** (Drizzle ORM): Database schemas only used in worker code, **never imported in client**
+- **Shared** (Drizzle ORM): Unified database schema shared between client and worker - same table definitions with UUID IDs, used by both server (D1) and client (expo-sqlite) adapters
+- **Offline-First**: Automatic Apollo cache → Drizzle sync enables offline queries with full SQL capabilities
 - **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
 - **Codegen**: Auto-generates TypeScript types and React Apollo hooks from GraphQL schema
 
@@ -72,7 +73,7 @@ If you're new to this project, follow this path to get up to speed:
 9. **Authentication Flow** (10 min) → Understand how auth works
 
 #### Day 4: Advanced Topics
-10. **Offline-First Plan** (15 min) → Understand the local-first architecture
+10. **Offline-First Architecture** (15 min) → Understand the shared schema and automatic sync system
 11. **Technical Review** (20 min) → Be aware of current limitations and priorities
 12. **Contributing Guide** → Read `CONTRIBUTING.md` for PR guidelines
 
@@ -108,7 +109,7 @@ flowchart TB
 
   subgraph Shared["🔗 Shared Layer"]
     H["graphql/ - Schema + Operations"]
-    I["database/ - Unified Schema"]
+    I["database/schema.ts - Shared Drizzle Schema<br/>(Server + Client Tables)"]
   end
 
   subgraph Worker["⚡ Server Layer (Cloudflare Workers)"]
@@ -136,6 +137,7 @@ flowchart TB
   H --> K
   I --> F
   I --> L
+  I --> J
 ```
 
 ### Client Architecture (Detailed)
@@ -520,9 +522,9 @@ sequenceDiagram
 1. **Define GraphQL Schema** (`graphql/schema.graphql`) - Shared between client and worker
 2. **Define Operations** (`graphql/queries/*.graphql`) - Queries and mutations
 3. **Run Codegen** - Auto-generates TypeScript types and React hooks in `api/`
-4. **Enhanced Hooks** - Automatically wrap generated hooks with Drizzle sync and offline support
-5. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic
-6. **Use in App** (`app/`, `components/`) - Import enhanced hooks from `@api`
+4. **Enhanced Hooks** (`api/enhanced-hooks.ts`) - Automatically wraps generated hooks with Drizzle sync and offline support
+5. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic using `getServerDB()` from `@database/server`
+6. **Use in App** (`app/`, `components/`) - Import enhanced hooks from `@api` (they auto-sync to Drizzle)
 
 ---
 
@@ -651,12 +653,13 @@ components/                   # 🎨 Reusable UI components
     └── OfflineIndicator.tsx # Network status indicator
 
 api/                          # 🌐 GraphQL client layer
-├── hooks.ts                 # ✨ Auto-generated React Apollo hooks
-├── types.ts                 # ✨ Auto-generated TypeScript types
-├── client.ts                # Apollo Client setup (auth, cache, links)
-├── utils.ts                 # API utilities (storage, error handling)
+├── hooks.ts                 # ✨ Auto-generated React Apollo hooks (never edit manually)
+├── types.ts                 # ✨ Auto-generated TypeScript types (never edit manually)
+├── enhanced-hooks.ts        # Enhanced hooks with automatic Drizzle sync (wraps hooks.ts)
+├── client.ts                # Apollo Client setup (auth, cache, links, SQLite persistence)
+├── utils.ts                 # API utilities (storage, error handling, logout)
 ├── api-types.ts             # API-specific types (ApiError, ApiResponse)
-└── index.ts                 # Main exports (re-exports hooks)
+└── index.ts                 # Main exports (re-exports enhanced hooks + all utilities)
 
 store/                        # 📦 Redux Toolkit state management
 ├── index.ts                 # Store configuration with Redux Persist
@@ -700,13 +703,13 @@ graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)
 └── queries/          # Query definitions (.graphql files)
 
-database/              # 🗄️ Database schemas and client utilities
-├── schema.ts         # Unified schema with UUIDs (server + client tables)
-├── server.ts         # Server adapter (Cloudflare D1)
-├── client.ts         # Client utilities (db, sync, stats)
-├── index.ts          # Main exports (schema + adapters)
+database/              # 🗄️ Shared database schema and adapters
+├── schema.ts         # Unified schema with UUIDs (server + client tables in one file)
+├── server.ts         # Server adapter (Cloudflare D1) - exports getServerDB()
+├── client.ts         # Client adapter (Expo SQLite) - exports getLocalDB(), sync utilities
+├── index.ts          # Main exports (re-exports from schema, server, client)
 ├── types.ts          # Database types
-└── utils.ts          # UUID utilities
+└── utils.ts          # UUID utilities (createId, isValidId)
 migrations/           # Server-only migrations (Cloudflare D1, at project root)
 ```
 
@@ -763,7 +766,8 @@ Safarnak uses **Expo Router** with file-based routing. Routes are organized into
 ```mermaid
 erDiagram
     USERS ||--o{ MESSAGES : sends
-    USERS ||--o{ SUBSCRIPTIONS : has
+    USERS ||--o{ USER_SUBSCRIPTIONS : has
+    USERS ||--o{ SUBSCRIPTIONS : has "GraphQL subscriptions"
     USERS ||--o{ USER_PREFERENCES : has
     USERS ||--o{ TRIPS : creates
     USERS ||--o{ TOURS : creates
@@ -776,32 +780,27 @@ erDiagram
     USERS ||--o{ NOTIFICATIONS : receives
 
     TRIPS ||--o{ ITINERARIES : has
-    TRIPS ||--o{ PLANS : based_on
+    TRIPS ||--o{ PLANS : has
     TRIPS ||--o{ THOUGHTS : generated_by
     TRIPS ||--o{ MESSAGES : discusses
 
-    TOURS ||--o{ TRIPS : includes
     TOURS ||--o{ PAYMENTS : requires
-    TOURS ||--o{ NOTIFICATIONS : sends
-
-    PLANS ||--o{ LOCATIONS : includes
-    PLANS ||--o{ PLACES : visits
-
-    POSTS ||--o{ COMMENTS : has
-    POSTS ||--o{ REACTIONS : has
-    POSTS ||--|{ TRIPS : shares
-    POSTS ||--|{ TOURS : shares
-    POSTS ||--|{ PLANS : shares
 
     LOCATIONS ||--o{ PLACES : contains
 
+    POSTS ||--o{ COMMENTS : has
+    POSTS ||--o{ REACTIONS : has
+    POSTS ||--o| TRIPS : references "via relatedId"
+    POSTS ||--o| TOURS : references "via relatedId"
+    POSTS ||--o| PLANS : references "via relatedId"
+
     CACHE }|..|{ EXTERNAL_API : stores
 
-    SUBSCRIPTIONS ||--|{ USERS : for
-    SUBSCRIPTIONS ||--o{ PAYMENTS : via
+    USER_SUBSCRIPTIONS ||--|{ USERS : for
+    USER_SUBSCRIPTIONS ||--o{ PAYMENTS : via
 
     USERS {
-        int id PK
+        uuid id PK "UUID (text)"
         string name
         string username UK
         string passwordHash
@@ -814,8 +813,8 @@ erDiagram
     }
 
     USER_PREFERENCES {
-        int id PK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
         json interests
         json budgetRange
         string travelStyle
@@ -826,13 +825,13 @@ erDiagram
     }
 
     TRIPS {
-        int id PK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
         string title
         date startDate
         date endDate
         string destination
-        int budget
+        integer budget "cents/stored units"
         string status
         boolean aiGenerated
         json metadata
@@ -841,21 +840,21 @@ erDiagram
     }
 
     ITINERARIES {
-        int id PK
-        int tripId FK
-        int day
+        uuid id PK "UUID (text)"
+        uuid tripId FK "UUID (text)"
+        integer day
         json activities
         json accommodations
         json transport
         string notes
-        int costEstimate
+        integer costEstimate
         timestamp createdAt
         timestamp updatedAt
     }
 
     PLANS {
-        int id PK
-        int tripId FK
+        uuid id PK "UUID (text)"
+        uuid tripId FK "UUID (text)"
         json mapData "stops, directions"
         json details
         string aiOutput
@@ -863,24 +862,22 @@ erDiagram
     }
 
     TOURS {
-        int id PK
-        int creatorId FK "USERS"
+        uuid id PK "UUID (text)"
         string title
         text description
-        int price
-        json participants "array userIds"
-        string groupChatId
+        integer price "cents"
+        integer rating
+        string location
+        string category
         boolean isActive
         timestamp createdAt
         timestamp updatedAt
     }
 
     MESSAGES {
-        string id PK
+        uuid id PK "UUID (text)"
         text content
-        int userId FK
-        int tripId FK
-        int tourId FK
+        uuid userId FK "UUID (text)"
         string type
         json metadata
         boolean isRead
@@ -888,46 +885,47 @@ erDiagram
     }
 
     POSTS {
-        int id PK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
         text content
         json attachments "R2 URLs"
         string type "plan/trip/tour"
-        int relatedId "trip/tour/plan Id"
+        uuid relatedId "trip/tour/plan UUID"
         timestamp createdAt
     }
 
     COMMENTS {
-        int id PK
-        int postId FK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid postId FK "UUID (text)"
+        uuid userId FK "UUID (text)"
         text content
         timestamp createdAt
     }
 
     REACTIONS {
-        int id PK
-        int postId FK
-        int commentId FK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid postId FK "UUID (text)"
+        uuid commentId FK "UUID (text)"
+        uuid userId FK "UUID (text)"
         string emoji
         timestamp createdAt
     }
 
     PAYMENTS {
-        int id PK
-        int userId FK
-        int tourId FK
-        int subscriptionId FK
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
+        uuid tourId FK "UUID (text)"
+        uuid subscriptionId FK "UUID (text)"
         string transactionId
-        int amount
+        integer amount
+        string currency "default: IRR"
         string status
         timestamp createdAt
     }
 
-    SUBSCRIPTIONS {
-        int id PK
-        int userId FK
+    USER_SUBSCRIPTIONS {
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
         string tier "free/member/pro"
         date startDate
         date endDate
@@ -936,23 +934,23 @@ erDiagram
     }
 
     DEVICES {
-        int id PK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
         string deviceId UK
         string type
         timestamp lastSeen
     }
 
     SESSIONS {
-        string id PK "KV key"
-        int userId FK
+        string id PK "KV key (not in D1)"
+        uuid userId FK "UUID (text)"
         string token
         timestamp expiresAt
     }
 
     NOTIFICATIONS {
-        int id PK
-        int userId FK
+        uuid id PK "UUID (text)"
+        uuid userId FK "UUID (text)"
         string type "tour invite/payment/etc"
         json data
         boolean read
@@ -960,26 +958,27 @@ erDiagram
     }
 
     LOCATIONS {
-        int id PK
+        uuid id PK "UUID (text)"
         string name UK
         string country
         json coordinates
         text description
         json popularActivities
-        int averageCost
+        integer averageCost
         string embedding "Vectorize"
         string imageUrl "R2"
         timestamp createdAt
     }
 
     PLACES {
-        int id PK
+        uuid id PK "UUID (text)"
         string name
-        int locationId FK
+        uuid locationId FK "UUID (text)"
+        uuid ownerId FK "UUID (text)"
         string type "market/room/etc"
         text description
-        int price
-        string ownerId "userId"
+        integer price
+        integer rating
         json coordinates
         string embedding "Vectorize"
         string imageUrl "R2"
@@ -987,11 +986,24 @@ erDiagram
     }
 
     THOUGHTS {
-        int id PK
-        int tripId FK
+        uuid id PK "UUID (text)"
+        uuid tripId FK "UUID (text)"
         text step "AI reasoning step"
         json data "logs/sources"
         timestamp createdAt
+    }
+
+    SUBSCRIPTIONS {
+        uuid id PK "UUID (text)"
+        string connectionId "GraphQL subscription"
+        string connectionPoolId "Durable Object"
+        string subscription "GraphQL query"
+        string topic
+        string filter
+        uuid userId FK "UUID (text)"
+        boolean isActive
+        timestamp createdAt
+        timestamp expiresAt
     }
 
     CACHE {
@@ -1003,16 +1015,24 @@ erDiagram
 
 ### Data Storage Architecture
 
-- **D1 (Relational DB with Drizzle)**: Users, user preferences, trips, itineraries, plans, tours, messages, posts, comments, reactions, payments, subscriptions (tiers), devices, notifications, locations, places, thoughts.
-- **KV (Key-Value Store)**: Sessions (user tokens), cache (external API data like TripAdvisor, web searches).
+- **D1 (Relational DB with Drizzle)**: 
+  - **Server Tables**: Users, user preferences, trips, itineraries, plans, tours, messages, posts, comments, reactions, payments, user subscriptions (tiers), devices, notifications, locations, places, thoughts, subscriptions (GraphQL subscriptions).
+  - **All IDs are UUID (text)** - consistent across server and client
+  - **Shared Schema**: Same schema definitions used by both server (D1) and client (expo-sqlite) adapters
+- **KV (Key-Value Store)**: Sessions (user tokens stored as `token:userId`), cache (external API data like TripAdvisor, web searches).
 - **Vectorize (Vector DB)**: Embeddings (user preferences, destinations, places, activities for similarity searches).
 - **R2 (Object Storage)**: Avatars, image URLs, galleries, attachments (media, maps, docs).
-- **Durable Objects**: Real-time subscriptions (connection state for GraphQL subs, notifications).
+- **Durable Objects**: Real-time subscriptions (connection state for GraphQL subs via `SubscriptionPool`).
+
+**Note**: The ER diagram above shows the server-side D1 database schema. The client uses cached versions of these tables (e.g., `cachedUsers`, `cachedTrips`) with additional sync metadata fields (`cachedAt`, `lastSyncAt`, `pending`) for offline-first functionality.
 
 ### Shared (Critical)
 
 - **`graphql/`** - GraphQL schema and operations (shared between client & worker)
-- **`database/`** - Database schemas (worker-only, used ONLY in worker code)
+- **`database/schema.ts`** - Unified Drizzle schema (shared between client & worker - same table definitions, different adapters)
+  - Server tables: `users`, `trips`, `tours`, etc. (used by worker via `database/server.ts`)
+  - Client cached tables: `cachedUsers`, `cachedTrips`, etc. (used by client via `database/client.ts`)
+  - Both use UUID (text) IDs for consistency
 - **`api/`** - Auto-generated client code (run `yarn codegen` to update)
 
 ---
@@ -1068,8 +1088,7 @@ This generates:
 #### Step 4: Implement Resolver (Worker)
 ```typescript
 // worker/queries/getTours.ts
-import { drizzle } from 'drizzle-orm/d1';
-import { tours } from '@database/drizzle';
+import { getServerDB, tours } from '@database/server';
 import { eq, and } from 'drizzle-orm';
 
 export const getTours = async (
@@ -1077,7 +1096,7 @@ export const getTours = async (
   { category, limit }: { category?: string; limit?: number },
   context: any
 ) => {
-  const db = drizzle(context.env.DB);
+  const db = getServerDB(context.env.DB);
   let query = db.select().from(tours).where(eq(tours.isActive, true));
   
   if (category) {
@@ -1098,12 +1117,14 @@ export * from './getTours';
 #### Step 5: Use in Component
 ```typescript
 // app/(app)/(explore)/tours/index.tsx
-import { useGetToursQuery } from '@api';
-import { ActivityIndicator, View } from 'react-native';
+import { useGetToursQuery } from '@api'; // Enhanced hook with automatic Drizzle sync
+import { ActivityIndicator, View, Text } from 'react-native';
 
 export default function ToursScreen() {
+  // This hook automatically syncs to Drizzle after query completes
   const { data, loading, error } = useGetToursQuery({
     variables: { category: 'adventure', limit: 10 }
+    // fetchPolicy defaults to 'cache-and-network' for offline support
   });
 
   if (loading) return <ActivityIndicator />;
@@ -1290,9 +1311,10 @@ yarn version:minor    # Release-it minor bump (CI)
 |-------|-----------|---------|
 | **Frontend** | React Native 0.81.5 | Mobile UI |
 | **Backend** | Cloudflare Workers | Serverless API |
-| **Database** | Cloudflare D1 (SQLite) | Server database |
+| **Server Database** | Cloudflare D1 (SQLite) | Server database via Drizzle |
+| **Client Database** | Expo SQLite | Local offline database via Drizzle |
 | **GraphQL** | GraphQL Yoga 5.16.0 | API layer |
-| **ORM** | Drizzle 0.44.7 | Type-safe queries (worker-only) |
+| **ORM** | Drizzle 0.44.7 | Type-safe queries (shared schema for both server & client) |
 | **Styling** | NativeWind 4.1.21 + Tailwind CSS 3.4.17 | Utility-first CSS |
 | **State** | Redux Toolkit 2.9.2 | Client state |
 | **Codegen** | GraphQL Codegen 6.0.1 | Auto-generate types |
@@ -1397,19 +1419,28 @@ const { t } = useTranslation();
 - **`graphql/`** - Shared schema and operations (used by both client & worker)
 - **`api/`** - Auto-generated client code only (client-side GraphQL hooks with automatic Drizzle sync)
 - **`worker/`** - Server-only resolvers (entry: `worker/index.ts`)
-- **`database/`** - Database schemas (unified schema with shared fields) + client utilities
-  - `schema.ts` - Unified schema with UUIDs (server + client tables)
-  - `server.ts` - Server adapter for Cloudflare D1
-  - `client.ts` - Client database utilities (local SQLite, sync, stats)
-  - `migrations/` - Server-only migrations (located at project root)
+- **`database/`** - **Shared** database schema with separate adapters for server and client
+  - `schema.ts` - **Unified schema** defining both server tables (users, trips, etc.) and client cached tables (cachedUsers, cachedTrips, etc.) with UUID IDs
+  - `server.ts` - Server adapter: `getServerDB(d1)` for Cloudflare D1 (worker resolvers use this)
+  - `client.ts` - Client adapter: `getLocalDB()` for Expo SQLite (client components use this)
+  - Both adapters import from the same `schema.ts` file, ensuring schema consistency
+  - `migrations/` - Server-only migrations (located at project root, for D1 database)
 
 ### Auto-Generated Code
 
 **Never manually edit**:
-- `api/hooks.ts` - Generated React hooks
-- `api/types.ts` - Generated TypeScript types
+- `api/hooks.ts` - Auto-generated React Apollo hooks (from GraphQL operations)
+- `api/types.ts` - Auto-generated TypeScript types (from GraphQL schema)
 
-These are generated from `graphql/schema.graphql` and `graphql/queries/*.graphql`.
+**Use these instead**:
+- `api/enhanced-hooks.ts` - Enhanced wrappers that auto-sync to Drizzle (exports from `@api`)
+- `api/index.ts` - Main exports (re-exports enhanced hooks + utilities)
+
+**Generation Process**:
+1. Define schema in `graphql/schema.graphql`
+2. Define operations in `graphql/queries/*.graphql`
+3. Run `yarn codegen` to generate `api/hooks.ts` and `api/types.ts`
+4. Enhanced hooks automatically wrap generated hooks with Drizzle sync
 
 ### Path Aliases
 
@@ -1421,32 +1452,46 @@ Always use aliases, never relative imports:
 
 ## 📶 Offline-First Architecture
 
-Safarnak implements a comprehensive **offline-first architecture** with automatic data synchronization. The system uses a unified Drizzle schema that works seamlessly between client and server, with automatic Apollo cache synchronization to enable advanced SQL queries on cached data.
+Safarnak implements a comprehensive **offline-first architecture** with automatic data synchronization. The system uses a **shared Drizzle schema** that works seamlessly between client and server, with automatic Apollo cache synchronization to enable advanced SQL queries on cached data.
 
-### Unified Drizzle Schema with UUIDs
+### Shared Drizzle Schema Architecture
 
-The app uses a **unified Drizzle schema** (`database/schema.ts`) with **UUID-based IDs** for consistency across server and client. The schema defines:
+The app uses a **unified Drizzle schema** (`database/schema.ts`) that is **shared between worker and client**. This single source of truth ensures schema consistency across both environments:
 
-1. **Server Tables** (`database/schema.ts`): Server-only tables with UUID (text) IDs
-   - Used by worker resolvers and Cloudflare D1 migrations
-   - All IDs are UUIDs (`text('id').primaryKey().$defaultFn(() => createId())`)
+#### Schema Structure
+
+1. **Single Schema File** (`database/schema.ts`):
+   - Contains **all table definitions** in one file
+   - Defines both server tables and client cached tables
+   - Uses **UUID (text) IDs** throughout for consistency
+   - Shared field definitions reduce duplication (`userFields`, `tripFields`, etc.)
+
+2. **Server Tables** (for Cloudflare D1):
+   - Tables: `users`, `trips`, `tours`, `messages`, `subscriptions`, etc.
+   - Used by worker resolvers via `database/server.ts` → `getServerDB(d1)`
+   - All IDs are UUIDs: `text('id').primaryKey().$defaultFn(() => createId())`
    - No ID conversions needed - UUIDs work seamlessly with GraphQL `ID!` type
-   - Defined using shared field objects (`userFields`, `tripFields`, `tourFields`, etc.) to reduce duplication
    - Server-only fields: `passwordHash` (users), `aiGenerated` (trips), etc.
 
-2. **Client Cached Tables** (`database/schema.ts`): Client-only tables with UUID (text) IDs
-   - Used by client-side expo-sqlite database for offline support
+3. **Client Cached Tables** (for Expo SQLite):
+   - Tables: `cachedUsers`, `cachedTrips`, `cachedTours`, `cachedPlaces`, `cachedMessages`
+   - Used by client components via `database/client.ts` → `getLocalDB()`
    - Same UUID format as server tables - perfect consistency
    - Reuses shared field definitions from server tables via spread operator
-   - Includes sync metadata columns (cachedAt, lastSyncAt, pending, deletedAt)
-   - Sync management: `pendingMutations`, `syncMetadata`
+   - Includes sync metadata: `cachedAt`, `lastSyncAt`, `pending`, `deletedAt`
+   - Sync management tables: `pendingMutations`, `syncMetadata`
 
-3. **Shared Field Definitions**: Common columns extracted into reusable objects
-   - `userFields`, `tripFields`, `tourFields`, `placeFields`, `messageFields`
-   - `timestampColumns`, `syncMetadataColumns`, `pendingColumn`
+4. **Shared Field Definitions**:
+   - Common columns extracted into reusable objects: `userFields`, `tripFields`, `tourFields`, `placeFields`, `messageFields`
+   - Metadata columns: `timestampColumns`, `syncMetadataColumns`, `pendingColumn`
    - Reduces duplication and improves maintainability
 
-4. **UUID Generation** (`database/utils.ts`): Runtime-optimized UUID generation
+5. **Separate Adapters**:
+   - **Server**: `database/server.ts` exports `getServerDB(d1)` - uses Cloudflare D1
+   - **Client**: `database/client.ts` exports `getLocalDB()` - uses Expo SQLite
+   - Both import from the same `schema.ts` file, ensuring perfect schema alignment
+
+6. **UUID Generation** (`database/utils.ts`):
    - **Cloudflare Workers**: Uses native `crypto.randomUUID()` (fastest, most secure)
    - **React Native Expo**: Uses `crypto.getRandomValues()` with manual UUID construction
    - **Fallback**: Math.random() only if crypto APIs unavailable (with dev warning)
@@ -1465,14 +1510,15 @@ database/
 migrations/           # Server-only migrations (Cloudflare D1, at project root)
 ```
 
-**Important**: 
-- `drizzle.config.ts` points to `schema.ts` (exports `serverSchema` as `schema`)
-- Migrations are stored at project root (`migrations/`) since they're server-only
-- Client cached tables are auto-migrated on app initialization (see `database/client.ts`)
-- **All tables use UUID (text) IDs** - no more integer/string conversions!
-- Server adapter (`database/server.ts`): `getServerDB(d1)` for Cloudflare D1
-- Client adapter (`database/client.ts`): `getLocalDB()` for Expo SQLite
-- UUIDs generated via `createId()` from `database/utils.ts` (runtime-optimized)
+**Important Architecture Points**: 
+- **Shared Schema**: Both worker and client import from the same `database/schema.ts` file
+- **Separate Adapters**: Server uses `getServerDB(d1)` (D1), client uses `getLocalDB()` (expo-sqlite)
+- **UUID Consistency**: All tables use UUID (text) IDs - no conversions needed between server/client
+- **Migrations**: 
+  - Server migrations at project root (`migrations/`) for D1 database
+  - Client cached tables auto-migrated on app initialization (see `database/client.ts`)
+- **Schema Exports**: `drizzle.config.ts` points to `schema.ts` (exports `serverSchema` as `schema` for migrations)
+- **UUID Generation**: `createId()` from `database/utils.ts` (runtime-optimized for each platform)
 
 ### GraphQL Query System with Automatic Sync
 
@@ -1542,18 +1588,35 @@ function TripsScreen() {
 }
 ```
 
-#### Query Local Database
+#### Query Local Database (Offline)
 
 ```typescript
 import { getLocalDB, cachedTrips } from '@database/client';
 import { eq, desc } from 'drizzle-orm';
 
+// Works offline - queries local SQLite database
 const db = await getLocalDB();
 const trips = await db
   .select()
   .from(cachedTrips)
   .where(eq(cachedTrips.userId, userId))
   .orderBy(desc(cachedTrips.cachedAt));
+```
+
+#### Worker Resolver Usage (Server)
+
+```typescript
+import { getServerDB, trips } from '@database/server';
+import { eq } from 'drizzle-orm';
+
+export const getTrips = async (_: any, args: any, context: any) => {
+  const db = getServerDB(context.env.DB);
+  const userTrips = await db
+    .select()
+    .from(trips)
+    .where(eq(trips.userId, context.userId));
+  return userTrips;
+};
 ```
 
 #### Get Database Statistics
@@ -1579,8 +1642,12 @@ The app includes a comprehensive system status page (`app/(app)/(profile)/system
 
 - **Sync Triggers**: On query/mutation completion (event-driven, no polling)
 - **Performance**: Sync runs in background, doesn't block UI
-- **Storage**: SQLite databases (`apollo_cache.db` + `safarnak_local.db`)
-- **ID Types**: Server uses integers, Client/GraphQL use strings (automatic conversion)
+- **Storage**: 
+  - Apollo Cache: `apollo_cache.db` (normalized GraphQL cache)
+  - Drizzle Cache: `safarnak_local.db` (structured relational cache)
+  - Server: Cloudflare D1 (SQLite via Drizzle)
+- **ID Types**: All tables use UUID (text) IDs - consistent across server, client, and GraphQL
+- **Schema Consistency**: Single source of truth (`database/schema.ts`) ensures server and client schemas stay in sync
 
 For more details, see the offline architecture implementation in `database/` folder.
 
@@ -1665,7 +1732,7 @@ The project is currently at **v0.17.0** (alpha stage). Our focus is on:
 
 1. **Stability**: Fixing authentication security issues, adding input validation
 2. **Core Features**: Completing trip planning, explore, and social features
-3. **Offline Support**: ✅ **Implemented** - Unified Drizzle schema with automatic Apollo sync (see [Offline-First Architecture](#-offline-first-architecture))
+3. **Offline Support**: ✅ **Implemented** - Shared Drizzle schema with automatic Apollo → Drizzle sync (see [Offline-First Architecture](#-offline-first-architecture) section)
 4. **Testing**: Adding unit and integration tests
 5. **Documentation**: ✅ **Updated** - Comprehensive docs in README
 
