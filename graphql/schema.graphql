@@ -24,6 +24,7 @@ type Mutation {
 type Subscription {
   newMessages: Message!
   newAlerts: Alert!
+  tripUpdates(tripId: ID!): TripUpdate!
 }
 
 type Message {
@@ -94,6 +95,7 @@ input UpdateTripInput {
   status: String
   aiReasoning: String
   itinerary: String
+  userMessage: String
 }
 
 type Tour {
@@ -141,5 +143,18 @@ type Alert {
   tripId: ID
   userId: ID!
   read: Boolean
+  createdAt: String!
+}
+
+type TripUpdate {
+  id: ID!
+  tripId: ID!
+  type: String!
+  title: String!
+  message: String!
+  step: Int!
+  totalSteps: Int!
+  status: String!
+  data: String
   createdAt: String!
 }

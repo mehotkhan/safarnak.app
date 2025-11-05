@@ -1,0 +1,15 @@
+subscription TripUpdates($tripId: ID!) {
+  tripUpdates(tripId: $tripId) {
+    id
+    tripId
+    type
+    title
+    message
+    step
+    totalSteps
+    status
+    data
+    createdAt
+  }
+}
+

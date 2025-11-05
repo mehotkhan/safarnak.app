@@ -26,7 +26,8 @@
     "offline": "Offline",
     "retry": "Retry",
     "back": "Back",
-    "disabled": "Disabled"
+    "disabled": "Disabled",
+    "of": "of"
   },
   "home": {
     "title": "Home",
@@ -184,6 +185,8 @@
       "generating": "Generating your perfect trip...",
       "processing": "Processing Trip",
       "waitingMessage": "Your trip is being generated. You'll receive notifications as it progresses. You can view the trip details now.",
+      "step": "Step",
+      "chatPlaceholder": "Ask AI to update your trip...",
       "successTitle": "Trip Created",
       "generated": "Your trip has been generated successfully!",
       "regenerate": "Regenerate Plan",

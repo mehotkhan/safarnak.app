@@ -41,7 +41,7 @@ export async function publishNotification(
   try {
     console.log(`[publishNotification] Publishing to topic: ${topic}`, { topic, payload });
     
-    // Store notification in database if it's an alert
+    // Store notification in database if it's an alert or trip update
     if (topic === 'NEW_ALERTS' && payload.newAlerts) {
       const alert = payload.newAlerts;
       try {
@@ -71,6 +71,13 @@ export async function publishNotification(
         // Log database error but don't fail the publish
         console.error(`[publishNotification] Error storing notification in database:`, dbError);
       }
+    }
+    
+    // Handle trip-specific updates (TRIP_UPDATE topic)
+    // These are published to trip-specific subscribers but don't need to be stored separately
+    // since they're workflow progress updates
+    if (topic === 'TRIP_UPDATE' && payload.tripUpdates) {
+      console.log(`[publishNotification] Publishing trip update for trip ${payload.tripUpdates.tripId}`);
     }
     
     // Use the provided execution context or create a mock one

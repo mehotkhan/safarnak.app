@@ -88,3 +88,21 @@ declare module '*/@graphql/register.graphql' {
   export default defaultDocument;
 }
     
+
+declare module '*/@graphql/tripUpdates.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const TripUpdates: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/updateTrip.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateTrip: DocumentNode;
+
+  export default defaultDocument;
+}
+    

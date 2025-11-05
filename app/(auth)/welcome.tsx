@@ -58,7 +58,7 @@ export default function WelcomeScreen() {
         <View className="flex-row items-center justify-between">
           <Image source={logoBeta} className="w-12 h-12" resizeMode="contain" />
           <TouchableOpacity
-            onPress={() => router.push('/(auth)/login' as any)}
+            onPress={() => router.push('/(auth)/register' as any)}
             className="self-end"
           >
             <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
@@ -93,7 +93,7 @@ export default function WelcomeScreen() {
           title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
           onPress={() => {
             if (isLastSlide) {
-              router.push('/(auth)/login' as any);
+              router.push('/(auth)/register' as any);
             } else {
               swiperRef.current?.scrollBy(1);
             }

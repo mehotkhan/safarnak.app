@@ -34,113 +34,6 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
-// Suppress harmless warnings
-// - shadowOffset warning from react-native-reanimated (cosmetic, doesn't affect functionality)
-// - "Network request failed" from whatwg-fetch (expected when offline)
-// - Uncaught Apollo errors when offline
-if (__DEV__) {
-  const originalWarn = console.warn;
-  const originalError = console.error;
-  
-  console.warn = (...args: any[]) => {
-    const message = args[0]?.toString() || '';
-    const fullMessage = args.map(arg => String(arg)).join(' ');
-    // Ignore shadowOffset warnings from react-native-reanimated
-    if (
-      (message.includes('shadowOffset') || fullMessage.includes('shadowOffset')) &&
-      (message.includes('You are setting the style') || fullMessage.includes('You are setting the style') || fullMessage.includes('as a prop'))
-    ) {
-      return;
-    }
-    // Ignore "Network request failed" warnings from whatwg-fetch (expected when offline)
-    if (
-      fullMessage.includes('Network request failed') ||
-      fullMessage.includes('fetch.umd.js')
-    ) {
-      return;
-    }
-    originalWarn.apply(console, args);
-  };
-  
-  // Suppress uncaught Apollo errors when offline
-  console.error = (...args: any[]) => {
-    const message = args[0]?.toString() || '';
-    const fullMessage = args.map(arg => String(arg)).join(' ');
-    
-    // Suppress Apollo network errors (expected when offline)
-    if (
-      (message.includes('ApolloError') || fullMessage.includes('ApolloError')) &&
-      (fullMessage.includes('Network request failed') || fullMessage.includes('Failed to fetch'))
-    ) {
-      // Only log as debug, not error
-      console.debug('🌐 Apollo network error (offline/unreachable):', fullMessage);
-      return;
-    }
-    
-    // Suppress verbose WebSocket error objects (connection errors are expected during retries)
-    if (
-      fullMessage.includes('WebSocket') &&
-      (fullMessage.includes('_bubbles') || fullMessage.includes('Symbol(') || fullMessage.includes('readyState'))
-    ) {
-      // These are verbose error objects from WebSocket, not actual errors
-      console.debug('🌐 WebSocket connection event (expected during retries)');
-      return;
-    }
-    
-    originalError.apply(console, args);
-  };
-  
-  // Handle uncaught promise rejections (Apollo errors)
-  if (typeof ErrorUtils !== 'undefined' && ErrorUtils.getGlobalHandler) {
-    const originalHandler = ErrorUtils.getGlobalHandler();
-    ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
-      const errorMessage = error?.message || String(error);
-      const errorStack = error?.stack || '';
-      
-      // Suppress Apollo network errors
-      if (
-        (errorMessage.includes('ApolloError') || errorStack.includes('ApolloError')) &&
-        (errorMessage.includes('Network request failed') || errorMessage.includes('Failed to fetch'))
-      ) {
-        if (__DEV__) {
-          console.debug('🌐 Suppressed uncaught Apollo network error (offline):', errorMessage);
-        }
-        return;
-      }
-      
-      // Call original handler for other errors
-      if (originalHandler) {
-        originalHandler(error, isFatal);
-      }
-    });
-  }
-  
-  // Also handle unhandled promise rejections
-  const originalRejectionHandler = (global as any).onunhandledrejection;
-  (global as any).onunhandledrejection = (event: any) => {
-    const error = event?.reason || event;
-    const errorMessage = error?.message || String(error);
-    const errorStack = error?.stack || '';
-    
-    // Suppress Apollo network errors
-    if (
-      (errorMessage?.includes('ApolloError') || errorStack?.includes('ApolloError')) &&
-      (errorMessage?.includes('Network request failed') || errorMessage?.includes('Failed to fetch'))
-    ) {
-      if (__DEV__) {
-        console.debug('🌐 Suppressed unhandled Apollo network error (offline):', errorMessage);
-      }
-      event?.preventDefault?.();
-      return;
-    }
-    
-    // Call original handler for other errors
-    if (originalRejectionHandler) {
-      originalRejectionHandler(event);
-    }
-  };
-}
-
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -215,9 +108,9 @@ export default function RootLayout() {
           <ApolloProvider client={client}>
             <LanguageProvider>
               <CustomThemeProvider>
-                <NotificationWrapper>
+                {/* <NotificationWrapper> */}
                 <ThemedApp />
-                </NotificationWrapper>
+                {/* </NotificationWrapper> */}
               </CustomThemeProvider>
             </LanguageProvider>
           </ApolloProvider>

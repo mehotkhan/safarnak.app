@@ -15,6 +15,13 @@
       "when": 1762282183758,
       "tag": "0001_lowly_lilith",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762362491607,
+      "tag": "0002_sharp_wrecker",
+      "breakpoints": true
     }
   ]
 }

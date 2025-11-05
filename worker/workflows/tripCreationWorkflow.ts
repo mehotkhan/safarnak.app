@@ -1,6 +1,16 @@
 /**
  * Trip Creation Workflow
- * Executes a 4-step workflow when a trip is created and sends notifications via WebSocket
+ * Executes a realistic 8-step workflow simulating multi-AI and external service processing
+ * 
+ * Processing Pipeline:
+ * 1. Initialize & validate input
+ * 2. Geocoding/Location lookup (external API - Google Maps/OpenStreetMap)
+ * 3. AI preference analysis (LLM service - OpenAI/Claude)
+ * 4. Database & vector search (D1 + Vectorize for similar trips/places)
+ * 5. Itinerary generation (AI service - complex itinerary planning)
+ * 6. Recommendations & optimization (AI + external data aggregation)
+ * 7. Image fetching/generation (R2 storage + external image APIs)
+ * 8. Final validation & formatting (data assembly)
  */
 
 import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
@@ -23,80 +33,274 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
   override async run(event: WorkflowEvent<TripCreationParams>, step: WorkflowStep): Promise<void> {
     const { tripId, userId, destination, preferences } = event.payload;
 
-    // Step 1: Initialize trip processing
-    await step.do('Step 1: Initialize trip processing', async () => {
+    // Step 1: Initialize trip processing & validate input
+    await step.do('Step 1: Initialize and validate', async () => {
       const notification = {
         id: `${tripId}-step-1`,
         type: 'trip',
-        title: 'شروع سفر',
-        message: `سفر شما به ${destination || 'مقصد انتخاب شده'} در حال پردازش است...`,
+        title: 'شروع پردازش',
+        message: `در حال بررسی و اعتبارسنجی درخواست سفر شما...`,
         step: 1,
-        totalSteps: 4,
+        totalSteps: 8,
         tripId,
         userId,
         createdAt: new Date().toISOString(),
       };
 
-      // Publish notification via GraphQL subscription
-      // Use workflow's execution context
-      await publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx);
+      const tripUpdate = {
+        id: `${tripId}-step-1`,
+        tripId,
+        type: 'workflow',
+        title: 'شروع پردازش',
+        message: `در حال بررسی و اعتبارسنجی درخواست سفر شما...`,
+        step: 1,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'initialized', destination, preferences }),
+        createdAt: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
 
       return { status: 'initialized' };
     });
 
-    // Wait 2 seconds
-    await step.sleep('Wait 2 seconds', '2 seconds');
+    // Wait 1-2 seconds (input validation)
+    await step.sleep('Validation delay', '1.5 seconds');
 
-    // Step 2: Processing itinerary
-    await step.do('Step 2: Processing itinerary', async () => {
+    // Step 2: Geocoding & Location Lookup (External API call)
+    await step.do('Step 2: Geocoding location', async () => {
       const notification = {
         id: `${tripId}-step-2`,
         type: 'trip',
-        title: 'تولید برنامه سفر',
-        message: 'در حال ایجاد برنامه سفر شخصی‌سازی شده برای شما...',
+        title: 'جستجوی موقعیت جغرافیایی',
+        message: `در حال جستجوی مختصات دقیق برای ${destination || 'مقصد شما'}...`,
         step: 2,
-        totalSteps: 4,
+        totalSteps: 8,
         tripId,
         userId,
         createdAt: new Date().toISOString(),
       };
 
-      console.log(`[Workflow] Step 2: Publishing notification for trip ${tripId}`, notification);
-      
-      await publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx);
+      const tripUpdate = {
+        id: `${tripId}-step-2`,
+        tripId,
+        type: 'workflow',
+        title: 'جستجوی موقعیت جغرافیایی',
+        message: `در حال جستجوی مختصات دقیق برای ${destination || 'مقصد شما'}...`,
+        step: 2,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'geocoding', destination }),
+        createdAt: new Date().toISOString(),
+      };
 
-      return { status: 'itinerary_processing' };
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
+
+      return { status: 'geocoding' };
     });
 
-    // Wait 2 seconds
-    await step.sleep('Wait 2 seconds', '2 seconds');
+    // Wait 3-5 seconds (external geocoding API call - Google Maps/OpenStreetMap)
+    await step.sleep('Geocoding API delay', '4 seconds');
 
-    // Step 3: Optimizing recommendations
-    await step.do('Step 3: Optimizing recommendations', async () => {
+    // Step 3: AI Preference Analysis (LLM service call)
+    await step.do('Step 3: AI preference analysis', async () => {
       const notification = {
         id: `${tripId}-step-3`,
         type: 'trip',
-        title: 'بهینه‌سازی توصیه‌ها',
-        message: 'در حال بهینه‌سازی توصیه‌ها برای سفر شما...',
+        title: 'تحلیل هوش مصنوعی',
+        message: 'در حال تحلیل ترجیحات و نیازهای شما با هوش مصنوعی...',
         step: 3,
-        totalSteps: 4,
+        totalSteps: 8,
         tripId,
         userId,
         createdAt: new Date().toISOString(),
       };
 
-      console.log(`[Workflow] Step 3: Publishing notification for trip ${tripId}`, notification);
-      
-      await publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx);
+      const tripUpdate = {
+        id: `${tripId}-step-3`,
+        tripId,
+        type: 'workflow',
+        title: 'تحلیل هوش مصنوعی',
+        message: 'در حال تحلیل ترجیحات و نیازهای شما با هوش مصنوعی...',
+        step: 3,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'ai_analysis', preferences }),
+        createdAt: new Date().toISOString(),
+      };
 
-      return { status: 'optimizing' };
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
+
+      return { status: 'ai_analysis' };
     });
 
-    // Wait 2 seconds
-    await step.sleep('Wait 2 seconds', '2 seconds');
+    // Wait 5-8 seconds (LLM API call - OpenAI/Claude for preference analysis)
+    await step.sleep('AI preference analysis delay', '6.5 seconds');
 
-    // Step 4: Generate complete trip and mark as ready
-    await step.do('Step 4: Generate complete trip', async () => {
+    // Step 4: Database & Vector Search (D1 + Vectorize)
+    await step.do('Step 4: Search similar trips and places', async () => {
+      const notification = {
+        id: `${tripId}-step-4`,
+        type: 'trip',
+        title: 'جستجوی داده‌های مرتبط',
+        message: 'در حال جستجوی سفرهای مشابه و مکان‌های پیشنهادی در پایگاه داده...',
+        step: 4,
+        totalSteps: 8,
+        tripId,
+        userId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const tripUpdate = {
+        id: `${tripId}-step-4`,
+        tripId,
+        type: 'workflow',
+        title: 'جستجوی داده‌های مرتبط',
+        message: 'در حال جستجوی سفرهای مشابه و مکان‌های پیشنهادی در پایگاه داده...',
+        step: 4,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'database_search' }),
+        createdAt: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
+
+      return { status: 'database_search' };
+    });
+
+    // Wait 3-5 seconds (Database queries + Vectorize semantic search)
+    await step.sleep('Database and vector search delay', '4 seconds');
+
+    // Step 5: Itinerary Generation (Complex AI processing)
+    await step.do('Step 5: Generate personalized itinerary', async () => {
+      const notification = {
+        id: `${tripId}-step-5`,
+        type: 'trip',
+        title: 'تولید برنامه سفر',
+        message: 'در حال ایجاد برنامه سفر روزانه شخصی‌سازی شده با هوش مصنوعی...',
+        step: 5,
+        totalSteps: 8,
+        tripId,
+        userId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const tripUpdate = {
+        id: `${tripId}-step-5`,
+        tripId,
+        type: 'workflow',
+        title: 'تولید برنامه سفر',
+        message: 'در حال ایجاد برنامه سفر روزانه شخصی‌سازی شده با هوش مصنوعی...',
+        step: 5,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'itinerary_generation' }),
+        createdAt: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
+
+      return { status: 'itinerary_generation' };
+    });
+
+    // Wait 8-12 seconds (Complex AI itinerary planning - longest step)
+    await step.sleep('Itinerary generation delay', '10 seconds');
+
+    // Step 6: Recommendations & Optimization (AI + External data)
+    await step.do('Step 6: Optimize recommendations', async () => {
+      const notification = {
+        id: `${tripId}-step-6`,
+        type: 'trip',
+        title: 'بهینه‌سازی توصیه‌ها',
+        message: 'در حال بهینه‌سازی توصیه‌های مکان‌ها، رستوران‌ها و فعالیت‌ها...',
+        step: 6,
+        totalSteps: 8,
+        tripId,
+        userId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const tripUpdate = {
+        id: `${tripId}-step-6`,
+        tripId,
+        type: 'workflow',
+        title: 'بهینه‌سازی توصیه‌ها',
+        message: 'در حال بهینه‌سازی توصیه‌های مکان‌ها، رستوران‌ها و فعالیت‌ها...',
+        step: 6,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'optimization' }),
+        createdAt: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
+
+      return { status: 'optimization' };
+    });
+
+    // Wait 5-7 seconds (AI optimization + external recommendation APIs)
+    await step.sleep('Recommendations optimization delay', '6 seconds');
+
+    // Step 7: Image Fetching/Generation (R2 storage + External image APIs)
+    await step.do('Step 7: Fetch destination images', async () => {
+      const notification = {
+        id: `${tripId}-step-7`,
+        type: 'trip',
+        title: 'دریافت تصاویر',
+        message: 'در حال دریافت و پردازش تصاویر مقصد و مکان‌های پیشنهادی...',
+        step: 7,
+        totalSteps: 8,
+        tripId,
+        userId,
+        createdAt: new Date().toISOString(),
+      };
+
+      const tripUpdate = {
+        id: `${tripId}-step-7`,
+        tripId,
+        type: 'workflow',
+        title: 'دریافت تصاویر',
+        message: 'در حال دریافت و پردازش تصاویر مقصد و مکان‌های پیشنهادی...',
+        step: 7,
+        totalSteps: 8,
+        status: 'processing',
+        data: JSON.stringify({ status: 'image_fetching' }),
+        createdAt: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
+
+      return { status: 'image_fetching' };
+    });
+
+    // Wait 3-4 seconds (R2 storage + external image API calls)
+    await step.sleep('Image fetching delay', '3.5 seconds');
+
+    // Step 8: Final validation & formatting
+    await step.do('Step 8: Final validation and formatting', async () => {
       const db = getServerDB(this.env.DB);
       
       // Generate complete random trip data
@@ -115,7 +319,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         aiReasoning: tripData.aiReasoning,
         itinerary: JSON.stringify(tripData.itinerary),
         coordinates: JSON.stringify(tripData.coordinates),
-        status: tripData.status,
+        status: 'ready',
         updatedAt: new Date().toISOString(),
       };
 
@@ -127,20 +331,34 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
 
       // Send final notification
       const notification = {
-        id: `${tripId}-step-4`,
+        id: `${tripId}-step-8`,
         type: 'trip',
         title: 'سفر آماده است!',
-        message: `سفر شما به ${tripData.destination} آماده است! اکنون می‌توانید جزئیات کامل را مشاهده کنید.`,
-        step: 4,
-        totalSteps: 4,
+        message: `سفر شما به ${tripData.destination} با موفقیت آماده شد! اکنون می‌توانید جزئیات کامل را مشاهده کنید.`,
+        step: 8,
+        totalSteps: 8,
         tripId,
         userId,
         createdAt: new Date().toISOString(),
       };
 
-      console.log(`[Workflow] Step 4: Publishing notification for trip ${tripId}`, notification);
-      
-      await publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx);
+      const tripUpdate = {
+        id: `${tripId}-step-8`,
+        tripId,
+        type: 'workflow',
+        title: 'سفر آماده است!',
+        message: `سفر شما به ${tripData.destination} با موفقیت آماده شد! اکنون می‌توانید جزئیات کامل را مشاهده کنید.`,
+        step: 8,
+        totalSteps: 8,
+        status: 'completed',
+        data: JSON.stringify({ status: 'completed', destination: tripData.destination }),
+        createdAt: new Date().toISOString(),
+      };
+
+      await Promise.all([
+        publishNotification(this.env, 'NEW_ALERTS', { newAlerts: notification }, this.ctx),
+        publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx),
+      ]);
 
       return { status: 'completed', destination: tripData.destination };
     });

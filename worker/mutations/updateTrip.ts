@@ -14,6 +14,7 @@ interface UpdateTripInput {
   status?: string;
   aiReasoning?: string;
   itinerary?: string;
+  userMessage?: string; // User chat message for AI processing
 }
 
 export const updateTrip = async (
@@ -43,7 +44,46 @@ export const updateTrip = async (
     throw new Error('Unauthorized');
   }
 
-  // Build update object
+  // If userMessage is provided, trigger workflow for AI processing
+  if (input.userMessage && input.userMessage.trim()) {
+    try {
+      // Set status to pending while processing
+      await db
+        .update(trips)
+        .set({ 
+          status: 'pending',
+          updatedAt: new Date().toISOString(),
+        })
+        .where(eq(trips.id, id))
+        .run();
+
+      // Trigger workflow for trip update
+      const workflowInstance = await context.env.TRIP_UPDATE_WORKFLOW.create({
+        id: `trip-update-${id}-${Date.now()}`,
+        params: {
+          tripId: id.toString(),
+          userId,
+          userMessage: input.userMessage.trim(),
+          destination: existing.destination || undefined,
+        },
+      });
+      console.log('Trip update workflow started:', workflowInstance.id);
+      
+      // Return current trip state (will be updated by workflow)
+      return {
+        ...existing,
+        status: 'pending',
+        itinerary: existing.itinerary ? JSON.parse(existing.itinerary) : null,
+        coordinates: existing.coordinates ? JSON.parse(existing.coordinates) : null,
+      };
+    } catch (workflowError: any) {
+      // Log workflow error but don't fail the mutation
+      console.error('Failed to start trip update workflow:', workflowError);
+      // Continue with regular update
+    }
+  }
+
+  // Build update object (regular update without workflow)
   const updateData: any = {
     updatedAt: new Date().toISOString(),
   };

@@ -335,3 +335,4 @@ export const SubscriptionPool = createWsConnectionPoolClass(settings);
 // ============================================================================
 
 export { TripCreationWorkflow } from './workflows/tripCreationWorkflow';
+export { TripUpdateWorkflow } from './workflows/tripUpdateWorkflow';

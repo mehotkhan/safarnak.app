@@ -13,6 +13,7 @@ export interface Env {
   R2: R2Bucket;              // Object storage for media
   VECTORIZE: VectorizeIndex; // Vector database for embeddings
   TRIP_CREATION_WORKFLOW: Workflow; // Workflow for trip creation notifications
+  TRIP_UPDATE_WORKFLOW: Workflow; // Workflow for trip update notifications
 }
 
 /**

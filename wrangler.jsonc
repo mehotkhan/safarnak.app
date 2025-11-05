@@ -55,6 +55,11 @@
       "binding": "TRIP_CREATION_WORKFLOW",
       "class_name": "TripCreationWorkflow",
     },
+    {
+      "name": "TripUpdateWorkflow",
+      "binding": "TRIP_UPDATE_WORKFLOW",
+      "class_name": "TripUpdateWorkflow",
+    },
   ],
 
   // KV Namespaces

@@ -187,6 +187,12 @@ export type Subscription = {
   __typename?: 'Subscription';
   newAlerts: Alert;
   newMessages: Message;
+  tripUpdates: TripUpdate;
+};
+
+
+export type SubscriptionTripUpdatesArgs = {
+  tripId: Scalars['ID']['input'];
 };
 
 export type Tour = {
@@ -226,6 +232,20 @@ export type Trip = {
   userId: Scalars['ID']['output'];
 };
 
+export type TripUpdate = {
+  __typename?: 'TripUpdate';
+  createdAt: Scalars['String']['output'];
+  data?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  message: Scalars['String']['output'];
+  status: Scalars['String']['output'];
+  step: Scalars['Int']['output'];
+  title: Scalars['String']['output'];
+  totalSteps: Scalars['Int']['output'];
+  tripId: Scalars['ID']['output'];
+  type: Scalars['String']['output'];
+};
+
 export type UpdateTripInput = {
   accommodation?: InputMaybe<Scalars['String']['input']>;
   aiReasoning?: InputMaybe<Scalars['String']['input']>;
@@ -237,6 +257,7 @@ export type UpdateTripInput = {
   startDate?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
   travelers?: InputMaybe<Scalars['Int']['input']>;
+  userMessage?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type User = {

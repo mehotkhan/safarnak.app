@@ -28,7 +28,7 @@ export default function RegisterScreen() {
   // Generate initial name on mount and when language changes
   useEffect(() => {
     const initialName = generateRandomName(currentLanguage as 'en' | 'fa');
-    // Use setTimeout to avoid setState in effect body
+    // Use setTimeout to avoid setState in effect warning
     setTimeout(() => {
       setGeneratedName(initialName);
       setUsername(initialName);

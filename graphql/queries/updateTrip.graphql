@@ -1,0 +1,25 @@
+mutation UpdateTrip($id: ID!, $input: UpdateTripInput!) {
+  updateTrip(id: $id, input: $input) {
+    id
+    destination
+    startDate
+    endDate
+    status
+    travelers
+    preferences
+    accommodation
+    aiReasoning
+    itinerary {
+      day
+      title
+      activities
+    }
+    coordinates {
+      latitude
+      longitude
+    }
+    createdAt
+    updatedAt
+  }
+}
+
