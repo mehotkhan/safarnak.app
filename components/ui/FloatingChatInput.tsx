@@ -1,44 +1,55 @@
 import React, { useState } from 'react';
-import { View, TextInput, TouchableOpacity } from 'react-native';
+import { View, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@components/context/ThemeContext';
+import Colors from '@constants/Colors';
 
 interface FloatingChatInputProps {
   onSend: (message: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  keyboardVisible?: boolean;
 }
 
 export default function FloatingChatInput({ 
   onSend, 
   placeholder = "Type your message...",
-  disabled = false 
+  disabled = false,
+  keyboardVisible = false,
 }: FloatingChatInputProps) {
   const { isDark } = useTheme();
   const [message, setMessage] = useState('');
-  const [inputHeight, setInputHeight] = useState(20);
+  const [inputHeight, setInputHeight] = useState(36);
 
   const handleSend = () => {
     if (message.trim() && !disabled) {
       onSend(message.trim());
       setMessage('');
-      setInputHeight(20); // Reset height after send
+      setInputHeight(36); // Reset height after send
     }
   };
 
   const handleContentSizeChange = (event: any) => {
-    const height = event.nativeEvent.contentSize.height;
-    // Clamp between min (20) and max (100)
-    const clampedHeight = Math.max(20, Math.min(100, height));
+    const { height } = event.nativeEvent.contentSize;
+    // Clamp between min (36) and max (100) for proper multiline expansion
+    const clampedHeight = Math.max(36, Math.min(100, height));
     setInputHeight(clampedHeight);
   };
 
+  const iconColor = isDark ? '#9ca3af' : '#6b7280';
+  const primaryColor = isDark ? Colors.dark.primary : Colors.light.primary;
+
   return (
-    <View className="px-4 py-3">
-      <View className="flex-row items-end gap-2">
+    <View className="px-3" style={{ paddingTop: keyboardVisible ? 6 : 10, paddingBottom: keyboardVisible ? 6 : 10 }}>
+      <View className="flex-row items-center gap-1.5 bg-gray-100 dark:bg-neutral-800 rounded-xl px-2 py-1.5 border border-gray-200 dark:border-neutral-700">
+        {/* Input Container */}
         <View 
-          className="flex-1 bg-gray-100 dark:bg-neutral-900 rounded-2xl px-4 py-2 border border-gray-200 dark:border-neutral-800"
-          style={{ minHeight: 44 }}
+          className="flex-1"
+          style={{ 
+            minHeight: 36,
+            maxHeight: 100,
+            justifyContent: 'center',
+          }}
         >
           <TextInput
             value={message}
@@ -48,29 +59,45 @@ export default function FloatingChatInput({
             multiline
             maxLength={500}
             editable={!disabled}
-            textAlignVertical="top"
-            className="flex-1 text-black dark:text-white text-base"
+            textAlignVertical="center"
+            className="text-black dark:text-white text-sm"
             style={{ 
-              height: inputHeight,
-              minHeight: 20,
+              height: Math.max(36, inputHeight),
+              minHeight: 36,
               maxHeight: 100,
+              padding: 0,
+              margin: 0,
+              lineHeight: 18,
+              paddingHorizontal: 8,
             }}
             onContentSizeChange={handleContentSizeChange}
           />
         </View>
+
+        {/* Attach Icon - Compact */}
+        <TouchableOpacity
+          className="p-1.5"
+          disabled={disabled}
+          activeOpacity={0.7}
+        >
+          <Ionicons
+            name="attach-outline"
+            size={20}
+            color={disabled ? (isDark ? '#4b5563' : '#d1d5db') : iconColor}
+          />
+        </TouchableOpacity>
+
+        {/* Send Button - Compact */}
         <TouchableOpacity
           onPress={handleSend}
           disabled={!message.trim() || disabled}
-          className={`w-10 h-10 rounded-full items-center justify-center ${
-            message.trim() && !disabled
-              ? 'bg-blue-500'
-              : 'bg-gray-300 dark:bg-neutral-700'
-          }`}
+          className="p-1.5"
+          activeOpacity={0.7}
         >
           <Ionicons
             name="send"
             size={20}
-            color={message.trim() && !disabled ? '#ffffff' : (isDark ? '#6b7280' : '#9ca3af')}
+            color={(!message.trim() || disabled) ? (isDark ? '#4b5563' : '#d1d5db') : primaryColor}
           />
         </TouchableOpacity>
       </View>

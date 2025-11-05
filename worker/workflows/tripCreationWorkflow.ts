@@ -33,6 +33,9 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
   override async run(event: WorkflowEvent<TripCreationParams>, step: WorkflowStep): Promise<void> {
     const { tripId, userId, destination, preferences } = event.payload;
 
+    // Small initial delay to allow subscription to connect after page navigation
+    await step.sleep('Initial connection delay', '0.5 seconds');
+
     // Step 1: Initialize trip processing & validate input
     await step.do('Step 1: Initialize and validate', async () => {
       const notification = {

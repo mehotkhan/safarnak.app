@@ -67,9 +67,20 @@ export default function TripDetailScreen() {
   const [workflowTitle, setWorkflowTitle] = useState<string | null>(null);
   const [workflowStatus, setWorkflowStatus] = useState<string | null>(null);
 
-  const { data: tripUpdateData } = useTripUpdatesSubscription({
+  const { data: tripUpdateData, loading: subscriptionLoading, error: subscriptionError } = useTripUpdatesSubscription({
     variables: { tripId },
-    skip: !tripId, // Subscribe to all trip updates (not just when pending)
+    skip: !tripId,
+    onSubscriptionData: ({ subscriptionData }) => {
+      if (subscriptionData?.data?.tripUpdates) {
+        console.log('[TripDetails] Subscription connected and received update:', subscriptionData.data.tripUpdates);
+      }
+    },
+    onError: (error) => {
+      console.error('[TripDetails] Subscription error:', error);
+    },
+    onComplete: () => {
+      console.log('[TripDetails] Subscription completed');
+    },
   });
 
   const [updateTrip, { loading: updatingTrip }] = useUpdateTripMutation({
@@ -109,6 +120,18 @@ export default function TripDetailScreen() {
     }
   }, [tripUpdateData?.tripUpdates, refetch]);
 
+  // Log subscription connection state for debugging
+  useEffect(() => {
+    if (tripId) {
+      console.log('[TripDetails] Subscription state:', {
+        tripId,
+        subscriptionLoading,
+        subscriptionError: subscriptionError?.message,
+        hasData: !!tripUpdateData?.tripUpdates,
+      });
+    }
+  }, [tripId, subscriptionLoading, subscriptionError, tripUpdateData]);
+
   // Auto-refresh if trip is pending (every 3 seconds) - backup in case subscription fails
   useEffect(() => {
     if (!isPending) return;
@@ -119,6 +142,22 @@ export default function TripDetailScreen() {
 
     return () => clearInterval(interval);
   }, [isPending, refetch]);
+
+  // When tripId changes or page loads, ensure we refetch if trip is pending
+  // This catches any missed workflow updates if subscription wasn't connected yet
+  useEffect(() => {
+    if (!tripId) return;
+    
+    // Small delay to ensure subscription has time to connect
+    const timer = setTimeout(() => {
+      if (trip?.status === 'pending') {
+        console.log('[TripDetails] Page loaded with pending trip, refetching to catch missed updates');
+        refetch();
+      }
+    }, 1000); // 1 second delay to allow subscription to connect
+
+    return () => clearTimeout(timer);
+  }, [tripId, trip?.status, refetch]); // Run when tripId changes or trip status changes
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -275,11 +314,7 @@ export default function TripDetailScreen() {
   const location = trip?.coordinates ? { coords: trip.coordinates } : undefined;
 
   return (
-    <KeyboardAvoidingView 
-      className="flex-1 bg-white dark:bg-black"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-    >
+    <View className="flex-1 bg-white dark:bg-black">
       <Stack.Screen
         options={{
           title: (trip?.destination as string) || t('plan.viewPlan'),
@@ -321,14 +356,19 @@ export default function TripDetailScreen() {
                   style={{ marginRight: 12 }}
                   animating={workflowStatus !== 'completed'}
                 />
-                <View className="flex-1">
-                  {/* Title from subscription or fallback */}
-                  <CustomText weight="bold" className="text-base text-yellow-800 dark:text-yellow-200 mb-1">
+                <View className="flex-1" style={{ flexShrink: 1 }}>
+                  {/* Title from subscription or fallback - Full text, no cropping */}
+                  <CustomText 
+                    weight="bold" 
+                    className="text-base text-yellow-800 dark:text-yellow-200 mb-1"
+                  >
                     {workflowTitle || t('plan.form.processing')}
                   </CustomText>
                   
-                  {/* Message from subscription or fallback */}
-                  <CustomText className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                  {/* Message from subscription or fallback - Full text, no cropping */}
+                  <CustomText 
+                    className="text-sm text-yellow-700 dark:text-yellow-300 mb-2"
+                  >
                     {workflowMessage || t('plan.form.waitingMessage')}
                   </CustomText>
                   
@@ -501,19 +541,22 @@ export default function TripDetailScreen() {
       
       {/* Floating Chat Input - Adjusts with keyboard */}
       <View 
-        className="absolute left-0 right-0 bg-white dark:bg-black border-t border-gray-200 dark:border-neutral-800"
+        className="absolute left-0 right-0 border-t border-gray-200 dark:border-neutral-800"
         style={{ 
           bottom: keyboardHeight > 0 ? keyboardHeight : 0,
           paddingBottom: keyboardHeight > 0 ? 0 : insets.bottom,
+          backgroundColor: isDark ? '#000000' : '#ffffff',
+          paddingTop: 0,
         }}
       >
         <FloatingChatInput
           onSend={handleChatSend}
           placeholder={t('plan.form.chatPlaceholder') || "Ask AI to update your trip..."}
           disabled={updatingTrip || trip?.status === 'pending'}
+          keyboardVisible={keyboardHeight > 0}
         />
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
