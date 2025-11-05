@@ -58,6 +58,7 @@ const tripFields = {
   aiReasoning: text('ai_reasoning'),
   itinerary: text('itinerary'),
   coordinates: text('coordinates'),
+  waypoints: text('waypoints'), // JSON array of waypoints for route polyline
 };
 
 // Shared tour fields (without ID)

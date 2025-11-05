@@ -35,6 +35,7 @@ export const getTrips = async (
     ...trip,
     itinerary: trip.itinerary ? JSON.parse(trip.itinerary) : null,
     coordinates: trip.coordinates ? JSON.parse(trip.coordinates) : null,
+    waypoints: trip.waypoints ? JSON.parse(trip.waypoints) : null,
   }));
 };
 
@@ -70,6 +71,7 @@ export const getTrip = async (
     ...result,
     itinerary: result.itinerary ? JSON.parse(result.itinerary) : null,
     coordinates: result.coordinates ? JSON.parse(result.coordinates) : null,
+    waypoints: result.waypoints ? JSON.parse(result.waypoints) : null,
   };
 };
 

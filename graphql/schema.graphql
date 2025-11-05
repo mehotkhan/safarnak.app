@@ -59,6 +59,7 @@ type Trip {
   aiReasoning: String
   itinerary: [ItineraryDay!]
   coordinates: Coordinates
+  waypoints: [Waypoint!]
   createdAt: String!
   updatedAt: String!
 }
@@ -72,6 +73,12 @@ type ItineraryDay {
 type Coordinates {
   latitude: Float!
   longitude: Float!
+}
+
+type Waypoint {
+  latitude: Float!
+  longitude: Float!
+  label: String
 }
 
 input CreateTripInput {

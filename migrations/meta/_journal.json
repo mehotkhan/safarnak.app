@@ -22,6 +22,13 @@
       "when": 1762362491607,
       "tag": "0002_sharp_wrecker",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1762372356113,
+      "tag": "0003_flat_typhoid_mary",
+      "breakpoints": true
     }
   ]
 }

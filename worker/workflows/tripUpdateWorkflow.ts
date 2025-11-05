@@ -10,6 +10,7 @@ import { publishNotification } from '../utilities/publishNotification';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 import { generateRandomTripData } from '../utilities/randomTripGenerator';
+import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 
 interface TripUpdateParams {
   tripId: string;
@@ -118,10 +119,14 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
       // For now, we'll update the trip with new data
       const tripData = generateRandomTripData(userMessage);
       
+      // Generate waypoints for the trip route
+      const finalDestination = tripData.destination || currentTrip.destination;
+      const waypoints = generateWaypointsForDestination(finalDestination);
+      
       // Update trip with new data
       const updateData: any = {
         title: tripData.title || currentTrip.title,
-        destination: tripData.destination || currentTrip.destination,
+        destination: finalDestination,
         startDate: tripData.startDate || currentTrip.startDate,
         endDate: tripData.endDate || currentTrip.endDate,
         budget: tripData.budget || currentTrip.budget,
@@ -131,6 +136,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         aiReasoning: tripData.aiReasoning || currentTrip.aiReasoning,
         itinerary: JSON.stringify(tripData.itinerary),
         coordinates: JSON.stringify(tripData.coordinates),
+        waypoints: JSON.stringify(waypoints),
         status: 'ready',
         updatedAt: new Date().toISOString(),
       };

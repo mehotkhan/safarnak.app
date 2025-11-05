@@ -1,6 +1,7 @@
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 import type { GraphQLContext } from '../types';
+import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 
 interface CreateTripInput {
   destination?: string;
@@ -61,6 +62,9 @@ export const createTrip = async (
     longitude: 139.6503,
   };
 
+  // Generate waypoints for the trip route
+  const waypoints = generateWaypointsForDestination(destination);
+
   try {
     // Insert trip
     const result = await db
@@ -79,6 +83,7 @@ export const createTrip = async (
         aiReasoning,
         itinerary: JSON.stringify(mockItinerary),
         coordinates: JSON.stringify(mockCoordinates),
+        waypoints: JSON.stringify(waypoints),
         aiGenerated: true,
       })
       .returning()
@@ -105,6 +110,7 @@ export const createTrip = async (
       ...result,
       itinerary: JSON.parse(result.itinerary || '[]'),
       coordinates: JSON.parse(result.coordinates || '{}'),
+      waypoints: JSON.parse(result.waypoints || '[]'),
     };
   } catch (error: any) {
     // Log internal error details for observability without leaking to client

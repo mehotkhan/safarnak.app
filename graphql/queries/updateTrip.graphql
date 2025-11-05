@@ -18,6 +18,11 @@ mutation UpdateTrip($id: ID!, $input: UpdateTripInput!) {
       latitude
       longitude
     }
+    waypoints {
+      latitude
+      longitude
+      label
+    }
     createdAt
     updatedAt
   }

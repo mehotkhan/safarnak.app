@@ -230,6 +230,7 @@ export type Trip = {
   travelers: Scalars['Int']['output'];
   updatedAt: Scalars['String']['output'];
   userId: Scalars['ID']['output'];
+  waypoints?: Maybe<Array<Waypoint>>;
 };
 
 export type TripUpdate = {
@@ -266,4 +267,11 @@ export type User = {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   username: Scalars['String']['output'];
+};
+
+export type Waypoint = {
+  __typename?: 'Waypoint';
+  label?: Maybe<Scalars['String']['output']>;
+  latitude: Scalars['Float']['output'];
+  longitude: Scalars['Float']['output'];
 };

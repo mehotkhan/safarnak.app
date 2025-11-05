@@ -21,6 +21,7 @@ import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 // Persian text is now generated inline in notifications
 import { generateRandomTripData } from '../utilities/randomTripGenerator';
+import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 
 interface TripCreationParams {
   tripId: string;
@@ -309,6 +310,9 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       // Generate complete random trip data
       const tripData = generateRandomTripData(preferences);
       
+      // Generate waypoints for the trip route
+      const waypoints = generateWaypointsForDestination(tripData.destination);
+      
       // Update trip with complete data
       const updateData: any = {
         title: tripData.title,
@@ -322,6 +326,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         aiReasoning: tripData.aiReasoning,
         itinerary: JSON.stringify(tripData.itinerary),
         coordinates: JSON.stringify(tripData.coordinates),
+        waypoints: JSON.stringify(waypoints),
         status: 'ready',
         updatedAt: new Date().toISOString(),
       };

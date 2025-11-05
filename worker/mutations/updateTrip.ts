@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 import type { GraphQLContext } from '../types';
+import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 
 interface UpdateTripInput {
   destination?: string;
@@ -75,6 +76,7 @@ export const updateTrip = async (
         status: 'pending',
         itinerary: existing.itinerary ? JSON.parse(existing.itinerary) : null,
         coordinates: existing.coordinates ? JSON.parse(existing.coordinates) : null,
+        waypoints: existing.waypoints ? JSON.parse(existing.waypoints) : null,
       };
     } catch (workflowError: any) {
       // Log workflow error but don't fail the mutation
@@ -88,7 +90,12 @@ export const updateTrip = async (
     updatedAt: new Date().toISOString(),
   };
 
-  if (input.destination) updateData.destination = input.destination;
+  if (input.destination) {
+    updateData.destination = input.destination;
+    // Generate new waypoints when destination changes
+    const newWaypoints = generateWaypointsForDestination(input.destination);
+    updateData.waypoints = JSON.stringify(newWaypoints);
+  }
   if (input.startDate) updateData.startDate = input.startDate;
   if (input.endDate) updateData.endDate = input.endDate;
   if (input.budget !== undefined) updateData.budget = input.budget;
@@ -111,6 +118,7 @@ export const updateTrip = async (
     ...result,
     itinerary: result.itinerary ? JSON.parse(result.itinerary) : null,
     coordinates: result.coordinates ? JSON.parse(result.coordinates) : null,
+    waypoints: result.waypoints ? JSON.parse(result.waypoints) : null,
   };
 };
 

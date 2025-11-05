@@ -18,6 +18,11 @@ query GetTrip($id: ID!) {
       latitude
       longitude
     }
+    waypoints {
+      latitude
+      longitude
+      label
+    }
     createdAt
     updatedAt
   }

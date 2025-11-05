@@ -15,7 +15,7 @@ export type CreateTripMutationVariables = Exact<{
 }>;
 
 
-export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
+export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } };
 
 export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -32,7 +32,7 @@ export type GetTripQueryVariables = Exact<{
 }>;
 
 
-export type GetTripQuery = { __typename?: 'Query', getTrip?: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } | null };
+export type GetTripQuery = { __typename?: 'Query', getTrip?: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } | null };
 
 export type GetTripsQueryVariables = Exact<{
   status?: InputMaybe<Scalars['String']['input']>;
@@ -80,7 +80,7 @@ export type UpdateTripMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
+export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } };
 
 
 export const AddMessageDocument = gql`
@@ -133,6 +133,11 @@ export const CreateTripDocument = gql`
     coordinates {
       latitude
       longitude
+    }
+    waypoints {
+      latitude
+      longitude
+      label
     }
   }
 }
@@ -272,6 +277,11 @@ export const GetTripDocument = gql`
     coordinates {
       latitude
       longitude
+    }
+    waypoints {
+      latitude
+      longitude
+      label
     }
     createdAt
     updatedAt
@@ -580,6 +590,11 @@ export const UpdateTripDocument = gql`
     coordinates {
       latitude
       longitude
+    }
+    waypoints {
+      latitude
+      longitude
+      label
     }
     createdAt
     updatedAt

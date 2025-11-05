@@ -34,6 +34,14 @@ export default function TripsLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen 
+        name="[id]/map" 
+        options={{
+          headerShown: true,
+          title: t('map.map'),
+          presentation: 'card',
+        }}
+      />
     </Stack>
   );
 }

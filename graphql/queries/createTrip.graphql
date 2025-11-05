@@ -10,6 +10,11 @@ mutation CreateTrip($input: CreateTripInput!) {
     accommodation
     aiReasoning
     coordinates { latitude longitude }
+    waypoints {
+      latitude
+      longitude
+      label
+    }
   }
 }
 

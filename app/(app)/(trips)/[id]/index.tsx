@@ -168,6 +168,28 @@ export default function TripDetailScreen() {
     }
   }, [refetch]);
 
+  const handleMapPress = useCallback(() => {
+    if (tripId) {
+      router.push(`/(app)/(trips)/${tripId}/map`);
+    }
+  }, [router, tripId]);
+
+  // Prepare waypoints for the map preview (safely handle null/undefined/empty)
+  // MUST be before early returns to follow Rules of Hooks
+  const waypoints = useMemo(() => {
+    if (!trip?.waypoints || !Array.isArray(trip.waypoints) || trip.waypoints.length === 0) {
+      return [];
+    }
+    // Filter out invalid waypoints and map to valid format
+    return trip.waypoints
+      .filter((wp: any) => wp && typeof wp.latitude === 'number' && typeof wp.longitude === 'number' && !isNaN(wp.latitude) && !isNaN(wp.longitude))
+      .map((wp: any) => ({
+        latitude: wp.latitude,
+        longitude: wp.longitude,
+        label: wp.label || undefined,
+      }));
+  }, [trip?.waypoints]);
+
   // Loading state
   if (loading && !trip) {
     return (
@@ -321,6 +343,11 @@ export default function TripDetailScreen() {
           headerShown: true,
           headerRight: () => (
             <View className="flex-row items-center">
+              {showMap && (
+                <TouchableOpacity onPress={handleMapPress} className="p-2">
+                  <Ionicons name="map-outline" size={22} color={isDark ? '#fff' : '#000'} />
+                </TouchableOpacity>
+              )}
               <TouchableOpacity onPress={handleShare} className="p-2">
                 <Ionicons name="share-outline" size={22} color={isDark ? '#fff' : '#000'} />
               </TouchableOpacity>
@@ -341,7 +368,12 @@ export default function TripDetailScreen() {
         {/* Map View */}
         {showMap && location && (
           <View className="h-64 bg-gray-100 dark:bg-neutral-900">
-            <MapView location={location as any} />
+            <MapView 
+              location={location as any} 
+              waypoints={waypoints && waypoints.length > 0 ? waypoints : undefined}
+              showControls={false}
+              autoCenter={true}
+            />
           </View>
         )}
 
@@ -418,6 +450,24 @@ export default function TripDetailScreen() {
                 {t('tripDetail.tripDetails')}
               </CustomText>
             </View>
+            {isPending ? (
+              // Placeholder for trip info when pending (workflow is running)
+              <>
+                <View className="flex-row items-center mb-2">
+                  <View className="w-4 h-4 rounded bg-gray-300 dark:bg-neutral-700" />
+                  <View className="ml-2 flex-1 h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '60%' }} />
+                </View>
+                <View className="flex-row items-center mb-2">
+                  <View className="w-4 h-4 rounded bg-gray-300 dark:bg-neutral-700" />
+                  <View className="ml-2 flex-1 h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '50%' }} />
+                </View>
+                <View className="flex-row items-center">
+                  <View className="w-4 h-4 rounded bg-gray-300 dark:bg-neutral-700" />
+                  <View className="ml-2 flex-1 h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '70%' }} />
+                </View>
+              </>
+            ) : (
+              <>
             <View className="flex-row items-center mb-2">
               <Ionicons
                 name="people-outline"
@@ -425,7 +475,7 @@ export default function TripDetailScreen() {
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
               <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-                {trip?.travelers} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
+                    {trip?.travelers || 1} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
               </CustomText>
             </View>
             <View className="flex-row items-center mb-2">
@@ -448,6 +498,8 @@ export default function TripDetailScreen() {
                 {trip?.preferences || '—'}
               </CustomText>
             </View>
+              </>
+            )}
           </View>
 
           {/* AI Reasoning */}
@@ -465,13 +517,95 @@ export default function TripDetailScreen() {
                 {t('tripDetail.aiReasoning')}
               </CustomText>
             </View>
+            {isPending ? (
+              // Placeholder for AI reasoning when pending (workflow is running)
+              <View>
+                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '100%' }} />
+                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '95%' }} />
+                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '85%' }} />
+                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '90%' }} />
+              </View>
+            ) : (
             <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
               {trip?.aiReasoning || '—'}
             </CustomText>
+            )}
           </View>
 
           {/* Itinerary Timeline */}
-          {(trip?.itinerary && trip.itinerary.length > 0) && (
+          {isPending ? (
+            // Placeholder for itinerary when pending (workflow is running)
+            <View className="mb-4">
+              <CustomText
+                weight="bold"
+                className="text-lg text-black dark:text-white mb-4"
+              >
+                {t('tripDetail.itinerary')}
+              </CustomText>
+              
+              {/* Timeline Placeholder */}
+              <View className="relative">
+                {/* Timeline Line */}
+                <View 
+                  className="absolute left-4 top-0 bottom-0 w-0.5"
+                  style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
+                />
+                
+                {/* Placeholder Day 1 */}
+                <View className="flex-row mb-6">
+                  <View className="relative mr-4">
+                    <View 
+                      className="w-8 h-8 rounded-full border-2 items-center justify-center"
+                      style={{ 
+                        backgroundColor: isDark ? '#000000' : '#ffffff',
+                        borderColor: isDark ? '#374151' : '#e5e7eb',
+                      }}
+                    >
+                      <View 
+                        className="w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-700"
+                      />
+                    </View>
+                  </View>
+                  <View className="flex-1 pb-4">
+                    <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
+                      <View className="h-5 bg-gray-300 dark:bg-neutral-700 rounded mb-3" style={{ width: '60%' }} />
+                      <View>
+                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '90%' }} />
+                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '75%' }} />
+                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '85%' }} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                
+                {/* Placeholder Day 2 */}
+                <View className="flex-row mb-6">
+                  <View className="relative mr-4">
+                    <View 
+                      className="w-8 h-8 rounded-full border-2 items-center justify-center"
+                      style={{ 
+                        backgroundColor: isDark ? '#000000' : '#ffffff',
+                        borderColor: isDark ? '#374151' : '#e5e7eb',
+                      }}
+                    >
+                      <View 
+                        className="w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-700"
+                      />
+                    </View>
+                  </View>
+                  <View className="flex-1 pb-4">
+                    <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
+                      <View className="h-5 bg-gray-300 dark:bg-neutral-700 rounded mb-3" style={{ width: '55%' }} />
+                      <View>
+                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '88%' }} />
+                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '80%' }} />
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+          ) : trip?.itinerary && trip.itinerary.length > 0 ? (
             <View className="mb-4">
               <CustomText
                 weight="bold"
@@ -534,7 +668,7 @@ export default function TripDetailScreen() {
                 ))}
               </View>
             </View>
-          )}
+          ) : null}
           
         </View>
       </ScrollView>
