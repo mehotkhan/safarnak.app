@@ -6,7 +6,10 @@ import {
   Alert,
   ActivityIndicator,
   Platform,
+  Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
@@ -17,7 +20,7 @@ import InputField from '@components/ui/InputField';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 import { z } from 'zod';
-import { useCreateTripMutation } from '@api';
+import { useCreateTripMutation, GetTripsDocument } from '@api';
 import DatePicker from '@components/ui/DatePicker';
 import Divider from '@components/ui/Divider';
 import TextArea from '@components/ui/TextArea';
@@ -28,8 +31,10 @@ export default function CreateTripScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [createTrip] = useCreateTripMutation();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Location state
   const [currentLocation, setCurrentLocation] = useState<string>('');
@@ -38,6 +43,21 @@ export default function CreateTripScreen() {
 
   // Advanced options state
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Listen to keyboard show/hide events
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     destination: '',
@@ -55,39 +75,44 @@ export default function CreateTripScreen() {
       setLocationLoading(true);
       setLocationError(null);
 
+      // Check if location services are enabled
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        setLocationError(t('plan.form.currentLocationError'));
+        Alert.alert(
+          t('common.error'),
+          t('plan.form.locationServicesDisabled') || 'Location services are disabled. Please enable them in settings.'
+        );
+        return;
+      }
+
       // Request permissions
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         setLocationError(t('plan.form.currentLocationError'));
+        Alert.alert(
+          t('common.error'),
+          t('plan.form.locationPermissionDenied') || 'Location permission is required to get your current location.'
+        );
         return;
       }
 
-      // Get current position
+      // Get current position with high accuracy (GPS only, no reverse geocoding)
       const location = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
+        accuracy: Location.Accuracy.High,
       });
 
-      // Reverse geocode to get address
-      const geocode = await Location.reverseGeocodeAsync({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
-
-      if (geocode && geocode.length > 0) {
-        const addr = geocode[0];
-        const addressParts = [
-          addr.street,
-          addr.city,
-          addr.region,
-          addr.country,
-        ].filter(Boolean);
-        setCurrentLocation(addressParts.join(', ') || `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`);
-      } else {
-        setCurrentLocation(`${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`);
-      }
+      // Format coordinates for display (GPS coordinates only, no API calls)
+      const lat = location.coords.latitude.toFixed(6);
+      const lon = location.coords.longitude.toFixed(6);
+      setCurrentLocation(`${lat}, ${lon}`);
     } catch (error: any) {
       console.error('Location error:', error);
       setLocationError(t('plan.form.currentLocationError'));
+      Alert.alert(
+        t('common.error'),
+        error?.message || t('plan.form.currentLocationError')
+      );
     } finally {
       setLocationLoading(false);
     }
@@ -97,8 +122,8 @@ export default function CreateTripScreen() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  // Validation schema - only location and description are required
   const schema = z.object({
-    // All fields are optional except description
     destination: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().min(2).optional()),
     startDate: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'dateFormatInvalid' }).optional()),
     endDate: z.preprocess((v) => (typeof v === 'string' && v.trim() === '' ? undefined : v), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, { message: 'dateFormatInvalid' }).optional()),
@@ -118,8 +143,34 @@ export default function CreateTripScreen() {
     return true;
   }, { message: 'datesInvalid' });
 
+  // Check if form is valid (location and description required)
+  const isFormValid = useCallback(() => {
+    if (!currentLocation || currentLocation.trim() === '') {
+      return false;
+    }
+    if (!formData.description || formData.description.trim().length < 10) {
+      return false;
+    }
+    // Try to parse the rest of the form to catch any other validation errors
+    try {
+      schema.parse(formData);
+      return true;
+    } catch {
+      return false;
+    }
+  }, [currentLocation, formData, schema]);
+
   const handleSubmit = async () => {
     try {
+      // Validate location is required
+      if (!currentLocation || currentLocation.trim() === '') {
+        Alert.alert(
+          t('common.error'),
+          t('plan.form.locationRequired') || 'Please get your current location first.'
+        );
+        return;
+      }
+
       const validated = schema.parse(formData);
       setLoading(true);
 
@@ -146,6 +197,7 @@ export default function CreateTripScreen() {
         currentLocation,
       });
 
+      // Commit mutation with refetchQueries to update cache
       const res = await createTrip({
         variables: {
           input: {
@@ -157,26 +209,24 @@ export default function CreateTripScreen() {
             preferences: combinedPreferences,
           },
         },
+        // Refetch trips list to show new trip immediately
+        refetchQueries: [GetTripsDocument],
+        // Wait for refetch to complete before redirecting
+        awaitRefetchQueries: true,
       });
 
       console.log('GraphQL response:', JSON.stringify(res, null, 2));
 
       const trip = res.data?.createTrip;
       if (trip?.id) {
-        // Show alert that trip is being generated
-        Alert.alert(
-          t('plan.form.processing'),
-          t('plan.form.waitingMessage'),
-          [
-            { 
-              text: t('common.ok'), 
-              onPress: () => {
-                // Navigate to trip details page with pending status
-                router.replace(`/(app)/(trips)/${trip.id}` as any);
-              }
-            },
-          ]
-        );
+        // Dismiss keyboard for smooth transition
+        Keyboard.dismiss();
+        
+        // Smooth redirect to trip details page - no alert interruption
+        // Use setTimeout to ensure keyboard dismissal completes
+        setTimeout(() => {
+          router.replace(`/(app)/(trips)/${trip.id}` as any);
+        }, 100);
       } else {
         console.log('No trip returned in response');
         throw new Error(t('plan.form.errors.generateFailed'));
@@ -231,20 +281,24 @@ export default function CreateTripScreen() {
     }
   };
 
+  const formIsValid = isFormValid();
+
   return (
-    <View className="flex-1 bg-white dark:bg-black">
+    <KeyboardAvoidingView 
+      className="flex-1 bg-white dark:bg-black"
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+    >
       <Stack.Screen options={{ title: t('plan.form.title'), headerShown: true }} />
 
-      <ScrollView className="flex-1 px-6 py-4">
-        {/* Current Location */}
+      <ScrollView 
+        className="flex-1 px-6 py-4" 
+        contentContainerStyle={{ paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Current Location - Compact */}
         <View className="mb-4">
-          <CustomText
-            weight="medium"
-            className="text-base text-black dark:text-white mb-2"
-          >
-            {t('plan.form.currentLocation')}
-          </CustomText>
-          <View className="flex-row gap-2">
+          <View className="flex-row items-center gap-2">
             <View className="flex-1">
               <InputField
                 placeholder={locationLoading ? t('plan.form.currentLocationPlaceholder') : currentLocation || t('plan.form.currentLocationPlaceholder')}
@@ -256,7 +310,7 @@ export default function CreateTripScreen() {
             <TouchableOpacity
               onPress={getCurrentLocation}
               disabled={locationLoading}
-              className={`px-4 py-3 rounded-full justify-center items-center ${
+              className={`px-3 py-3 rounded-full justify-center items-center min-w-[48px] ${
                 locationLoading
                   ? 'bg-gray-300 dark:bg-neutral-700'
                   : 'bg-primary'
@@ -265,7 +319,7 @@ export default function CreateTripScreen() {
               {locationLoading ? (
                 <ActivityIndicator color="#fff" size="small" />
               ) : (
-                <Ionicons name="refresh-outline" size={20} color="#fff" />
+                <Ionicons name="locate-outline" size={20} color="#fff" />
               )}
             </TouchableOpacity>
           </View>
@@ -453,12 +507,21 @@ export default function CreateTripScreen() {
         </View>
           </View>
         )}
+      </ScrollView>
 
-        {/* Submit Button */}
+      {/* Floating Submit Button - Adjusts with keyboard */}
+      <View 
+        className="absolute left-0 right-0 px-6 bg-white dark:bg-black border-t border-gray-200 dark:border-neutral-800"
+        style={{ 
+          bottom: keyboardHeight > 0 ? keyboardHeight : 0,
+          paddingBottom: keyboardHeight > 0 ? 16 : Math.max(insets.bottom, 16),
+          paddingTop: 16,
+        }}
+      >
         <CustomButton
           title={loading ? t('plan.form.generating') : t('plan.form.submit')}
           onPress={handleSubmit}
-          disabled={loading}
+          disabled={loading || !formIsValid}
           IconLeft={
             loading
               ? () => (
@@ -469,17 +532,16 @@ export default function CreateTripScreen() {
                 )
               : () => (
                   <Ionicons
-                    name="sparkles"
+                    name="checkmark-circle"
                     size={20}
                     color="#fff"
                     style={{ marginRight: 8 }}
                   />
                 )
           }
+          className="shadow-lg"
         />
-
-        <View className="h-8" />
-      </ScrollView>
     </View>
+    </KeyboardAvoidingView>
   );
 }

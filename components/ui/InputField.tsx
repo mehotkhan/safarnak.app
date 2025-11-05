@@ -37,6 +37,12 @@ export default function InputField({
   const renderIcon = () => {
     if (!icon) return null;
     
+    const isRTL = I18nManager.isRTL;
+    const iconMarginStyle = {
+      [isRTL ? 'marginEnd' : 'marginStart']: 16,
+      transform: [{ scaleX: isRTL ? -1 : 1 }] as const,
+    };
+    
     if (typeof icon === 'string') {
       // It's an icon name, use Ionicons
       return (
@@ -44,12 +50,12 @@ export default function InputField({
           name={icon as any}
           size={20}
           color="#6b7280"
-          style={{ marginStart: 16, transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }}
+          style={iconMarginStyle}
         />
       );
     } else {
       // It's an image source
-      return <Image source={icon} className={`w-6 h-6 ${iconStyle}`} style={{ marginStart: 16, transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }} />;
+      return <Image source={icon} className={`w-6 h-6 ${iconStyle}`} style={iconMarginStyle} />;
     }
   };
   
