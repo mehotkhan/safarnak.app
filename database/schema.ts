@@ -150,7 +150,7 @@ export const messages = sqliteTable('messages', {
 });
 
 export const subscriptions = sqliteTable('subscriptions', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
+  id: text('id').primaryKey(), // No default - graphql-workers-subscriptions provides its own IDs
   connectionId: text('connectionId').notNull(), // camelCase to match graphql-workers-subscriptions
   connectionPoolId: text('connectionPoolId').notNull(), // camelCase to match graphql-workers-subscriptions
   subscription: text('subscription').notNull(),

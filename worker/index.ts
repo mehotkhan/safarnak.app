@@ -104,17 +104,21 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
         const upgradeHeader = request.headers.get('upgrade');
         if (upgradeHeader?.toLowerCase() === 'websocket') {
           try {
-            // Clean up subscriptions older than 1 hour or inactive connections
-            // Use a more aggressive cleanup to prevent constraint violations
+            // Aggressive cleanup to prevent UNIQUE constraint violations
+            // Clean up subscriptions older than 30 minutes, inactive, or expired
+            // This prevents conflicts when reconnecting with the same subscription ID
             const db = env.DB;
-            const result = await db.exec(`
+            
+            // Clean up old/inactive/expired subscriptions
+            const cleanupResult = await db.exec(`
               DELETE FROM subscriptions 
               WHERE is_active = 0 
               OR (expires_at IS NOT NULL AND expires_at < datetime('now'))
-              OR (created_at < datetime('now', '-1 hour'))
+              OR (created_at < datetime('now', '-30 minutes'))
             `);
-            if (__DEV__ && result.meta.changes > 0) {
-              console.log(`🧹 Cleaned up ${result.meta.changes} old subscriptions`);
+            
+            if (__DEV__ && cleanupResult.meta.changes > 0) {
+              console.log(`🧹 Cleaned up ${cleanupResult.meta.changes} old subscriptions`);
             }
           } catch (error) {
             // Log but don't fail requests if cleanup fails
@@ -181,6 +185,60 @@ const subscriptionsFetch = handleSubscriptions({
   fetch: baseFetch,
   ...settings,
 });
+
+// Wrapper to handle subscription errors gracefully
+// The graphql-workers-subscriptions library may try to insert subscriptions
+// with IDs that already exist (e.g., on reconnection). We catch these errors,
+// clean up the duplicate subscription, and allow the connection to proceed.
+const wrappedSubscriptionsFetch = async (
+  request: Request,
+  env: Env,
+  executionCtx: ExecutionContext
+): Promise<Response> => {
+  try {
+    return await subscriptionsFetch(request, env, executionCtx);
+  } catch (error: any) {
+    // Handle UNIQUE constraint violations on subscriptions table
+    // This can happen when reconnecting WebSocket - the subscription ID already exists
+    const errorMessage = error?.message || error?.cause?.message || '';
+    const isUniqueConstraintError = errorMessage.includes('UNIQUE constraint failed: subscriptions.id');
+    
+    if (isUniqueConstraintError) {
+      // Try to clean up the duplicate subscription and retry
+      try {
+        const upgradeHeader = request.headers.get('upgrade');
+        if (upgradeHeader?.toLowerCase() === 'websocket') {
+          // For WebSocket connections, try to delete any inactive subscriptions
+          // This might help with the next retry
+          const db = env.DB;
+          await db.exec(`
+            DELETE FROM subscriptions 
+            WHERE is_active = 0 
+            OR (created_at < datetime('now', '-5 minutes'))
+          `);
+          
+          if (__DEV__) {
+            console.warn(
+              '[Subscription] Duplicate subscription ID detected. Cleaned up inactive subscriptions and continuing...'
+            );
+          }
+          
+          // Retry the request after cleanup
+          // The library should handle the retry, but if it doesn't, we'll let the error propagate
+          return await subscriptionsFetch(request, env, executionCtx);
+        }
+      } catch (retryError) {
+        // If retry fails, log and continue with original error
+        if (__DEV__) {
+          console.warn('[Subscription] Retry after cleanup failed:', retryError);
+        }
+      }
+    }
+    
+    // Re-throw the error if we couldn't handle it
+    throw error;
+  }
+};
 
 // Serve landing page at root, GraphQL at /graphql
 const fetch = async (
@@ -261,7 +319,7 @@ const fetch = async (
  
 
   // GraphQL endpoint and subscriptions
-  return subscriptionsFetch(request, env, executionCtx);
+  return wrappedSubscriptionsFetch(request, env, executionCtx);
 };
 
 // ============================================================================
