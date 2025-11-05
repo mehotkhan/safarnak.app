@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -11,6 +11,7 @@ import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import { CustomText } from '@components/ui/CustomText';
 import InputField from '@components/ui/InputField';
 import CustomButton from '@components/ui/CustomButton';
@@ -30,6 +31,14 @@ export default function CreateTripScreen() {
   const [loading, setLoading] = useState(false);
   const [createTrip] = useCreateTripMutation();
 
+  // Location state
+  const [currentLocation, setCurrentLocation] = useState<string>('');
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  // Advanced options state
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const [formData, setFormData] = useState({
     destination: '',
     startDate: '',
@@ -39,6 +48,50 @@ export default function CreateTripScreen() {
     travelers: '1',
     accommodation: 'hotel',
   });
+
+  // Request location permissions and get current location
+  const getCurrentLocation = useCallback(async () => {
+    try {
+      setLocationLoading(true);
+      setLocationError(null);
+
+      // Request permissions
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        setLocationError(t('plan.form.currentLocationError'));
+        return;
+      }
+
+      // Get current position
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+
+      // Reverse geocode to get address
+      const geocode = await Location.reverseGeocodeAsync({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+      });
+
+      if (geocode && geocode.length > 0) {
+        const addr = geocode[0];
+        const addressParts = [
+          addr.street,
+          addr.city,
+          addr.region,
+          addr.country,
+        ].filter(Boolean);
+        setCurrentLocation(addressParts.join(', ') || `${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`);
+      } else {
+        setCurrentLocation(`${location.coords.latitude.toFixed(6)}, ${location.coords.longitude.toFixed(6)}`);
+      }
+    } catch (error: any) {
+      console.error('Location error:', error);
+      setLocationError(t('plan.form.currentLocationError'));
+    } finally {
+      setLocationLoading(false);
+    }
+  }, [t]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -71,7 +124,13 @@ export default function CreateTripScreen() {
       setLoading(true);
 
       const travelersNum = parseInt(validated.travelers, 10);
-      const baseDescription = validated.description.trim();
+      let baseDescription = validated.description.trim();
+      
+      // Prepend current location if available
+      if (currentLocation) {
+        baseDescription = `Current Location: ${currentLocation}\n\n${baseDescription}`;
+      }
+
       const optionalPreferences = validated.preferences?.trim();
       const combinedPreferences = optionalPreferences
         ? `${optionalPreferences}\n\n${baseDescription}`
@@ -84,14 +143,15 @@ export default function CreateTripScreen() {
         travelers: travelersNum,
         accommodation: validated.accommodation,
         preferences: combinedPreferences,
+        currentLocation,
       });
 
       const res = await createTrip({
         variables: {
           input: {
-            destination: validated.destination,
-            startDate: validated.startDate,
-            endDate: validated.endDate,
+            destination: validated.destination || undefined,
+            startDate: validated.startDate || undefined,
+            endDate: validated.endDate || undefined,
             travelers: travelersNum,
             accommodation: validated.accommodation,
             preferences: combinedPreferences,
@@ -176,32 +236,116 @@ export default function CreateTripScreen() {
       <Stack.Screen options={{ title: t('plan.form.title'), headerShown: true }} />
 
       <ScrollView className="flex-1 px-6 py-4">
-        {/* Describe Plan (Top) */}
-        <TextArea
-          label={t('plan.form.describePlan')}
-          value={formData.description}
-          onChangeText={text => handleInputChange('description', text)}
-          placeholder={t('plan.form.describePlanPlaceholder')}
-          rows={10}
-        />
-
-        {/* Destination */}
+        {/* Current Location */}
         <View className="mb-4">
           <CustomText
             weight="medium"
             className="text-base text-black dark:text-white mb-2"
           >
-            {t('plan.form.destination')}
+            {t('plan.form.currentLocation')}
           </CustomText>
+          <View className="flex-row gap-2">
+            <View className="flex-1">
+              <InputField
+                placeholder={locationLoading ? t('plan.form.currentLocationPlaceholder') : currentLocation || t('plan.form.currentLocationPlaceholder')}
+                value={currentLocation}
+                editable={false}
+                icon="location-outline"
+              />
+            </View>
+            <TouchableOpacity
+              onPress={getCurrentLocation}
+              disabled={locationLoading}
+              className={`px-4 py-3 rounded-full justify-center items-center ${
+                locationLoading
+                  ? 'bg-gray-300 dark:bg-neutral-700'
+                  : 'bg-primary'
+              }`}
+            >
+              {locationLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <Ionicons name="refresh-outline" size={20} color="#fff" />
+              )}
+            </TouchableOpacity>
+          </View>
+          {locationError && (
+            <CustomText className="text-sm text-red-500 mt-1">
+              {locationError}
+            </CustomText>
+          )}
+        </View>
+
+        {/* Description with Hints */}
+        <View className="mb-4">
+          <TextArea
+            label={t('plan.form.describePlan')}
+            value={formData.description}
+            onChangeText={text => handleInputChange('description', text)}
+            placeholder={t('plan.form.describePlanPlaceholder')}
+            rows={8}
+          />
+          
+          {/* Helpful Hints */}
+          <View className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
+            <CustomText weight="medium" className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+              {t('plan.form.describePlanHints')}
+            </CustomText>
+            <View>
+              <CustomText className="text-xs text-blue-700 dark:text-blue-300 mb-1">
+                • {t('plan.form.describePlanHint1')}
+              </CustomText>
+              <CustomText className="text-xs text-blue-700 dark:text-blue-300 mb-1">
+                • {t('plan.form.describePlanHint2')}
+              </CustomText>
+              <CustomText className="text-xs text-blue-700 dark:text-blue-300 mb-1">
+                • {t('plan.form.describePlanHint3')}
+              </CustomText>
+              <CustomText className="text-xs text-blue-700 dark:text-blue-300">
+                • {t('plan.form.describePlanHint4')}
+              </CustomText>
+            </View>
+          </View>
+
+          {/* Voice Recording - Disabled */}
+          <View className="mt-3 p-3 bg-gray-100 dark:bg-neutral-800 rounded-xl">
+            <View className="flex-row items-center">
+              <Ionicons 
+                name="mic-off-outline" 
+                size={20} 
+                color={isDark ? '#9ca3af' : '#6b7280'} 
+                style={{ marginRight: 8 }} 
+              />
+              <CustomText className="text-sm text-gray-500 dark:text-gray-400">
+                {t('plan.form.voiceRecord')} ({t('common.disabled')})
+              </CustomText>
+            </View>
+          </View>
+        </View>
+
+        {/* Destination (Optional) */}
+        <View className="mb-4">
+          <View className="flex-row items-center justify-between mb-2">
+            <CustomText
+              weight="medium"
+              className="text-base text-black dark:text-white"
+            >
+              {t('plan.form.destination')}
+            </CustomText>
+            <CustomText className="text-xs text-gray-500 dark:text-gray-400">
+              {t('plan.form.destinationOptional')}
+            </CustomText>
+          </View>
           <InputField
             placeholder={t('plan.form.destinationPlaceholder')}
             value={formData.destination}
             onChangeText={value => handleInputChange('destination', value)}
             icon="location-outline"
           />
+          {/* Location picker button could be added here in future */}
         </View>
 
-        {/* Dates (below Destination) */}
+        {/* Dates */}
         <View className="flex-row gap-3 mb-4">
           <View className="flex-1">
             <DatePicker
@@ -221,6 +365,23 @@ export default function CreateTripScreen() {
           </View>
         </View>
 
+        {/* Advanced Options - Collapsible */}
+        <TouchableOpacity
+          onPress={() => setShowAdvanced(!showAdvanced)}
+          className="flex-row items-center justify-between mb-3 py-2"
+        >
+          <CustomText weight="medium" className="text-base text-black dark:text-white">
+            {t('plan.form.advancedOptions')}
+          </CustomText>
+          <Ionicons
+            name={showAdvanced ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={isDark ? '#fff' : '#000'}
+          />
+        </TouchableOpacity>
+
+        {showAdvanced && (
+          <View className="mb-4">
         <Divider label={t('plan.form.optionalDivider')} />
 
         {/* Travelers */}
@@ -290,6 +451,8 @@ export default function CreateTripScreen() {
             icon="heart-outline"
           />
         </View>
+          </View>
+        )}
 
         {/* Submit Button */}
         <CustomButton
@@ -320,4 +483,3 @@ export default function CreateTripScreen() {
     </View>
   );
 }
-
