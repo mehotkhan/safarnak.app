@@ -24,6 +24,7 @@ import {
   cachedMessages,
   pendingMutations,
   syncMetadata,
+  apolloCacheEntries,
 } from './schema';
 
 // ============================================================================
@@ -186,6 +187,14 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         schema_version INTEGER DEFAULT 1
       );
 
+      CREATE TABLE IF NOT EXISTS apollo_cache_entries (
+        key TEXT PRIMARY KEY NOT NULL,
+        value TEXT NOT NULL,
+        entity_type TEXT,
+        entity_id TEXT,
+        updated_at INTEGER DEFAULT (strftime('%s', 'now'))
+      );
+
       CREATE INDEX IF NOT EXISTS idx_cached_trips_user_id ON cached_trips(user_id);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_destination ON cached_trips(destination);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_status ON cached_trips(status);
@@ -194,6 +203,8 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_cached_places_type ON cached_places(type);
       CREATE INDEX IF NOT EXISTS idx_cached_places_location ON cached_places(location);
       CREATE INDEX IF NOT EXISTS idx_pending_mutations_queued_at ON pending_mutations(queued_at);
+      CREATE INDEX IF NOT EXISTS idx_apollo_cache_entity ON apollo_cache_entries(entity_type, entity_id);
+      CREATE INDEX IF NOT EXISTS idx_apollo_cache_updated_at ON apollo_cache_entries(updated_at);
     `);
 
     if (__DEV__) {
@@ -224,6 +235,10 @@ type EntityType = keyof typeof ENTITY_TYPE_TO_TABLE;
 
 /**
  * Sync Apollo normalized cache to Drizzle local database
+ * 
+ * @deprecated This function is no longer needed. DrizzleCacheStorage automatically
+ * syncs to structured tables when Apollo writes to cache. This function is kept
+ * for backward compatibility and migration purposes only.
  */
 export async function syncApolloToDrizzle(cache: NormalizedCacheObject): Promise<void> {
   try {
@@ -385,6 +400,16 @@ export interface EntityStats {
   newestCachedAt: number | null;
 }
 
+export interface ApolloCacheStats {
+  totalEntries: number;
+  entityEntries: number;
+  rootEntries: number;
+  totalSize: number;
+  oldestEntry: number | null;
+  newestEntry: number | null;
+  entriesByType: Record<string, number>;
+}
+
 export interface DatabaseStats {
   entities: {
     trips: EntityStats;
@@ -394,6 +419,7 @@ export interface DatabaseStats {
     places: EntityStats;
   };
   totalEntities: number;
+  apolloCache: ApolloCacheStats;
   pendingMutations: {
     total: number;
     withErrors: number;
@@ -407,7 +433,7 @@ export interface DatabaseStats {
   storage: {
     totalSize: number;
     apolloCacheSize: number;
-    localDbSize: number;
+    structuredDataSize: number;
   };
 }
 
@@ -464,9 +490,50 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
     const [pendingOldest] = await db.select({ oldest: sql<number>`min(${pendingMutations.queuedAt})` }).from(pendingMutations);
     const syncStatus = await db.select().from(syncMetadata);
 
+    // Get Apollo cache statistics
+    const [apolloTotal] = await db.select({ count: sql<number>`count(*)` }).from(apolloCacheEntries);
+    const [apolloEntityCount] = await db.select({ count: sql<number>`count(*)` }).from(apolloCacheEntries).where(isNotNull(apolloCacheEntries.entityType));
+    const [apolloRootCount] = await db.select({ count: sql<number>`count(*)` }).from(apolloCacheEntries).where(sql`${apolloCacheEntries.entityType} IS NULL`);
+    const [apolloSize] = await db.select({ totalSize: sql<number>`SUM(LENGTH(${apolloCacheEntries.value}))` }).from(apolloCacheEntries);
+    const [apolloTimeRange] = await db.select({
+      oldest: sql<number>`min(${apolloCacheEntries.updatedAt})`,
+      newest: sql<number>`max(${apolloCacheEntries.updatedAt})`,
+    }).from(apolloCacheEntries);
+    
+    // Get entries by entity type
+    const entriesByTypeResult = await db
+      .select({
+        entityType: apolloCacheEntries.entityType,
+        count: sql<number>`count(*)`,
+      })
+      .from(apolloCacheEntries)
+      .where(isNotNull(apolloCacheEntries.entityType))
+      .groupBy(apolloCacheEntries.entityType);
+    
+    const entriesByType: Record<string, number> = {};
+    entriesByTypeResult.forEach((row) => {
+      if (row.entityType) {
+        entriesByType[row.entityType] = Number(row.count || 0);
+      }
+    });
+
+    const apolloCacheStats: ApolloCacheStats = {
+      totalEntries: Number(apolloTotal?.count || 0),
+      entityEntries: Number(apolloEntityCount?.count || 0),
+      rootEntries: Number(apolloRootCount?.count || 0),
+      totalSize: Number(apolloSize?.totalSize || 0),
+      oldestEntry: apolloTimeRange?.oldest || null,
+      newestEntry: apolloTimeRange?.newest || null,
+      entriesByType,
+    };
+
+    // Calculate structured data size (approximate)
+    const structuredDataSize = apolloCacheStats.totalSize; // For now, use same as cache size
+
     return {
       entities: { trips, users, messages, tours, places },
       totalEntities: trips.count + users.count + messages.count + tours.count + places.count,
+      apolloCache: apolloCacheStats,
       pendingMutations: {
         total: pendingTotal?.count || 0,
         withErrors: pendingWithErrors?.count || 0,
@@ -478,9 +545,9 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
         schemaVersion: s.schemaVersion || 1,
       })),
       storage: {
-        totalSize: 0,
-        apolloCacheSize: 0,
-        localDbSize: 0,
+        totalSize: apolloCacheStats.totalSize + structuredDataSize,
+        apolloCacheSize: apolloCacheStats.totalSize,
+        structuredDataSize,
       },
     };
   } catch (error) {
@@ -491,7 +558,16 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
       totalEntities: 0,
       pendingMutations: { total: 0, withErrors: 0, oldestQueuedAt: null },
       syncStatus: [],
-      storage: { totalSize: 0, apolloCacheSize: 0, localDbSize: 0 },
+      apolloCache: {
+        totalEntries: 0,
+        entityEntries: 0,
+        rootEntries: 0,
+        totalSize: 0,
+        oldestEntry: null,
+        newestEntry: null,
+        entriesByType: {},
+      },
+      storage: { totalSize: 0, apolloCacheSize: 0, structuredDataSize: 0 },
     };
   }
 }

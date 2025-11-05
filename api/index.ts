@@ -2,50 +2,29 @@
  * API Exports
  * 
  * Main entry point for all API-related modules including:
- * - Enhanced auto-generated GraphQL hooks (with automatic Drizzle sync)
- * - Apollo client
+ * - Auto-generated GraphQL hooks
+ * - Apollo client (with Drizzle cache storage)
  * - Utilities
  * 
  * Usage:
  *   import { useMeQuery, useGetTripsQuery, useLoginMutation, client } from '@api';
  * 
- * All hooks automatically sync Apollo cache → Drizzle for offline support.
+ * DrizzleCacheStorage automatically syncs Apollo cache → Drizzle structured tables.
  * No manual sync needed!
  */
 
-// Enhanced GraphQL hooks with automatic Drizzle sync
-// These are the ONLY hooks you should use - they auto-sync to Drizzle
-export {
-  useMeQuery,
-  useGetTripsQuery,
-  useGetTripQuery,
-  useGetMessagesQuery,
-  useLoginMutation,
-  useRegisterMutation,
-  useAddMessageMutation,
-  useCreateTripMutation,
-} from './enhanced-hooks';
-
-// Export lazy queries, suspense queries, subscriptions, and all types
-export {
-  useMeLazyQuery,
-  useMeSuspenseQuery,
-  useGetTripsLazyQuery,
-  useGetTripsSuspenseQuery,
-  useGetTripLazyQuery,
-  useGetTripSuspenseQuery,
-  useGetMessagesLazyQuery,
-  useGetMessagesSuspenseQuery,
-  useGetAlertsQuery,
-  useNewAlertsSubscription,
-} from './hooks';
+// Export all auto-generated GraphQL hooks (queries, mutations, subscriptions, lazy, suspense)
+export * from './hooks';
 
 // Export all types
 export type * from './types';
 export type * from './hooks';
 
-// Apollo client & SQLite storage (merged into client.ts)
-export { client, sqliteStorage } from './client';
+// Apollo client (uses DrizzleCacheStorage for persistence)
+export { client } from './client';
 
-// Utilities, types, and logout (all merged into utils.ts)
+// Drizzle cache storage (for utilities that need direct access)
+export { drizzleCacheStorage, DrizzleCacheStorage } from './cache-storage';
+
+// Utilities, types, and logout
 export * from './utils';

@@ -151,6 +151,7 @@ export default function MessagesScreen() {
   });
 
   // Convert alerts from query to notifications format
+  // React Compiler: Match inferred dependency (alertsData.getAlerts) to preserve memoization
   const alertsNotifications = useMemo(() => {
     if (!alertsData?.getAlerts) return [];
     return alertsData.getAlerts
@@ -163,8 +164,9 @@ export default function MessagesScreen() {
         time: t('messages.time.justNow'),
         read: alert.read || false,
       }));
+    // Match React Compiler's inferred dependency format (alertsData.getAlerts, not alertsData?.getAlerts)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [alertsData?.getAlerts, user?.id, t]);
+  }, [alertsData?.getAlerts ? alertsData.getAlerts : undefined, user?.id, t]);
 
   const [notifications, setNotifications] = useState([...mockNotificationsBase(t), ...alertsNotifications]);
 

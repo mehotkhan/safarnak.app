@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
 import { useGraphBackendReachable } from './useGraphBackendReachable';
-import { sqliteStorage } from '@api';
+import { drizzleCacheStorage } from '@api';
 
 export interface SystemStatus {
   isOnline: boolean;
@@ -34,8 +34,8 @@ export function useSystemStatus() {
 
   const updateCacheStats = async () => {
     try {
-      const size = await sqliteStorage.getCacheSize();
-      const keys = await sqliteStorage.getAllKeys();
+      const size = await drizzleCacheStorage.getCacheSize();
+      const keys = await drizzleCacheStorage.getAllKeys();
       setCacheSize(size);
       setCacheKeys(keys.length);
     } catch (error) {

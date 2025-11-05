@@ -8,7 +8,8 @@
  *   const db = getServerDB(context.env.DB);
  * 
  * CLIENT USAGE:
- *   import { getLocalDB, syncApolloToDrizzle } from '@database/client';
+ *   import { getLocalDB } from '@database/client';
+ *   import { drizzleCacheStorage } from '@api'; // Cache storage is in @api
  *   const db = await getLocalDB();
  */
 
@@ -62,7 +63,7 @@ export {
 export {
   getLocalDB,
   schema as clientDbSchema,
-  syncApolloToDrizzle,
+  syncApolloToDrizzle, // @deprecated - use DrizzleCacheStorage instead
   getDatabaseStats,
   getPendingMutationsDetails,
   formatTimestamp,
@@ -78,6 +79,7 @@ export {
   cachedMessages,
   pendingMutations,
   syncMetadata,
+  apolloCacheEntries,
   // Schema objects
   clientSchema,
 } from './schema';

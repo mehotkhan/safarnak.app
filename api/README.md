@@ -1,8 +1,8 @@
 # API Folder Structure
 
-This folder contains all client-side API code, including GraphQL hooks, Apollo Client setup, and utilities.
+This folder contains all client-side API code, including GraphQL hooks, Apollo Client setup, cache storage, and utilities.
 
-## Files Overview (7 files total)
+## Files Overview (6 files total)
 
 ### Auto-Generated (Codegen - Never Edit Manually)
 - **`hooks.ts`** - Auto-generated React Apollo hooks from GraphQL operations
@@ -14,22 +14,22 @@ This folder contains all client-side API code, including GraphQL hooks, Apollo C
   - Contains all GraphQL types, interfaces, and enums
 
 ### Core Functionality
-- **`enhanced-hooks.ts`** - Wraps auto-generated hooks with automatic Drizzle sync
-  - ✅ **This is what you import and use** - All hooks from `@api` use this
-  - Automatically syncs Apollo cache → Drizzle after queries/mutations
-  - Provides offline capabilities without additional code
+- **`client.ts`** - Apollo Client configuration
+  - Sets up GraphQL endpoint, auth link, WebSocket subscriptions
+  - Configures cache persistence via DrizzleCacheStorage
+  - Exports: `client`
 
-- **`client.ts`** - Apollo Client configuration + SQLite storage (merged)
-  - Sets up GraphQL endpoint, auth link, cache persistence
-  - Contains SQLite adapter for Apollo cache persistence
-  - Configures Apollo → Drizzle sync on startup
-  - Exports: `client`, `sqliteStorage`
+- **`cache-storage.ts`** - Drizzle-based Apollo cache storage (Expo SQLite)
+  - Implements Apollo's `PersistentStorage` interface
+  - Uses Drizzle ORM with Expo SQLite
+  - Automatically syncs to structured tables (cachedUsers, cachedTrips, etc.)
+  - Exports: `drizzleCacheStorage`, `DrizzleCacheStorage`
 
-- **`utils.ts`** - All utilities, types, and helpers (merged)
+- **`utils.ts`** - All utilities, types, and helpers
   - API types: `ApiError`, `ApiResponse`, `AuthTokens`, `ApiConfig`
   - Storage utilities: `getStoredToken`, `storeUserData`, `clearUserData`
   - Error handling: `formatApiError`, `isNetworkError`, `shouldRetryRequest`
-  - Logout: `clearAllUserData` (clears AsyncStorage, SQLite, Apollo cache)
+  - Logout: `clearAllUserData` (clears AsyncStorage, Drizzle cache, Apollo cache)
 
 ### TypeScript Support
 - **`globals.d.ts`** - Global type declarations
@@ -38,43 +38,49 @@ This folder contains all client-side API code, including GraphQL hooks, Apollo C
 
 ### Main Export
 - **`index.ts`** - Main entry point
-  - Exports all hooks (enhanced versions with Drizzle sync)
-  - Exports types, utilities, and Apollo client
+  - Exports all auto-generated hooks (directly from hooks.ts)
+  - Exports types, utilities, Apollo client, and cache storage
   - **Import everything from here:** `import { useMeQuery, client } from '@api'`
 
 ## Usage
 
-### ✅ Correct Usage (Enhanced Hooks with Auto Drizzle Sync)
+### ✅ Correct Usage (Auto-Generated Hooks with Automatic Drizzle Sync)
 
 ```typescript
 import { useMeQuery, useGetTripsQuery, useLoginMutation } from '@api';
 
-// These hooks automatically sync to Drizzle after completion
+// DrizzleCacheStorage automatically syncs Apollo cache → Drizzle on every write
 const { data } = useMeQuery();
 const { data: trips } = useGetTripsQuery({ variables: { status: 'active' } });
 const [login] = useLoginMutation();
 ```
 
-### ❌ Wrong Usage (Don't Import Directly)
+### Direct Cache Storage Access
 
 ```typescript
-// Don't import from hooks.ts directly - use enhanced version
-import { useMeQuery } from '@api/hooks'; // ❌ Missing Drizzle sync
+import { drizzleCacheStorage } from '@api';
+
+// Get cache statistics
+const size = await drizzleCacheStorage.getCacheSize();
+const keys = await drizzleCacheStorage.getAllKeys();
+
+// Clear cache if needed
+await drizzleCacheStorage.clearAll();
 ```
 
 ## File Organization
 
-**7 files total** - Optimized structure:
+**6 files total** - Clean structure:
 
 1. **Auto-generated (2)**: `hooks.ts`, `types.ts` - Cannot be merged (required by codegen)
-2. **Core (3)**: `enhanced-hooks.ts`, `client.ts` (includes SQLite), `index.ts`
-3. **Utilities (1)**: `utils.ts` - Merged: types, storage, errors, logout
+2. **Core (3)**: `client.ts`, `cache-storage.ts`, `index.ts`
+3. **Utilities (1)**: `utils.ts` - Types, storage, errors, logout
 4. **Support (1)**: `globals.d.ts` - TypeScript declarations
 
-**Merged files:**
-- `sqlite-storage.ts` → merged into `client.ts`
-- `api-types.ts` → merged into `utils.ts`
-- `logout.ts` → merged into `utils.ts`
+**Architecture:**
+- Apollo Client (`client.ts`) uses DrizzleCacheStorage (`cache-storage.ts`) for persistence
+- Cache storage automatically syncs to structured Drizzle tables (no wrapper hooks needed)
+- All hooks are used directly from auto-generated `hooks.ts`
 
 ## GraphQL Query System
 
@@ -89,15 +95,15 @@ GraphQL Codegen (yarn codegen)
     ↓
 Auto-Generated Hooks (api/hooks.ts)
     ↓
-Enhanced Hooks Wrapper (api/enhanced-hooks.ts)
-    ↓
 Apollo Client (network layer)
     ↓
 Apollo Cache (normalized in-memory)
     ↓
-SQLite Cache (persisted Apollo cache)
+DrizzleCacheStorage (api/cache-storage.ts)
     ↓
-Drizzle Database (structured SQL database)
+Drizzle ORM + Expo SQLite (safarnak_local.db)
+    ├─→ apollo_cache_entries (raw cache)
+    └─→ cached_users, cached_trips, etc. (structured tables)
 ```
 
 ### How It Works
@@ -118,9 +124,10 @@ Drizzle Database (structured SQL database)
    - Generates TypeScript types in `api/types.ts`
    - Generates React Apollo hooks in `api/hooks.ts`
 
-3. **Enhanced Hooks**: Auto-wrapped with Drizzle sync
-   - `enhanced-hooks.ts` wraps all generated hooks
-   - Automatically syncs Apollo cache → Drizzle after queries/mutations
+3. **Cache Storage**: DrizzleCacheStorage handles persistence
+   - `cache-storage.ts` implements Apollo's PersistentStorage interface
+   - Automatically syncs Apollo cache → Drizzle on every write
+   - Uses Expo SQLite via Drizzle ORM
    - Provides seamless offline support
 
 4. **Usage**: Import and use - that's it!
@@ -143,57 +150,61 @@ Example: `getTrips.graphql` → `useGetTripsQuery`, `useGetTripsLazyQuery`, etc.
 
 ### Architecture
 
-The offline system uses a **two-layer caching strategy**:
+The offline system uses a **unified Drizzle storage**:
 
-1. **Apollo Cache** (Normalized JSON cache)
+1. **Apollo Cache** (Normalized in-memory cache)
    - Fast in-memory cache
-   - Persisted to SQLite (`apollo_cache.db`)
    - Used by Apollo Client for quick reads
 
-2. **Drizzle Database** (Structured SQL database)
-   - Full SQLite database (`safarnak_local.db`)
-   - Structured tables: `cached_users`, `cached_trips`, etc.
+2. **DrizzleCacheStorage** (Expo SQLite via Drizzle ORM)
+   - Single database: `safarnak_local.db`
+   - Stores raw cache in `apollo_cache_entries` table
+   - Automatically syncs to structured tables: `cached_users`, `cached_trips`, etc.
    - Enables complex SQL queries for offline data
 
 ### Data Flow
 
 ```
-User Action → Enhanced Hook → Apollo Client
+User Action → Auto-Generated Hook → Apollo Client
                                     ↓
                             Network Request (if online)
                                     ↓
                             Apollo Normalized Cache
                                     ↓
-                            SQLite Persistence (apollo_cache.db)
+                            DrizzleCacheStorage.setItem()
                                     ↓
-                            Auto-Sync to Drizzle (safarnak_local.db)
+                            Drizzle ORM (safarnak_local.db)
+                                    ├─→ apollo_cache_entries (raw cache)
+                                    └─→ cached_users, cached_trips (structured)
                                     ↓
                             Available for SQL Queries
 ```
 
 ### Automatic Sync
 
-The sync happens automatically:
+The sync happens automatically on every Apollo cache write:
 
-1. **On App Startup**:
-   - Apollo cache loads from SQLite persistence
-   - Initial sync: Apollo cache → Drizzle database
+1. **Apollo Writes to Cache**:
+   - Apollo calls `DrizzleCacheStorage.setItem(key, value)`
+   - Happens automatically via `persistCache` configuration
 
-2. **After Every Query/Mutation**:
-   - Enhanced hooks automatically trigger sync
-   - Apollo cache → Drizzle (background, non-blocking)
-
-3. **Sync Process**:
-   - Extracts entities from Apollo cache (e.g., `User:123`, `Trip:456`)
-   - Transforms GraphQL data to Drizzle schema format
-   - Upserts into appropriate cached tables (`cached_users`, `cached_trips`, etc.)
+2. **Dual Write in Single Transaction**:
+   - Writes raw cache entry to `apollo_cache_entries` table
+   - Extracts entity type (e.g., `User:123` → `User`)
+   - Transforms and upserts to structured table (`cached_users`, etc.)
    - Updates sync metadata (`cachedAt`, `lastSyncAt`)
+
+3. **On App Startup**:
+   - Apollo cache restores from `apollo_cache_entries` table
+   - All cached data immediately available
 
 ### Database Schema
 
-**Apollo Cache Table** (`apollo_cache.db`):
-- `key` - Apollo cache key (e.g., `"User:123"`)
+**Apollo Cache Entries** (`safarnak_local.db` → `apollo_cache_entries`):
+- `key` - Apollo cache key (e.g., `"User:123"`, `"ROOT_QUERY"`)
 - `value` - Normalized JSON data
+- `entity_type` - Extracted __typename (null for ROOT_QUERY, etc.)
+- `entity_id` - Extracted ID (null for ROOT_QUERY, etc.)
 - `updated_at` - Timestamp
 
 **Drizzle Cached Tables** (`safarnak_local.db`):
@@ -225,8 +236,8 @@ Each cached table includes:
 
 3. **Data Persistence**:
    - Data survives app restarts
-   - Both Apollo cache and Drizzle data persist
-   - Automatic sync ensures consistency
+   - Single database ensures consistency
+   - Automatic dual-write (raw + structured) on every cache update
 
 ### Querying Offline Data
 
@@ -286,14 +297,14 @@ Access via: Profile → System Status
    - Updates `api/hooks.ts` with `useGetTourQuery`
    - Updates `api/types.ts` with TypeScript types
 
-3. **Use Enhanced Hook**: Import and use
+3. **Use Hook**: Import and use directly
    ```typescript
    import { useGetTourQuery } from '@api';
    
    const { data, loading } = useGetTourQuery({ 
      variables: { id: '123' } 
    });
-   // ✅ Automatically syncs to Drizzle after query completes
+   // ✅ DrizzleCacheStorage automatically syncs on every cache write
    ```
 
 4. **That's It!** - No manual sync code needed
@@ -342,17 +353,18 @@ const localTrips = await db.select().from(cachedTrips);
 
 ### Sync Triggers
 
-1. **App Initialization**: 
-   - Loads persisted Apollo cache
-   - Syncs to Drizzle once on startup
+1. **Every Cache Write**: 
+   - Apollo calls `DrizzleCacheStorage.setItem()` automatically
+   - Happens on every query/mutation response
+   - No wrapper hooks or manual triggers needed
 
-2. **After Queries**: 
-   - Enhanced hooks trigger sync on `onCompleted`
-   - Background process, doesn't block UI
+2. **App Initialization**: 
+   - Apollo restores cache from `apollo_cache_entries` table
+   - All cached data immediately available
 
-3. **After Mutations**: 
-   - Enhanced mutation hooks trigger sync
-   - Ensures mutations are cached for offline access
+3. **Automatic & Transparent**: 
+   - No manual sync code required
+   - Works seamlessly with all Apollo operations
 
 ### Sync Performance
 

@@ -117,16 +117,12 @@ function EntityStatRow({
   pending,
   deleted,
   lastSync,
-  oldestCached,
-  newestCached,
 }: {
   label: string;
   count: number;
   pending: number;
   deleted: number;
   lastSync: number | null;
-  oldestCached: number | null;
-  newestCached: number | null;
 }) {
   const { isDark } = useTheme();
   const { t } = useTranslation();
@@ -195,7 +191,6 @@ export default function SystemStatusScreen() {
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      // Refresh all stats simultaneously
       await Promise.all([refetchStats(), refetchSystemStatus()]);
     } catch (error) {
       console.error('Error refreshing stats:', error);
@@ -212,7 +207,6 @@ export default function SystemStatusScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
-            // Clear all data: AsyncStorage, SQLite cache, Apollo cache
             await clearAllUserData();
             dispatch(logout());
             router.replace('/(auth)/login' as any);
@@ -220,7 +214,6 @@ export default function SystemStatusScreen() {
             if (__DEV__) {
               console.error('Error during logout:', error);
             }
-            // Even if cleanup fails, still logout
             dispatch(logout());
             router.replace('/(auth)/login' as any);
           }
@@ -289,43 +282,142 @@ export default function SystemStatusScreen() {
           )}
         </View>
 
-        {/* Storage Breakdown */}
+        {/* Database Storage Overview */}
         <View className="mb-6">
           <CustomText
             weight="bold"
             className="text-lg text-black dark:text-white mb-4"
           >
-            {t('systemStatus.storageBreakdown', {
-              defaultValue: 'Storage Breakdown',
+            {t('systemStatus.databaseStorage', {
+              defaultValue: 'Database Storage',
             })}
           </CustomText>
 
-          <View className="flex-row justify-between gap-3">
+          <View className="flex-row justify-between gap-3 mb-3">
             <View className="flex-1">
               <StatCard
-                title={t('systemStatus.apolloCache', {
-                  defaultValue: 'Apollo Cache',
+                title={t('systemStatus.totalStorage', {
+                  defaultValue: 'Total Storage',
                 })}
-                value={formatBytes(cacheSize)}
-                subtitle={t('systemStatus.storedData', {
-                  defaultValue: 'Normalized cache',
+                value={stats ? formatBytes(stats.storage.totalSize) : '0 B'}
+                subtitle={t('systemStatus.unifiedDatabase', {
+                  defaultValue: 'Unified Drizzle DB',
                 })}
-                icon="disc-outline"
+                icon="server-outline"
                 color={isDark ? Colors.dark.primary : Colors.light.primary}
               />
             </View>
             <View className="flex-1">
               <StatCard
-                title={t('systemStatus.localDatabase', {
-                  defaultValue: 'Local Database',
+                title={t('systemStatus.totalEntities', {
+                  defaultValue: 'Total Entities',
                 })}
                 value={stats ? stats.totalEntities.toString() : '0'}
-                subtitle={t('systemStatus.totalEntities', {
-                  defaultValue: 'Total entities',
+                subtitle={t('systemStatus.structuredData', {
+                  defaultValue: 'Structured tables',
                 })}
-                icon="server-outline"
+                icon="cube-outline"
                 color={isDark ? Colors.dark.primary : Colors.light.primary}
               />
+            </View>
+          </View>
+
+          {/* Apollo Cache Details */}
+          {stats && stats.apolloCache.totalEntries > 0 && (
+            <View className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800 mb-3">
+              <View className="flex-row items-center justify-between mb-3">
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="disc-outline"
+                    size={20}
+                    color={isDark ? Colors.dark.primary : Colors.light.primary}
+                    style={{ marginRight: 8 }}
+                  />
+                  <CustomText weight="bold" className="text-base text-black dark:text-white">
+                    {t('systemStatus.apolloCache', {
+                      defaultValue: 'Apollo Cache Entries',
+                    })}
+                  </CustomText>
+                </View>
+                <View className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                  <CustomText weight="bold" className="text-blue-700 dark:text-blue-300 text-sm">
+                    {stats.apolloCache.totalEntries}
+                  </CustomText>
+                </View>
+              </View>
+
+              <View className="flex-row flex-wrap gap-4">
+                <View className="flex-row items-center">
+                  <Ionicons name="layers-outline" size={14} color="#3b82f6" />
+                  <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
+                    {t('systemStatus.entityEntries', { defaultValue: 'Entities' })}: {stats.apolloCache.entityEntries}
+                  </CustomText>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="document-outline" size={14} color="#8b5cf6" />
+                  <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
+                    {t('systemStatus.rootEntries', { defaultValue: 'Root' })}: {stats.apolloCache.rootEntries}
+                  </CustomText>
+                </View>
+                <View className="flex-row items-center">
+                  <Ionicons name="hardware-chip-outline" size={14} color="#10b981" />
+                  <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
+                    {formatBytes(stats.apolloCache.totalSize)}
+                  </CustomText>
+                </View>
+              </View>
+
+              {/* Entries by Type */}
+              {Object.keys(stats.apolloCache.entriesByType).length > 0 && (
+                <View className="mt-3 pt-3 border-t border-gray-200 dark:border-neutral-800">
+                  <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                    {t('systemStatus.entriesByType', { defaultValue: 'By Type' })}:
+                  </CustomText>
+                  <View className="flex-row flex-wrap gap-2">
+                    {Object.entries(stats.apolloCache.entriesByType).map(([type, count]) => (
+                      <View
+                        key={type}
+                        className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded"
+                      >
+                        <CustomText className="text-xs text-gray-700 dark:text-gray-300">
+                          {type}: {count}
+                        </CustomText>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Storage Breakdown */}
+          <View className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-gray-200 dark:border-neutral-800">
+            <CustomText weight="bold" className="text-sm text-black dark:text-white mb-3">
+              {t('systemStatus.storageBreakdown', {
+                defaultValue: 'Storage Breakdown',
+              })}
+            </CustomText>
+            <View className="space-y-2">
+              <View className="flex-row items-center justify-between">
+                <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('systemStatus.apolloCacheStorage', {
+                    defaultValue: 'Apollo Cache',
+                  })}
+                </CustomText>
+                <CustomText weight="bold" className="text-sm text-black dark:text-white">
+                  {stats ? formatBytes(stats.storage.apolloCacheSize) : '0 B'}
+                </CustomText>
+              </View>
+              <View className="flex-row items-center justify-between">
+                <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                  {t('systemStatus.structuredDataStorage', {
+                    defaultValue: 'Structured Data',
+                  })}
+                </CustomText>
+                <CustomText weight="bold" className="text-sm text-black dark:text-white">
+                  {stats ? formatBytes(stats.storage.structuredDataSize) : '0 B'}
+                </CustomText>
+              </View>
             </View>
           </View>
         </View>
@@ -348,8 +440,6 @@ export default function SystemStatusScreen() {
               pending={stats.entities.trips.pendingCount}
               deleted={stats.entities.trips.deletedCount}
               lastSync={stats.entities.trips.lastSyncAt}
-              oldestCached={stats.entities.trips.oldestCachedAt}
-              newestCached={stats.entities.trips.newestCachedAt}
             />
 
             <EntityStatRow
@@ -358,8 +448,6 @@ export default function SystemStatusScreen() {
               pending={stats.entities.users.pendingCount}
               deleted={stats.entities.users.deletedCount}
               lastSync={stats.entities.users.lastSyncAt}
-              oldestCached={stats.entities.users.oldestCachedAt}
-              newestCached={stats.entities.users.newestCachedAt}
             />
 
             <EntityStatRow
@@ -368,8 +456,6 @@ export default function SystemStatusScreen() {
               pending={stats.entities.messages.pendingCount}
               deleted={stats.entities.messages.deletedCount}
               lastSync={stats.entities.messages.lastSyncAt}
-              oldestCached={stats.entities.messages.oldestCachedAt}
-              newestCached={stats.entities.messages.newestCachedAt}
             />
 
             <EntityStatRow
@@ -378,8 +464,6 @@ export default function SystemStatusScreen() {
               pending={stats.entities.tours.pendingCount}
               deleted={stats.entities.tours.deletedCount}
               lastSync={stats.entities.tours.lastSyncAt}
-              oldestCached={stats.entities.tours.oldestCachedAt}
-              newestCached={stats.entities.tours.newestCachedAt}
             />
 
             <EntityStatRow
@@ -388,8 +472,6 @@ export default function SystemStatusScreen() {
               pending={stats.entities.places.pendingCount}
               deleted={stats.entities.places.deletedCount}
               lastSync={stats.entities.places.lastSyncAt}
-              oldestCached={stats.entities.places.oldestCachedAt}
-              newestCached={stats.entities.places.newestCachedAt}
             />
           </View>
         )}
@@ -517,13 +599,13 @@ export default function SystemStatusScreen() {
                   className="text-base text-blue-900 dark:text-blue-200 mb-2"
                 >
                   {t('systemStatus.infoTitle', {
-                    defaultValue: 'About This System',
+                    defaultValue: 'About This Database',
                   })}
                 </CustomText>
                 <CustomText className="text-sm text-blue-800 dark:text-blue-300 leading-5">
                   {t('systemStatus.infoDescription', {
                     defaultValue:
-                      'Your data is cached locally in SQLite for offline access. When offline, the app uses cached data. Changes sync automatically when connection is restored.',
+                      'Your data is stored in a unified Drizzle SQLite database. Apollo cache entries and structured entity tables are automatically synced. Data persists offline and syncs when connection is restored.',
                   })}
                 </CustomText>
               </View>
@@ -553,4 +635,3 @@ export default function SystemStatusScreen() {
     </View>
   );
 }
-

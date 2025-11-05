@@ -1,5 +1,6 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-// React Native Animated values require accessing .current during render for initialization
+// React Native Animated.Value requires accessing .current during render for initialization
+// This is a special case where refs are used for animation values, not DOM refs
+/* eslint-disable react-hooks/refs */
 import React, { useEffect } from 'react';
 import { View, Animated, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

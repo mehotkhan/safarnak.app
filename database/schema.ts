@@ -356,6 +356,15 @@ export const syncMetadata = sqliteTable('sync_metadata', {
   schemaVersion: integer('schema_version').default(1),
 });
 
+// Apollo Cache Entries - Raw normalized cache storage for Apollo Client persistence
+export const apolloCacheEntries = sqliteTable('apollo_cache_entries', {
+  key: text('key').primaryKey(), // Apollo cache key (e.g., "User:123", "ROOT_QUERY")
+  value: text('value').notNull(), // JSON string of normalized cache entry
+  entityType: text('entity_type'), // Extracted __typename (null for ROOT_QUERY, etc.)
+  entityId: text('entity_id'), // Extracted ID (null for ROOT_QUERY, etc.)
+  updatedAt: integer('updated_at').default(sql`(strftime('%s', 'now'))`),
+});
+
 // ============================================================================
 // RELATIONSHIPS
 // ============================================================================
@@ -494,4 +503,5 @@ export const clientSchema = {
   cachedMessages,
   pendingMutations,
   syncMetadata,
+  apolloCacheEntries,
 };

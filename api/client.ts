@@ -4,8 +4,8 @@
  * Sets up Apollo Client with:
  * - GraphQL endpoint configuration
  * - Authentication link (Bearer token)
- * - Cache persistence (SQLite on native, AsyncStorage on web)
- * - Automatic Drizzle sync for offline support
+ * - Cache persistence via Drizzle ORM (unified storage)
+ * - Automatic structured table sync (no manual sync needed!)
  */
 
 import { ApolloClient, InMemoryCache, createHttpLink, from, split } from '@apollo/client';
@@ -18,259 +18,7 @@ import { persistCache } from 'apollo3-cache-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-import type { PersistentStorage } from 'apollo3-cache-persist';
-
-// ============================================================================
-// SQLite Storage Adapter (merged from sqlite-storage.ts)
-// ============================================================================
-
-// Lazy import SQLite to avoid native module errors during module resolution
-let SQLite: any = null;
-
-const getSQLite = async (): Promise<any | null> => {
-  if (SQLite !== null) {
-    return SQLite;
-  }
-
-  if (SQLite === null && Platform.OS === 'web') {
-    return null;
-  }
-
-  try {
-    const module = await import('expo-sqlite');
-    
-    if (!module || typeof (module as any).openDatabaseAsync !== 'function') {
-      console.warn('⚠️ expo-sqlite module loaded but openDatabaseAsync function not available');
-      SQLite = null;
-      return null;
-    }
-    
-    SQLite = module;
-    return SQLite;
-  } catch (error: any) {
-    SQLite = null;
-    const errorMsg = error?.message || String(error);
-    if (__DEV__) {
-      console.warn('⚠️ Failed to load expo-sqlite. SQLite storage will not be available:', errorMsg);
-    }
-    return null;
-  }
-};
-
-/**
- * SQLite storage adapter for Apollo Cache Persistence
- * Stores Apollo's normalized cache in SQLite for better performance and queryability
- */
-class SQLiteStorage implements PersistentStorage<string> {
-  private db: any = null;
-  private initialized = false;
-  private initPromise: Promise<void> | null = null;
-  private available = true;
-
-  private async ensureInitialized(): Promise<void> {
-    if (!this.available) return;
-    if (this.initialized && this.db) return;
-    if (this.initPromise) {
-      await this.initPromise;
-      return;
-    }
-    this.initPromise = this._initialize();
-    await this.initPromise;
-  }
-
-  private async _initialize(): Promise<void> {
-    if (Platform.OS === 'web') {
-      this.available = false;
-      return;
-    }
-
-    try {
-      const SQLiteModule = await getSQLite();
-      
-      if (!SQLiteModule || typeof SQLiteModule.openDatabaseAsync !== 'function') {
-        if (__DEV__) {
-          console.warn('⚠️ expo-sqlite native module not available. SQLite storage disabled.');
-        }
-        this.available = false;
-        this.initialized = false;
-        this.db = null;
-        return;
-      }
-      
-      try {
-        this.db = await SQLiteModule.openDatabaseAsync('apollo_cache.db');
-      } catch (dbError: any) {
-        console.warn('⚠️ Failed to open SQLite database:', dbError?.message || dbError);
-        this.available = false;
-        this.initialized = false;
-        this.db = null;
-        return;
-      }
-
-      if (!this.db || typeof this.db.execAsync !== 'function') {
-        if (__DEV__) {
-          console.warn('⚠️ SQLite database object invalid. SQLite storage disabled.');
-        }
-        this.available = false;
-        this.initialized = false;
-        this.db = null;
-        return;
-      }
-
-      try {
-        await this.db.execAsync(`
-          CREATE TABLE IF NOT EXISTS apollo_cache (
-            key TEXT PRIMARY KEY NOT NULL,
-            value TEXT NOT NULL,
-            updated_at INTEGER DEFAULT (strftime('%s', 'now'))
-          );
-          CREATE INDEX IF NOT EXISTS idx_updated_at ON apollo_cache(updated_at);
-        `);
-
-        this.initialized = true;
-        if (__DEV__) {
-          console.log('✅ Apollo SQLite cache initialized');
-        }
-      } catch (execError: any) {
-        if (__DEV__) {
-          console.warn('⚠️ Failed to create SQLite cache table:', execError?.message || execError);
-        }
-        this.available = false;
-        this.initialized = false;
-        this.db = null;
-        return;
-      }
-    } catch (error: any) {
-      if (__DEV__) {
-        console.warn('⚠️ Failed to initialize Apollo SQLite cache:', error?.message || error);
-      }
-      this.available = false;
-      this.initialized = false;
-      this.db = null;
-    }
-  }
-
-  async getItem(key: string): Promise<string | null> {
-    if (!this.available) return null;
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return null;
-      const result = await this.db.getFirstAsync(
-        'SELECT value FROM apollo_cache WHERE key = ?',
-        [key]
-      ) as { value: string } | undefined;
-      return result?.value ?? null;
-    } catch (error) {
-      console.error(`Error getting item ${key}:`, error);
-      return null;
-    }
-  }
-
-  async setItem(key: string, value: string): Promise<void> {
-    if (!this.available) return;
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return;
-      await this.db.runAsync(
-        'INSERT OR REPLACE INTO apollo_cache (key, value, updated_at) VALUES (?, ?, strftime("%s", "now"))',
-        [key, value]
-      );
-    } catch (error) {
-      console.error(`Error setting item ${key}:`, error);
-    }
-  }
-
-  async removeItem(key: string): Promise<void> {
-    if (!this.available) return;
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return;
-      await this.db.runAsync('DELETE FROM apollo_cache WHERE key = ?', [key]);
-    } catch (error) {
-      console.error(`Error removing item ${key}:`, error);
-    }
-  }
-
-  async getAllKeys(): Promise<string[]> {
-    if (!this.available) return [];
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return [];
-      const results = await this.db.getAllAsync(
-        'SELECT key FROM apollo_cache'
-      ) as Array<{ key: string }>;
-      return results.map((row: { key: string }) => row.key);
-    } catch (error) {
-      console.error('Error getting all keys:', error);
-      return [];
-    }
-  }
-
-  async queryCache(query: string, params: any[] = []): Promise<any[]> {
-    if (!this.available) return [];
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return [];
-      return await this.db.getAllAsync(query, params);
-    } catch (error) {
-      console.error('Error querying cache:', error);
-      return [];
-    }
-  }
-
-  async getCacheSize(): Promise<number> {
-    if (!this.available) return 0;
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return 0;
-      const result = await this.db.getFirstAsync(
-        'SELECT SUM(LENGTH(value)) as total_size FROM apollo_cache'
-      ) as { total_size: number } | undefined;
-      return result?.total_size ?? 0;
-    } catch (error) {
-      console.error('Error getting cache size:', error);
-      return 0;
-    }
-  }
-
-  async clearOldEntries(daysOld: number = 7): Promise<number> {
-    if (!this.available) return 0;
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return 0;
-      const cutoffTime = Math.floor(Date.now() / 1000) - (daysOld * 24 * 60 * 60);
-      const result = await this.db.runAsync(
-        'DELETE FROM apollo_cache WHERE updated_at < ?',
-        [cutoffTime]
-      );
-      return result.changes ?? 0;
-    } catch (error) {
-      if (__DEV__) {
-        console.error('Error clearing old entries:', error);
-      }
-      return 0;
-    }
-  }
-
-  async clearAll(): Promise<void> {
-    if (!this.available) return;
-    try {
-      await this.ensureInitialized();
-      if (!this.db) return;
-      await this.db.runAsync('DELETE FROM apollo_cache');
-      this.initialized = false;
-      this.db = null;
-    } catch (error) {
-      if (__DEV__) {
-        console.error('Error clearing all cache:', error);
-      }
-      this.initialized = false;
-      this.db = null;
-    }
-  }
-}
-
-export const sqliteStorage = new SQLiteStorage();
+import { drizzleCacheStorage } from './cache-storage';
 
 // ============================================================================
 // GraphQL URI Configuration
@@ -506,43 +254,30 @@ export const client = new ApolloClient({
   },
 });
 
-// Initialize cache persistence and Drizzle sync in the background (non-blocking)
+// Initialize cache persistence via Drizzle (unified storage)
+// This automatically syncs to structured tables - no manual sync needed!
 (async () => {
   try {
     if (Platform.OS !== 'web') {
       try {
+        // Use Drizzle cache storage - automatically syncs to structured tables
         await persistCache({
           cache,
-          storage: sqliteStorage,
+          storage: drizzleCacheStorage,
           maxSize: 1024 * 1024 * 10, // 10MB cache size limit
           serialize: true,
           debug: false,
         });
         
-        try {
-          const { syncApolloToDrizzle } = await import('@database/client');
-          
-          const normalizedCache = cache.extract();
-          if (Object.keys(normalizedCache).length > 0) {
-            await syncApolloToDrizzle(normalizedCache);
-            if (__DEV__) {
-              console.log('✅ Initial Apollo → Drizzle sync completed');
-            }
-          }
-          
-          if (__DEV__) {
-            console.log('✅ Apollo → Drizzle sync ready');
-          }
-        } catch (syncInitError) {
-          if (__DEV__) {
-            console.warn('⚠️ Drizzle sync initialization failed:', syncInitError);
-          }
-        }
-      } catch (sqliteError) {
         if (__DEV__) {
-          console.warn('⚠️ SQLite persistence failed, falling back to AsyncStorage:', sqliteError);
+          console.log('✅ Apollo cache persistence via Drizzle initialized');
+        }
+      } catch (drizzleError) {
+        if (__DEV__) {
+          console.warn('⚠️ Drizzle cache persistence failed, falling back to AsyncStorage:', drizzleError);
         }
         try {
+          // Fallback to AsyncStorage if Drizzle fails
           await persistCache({
             cache,
             storage: AsyncStorage,

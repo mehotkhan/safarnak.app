@@ -5,7 +5,8 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { client, sqliteStorage } from './client';
+import { client } from './client';
+import { drizzleCacheStorage } from './cache-storage';
 
 // ============================================================================
 // Types & Interfaces
@@ -130,8 +131,8 @@ export async function clearAllUserData(): Promise<void> {
     // Clear Apollo Client cache (in-memory)
     await client.cache.reset();
 
-    // Clear SQLite cache
-    await sqliteStorage.clearAll();
+    // Clear Drizzle cache
+    await drizzleCacheStorage.clearAll();
 
     // Clear all AsyncStorage keys related to user data
     const keysToRemove = [
