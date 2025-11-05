@@ -7,7 +7,7 @@ generates:
   ./api/hooks.ts:
     plugins:
       - add:
-          content: "import { Exact, Scalars } from './types';\n"
+          content: "import { Exact, Scalars, CreateTripInput, UpdateTripInput } from './types';\n"
       - typescript-operations
       - typescript-react-apollo
     config:
