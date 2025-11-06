@@ -75,19 +75,25 @@ export default function WelcomeScreen() {
       <Stack.Screen options={{ title: t('common.appName') }} />
       <View className="absolute top-0 left-0 right-0 z-10 pt-12 pb-4 px-5 bg-black/30">
         <View className="flex-row items-center justify-between">
-          <Image source={logoBeta} className="w-12 h-12" resizeMode="contain" />
-          <View className="flex-row items-center gap-4">
+          <Image source={logoBeta} className="w-16 h-16" resizeMode="contain" />
+          <View className="flex-row items-center justify-center gap-4">
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/register' as any)}
+              className="self-center"
+            >
+              <Text className="text-white text-lg font-bold">{t('welcome.skip')}</Text>
+            </TouchableOpacity>
             <View style={{ position: 'relative' }}>
               <TouchableOpacity
                 onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5"
+                className="flex-row items-center justify-center rounded-full px-3 py-1.5"
               >
-                <Text className="text-white text-sm font-medium mr-1">
+                <Text className="text-white text-base font-medium mr-1">
                   {currentLang.name}
                 </Text>
                 <Ionicons
                   name={languageDropdownOpen ? 'chevron-up' : 'chevron-down'}
-                  size={14}
+                  size={16}
                   color="#ffffff"
                 />
               </TouchableOpacity>
@@ -132,12 +138,6 @@ export default function WelcomeScreen() {
                 </View>
               )}
             </View>
-            <TouchableOpacity
-              onPress={() => router.push('/(auth)/register' as any)}
-              className="self-end"
-            >
-              <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>
