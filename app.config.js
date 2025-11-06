@@ -108,6 +108,7 @@ const getAppConfig = () => {
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
         package: packageName,
+        softwareKeyboardLayoutMode: 'pan',
       },
       web: {
         bundler: 'metro',

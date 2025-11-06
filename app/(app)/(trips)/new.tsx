@@ -14,6 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import * as Location from 'expo-location';
 import { CustomText } from '@components/ui/CustomText';
 import InputField from '@components/ui/InputField';
@@ -34,7 +35,7 @@ export default function CreateTripScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [createTrip] = useCreateTripMutation();
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useSharedValue(0);
 
   // Location state
   const [currentLocation, setCurrentLocation] = useState<string>('');
@@ -44,20 +45,23 @@ export default function CreateTripScreen() {
   // Advanced options state
   const [showAdvanced, setShowAdvanced] = useState(false);
 
-  // Listen to keyboard show/hide events
+  // Listen to keyboard show/hide events with proper platform handling
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(showEvent, (e) => {
+      keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
     });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardHeight(0);
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      keyboardHeight.value = withTiming(0, { duration: 250 });
     });
 
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
-  }, []);
+  }, [keyboardHeight]);
 
   const [formData, setFormData] = useState({
     destination: '',
@@ -282,6 +286,15 @@ export default function CreateTripScreen() {
   };
 
   const formIsValid = isFormValid();
+
+  // Animated style for floating button positioning
+  const floatingButtonStyle = useAnimatedStyle(() => {
+    const height = keyboardHeight.value;
+    return {
+      bottom: height > 0 ? height : 0,
+      paddingBottom: height > 0 ? 16 : Math.max(insets.bottom, 16),
+    };
+  });
 
   return (
     <KeyboardAvoidingView 
@@ -510,13 +523,14 @@ export default function CreateTripScreen() {
       </ScrollView>
 
       {/* Floating Submit Button - Adjusts with keyboard */}
-      <View 
+      <Animated.View 
         className="absolute left-0 right-0 px-6 bg-white dark:bg-black border-t border-gray-200 dark:border-neutral-800"
-        style={{ 
-          bottom: keyboardHeight > 0 ? keyboardHeight : 0,
-          paddingBottom: keyboardHeight > 0 ? 16 : Math.max(insets.bottom, 16),
-          paddingTop: 16,
-        }}
+        style={[
+          {
+            paddingTop: 16,
+          },
+          floatingButtonStyle,
+        ]}
       >
         <CustomButton
           title={loading ? t('plan.form.generating') : t('plan.form.submit')}
@@ -541,7 +555,7 @@ export default function CreateTripScreen() {
           }
           className="shadow-lg"
         />
-    </View>
+    </Animated.View>
     </KeyboardAvoidingView>
   );
 }

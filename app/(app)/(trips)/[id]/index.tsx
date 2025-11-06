@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { CustomText } from '@components/ui/CustomText';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
@@ -31,22 +32,28 @@ export default function TripDetailScreen() {
   const { id } = useLocalSearchParams();
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [refreshing, setRefreshing] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const keyboardHeight = useSharedValue(0);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  // Listen to keyboard show/hide events
+  // Listen to keyboard show/hide events with proper platform handling
   useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', (e) => {
-      setKeyboardHeight(e.endCoordinates.height);
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(showEvent, (e) => {
+      keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
+      setIsKeyboardVisible(true);
     });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardHeight(0);
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      keyboardHeight.value = withTiming(0, { duration: 250 });
+      setIsKeyboardVisible(false);
     });
 
     return () => {
       showSubscription.remove();
       hideSubscription.remove();
     };
-  }, []);
+  }, [keyboardHeight]);
   
   // Use cache-first for offline support, with skip if no tripId
   const { data, loading, error, refetch } = useGetTripQuery({
@@ -189,6 +196,15 @@ export default function TripDetailScreen() {
         label: wp.label || undefined,
       }));
   }, [trip?.waypoints]);
+
+  // Animated style for floating input positioning - MUST be before early returns
+  const floatingInputStyle = useAnimatedStyle(() => {
+    const height = keyboardHeight.value;
+    return {
+      bottom: height > 0 ? height : 0,
+      paddingBottom: height > 0 ? 0 : insets.bottom,
+    };
+  });
 
   // Loading state
   if (loading && !trip) {
@@ -674,22 +690,23 @@ export default function TripDetailScreen() {
       </ScrollView>
       
       {/* Floating Chat Input - Adjusts with keyboard */}
-      <View 
+      <Animated.View 
         className="absolute left-0 right-0 border-t border-gray-200 dark:border-neutral-800"
-        style={{ 
-          bottom: keyboardHeight > 0 ? keyboardHeight : 0,
-          paddingBottom: keyboardHeight > 0 ? 0 : insets.bottom,
-          backgroundColor: isDark ? '#000000' : '#ffffff',
-          paddingTop: 0,
-        }}
+        style={[
+          {
+            backgroundColor: isDark ? '#000000' : '#ffffff',
+            paddingTop: 0,
+          },
+          floatingInputStyle,
+        ]}
       >
         <FloatingChatInput
           onSend={handleChatSend}
           placeholder={t('plan.form.chatPlaceholder')}
           disabled={updatingTrip || trip?.status === 'pending'}
-          keyboardVisible={keyboardHeight > 0}
+          keyboardVisible={isKeyboardVisible}
         />
-      </View>
+      </Animated.View>
     </View>
   );
 }
