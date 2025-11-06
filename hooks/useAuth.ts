@@ -294,12 +294,14 @@ export const useAuth = () => {
 
         const { user, token } = loginData.loginUser;
 
-        // Store JWT token
+        // Store JWT token and username for future logins
         await SecureStore.setItemAsync('jwtToken', token);
+        await SecureStore.setItemAsync('username', username);
 
         // Update Redux state for AuthWrapper
         dispatch(loginAction({ user, token }));
 
+        setStoredUsername(username);
         setIsAuthenticated(true);
         setError(null);
 
