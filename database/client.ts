@@ -57,9 +57,7 @@ async function initializeDB(): Promise<void> {
     const sqlite = await SQLite.openDatabaseAsync('safarnak_local.db');
     dbInstance = drizzle(sqlite, { schema: clientSchema });
     await runMigrations(sqlite);
-    if (__DEV__) {
-      console.log('✅ Local database initialized');
-    }
+    // Silent initialization - no logs to avoid cluttering boot
   } catch (error) {
     console.error('❌ Failed to initialize local database:', error);
     throw error;
@@ -207,9 +205,7 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_apollo_cache_updated_at ON apollo_cache_entries(updated_at);
     `);
 
-    if (__DEV__) {
-      console.log('✅ Local database migrations completed');
-    }
+    // Silent migration - no logs to avoid cluttering boot
   } catch (error) {
     console.error('❌ Database migration failed:', error);
     throw error;

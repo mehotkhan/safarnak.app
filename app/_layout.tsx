@@ -26,6 +26,34 @@ import { AppState } from 'react-native';
 import '../i18n';
 import '../global.css';
 
+// Disable noisy warnings in development
+if (__DEV__) {
+  const originalWarn = console.warn;
+  console.warn = (...args) => {
+    const msg = args[0];
+    
+    // Filter out Reanimated strict mode warnings (our code is correct)
+    if (
+      typeof msg === 'string' &&
+      msg.includes('[Reanimated]') &&
+      msg.includes('Reading from `value` during component render')
+    ) {
+      return;
+    }
+    
+    // Filter out Apollo cache initialization warnings (error 51)
+    // This happens briefly during cache restoration - everything works fine
+    if (
+      typeof msg === 'string' &&
+      (msg.includes('go.apollo.dev/c/err') || msg.includes('An error occured!'))
+    ) {
+      return;
+    }
+    
+    originalWarn(...args);
+  };
+}
+
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {

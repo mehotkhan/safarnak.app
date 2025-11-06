@@ -217,9 +217,7 @@ export class DrizzleCacheStorage implements PersistentStorage<string> {
       // Verify database is initialized (uses Expo SQLite via Drizzle)
       await getLocalDB();
       this.initialized = true;
-      if (__DEV__) {
-        console.log('✅ Drizzle Apollo cache storage initialized (Expo SQLite)');
-      }
+      // Silent initialization - no logs to avoid cluttering boot
     } catch (error: any) {
       if (__DEV__) {
         console.warn('⚠️ Failed to initialize Drizzle cache storage:', error?.message || error);
