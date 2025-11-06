@@ -5,6 +5,8 @@ import Swiper from 'react-native-swiper';
 import { useTranslation } from 'react-i18next';
 import CustomButton from '@components/ui/CustomButton';
 import { Stack } from 'expo-router';
+import { useLanguage } from '@components/context/LanguageContext';
+import { Ionicons } from '@expo/vector-icons';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage1 = require('@assets/images/welcome-onboarding1.jpg');
@@ -21,8 +23,17 @@ const logoBeta = require('@assets/images/icon.png');
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();
+  const { currentLanguage, changeLanguage } = useLanguage();
   const swiperRef = useRef<Swiper>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+
+  const languages = [
+    { code: 'en', name: t('language.enNative') },
+    { code: 'fa', name: t('language.faNative') },
+  ];
+
+  const currentLang = languages.find(l => l.code === currentLanguage) || languages[0];
 
   const onboarding = [
     {
@@ -65,12 +76,69 @@ export default function WelcomeScreen() {
       <View className="absolute top-0 left-0 right-0 z-10 pt-12 pb-4 px-5 bg-black/30">
         <View className="flex-row items-center justify-between">
           <Image source={logoBeta} className="w-12 h-12" resizeMode="contain" />
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/register' as any)}
-            className="self-end"
-          >
-            <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
-          </TouchableOpacity>
+          <View className="flex-row items-center gap-4">
+            <View style={{ position: 'relative' }}>
+              <TouchableOpacity
+                onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+                className="flex-row items-center bg-white/20 rounded-full px-3 py-1.5"
+              >
+                <Text className="text-white text-sm font-medium mr-1">
+                  {currentLang.name}
+                </Text>
+                <Ionicons
+                  name={languageDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                  size={14}
+                  color="#ffffff"
+                />
+              </TouchableOpacity>
+
+              {languageDropdownOpen && (
+                <View
+                  className="absolute z-50 mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900"
+                  style={{
+                    minWidth: 140,
+                    paddingVertical: 4,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.25,
+                    shadowRadius: 8,
+                    shadowOffset: { width: 0, height: 4 },
+                    elevation: 8,
+                  }}
+                >
+                  {languages.map((lang) => (
+                    <TouchableOpacity
+                      key={lang.code}
+                      onPress={() => {
+                        changeLanguage(lang.code);
+                        setLanguageDropdownOpen(false);
+                      }}
+                      className={`flex-row items-center px-3 py-2 ${
+                        currentLanguage === lang.code ? 'bg-gray-50 dark:bg-neutral-800' : ''
+                      }`}
+                    >
+                      <Text className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                        {lang.name}
+                      </Text>
+                      {currentLanguage === lang.code && (
+                        <Ionicons
+                          name="checkmark"
+                          size={16}
+                          color="#10b981"
+                          style={{ marginLeft: 'auto' }}
+                        />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/register' as any)}
+              className="self-end"
+            >
+              <Text className="text-white text-base font-bold">{t('welcome.skip')}</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
