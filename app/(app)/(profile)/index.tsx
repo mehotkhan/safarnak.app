@@ -1,14 +1,14 @@
-import { View, Image, TouchableOpacity, ScrollView, Alert } from 'react-native';
-import { Stack, useRouter } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
+import { Stack, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Image, ScrollView, TouchableOpacity, View } from 'react-native';
 
-import { CustomText } from '@components/ui/CustomText';
-import { useAppSelector } from '@store/hooks';
+import { useGetTripsQuery, useMeQuery } from '@api';
 import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/ui/CustomText';
 import Colors from '@constants/Colors';
-import { useMeQuery, useGetTripsQuery } from '@api';
+import { useAppSelector } from '@store/hooks';
 
 // Safe Clipboard import - handle case where native module isn't available
 let Clipboard: any = null;
@@ -239,6 +239,7 @@ export default function ProfileScreen() {
       />
 
       <ScrollView className="flex-1">
+        
         {/* Stats */}
         <View className="px-6 pt-4 pb-4">
           <View className="flex-row items-center justify-around py-4 bg-gray-50 dark:bg-neutral-900 rounded-2xl">
@@ -274,106 +275,8 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
-
-        {/* User Account Details */}
-        {user && (
-          <View className="px-6 pb-4">
-            <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
-              <CustomText weight="bold" className="text-base text-black dark:text-white mb-3">
-                {t('profile.accountDetails') || 'Account Details'}
-              </CustomText>
-              
-              {/* User ID */}
-              <View className="mb-3">
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {t('profile.userId') || 'User ID'}
-                </CustomText>
-                <TouchableOpacity
-                  onPress={() => copyToClipboard(user.id, 'User ID')}
-                  activeOpacity={0.7}
-                  className="flex-row items-center"
-                >
-                  <CustomText className="text-sm text-gray-800 dark:text-gray-200 font-mono flex-1">
-                    {user.id.substring(0, 8)}...{user.id.substring(user.id.length - 8)}
-                  </CustomText>
-                  <Ionicons name="copy-outline" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Username */}
-              <View className="mb-3">
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                  {t('profile.username') || 'Username'}
-                </CustomText>
-                <CustomText className="text-sm text-gray-800 dark:text-gray-200">
-                  @{user.username}
-                </CustomText>
-              </View>
-
-              {/* Public Key / Wallet Address */}
-              {meData?.me?.publicKey && (() => {
-                const publicKey = meData.me.publicKey;
-                return (
-                  <View className="mb-3">
-                    <TouchableOpacity
-                      onPress={() => setIsPublicKeyExpanded(!isPublicKeyExpanded)}
-                      className="flex-row items-center justify-between mb-2"
-                      activeOpacity={0.7}
-                    >
-                      <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-                        {t('profile.walletAddress') || 'Wallet Address'}
-                      </CustomText>
-                      <Ionicons
-                        name={isPublicKeyExpanded ? 'chevron-up' : 'chevron-down'}
-                        size={16}
-                        color={isDark ? '#9ca3af' : '#6b7280'}
-                      />
-                    </TouchableOpacity>
-                    
-                    {isPublicKeyExpanded ? (
-                      <TouchableOpacity
-                        onPress={() => copyToClipboard(publicKey, 'Wallet Address')}
-                        activeOpacity={0.7}
-                        className="flex-row items-center"
-                      >
-                        <CustomText className="text-xs text-gray-800 dark:text-gray-200 font-mono flex-1 break-all">
-                          {publicKey}
-                        </CustomText>
-                        <Ionicons name="copy-outline" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
-                      </TouchableOpacity>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() => copyToClipboard(publicKey, 'Wallet Address')}
-                        activeOpacity={0.7}
-                        className="flex-row items-center"
-                      >
-                        <CustomText className="text-sm text-gray-800 dark:text-gray-200 font-mono flex-1">
-                          {publicKey.substring(0, 10)}...{publicKey.substring(publicKey.length - 8)}
-                        </CustomText>
-                        <Ionicons name="copy-outline" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                );
-              })()}
-
-              {/* Member Since */}
-              {user.createdAt && (
-                <View>
-                  <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    {t('profile.memberSince') || 'Member Since'}
-                  </CustomText>
-                  <CustomText className="text-sm text-gray-800 dark:text-gray-200">
-                    {formatDate(user.createdAt)}
-                  </CustomText>
-                </View>
-              )}
-            </View>
-          </View>
-        )}
-
-        {/* Subscription Card */}
-        <View className="px-6 my-6">
+      {/* Subscription Card */}
+      <View className="px-6 my-6">
           <View className="rounded-2xl p-4 bg-primary">
             <View className="flex-row items-center justify-between">
               <View className="flex-1">
@@ -399,6 +302,49 @@ export default function ProfileScreen() {
             </View>
           </View>
         </View>
+        {/* User Account Details */}
+        {user && (
+          <View className="px-6 pb-4">
+            <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
+              <CustomText weight="bold" className="text-base text-black dark:text-white mb-3">
+                {t('profile.accountDetails') || 'Account Details'}
+              </CustomText>
+              
+              {/* User ID */}
+              <View className="mb-3">
+                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  {t('profile.userId') || 'User ID'}
+                </CustomText>
+                <TouchableOpacity
+                  onPress={() => copyToClipboard(user.id, 'User ID')}
+                  activeOpacity={0.7}
+                  className="flex-row items-center"
+                >
+                  <CustomText className="text-sm text-gray-800 dark:text-gray-200 font-mono flex-1">
+                    {user.id.substring(0, 8)}...{user.id.substring(user.id.length - 8)}
+                  </CustomText>
+                  <Ionicons name="copy-outline" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
+                </TouchableOpacity>
+              </View>
+
+       
+
+              {/* Member Since */}
+              {user.createdAt && (
+                <View>
+                  <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                    {t('profile.memberSince') || 'Member Since'}
+                  </CustomText>
+                  <CustomText className="text-sm text-gray-800 dark:text-gray-200">
+                    {formatDate(user.createdAt)}
+                  </CustomText>
+                </View>
+              )}
+            </View>
+          </View>
+        )}
+
+  
 
         {/* Menu - Simplified, no groupings */}
         <View className="px-6 pb-4">
