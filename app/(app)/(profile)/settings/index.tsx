@@ -19,6 +19,7 @@ import { useDatabaseStats } from '@hooks/useDatabaseStats';
 import { useAppDispatch } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
 import { clearAllUserData } from '@api';
+import { persistor } from '@store';
 import Colors from '@constants/Colors';
 
 // Read version from package.json
@@ -190,12 +191,26 @@ export default function GeneralSettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           try {
+            // Clear all user data (SecureStore, AsyncStorage, caches)
             await clearAllUserData();
+            
+            // Purge Redux persist to ensure state is completely cleared
+            await persistor.purge();
+            
+            // Dispatch logout action to clear Redux state
             dispatch(logout());
+            
+            // Navigate to login page
             router.replace('/(auth)/login' as any);
           } catch (error) {
             if (__DEV__) {
               console.error('Error during logout:', error);
+            }
+            // Even if there's an error, try to clear state and navigate
+            try {
+              await persistor.purge();
+            } catch (purgeError) {
+              console.error('Error purging Redux persist:', purgeError);
             }
             dispatch(logout());
             router.replace('/(auth)/login' as any);
