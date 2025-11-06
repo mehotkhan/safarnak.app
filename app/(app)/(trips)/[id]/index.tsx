@@ -685,7 +685,7 @@ export default function TripDetailScreen() {
       >
         <FloatingChatInput
           onSend={handleChatSend}
-          placeholder={t('plan.form.chatPlaceholder') || "Ask AI to update your trip..."}
+          placeholder={t('plan.form.chatPlaceholder')}
           disabled={updatingTrip || trip?.status === 'pending'}
           keyboardVisible={keyboardHeight > 0}
         />

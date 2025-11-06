@@ -101,21 +101,7 @@ interface PreferenceOption {
   value: string;
 }
 
-const travelStyles: PreferenceOption[] = [
-  { id: 'budget', label: 'Budget Travel', value: 'budget' },
-  { id: 'luxury', label: 'Luxury', value: 'luxury' },
-  { id: 'backpacker', label: 'Backpacker', value: 'backpacker' },
-  { id: 'family', label: 'Family-Friendly', value: 'family' },
-  { id: 'adventure', label: 'Adventure', value: 'adventure' },
-  { id: 'cultural', label: 'Cultural', value: 'cultural' },
-];
-
-const budgetRanges: PreferenceOption[] = [
-  { id: 'low', label: 'Low ($0 - $500)', value: 'low' },
-  { id: 'medium', label: 'Medium ($500 - $2000)', value: 'medium' },
-  { id: 'high', label: 'High ($2000 - $5000)', value: 'high' },
-  { id: 'premium', label: 'Premium ($5000+)', value: 'premium' },
-];
+// Note: travelStyles and budgetRanges are now defined inside the component to access t()
 
 export default function SettingsScreen() {
   const { t } = useTranslation();
@@ -129,6 +115,22 @@ export default function SettingsScreen() {
   };
   const [selectedSection, setSelectedSection] = useState<'app' | 'preferences' | 'privacy' | 'notifications'>(getInitialSection());
   const [loading, setLoading] = useState(false);
+
+  const travelStyles: PreferenceOption[] = [
+    { id: 'budget', label: t('profile.preferences.travelStyles.budget'), value: 'budget' },
+    { id: 'luxury', label: t('profile.preferences.travelStyles.luxury'), value: 'luxury' },
+    { id: 'backpacker', label: t('profile.preferences.travelStyles.backpacker'), value: 'backpacker' },
+    { id: 'family', label: t('profile.preferences.travelStyles.family'), value: 'family' },
+    { id: 'adventure', label: t('profile.preferences.travelStyles.adventure'), value: 'adventure' },
+    { id: 'cultural', label: t('profile.preferences.travelStyles.cultural'), value: 'cultural' },
+  ];
+
+  const budgetRanges: PreferenceOption[] = [
+    { id: 'low', label: t('profile.preferences.budgetRanges.low'), value: 'low' },
+    { id: 'medium', label: t('profile.preferences.budgetRanges.medium'), value: 'medium' },
+    { id: 'high', label: t('profile.preferences.budgetRanges.high'), value: 'high' },
+    { id: 'premium', label: t('profile.preferences.budgetRanges.premium'), value: 'premium' },
+  ];
 
   // App Settings
   const handleDataManagement = () => {
@@ -150,12 +152,27 @@ export default function SettingsScreen() {
   const [dietaryRestrictions, setDietaryRestrictions] = useState<string[]>([]);
 
   const interestOptions = [
-    'Beaches', 'Mountains', 'Cities', 'Nature', 'History', 'Food',
-    'Art', 'Music', 'Sports', 'Nightlife', 'Shopping', 'Adventure',
+    { id: 'beaches', label: t('profile.preferences.interests.beaches') },
+    { id: 'mountains', label: t('profile.preferences.interests.mountains') },
+    { id: 'cities', label: t('profile.preferences.interests.cities') },
+    { id: 'nature', label: t('profile.preferences.interests.nature') },
+    { id: 'history', label: t('profile.preferences.interests.history') },
+    { id: 'food', label: t('profile.preferences.interests.food') },
+    { id: 'art', label: t('profile.preferences.interests.art') },
+    { id: 'music', label: t('profile.preferences.interests.music') },
+    { id: 'sports', label: t('profile.preferences.interests.sports') },
+    { id: 'nightlife', label: t('profile.preferences.interests.nightlife') },
+    { id: 'shopping', label: t('profile.preferences.interests.shopping') },
+    { id: 'adventure', label: t('profile.preferences.interests.adventure') },
   ];
 
   const dietaryOptions = [
-    'Vegetarian', 'Vegan', 'Halal', 'Kosher', 'Gluten-Free', 'Dairy-Free',
+    { id: 'vegetarian', label: t('profile.preferences.dietaryRestrictions.vegetarian') },
+    { id: 'vegan', label: t('profile.preferences.dietaryRestrictions.vegan') },
+    { id: 'halal', label: t('profile.preferences.dietaryRestrictions.halal') },
+    { id: 'kosher', label: t('profile.preferences.dietaryRestrictions.kosher') },
+    { id: 'glutenFree', label: t('profile.preferences.dietaryRestrictions.glutenFree') },
+    { id: 'dairyFree', label: t('profile.preferences.dietaryRestrictions.dairyFree') },
   ];
 
   const toggleInterest = (interest: string) => {
@@ -324,11 +341,11 @@ export default function SettingsScreen() {
               </CustomText>
               <View className="flex-row flex-wrap gap-2">
                 {interestOptions.map(interest => {
-                  const isSelected = interests.includes(interest);
+                  const isSelected = interests.includes(interest.id);
                   return (
                     <TouchableOpacity
-                      key={interest}
-                      onPress={() => toggleInterest(interest)}
+                      key={interest.id}
+                      onPress={() => toggleInterest(interest.id)}
                       className={`px-3 py-1.5 rounded-full border ${
                         isSelected
                           ? 'bg-primary border-primary'
@@ -342,7 +359,7 @@ export default function SettingsScreen() {
                             : 'text-gray-700 dark:text-gray-300'
                         }`}
                       >
-                        {interest}
+                        {interest.label}
                       </CustomText>
                     </TouchableOpacity>
                   );
@@ -357,11 +374,11 @@ export default function SettingsScreen() {
               </CustomText>
               <View className="flex-row flex-wrap gap-2">
                 {dietaryOptions.map(diet => {
-                  const isSelected = dietaryRestrictions.includes(diet);
+                  const isSelected = dietaryRestrictions.includes(diet.id);
                   return (
                     <TouchableOpacity
-                      key={diet}
-                      onPress={() => toggleDietary(diet)}
+                      key={diet.id}
+                      onPress={() => toggleDietary(diet.id)}
                       className={`px-3 py-1.5 rounded-full border ${
                         isSelected
                           ? 'bg-primary border-primary'
@@ -375,7 +392,7 @@ export default function SettingsScreen() {
                             : 'text-gray-700 dark:text-gray-300'
                         }`}
                       >
-                        {diet}
+                        {diet.label}
                       </CustomText>
                     </TouchableOpacity>
                   );

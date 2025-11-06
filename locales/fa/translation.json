@@ -27,7 +27,14 @@
     "retry": "تلاش مجدد",
     "back": "بازگشت",
     "disabled": "غیرفعال",
-    "of": "از"
+    "of": "از",
+    "notAvailable": "در دسترس نیست"
+  },
+  "language": {
+    "en": "انگلیسی",
+    "fa": "فارسی",
+    "enNative": "English",
+    "faNative": "فارسی"
   },
   "home": {
     "title": "خانه",
@@ -439,7 +446,43 @@
       "budgetRange": "محدوده بودجه",
       "interests": "علایق",
       "dietaryRestrictions": "محدودیت‌های غذایی",
-      "saved": "ترجیحات با موفقیت ذخیره شد!"
+      "saved": "ترجیحات با موفقیت ذخیره شد!",
+      "travelStyles": {
+        "budget": "سفر با بودجه محدود",
+        "luxury": "لوکس",
+        "backpacker": "کوله‌گردی",
+        "family": "خانوادگی",
+        "adventure": "ماجراجویی",
+        "cultural": "فرهنگی"
+      },
+      "budgetRanges": {
+        "low": "کم (0 - 500 دلار)",
+        "medium": "متوسط (500 - 2000 دلار)",
+        "high": "زیاد (2000 - 5000 دلار)",
+        "premium": "پریمیوم (5000+ دلار)"
+      },
+      "interests": {
+        "beaches": "ساحل",
+        "mountains": "کوهستان",
+        "cities": "شهرها",
+        "nature": "طبیعت",
+        "history": "تاریخ",
+        "food": "غذا",
+        "art": "هنر",
+        "music": "موسیقی",
+        "sports": "ورزش",
+        "nightlife": "شب‌زنده‌داری",
+        "shopping": "خرید",
+        "adventure": "ماجراجویی"
+      },
+      "dietaryRestrictions": {
+        "vegetarian": "گیاهخواری",
+        "vegan": "وگان",
+        "halal": "حلال",
+        "kosher": "کوشر",
+        "glutenFree": "بدون گلوتن",
+        "dairyFree": "بدون لبنیات"
+      }
     },
     "account": {
       "accountInfo": "اطلاعات حساب کاربری",
@@ -526,6 +569,11 @@
     "description": "برنامه‌ریزی نامحدود سفر با هوش مصنوعی و ویژگی‌های ویژه را فعال کنید",
     "popular": "محبوب",
     "month": "ماه",
+    "plans": {
+      "free": "رایگان",
+      "pro": "پرو",
+      "premium": "پریمیوم"
+    },
     "aiQuota": "{{quota}} سفر هوشمند در ماه",
     "currentPlan": "طرح فعلی",
     "selectPlan": "انتخاب طرح",
@@ -571,6 +619,28 @@
     "unarchive": "حذف از بایگانی",
     "deleteChat": "حذف چت",
     "deleteChatConfirm": "آیا مطمئن هستید که می‌خواهید این چت را حذف کنید؟ این عمل قابل بازگشت نیست.",
+    "mockUsers": {
+      "sarah": {
+        "name": "سارا جانسون",
+        "username": "sarah_travels"
+      },
+      "mike": {
+        "name": "مایک چن",
+        "username": "mike_adventures"
+      },
+      "emma": {
+        "name": "اما ویلسون",
+        "username": "emma_explorer"
+      },
+      "david": {
+        "name": "دیوید پارک",
+        "username": "david_wanderer"
+      },
+      "lisa": {
+        "name": "لیسا اندرسون",
+        "username": "lisa_nomad"
+      }
+    },
     "time": {
       "justNow": "همین الان",
       "hoursAgo": "{{count}} ساعت پیش",

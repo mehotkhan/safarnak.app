@@ -8,8 +8,8 @@ export function LanguageSwitcher() {
   const { currentLanguage, changeLanguage } = useLanguage();
 
   const languages = [
-    { code: 'en', name: 'English', flag: '🇺🇸' },
-    { code: 'fa', name: 'فارسی', flag: '🇮🇷' },
+    { code: 'en', name: t('language.enNative'), nativeName: t('language.en'), flag: '🇺🇸' },
+    { code: 'fa', name: t('language.faNative'), nativeName: t('language.fa'), flag: '🇮🇷' },
   ];
 
   return (
@@ -30,7 +30,7 @@ export function LanguageSwitcher() {
               currentLanguage === lang.code ? 'text-blue-600' : 'text-gray-700'
             }`}
           >
-            {lang.name}
+            {lang.nativeName || lang.name}
           </Text>
         </TouchableOpacity>
       ))}

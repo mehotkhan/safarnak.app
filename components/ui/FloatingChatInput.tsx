@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '@components/context/ThemeContext';
 import Colors from '@constants/Colors';
 
@@ -13,11 +14,13 @@ interface FloatingChatInputProps {
 
 export default function FloatingChatInput({ 
   onSend, 
-  placeholder = "Type your message...",
+  placeholder,
   disabled = false,
   keyboardVisible = false,
 }: FloatingChatInputProps) {
+  const { t } = useTranslation();
   const { isDark } = useTheme();
+  const defaultPlaceholder = placeholder || t('messages.typePlaceholder');
   const [message, setMessage] = useState('');
   const [inputHeight, setInputHeight] = useState(36);
 
@@ -54,7 +57,7 @@ export default function FloatingChatInput({
           <TextInput
             value={message}
             onChangeText={setMessage}
-            placeholder={placeholder}
+            placeholder={defaultPlaceholder}
             placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
             multiline
             maxLength={500}

@@ -63,7 +63,7 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
       >
         <Ionicons name="calendar-outline" size={18} color="#6b7280" />
         <CustomText className="ml-2 text-black dark:text-white">
-          {value || formatted || (placeholder || 'YYYY-MM-DD')}
+          {value || formatted || (placeholder || t('plan.form.datePlaceholder'))}
         </CustomText>
       </Pressable>
 

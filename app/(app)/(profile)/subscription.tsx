@@ -12,47 +12,7 @@ import { CustomText } from '@components/ui/CustomText';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 
-const plans = [
-  {
-    id: 'free',
-    name: 'Free',
-    price: 0,
-    aiQuota: 5,
-    features: [
-      'subscription.features.basicAI',
-      'subscription.features.limitedTrips',
-      'subscription.features.communityAccess',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    price: 29,
-    aiQuota: 50,
-    popular: true,
-    features: [
-      'subscription.features.advancedAI',
-      'subscription.features.unlimitedTrips',
-      'subscription.features.prioritySupport',
-      'subscription.features.offlineMaps',
-      'subscription.features.customItineraries',
-    ],
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 79,
-    aiQuota: 200,
-    features: [
-      'subscription.features.premiumAI',
-      'subscription.features.unlimitedEverything',
-      'subscription.features.dedicatedSupport',
-      'subscription.features.advancedAnalytics',
-      'subscription.features.teamCollaboration',
-      'subscription.features.customBranding',
-    ],
-  },
-];
+// Note: plans are now defined inside the component to access t()
 
 interface PlanCardProps {
   plan: any;
@@ -140,6 +100,48 @@ export default function SubscriptionScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const [currentPlan, setCurrentPlan] = useState('free');
+
+  const plans = [
+    {
+      id: 'free',
+      name: t('subscription.plans.free'),
+      price: 0,
+      aiQuota: 5,
+      features: [
+        'subscription.features.basicAI',
+        'subscription.features.limitedTrips',
+        'subscription.features.communityAccess',
+      ],
+    },
+    {
+      id: 'pro',
+      name: t('subscription.plans.pro'),
+      price: 29,
+      aiQuota: 50,
+      popular: true,
+      features: [
+        'subscription.features.advancedAI',
+        'subscription.features.unlimitedTrips',
+        'subscription.features.prioritySupport',
+        'subscription.features.offlineMaps',
+        'subscription.features.customItineraries',
+      ],
+    },
+    {
+      id: 'premium',
+      name: t('subscription.plans.premium'),
+      price: 79,
+      aiQuota: 200,
+      features: [
+        'subscription.features.premiumAI',
+        'subscription.features.unlimitedEverything',
+        'subscription.features.dedicatedSupport',
+        'subscription.features.advancedAnalytics',
+        'subscription.features.teamCollaboration',
+        'subscription.features.customBranding',
+      ],
+    },
+  ];
 
   const handleSelectPlan = (planId: string) => {
     Alert.alert(

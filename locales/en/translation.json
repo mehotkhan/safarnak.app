@@ -27,7 +27,14 @@
     "retry": "Retry",
     "back": "Back",
     "disabled": "Disabled",
-    "of": "of"
+    "of": "of",
+    "notAvailable": "N/A"
+  },
+  "language": {
+    "en": "English",
+    "fa": "Persian",
+    "enNative": "English",
+    "faNative": "فارسی"
   },
   "home": {
     "title": "Home",
@@ -314,6 +321,28 @@
     "unarchive": "Unarchive",
     "deleteChat": "Delete Chat",
     "deleteChatConfirm": "Are you sure you want to delete this chat? This action cannot be undone.",
+    "mockUsers": {
+      "sarah": {
+        "name": "Sarah Johnson",
+        "username": "sarah_travels"
+      },
+      "mike": {
+        "name": "Mike Chen",
+        "username": "mike_adventures"
+      },
+      "emma": {
+        "name": "Emma Wilson",
+        "username": "emma_explorer"
+      },
+      "david": {
+        "name": "David Park",
+        "username": "david_wanderer"
+      },
+      "lisa": {
+        "name": "Lisa Anderson",
+        "username": "lisa_nomad"
+      }
+    },
     "time": {
       "justNow": "Just now",
       "hoursAgo": "{{count}}h ago",
@@ -474,7 +503,43 @@
       "budgetRange": "Budget Range",
       "interests": "Interests",
       "dietaryRestrictions": "Dietary Restrictions",
-      "saved": "Preferences saved successfully!"
+      "saved": "Preferences saved successfully!",
+      "travelStyles": {
+        "budget": "Budget Travel",
+        "luxury": "Luxury",
+        "backpacker": "Backpacker",
+        "family": "Family-Friendly",
+        "adventure": "Adventure",
+        "cultural": "Cultural"
+      },
+      "budgetRanges": {
+        "low": "Low ($0 - $500)",
+        "medium": "Medium ($500 - $2000)",
+        "high": "High ($2000 - $5000)",
+        "premium": "Premium ($5000+)"
+      },
+      "interests": {
+        "beaches": "Beaches",
+        "mountains": "Mountains",
+        "cities": "Cities",
+        "nature": "Nature",
+        "history": "History",
+        "food": "Food",
+        "art": "Art",
+        "music": "Music",
+        "sports": "Sports",
+        "nightlife": "Nightlife",
+        "shopping": "Shopping",
+        "adventure": "Adventure"
+      },
+      "dietaryRestrictions": {
+        "vegetarian": "Vegetarian",
+        "vegan": "Vegan",
+        "halal": "Halal",
+        "kosher": "Kosher",
+        "glutenFree": "Gluten-Free",
+        "dairyFree": "Dairy-Free"
+      }
     },
     "account": {
       "accountInfo": "Account Information",
@@ -561,6 +626,11 @@
     "description": "Unlock unlimited AI trip planning and premium features",
     "popular": "Popular",
     "month": "month",
+    "plans": {
+      "free": "Free",
+      "pro": "Pro",
+      "premium": "Premium"
+    },
     "aiQuota": "{{quota}} AI trips per month",
     "currentPlan": "Current Plan",
     "selectPlan": "Select Plan",

@@ -241,10 +241,10 @@ export default function AccountScreen() {
                     />
                   </View>
                   <CustomText weight="medium" className="text-base text-black dark:text-white">
-                    {user?.name || 'N/A'}
+                    {user?.name || t('common.notAvailable')}
                   </CustomText>
                   <CustomText className="text-sm text-gray-500 dark:text-gray-400">
-                    @{user?.username || 'N/A'}
+                    @{user?.username || t('common.notAvailable')}
                   </CustomText>
                 </View>
 
@@ -253,7 +253,7 @@ export default function AccountScreen() {
                     {t('profile.account.username', { defaultValue: 'Username' })}
                   </CustomText>
                   <CustomText weight="medium" className="text-base text-black dark:text-white">
-                    {user?.username || 'N/A'}
+                    {user?.username || t('common.notAvailable')}
                   </CustomText>
                 </View>
                 <View className="py-3 border-b border-gray-200 dark:border-neutral-800">
@@ -261,7 +261,7 @@ export default function AccountScreen() {
                     {t('profile.account.name', { defaultValue: 'Name' })}
                   </CustomText>
                   <CustomText weight="medium" className="text-base text-black dark:text-white">
-                    {user?.name || 'N/A'}
+                    {user?.name || t('common.notAvailable')}
                   </CustomText>
                 </View>
                 <View className="py-3">
@@ -271,7 +271,7 @@ export default function AccountScreen() {
                   <CustomText weight="medium" className="text-base text-black dark:text-white">
                     {user?.createdAt 
                       ? new Date(user.createdAt).toLocaleDateString()
-                      : 'N/A'}
+                      : t('common.notAvailable')}
                   </CustomText>
                 </View>
               </View>
