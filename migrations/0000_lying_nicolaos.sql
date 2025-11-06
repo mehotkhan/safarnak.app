@@ -1,3 +1,11 @@
+CREATE TABLE `apollo_cache_entries` (
+	`key` text PRIMARY KEY NOT NULL,
+	`value` text NOT NULL,
+	`entity_type` text,
+	`entity_id` text,
+	`updated_at` integer DEFAULT (strftime('%s', 'now'))
+);
+--> statement-breakpoint
 CREATE TABLE `cached_messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`content` text NOT NULL,
@@ -77,6 +85,7 @@ CREATE TABLE `cached_trips` (
 	`ai_reasoning` text,
 	`itinerary` text,
 	`coordinates` text,
+	`waypoints` text,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`cached_at` integer DEFAULT (strftime('%s', 'now')),
@@ -98,6 +107,16 @@ CREATE TABLE `cached_users` (
 	`cached_at` integer DEFAULT (strftime('%s', 'now')),
 	`last_sync_at` integer,
 	`pending` integer DEFAULT false
+);
+--> statement-breakpoint
+CREATE TABLE `challenges` (
+	`id` text PRIMARY KEY NOT NULL,
+	`username` text NOT NULL,
+	`nonce` text NOT NULL,
+	`is_register` integer DEFAULT false,
+	`expires_at` integer NOT NULL,
+	`used` integer DEFAULT false,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP)
 );
 --> statement-breakpoint
 CREATE TABLE `comments` (
@@ -254,8 +273,8 @@ CREATE TABLE `reactions` (
 --> statement-breakpoint
 CREATE TABLE `subscriptions` (
 	`id` text PRIMARY KEY NOT NULL,
-	`connection_id` text NOT NULL,
-	`connection_pool_id` text NOT NULL,
+	`connectionId` text NOT NULL,
+	`connectionPoolId` text NOT NULL,
 	`subscription` text NOT NULL,
 	`topic` text NOT NULL,
 	`filter` text,
@@ -324,6 +343,7 @@ CREATE TABLE `trips` (
 	`ai_reasoning` text,
 	`itinerary` text,
 	`coordinates` text,
+	`waypoints` text,
 	`ai_generated` integer DEFAULT true,
 	`metadata` text,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
@@ -364,7 +384,8 @@ CREATE TABLE `users` (
 	`phone` text,
 	`avatar` text,
 	`is_active` integer DEFAULT true,
-	`password_hash` text NOT NULL,
+	`password_hash` text,
+	`public_key` text,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP)
 );

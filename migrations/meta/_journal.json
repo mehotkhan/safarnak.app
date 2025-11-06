@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "6",
-      "when": 1762271287974,
-      "tag": "0000_ambitious_post",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "6",
-      "when": 1762282183758,
-      "tag": "0001_lowly_lilith",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "6",
-      "when": 1762362491607,
-      "tag": "0002_sharp_wrecker",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "6",
-      "when": 1762372356113,
-      "tag": "0003_flat_typhoid_mary",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "6",
-      "when": 1762427502590,
-      "tag": "0004_hesitant_doctor_faustus",
+      "when": 1762433897565,
+      "tag": "0000_lying_nicolaos",
       "breakpoints": true
     }
   ]
