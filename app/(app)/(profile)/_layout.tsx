@@ -47,12 +47,6 @@ export default function ProfileLayout() {
         }}
       />
       <Stack.Screen 
-        name="system-status" 
-        options={{
-          title: t('systemStatus.title', { defaultValue: 'System Status' }),
-        }}
-      />
-      <Stack.Screen 
         name="bookmarks" 
         options={{
           title: t('profile.bookmarksTitle'),

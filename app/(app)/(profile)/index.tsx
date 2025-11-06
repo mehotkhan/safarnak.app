@@ -287,16 +287,6 @@ export default function ProfileScreen() {
               isDark={isDark}
               color={isDark ? Colors.dark.primary : Colors.light.primary}
             />
-            <MenuItem
-              icon="stats-chart-outline"
-              title={t('systemStatus.title', { defaultValue: 'System Status' })}
-              subtitle={t('systemStatus.subtitle', {
-                defaultValue: 'Network & Cache Stats',
-              })}
-              onPress={() => router.push('/(app)/(profile)/system-status' as any)}
-              isDark={isDark}
-              color={isDark ? Colors.dark.primary : Colors.light.primary}
-            />
           </View>
           <View className="h-8" />
         </View>
