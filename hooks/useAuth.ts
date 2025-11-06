@@ -10,6 +10,8 @@ import * as SecureStore from 'expo-secure-store';
 import * as Device from 'expo-device';
 import { ethers } from 'ethers';
 import QuickCrypto from 'react-native-quick-crypto';
+import { useAppDispatch } from '@store/hooks';
+import { login as loginAction } from '@store/slices/authSlice';
 // Ensure crypto.getRandomValues is available in RN
 // Safe to import multiple times; no-ops after first
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -40,6 +42,7 @@ export interface AuthResult {
 // ============================================================================
 
 export const useAuth = () => {
+  const dispatch = useAppDispatch();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [publicKey, setPublicKey] = useState<string | null>(null);
   const [storedUsername, setStoredUsername] = useState<string | null>(null);
@@ -225,6 +228,9 @@ export const useAuth = () => {
         await SecureStore.setItemAsync('jwtToken', token);
         await SecureStore.setItemAsync('username', username);
 
+        // Update Redux state for AuthWrapper
+        dispatch(loginAction({ user, token }));
+
         setStoredUsername(username);
         setPublicKey(publicKeyAddress);
         setIsAuthenticated(true);
@@ -244,7 +250,7 @@ export const useAuth = () => {
         return null;
       }
     },
-    [checkBiometrics, runCheckUsernameAvailability, requestChallengeMutation, registerMutation, signMessage]
+    [checkBiometrics, runCheckUsernameAvailability, requestChallengeMutation, registerMutation, signMessage, dispatch]
   );
 
   // Login / Validate (Unlock and Sign Data)
@@ -291,6 +297,9 @@ export const useAuth = () => {
         // Store JWT token
         await SecureStore.setItemAsync('jwtToken', token);
 
+        // Update Redux state for AuthWrapper
+        dispatch(loginAction({ user, token }));
+
         setIsAuthenticated(true);
         setError(null);
 
@@ -307,7 +316,7 @@ export const useAuth = () => {
         return null;
       }
     },
-    [checkBiometrics, requestChallengeMutation, loginMutation, signMessage]
+    [checkBiometrics, requestChallengeMutation, loginMutation, signMessage, dispatch]
   );
 
   // Logout / Cancel
@@ -316,8 +325,11 @@ export const useAuth = () => {
       console.log('[useAuth] Logging out...');
       await LocalAuthentication.cancelAuthenticate();
       await SecureStore.deleteItemAsync('jwtToken');
+      await SecureStore.deleteItemAsync('username');
       setIsAuthenticated(false);
       setPublicKey(null);
+      setStoredUsername(null);
+      // Note: Redux logout is handled by the logout action in authSlice
       console.log('[useAuth] Logout successful');
     } catch (err: any) {
       console.error('[useAuth] Logout error:', err);

@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -18,7 +19,33 @@ export default function AuthWrapper({
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      // Restore from AsyncStorage only
+      // First, check SecureStore for JWT token (new biometric auth)
+      const jwtToken = await SecureStore.getItemAsync('jwtToken');
+      
+      if (jwtToken) {
+        // JWT token exists, fetch user data from GraphQL
+        // We'll use the me query to get user data
+        // For now, restore with token - the me query will update user data
+        const username = await SecureStore.getItemAsync('username');
+        if (username) {
+          // We have token and username, restore auth state
+          // The actual user data will be fetched by the me query in components
+          dispatch(
+            restoreUser({
+              user: {
+                id: '', // Will be filled by me query
+                name: username,
+                username: username,
+                createdAt: new Date().toISOString(),
+              },
+              token: jwtToken,
+            })
+          );
+          return;
+        }
+      }
+
+      // Fallback: Check AsyncStorage (legacy auth)
       const savedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
       if (savedUser) {
         const userData = JSON.parse(savedUser);
