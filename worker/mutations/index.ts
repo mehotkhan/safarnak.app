@@ -2,8 +2,10 @@
 // Exports all mutation resolvers
 
 import { addMessage } from './addMessage';
-import { register } from './register';
-import { login } from './login';
+// Legacy password-based register/login removed in favor of biometric auth
+import { requestChallenge } from './requestChallenge';
+import { registerUser } from './registerUser';
+import { loginUser } from './loginUser';
 import { createTrip } from './createTrip';
 import { updateTrip, deleteTrip } from './updateTrip';
 
@@ -13,8 +15,9 @@ const bookmarkPlace = async () => true;
 
 export const Mutation = {
   addMessage,
-  register,
-  login,
+  requestChallenge,
+  registerUser,
+  loginUser,
   createTrip,
   updateTrip,
   deleteTrip,
@@ -23,4 +26,4 @@ export const Mutation = {
 };
 
 // Re-export individual resolvers
-export { addMessage, register, login, createTrip, updateTrip, deleteTrip, bookmarkTour, bookmarkPlace };
+export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, bookmarkTour, bookmarkPlace };

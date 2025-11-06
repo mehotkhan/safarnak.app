@@ -119,10 +119,22 @@ const messageFields = {
 export const users = sqliteTable('users', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   ...userFields,
-  passwordHash: text('password_hash').notNull(), // Server-only
+  passwordHash: text('password_hash'), // Server-only - optional for biometric users
+  publicKey: text('public_key'), // For biometric authentication (wallet address or PEM)
   username: text('username').unique().notNull(),
   email: text('email').unique(),
   ...timestampColumns,
+});
+
+// Challenge-response authentication table for biometric login
+export const challenges = sqliteTable('challenges', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  username: text('username').notNull(),
+  nonce: text('nonce').notNull(), // Random challenge string
+  isRegister: integer('is_register', { mode: 'boolean' }).default(false),
+  expiresAt: integer('expires_at').notNull(), // Unix timestamp
+  used: integer('used', { mode: 'boolean' }).default(false),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
 export const trips = sqliteTable('trips', {
@@ -473,6 +485,7 @@ export const thoughtsRelations = relations(thoughts, ({ one }) => ({
 // Server schema (for worker and migrations)
 export const serverSchema = {
   users,
+  challenges,
   trips,
   tours,
   messages,

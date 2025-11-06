@@ -71,8 +71,9 @@ export type Mutation = {
   bookmarkTour: Scalars['Boolean']['output'];
   createTrip: Trip;
   deleteTrip: Scalars['Boolean']['output'];
-  login: AuthPayload;
-  register: AuthPayload;
+  loginUser: AuthPayload;
+  registerUser: AuthPayload;
+  requestChallenge: Scalars['String']['output'];
   updateTrip: Trip;
 };
 
@@ -102,14 +103,21 @@ export type MutationDeleteTripArgs = {
 };
 
 
-export type MutationLoginArgs = {
-  password: Scalars['String']['input'];
+export type MutationLoginUserArgs = {
+  signature: Scalars['String']['input'];
   username: Scalars['String']['input'];
 };
 
 
-export type MutationRegisterArgs = {
-  password: Scalars['String']['input'];
+export type MutationRegisterUserArgs = {
+  publicKey: Scalars['String']['input'];
+  signature: Scalars['String']['input'];
+  username: Scalars['String']['input'];
+};
+
+
+export type MutationRequestChallengeArgs = {
+  isRegister: Scalars['Boolean']['input'];
   username: Scalars['String']['input'];
 };
 
@@ -140,6 +148,7 @@ export type Place = {
 
 export type Query = {
   __typename?: 'Query';
+  checkUsernameAvailability: Scalars['Boolean']['output'];
   getAlerts: Array<Alert>;
   getMessages: Array<Message>;
   getPlace?: Maybe<Place>;
@@ -149,6 +158,11 @@ export type Query = {
   getTrip?: Maybe<Trip>;
   getTrips: Array<Trip>;
   me?: Maybe<User>;
+};
+
+
+export type QueryCheckUsernameAvailabilityArgs = {
+  username: Scalars['String']['input'];
 };
 
 
@@ -266,6 +280,7 @@ export type User = {
   createdAt: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  publicKey?: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
 

@@ -1,0 +1,5 @@
+mutation RequestChallenge($username: String!, $isRegister: Boolean!) {
+  requestChallenge(username: $username, isRegister: $isRegister)
+}
+
+

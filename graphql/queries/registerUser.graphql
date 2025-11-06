@@ -1,4 +1,4 @@
-mutation Register($username: String!, $publicKey: String!, $signature: String!) {
+mutation RegisterUser($username: String!, $publicKey: String!, $signature: String!) {
   registerUser(username: $username, publicKey: $publicKey, signature: $signature) {
     user {
       id
@@ -9,3 +9,5 @@ mutation Register($username: String!, $publicKey: String!, $signature: String!) 
     token
   }
 }
+
+

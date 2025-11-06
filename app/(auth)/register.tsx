@@ -2,7 +2,7 @@ import { CustomText } from '@components/ui/CustomText';
 import { Stack, router } from 'expo-router';
 import { View, KeyboardAvoidingView, Platform, Image, TouchableOpacity, Alert } from 'react-native';
 import CustomButton from '@components/ui/CustomButton';
-// import InputField from '@components/ui/InputField';
+import InputField from '@components/ui/InputField';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -12,20 +12,10 @@ import { Ionicons } from '@expo/vector-icons';
 // import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { generateRandomName } from '@/utils/nameGenerator';
 import { useLanguage } from '@components/context/LanguageContext';
+import { useAuth } from '@hooks/useAuth';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const authRegisterBg = require('@assets/images/auth-login.jpg');
-
-// Mock RSA public key for demonstration
-const MOCK_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAu1SU1LfVLPHCozMxH2Mo
-4lgOEePzNm0tRgeLezV6ffAt0gunVTLw7onLRnrq0/IzW7yWR7QkrmBL7jTKEn5u
-+qKhbwKfBstIs+bMY2Zkp18gnTxKLxoS2tFczGkPLPgizskuemMghRniWaoLcyeh
-kd3qqGElvW/VDL5AaWTg0nLVkjRo9z+40RQzuVaE8AkAFmxZzow3x+VJYKdjykkJ
-0iT9wCS0DRTXu269V264Vf/3jvredZiKRkgwlL9xNAwxXFg0x/XFw005UWVRIkdg
-cKWTjpBP2dPwVZ4WWC+9aGVd+Gyn1o0CLelf4rEjGoXbAAEgAqeGUxrcIlbjXfbc
-mwIDAQAB
------END PUBLIC KEY-----`;
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -33,75 +23,192 @@ export default function RegisterScreen() {
   // const dispatch = useAppDispatch();
   // const { isAuthenticated } = useAppSelector(state => state.auth);
   
-  // Auto-generate random name on component mount
-  const [username, setUsername] = useState(() => generateRandomName(currentLanguage as 'en' | 'fa'));
-  // const [password, setPassword] = useState('');
-  // const [errorMessage, setErrorMessage] = useState('');
-  const [publicKey] = useState(MOCK_PUBLIC_KEY);
-  const [isPublicKeyExpanded, setIsPublicKeyExpanded] = useState(false);
-  const [loading] = useState(false);
-
-  // const [registerMutation, { loading }] = useRegisterMutation();
-
-  // useEffect(() => {
-  //   if (isAuthenticated) {
-  //     router.replace('/(app)/(feed)' as any);
-  //   }
-  // }, [isAuthenticated]);
-
-  const handleGenerateRandomName = () => {
-    const randomName = generateRandomName(currentLanguage as 'en' | 'fa');
-    setUsername(randomName);
-    // setErrorMessage('');
+  // Biometric Auth Hook
+  const {
+    registerUser,
+    publicKey: generatedPublicKey,
+    error: authError,
+    checkBiometrics,
+    loadStoredUsername,
+    clearStoredData,
+  } = useAuth();
+  
+  // Helper function: convert display name to username (spaces → dots)
+  const nameToUsername = (displayName: string) => {
+    // Replace spaces with dots - allow UTF-8 characters (Persian, Arabic, etc.)
+    return displayName.trim().replace(/\s+/g, '.');
   };
 
+  // Helper function: sanitize username to match server rules (UTF-8 compatible)
+  const sanitizeUsername = (value: string) => {
+    // Replace spaces with dots - allow UTF-8 characters
+    return value.trim().replace(/\s+/g, '.');
+  };
+
+  // Helper: generate a valid name + username pair based on current language
+  const generateValidNamePair = (language: string = currentLanguage) => {
+    try {
+      // Use current language, but ensure it's 'en' or 'fa'
+      const lang = (language === 'fa' || language === 'en') ? language : 'en';
+      const displayName = generateRandomName(lang as 'en' | 'fa');
+      const username = nameToUsername(displayName);
+      
+      return { displayName, username };
+    } catch (error) {
+      console.error('[Register] Error generating name:', error);
+      // Fallback to a simple default
+      const fallback = 'user.' + Math.random().toString(36).substring(2, 8);
+      return { displayName: fallback, username: fallback };
+    }
+  };
+  
+  // Auto-generate random name on component mount (based on current language)
+  const [displayName, setDisplayName] = useState(() => {
+    try {
+      return generateValidNamePair(currentLanguage).displayName;
+    } catch (error) {
+      console.error('[Register] Error initializing display name:', error);
+      return 'User ' + Math.random().toString(36).substring(2, 8);
+    }
+  });
+  
+  const [username, setUsername] = useState(() => {
+    try {
+      return generateValidNamePair(currentLanguage).username;
+    } catch (error) {
+      console.error('[Register] Error initializing username:', error);
+      return 'user.' + Math.random().toString(36).substring(2, 8);
+    }
+  });
+  
+  const [suggestion, setSuggestion] = useState(() => {
+    try {
+      return generateValidNamePair(currentLanguage);
+    } catch (error) {
+      console.error('[Register] Error initializing suggestion:', error);
+      const fallback = 'user.' + Math.random().toString(36).substring(2, 8);
+      return { displayName: fallback, username: fallback };
+    }
+  });
+  const [isPublicKeyExpanded, setIsPublicKeyExpanded] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // Load stored username on mount to check if user is already registered
+  useEffect(() => {
+    const checkExistingUser = async () => {
+      try {
+        const stored = await loadStoredUsername();
+        if (stored) {
+          console.log('[Register] Found existing user:', stored);
+          Alert.alert(
+            t('register.errors.alreadyRegistered') || 'Already Registered',
+            `User "${stored}" is already registered. Please clear data first to register a new user.`,
+            [
+              {
+                text: 'Clear Data',
+                onPress: async () => {
+                  try {
+                    await clearStoredData();
+                    console.log('[Register] Cleared stored data');
+                  } catch (error) {
+                    console.error('[Register] Error clearing data:', error);
+                  }
+                },
+                style: 'destructive',
+              },
+              { text: 'Cancel', style: 'cancel' },
+            ]
+          );
+        }
+      } catch (error) {
+        console.error('[Register] Error checking existing user:', error);
+      }
+    };
+    checkExistingUser();
+  }, [loadStoredUsername, clearStoredData, t]);
+
+  const handleGenerateRandomName = () => {
+    const pair = generateValidNamePair(currentLanguage);
+    setDisplayName(pair.displayName);
+    setUsername(pair.username);
+    // Prepare another suggestion for the tip
+    setSuggestion(generateValidNamePair(currentLanguage));
+  };
+
+  // Regenerate suggestion when language changes
+  useEffect(() => {
+    setSuggestion(generateValidNamePair(currentLanguage));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentLanguage]);
+
   const handleRegister = async () => {
-    // Placeholder for registration logic
+    if (!username.trim()) {
+      Alert.alert(
+        t('register.errors.title') || 'Error',
+        t('register.errors.usernameRequired') || 'Username is required'
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+      console.log('[Register] Starting biometric registration for:', username);
+
+      // Check biometric availability first
+      const canUseBiometrics = await checkBiometrics();
+      if (!canUseBiometrics) {
+        Alert.alert(
+          t('register.errors.biometricUnavailable') || 'Biometrics Unavailable',
+          t('register.errors.biometricMessage') ||
+            'Please enable biometric authentication (fingerprint or face recognition) on your device to register.'
+        );
+        setLoading(false);
+        return;
+      }
+
+      console.log('[Register] Biometrics available, proceeding with registration...');
+
+      // Register with biometrics
+      const result = await registerUser(username.trim());
+
+      if (result) {
+        console.log('[Register] ✅ Registration successful!');
+        console.log('[Register] Username:', result.username);
+        console.log('[Register] Public Key (Wallet Address):', result.publicKey);
+
     Alert.alert(
       t('register.success.title') || 'Success',
-      t('register.success.registerSuccess') || 'Account created successfully!'
-    );
-    
-    // GraphQL registration code (commented out)
-    // setErrorMessage('');
-    // if (!username.trim() || !password.trim()) {
-    //   setErrorMessage(t('register.errors.fieldsRequired') || 'All fields are required');
-    //   return;
-    // }
-    // try {
-    //   const result = await registerMutation({
-    //     variables: { username: username.trim(), password: password.trim() },
-    //   });
-    //   const errors = (result as any).errors;
-    //   if (errors && errors.length > 0) {
-    //     const errorMessage = errors[0]?.message || '';
-    //     if (errorMessage.includes('User already exists')) {
-    //       setErrorMessage(t('register.errors.userExists') || 'User already exists');
-    //     } else {
-    //       setErrorMessage(errorMessage || t('register.errors.databaseError') || 'Registration failed');
-    //     }
-    //     return;
-    //   }
-    //   if (result.data?.register) {
-    //     const { user, token } = result.data.register;
-    //     await AsyncStorage.setItem('@safarnak_user', JSON.stringify({ user, token }));
-    //     dispatch(login({ user: user as any, token }));
-    //     router.replace('/(app)/(feed)' as any);
-    //     Alert.alert(
-    //       t('register.success.title') || 'Success',
-    //       t('register.success.registerSuccess') || 'Account created successfully!'
-    //     );
-    //   }
-    // } catch (error: any) {
-    //   const message = error?.message || error?.graphQLErrors?.[0]?.message || '';
-    //   if (message.includes('User already exists')) {
-    //     setErrorMessage(t('register.errors.userExists') || 'User already exists');
-    //   } else if (error?.networkError) {
-    //     setErrorMessage(t('register.errors.networkError') || 'Network error');
-    //   } else {
-    //     setErrorMessage(message || t('register.errors.databaseError') || 'Registration failed');
-    //   }
-    // }
+          `${t('register.success.registerSuccess') || 'Account created successfully!'}\n\nUsername: ${result.username}\nPublic Key: ${result.publicKey?.slice(0, 10)}...${result.publicKey?.slice(-8)}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                console.log('[Register] User acknowledged registration success');
+                // Navigate to app feed page
+                router.replace('/(app)/(feed)' as any);
+              },
+            },
+          ]
+        );
+      } else {
+        console.error('[Register] ❌ Registration failed - no result returned');
+        Alert.alert(
+          t('register.errors.title') || 'Error',
+          authError || t('register.errors.registrationFailed') || 'Registration failed. Please try again.'
+        );
+      }
+    } catch (error: any) {
+      console.error('[Register] ❌ Registration error:', error);
+      Alert.alert(
+        t('register.errors.title') || 'Error',
+        error.message || t('register.errors.registrationFailed') || 'Registration failed. Please try again.'
+      );
+    } finally {
+      setLoading(false);
+    }
+
+    // GraphQL registration code (will be implemented later)
+    // TODO: Connect to GraphQL mutation after biometric registration succeeds
   };
 
   return (
@@ -139,16 +246,25 @@ export default function RegisterScreen() {
           </View>
 
           <View className="w-full">
-            {/* Username Input + Generate Button Row */}
+            {/* Display Name Input + Generate Button Row */}
             <View className="mb-4">
               <CustomText style={{ fontSize: 14, color: '#374151', fontWeight: '500', marginBottom: 8 }}>
-                {t('register.usernameLabel') || 'Username'}
+                {t('register.displayNameLabel') || 'Display Name'}
               </CustomText>
               <View className="flex-row items-center gap-2">
-                <View className="flex-1 bg-gray-100 border border-gray-300 rounded-lg px-4 py-3">
-                  <CustomText style={{ fontSize: 16, color: '#1f2937' }}>
-                    {username}
-                  </CustomText>
+                <View className="flex-1">
+                  <InputField
+                    label=""
+                    value={displayName}
+                    onChangeText={(text) => {
+                      setDisplayName(text);
+                      setUsername(nameToUsername(text));
+                    }}
+                    placeholder={t('register.displayNamePlaceholder') || 'Enter your name'}
+                    autoCorrect={false}
+                    returnKeyType='done'
+                    editable={!loading}
+                  />
                 </View>
                 <TouchableOpacity
                   onPress={handleGenerateRandomName}
@@ -159,12 +275,46 @@ export default function RegisterScreen() {
                   <Ionicons name="shuffle" size={20} color="#fff" />
                 </TouchableOpacity>
               </View>
-              <CustomText style={{ fontSize: 12, color: '#6b7280', marginTop: 4, marginLeft: 2 }}>
-                {t('register.generateNameHint') || 'Tap shuffle to generate a random name'}
+              <CustomText style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, marginLeft: 2 }}>
+                {t('register.displayNameHint') || 'Your public name'}
               </CustomText>
             </View>
 
-            {/* Public Key Display - Collapsible */}
+            {/* Username Display (Auto-derived) */}
+            <View className="mb-4">
+              <CustomText style={{ fontSize: 14, color: '#374151', fontWeight: '500', marginBottom: 8 }}>
+                {t('register.usernameLabel') || 'Username'}
+              </CustomText>
+              <View className="bg-gray-100 border border-gray-300 rounded-lg px-4 py-3">
+                <CustomText style={{ fontSize: 16, color: '#1f2937', fontFamily: 'monospace' }}>
+                  {username}
+                </CustomText>
+              </View>
+              <CustomText style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, marginLeft: 2 }}>
+                {t('register.usernameRules') || 'Auto from name (spaces → dots)'}
+              </CustomText>
+              <View className="flex-row items-center mt-1 ml-1">
+                <CustomText style={{ fontSize: 11, color: '#9ca3af', marginRight: 6 }}>
+                  {t('register.generateNameHint') || 'Try:'}
+                </CustomText>
+                <TouchableOpacity
+                  onPress={() => {
+                    setDisplayName(suggestion.displayName);
+                    setUsername(suggestion.username);
+                    setSuggestion(generateValidNamePair(currentLanguage));
+                  }}
+                  disabled={loading}
+                  activeOpacity={0.7}
+                >
+                  <CustomText style={{ fontSize: 11, color: '#3b82f6', fontWeight: '500' }}>
+                    {suggestion.displayName}
+                  </CustomText>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* Public Key Display - Collapsible (Only show after registration) */}
+            {generatedPublicKey && (
             <View className="mb-4">
               <TouchableOpacity
                 onPress={() => setIsPublicKeyExpanded(!isPublicKeyExpanded)}
@@ -172,7 +322,7 @@ export default function RegisterScreen() {
                 activeOpacity={0.7}
               >
                 <CustomText style={{ fontSize: 14, color: '#374151', fontWeight: '500' }}>
-                  {t('register.publicKeyLabel') || 'Public Key'}
+                    {t('register.publicKeyLabel') || 'Public Key (Wallet Address)'}
                 </CustomText>
                 <Ionicons 
                   name={isPublicKeyExpanded ? "chevron-up" : "chevron-down"} 
@@ -185,48 +335,37 @@ export default function RegisterScreen() {
                 <View className="bg-gray-100 border border-gray-300 rounded-lg p-3">
                   <CustomText 
                     style={{ 
-                      fontSize: 10, 
+                        fontSize: 12, 
                       color: '#4b5563', 
                       fontFamily: 'monospace',
-                      lineHeight: 14
+                        lineHeight: 16
                     }}
                   >
-                    {publicKey}
+                      {generatedPublicKey}
                   </CustomText>
                 </View>
               )}
               
-              <CustomText style={{ fontSize: 12, color: '#6b7280', marginTop: 4, marginLeft: 2 }}>
-                {isPublicKeyExpanded 
-                  ? (t('register.publicKeyHint') || 'Your unique cryptographic identity')
-                  : (t('register.publicKeyCollapsedHint') || 'Tap to view your public key')
-                }
-              </CustomText>
+               <CustomText style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, marginLeft: 2 }}>
+                 {isPublicKeyExpanded 
+                    ? (t('register.publicKeyHint') || 'Your wallet address')
+                  : (t('register.publicKeyCollapsedHint') || 'Tap to view')
+                 }
+               </CustomText>
             </View>
+            )}
 
-            {/* Password Input - Disabled */}
-            {/* <InputField
-              label={t('register.passwordLabel') || 'Password'}
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (errorMessage) setErrorMessage('');
-              }}
-              placeholder={t('register.passwordPlaceholder') || 'Create a password'}
-              secureTextEntry
-              autoCapitalize='none'
-              autoCorrect={false}
-              returnKeyType='done'
-              onSubmitEditing={handleRegister}
-              editable={!loading}
-            /> */}
-
-            {/* Error Message - Disabled */}
-            {/* {errorMessage ? (
+            {/* Error Message - Show biometric auth errors */}
+            {authError && (
               <View className="bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
-                <CustomText style={{ color: '#dc2626', fontSize: 14, textAlign: 'center' }}>{errorMessage}</CustomText>
+                <View className="flex-row items-center">
+                  <Ionicons name="warning" size={20} color="#dc2626" style={{ marginRight: 8 }} />
+                  <CustomText style={{ color: '#dc2626', fontSize: 14, flex: 1 }}>
+                    {authError}
+                  </CustomText>
+                </View>
               </View>
-            ) : null} */}
+            )}
 
             {/* Register Button with Fingerprint Icon */}
             <CustomButton

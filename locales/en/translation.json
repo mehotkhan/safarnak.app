@@ -62,36 +62,30 @@
   },
   "login": {
     "title": "Welcome to SafarNak",
-    "subtitle": "Sign in to your account or create a new one",
+    "subtitle": "Sign in with biometrics",
     "usernameLabel": "Username",
     "usernamePlaceholder": "Enter your username",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Enter your password",
-    "loginButton": "Login",
+    "savedUsernameHint": "Use saved username",
+    "loginButton": "Login with Biometrics",
     "registerButton": "Register",
     "processing": "Processing...",
-    "toggleToLogin": "Already have an account? Login",
     "toggleToRegister": "Don't have an account? Register",
+    "authInfo": {
+      "title": "Biometric Login",
+      "description": "Use fingerprint or face recognition to securely login"
+    },
     "errors": {
       "title": "Error",
-      "fieldsRequired": "Username and password are required",
       "usernameRequired": "Username is required",
-      "passwordRequired": "Password is required",
-      "passwordTooShort": "Password must be at least 6 characters",
-      "userNotFound": "User not found. Please check your username or register a new account.",
-      "invalidCredentials": "Invalid username or password",
-      "userExists": "User with this username already exists",
-      "createUserFailed": "Failed to create user. Please try again.",
-      "networkError": "Network error. Please check your connection.",
-      "databaseError": "Database error. Please try again.",
-      "offlineError": "Failed to login offline"
+      "userNotFound": "User not found. Please check your username or register.",
+      "loginFailed": "Login failed. Please try again.",
+      "biometricUnavailable": "Biometrics Unavailable",
+      "biometricMessage": "Please enable biometric authentication on your device.",
+      "noUserRegistered": "No user registered. Please register first."
     },
     "success": {
       "title": "Success",
-      "loginSuccess": "Logged in successfully!",
-      "registerSuccess": "Account created successfully!",
-      "offlineMode": "Offline Mode",
-      "offlineMessage": "Logged in offline. Data will sync when connection is restored."
+      "loginSuccess": "Logged in successfully!"
     }
   },
   "register": {
@@ -99,23 +93,33 @@
     "subtitle": "Join the adventure",
     "authInfo": {
       "title": "How Our Auth Works",
-      "description": "We use cryptographic key pairs for secure authentication. Your identity is protected by RSA encryption, ensuring privacy and security across all devices."
+      "description": "We use cryptographic key pairs for secure authentication. Your identity is protected by biometric encryption, ensuring privacy and security."
     },
+    "displayNameLabel": "Display Name",
+    "displayNamePlaceholder": "Enter your name",
+    "displayNameHint": "Your public name",
     "usernameLabel": "Username",
     "usernamePlaceholder": "Enter username",
-    "generateNameHint": "Tap shuffle to generate a random name",
-    "publicKeyLabel": "Public Key",
-    "publicKeyHint": "Your unique cryptographic identity",
-    "publicKeyCollapsedHint": "Tap to view your public key",
+    "usernameRules": "Auto from name (spaces → dots)",
+    "generateNameHint": "Try:",
+    "publicKeyLabel": "Public Key (Wallet Address)",
+    "publicKeyHint": "Your wallet address",
+    "publicKeyCollapsedHint": "Tap to view",
     "passwordLabel": "Password",
     "passwordPlaceholder": "Create a password",
-    "registerButton": "Register",
+    "registerButton": "Register with Biometrics",
     "toggleToLogin": "Already have an account? Login",
     "errors": {
+      "title": "Error",
       "fieldsRequired": "All fields are required",
+      "usernameRequired": "Username is required",
       "userExists": "User with this username already exists",
       "networkError": "Network error. Please check your connection.",
-      "databaseError": "Registration failed. Please try again."
+      "databaseError": "Registration failed. Please try again.",
+      "biometricUnavailable": "Biometrics Unavailable",
+      "biometricMessage": "Please enable biometric authentication (fingerprint or face recognition) on your device to register.",
+      "alreadyRegistered": "Already Registered",
+      "registrationFailed": "Registration failed. Please try again."
     },
     "success": {
       "title": "Success",
@@ -488,6 +492,12 @@
     "welcome": "Welcome, {{name}}!",
     "accountTitle": "Account",
     "accountSubtitle": "Manage your account",
+    "accountDetails": "Account Details",
+    "userId": "User ID",
+    "username": "Username",
+    "walletAddress": "Wallet Address",
+    "memberSince": "Member Since",
+    "copiedToClipboard": "{{label}} copied",
     "preferencesTitle": "Preferences",
     "preferencesSubtitle": "Travel preferences and interests",
     "bookmarksTitle": "Bookmarks",

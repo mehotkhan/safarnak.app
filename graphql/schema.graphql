@@ -8,12 +8,14 @@ type Query {
   getPlaces(category: String, limit: Int): [Place!]!
   getPlace(id: ID!): Place
   getAlerts: [Alert!]!
+  checkUsernameAvailability(username: String!): Boolean!
 }
 
 type Mutation {
   addMessage(content: String!): Message!
-  register(username: String!, password: String!): AuthPayload!
-  login(username: String!, password: String!): AuthPayload!
+  requestChallenge(username: String!, isRegister: Boolean!): String!
+  registerUser(username: String!, publicKey: String!, signature: String!): AuthPayload!
+  loginUser(username: String!, signature: String!): AuthPayload!
   createTrip(input: CreateTripInput!): Trip!
   updateTrip(id: ID!, input: UpdateTripInput!): Trip!
   deleteTrip(id: ID!): Boolean!
@@ -37,6 +39,7 @@ type User {
   id: ID!
   name: String!
   username: String!
+  publicKey: String
   createdAt: String!
 }
 

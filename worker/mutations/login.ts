@@ -36,6 +36,11 @@ export const login = async (
       throw new Error('Invalid username or password');
     }
 
+    // Check if user has password hash (not a biometric-only user)
+    if (!user.passwordHash) {
+      throw new Error('This account uses biometric authentication. Please use biometric login.');
+    }
+
     // Verify password using PBKDF2
     const isValidPassword = await verifyPassword(password, user.passwordHash);
 

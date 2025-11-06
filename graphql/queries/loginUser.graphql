@@ -1,4 +1,4 @@
-mutation Login($username: String!, $signature: String!) {
+mutation LoginUser($username: String!, $signature: String!) {
   loginUser(username: $username, signature: $signature) {
     user {
       id
@@ -9,3 +9,5 @@ mutation Login($username: String!, $signature: String!) {
     token
   }
 }
+
+

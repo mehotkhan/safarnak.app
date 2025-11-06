@@ -5,6 +5,7 @@ import { getMessages } from './getMessages';
 import { me } from './me';
 import { getTrips, getTrip } from './getTrips';
 import { getAlerts } from './getAlerts';
+import { checkUsernameAvailability } from './checkUsernameAvailability';
 
 // Placeholder resolvers for tours and places
 const getTours = async () => [];
@@ -22,7 +23,8 @@ export const Query = {
   getPlaces,
   getPlace,
   getAlerts,
+  checkUsernameAvailability,
 };
 
 // Re-export individual resolvers
-export { getMessages, me, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getAlerts };
+export { getMessages, me, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getAlerts, checkUsernameAvailability };

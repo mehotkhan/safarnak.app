@@ -8,6 +8,15 @@ declare module '*/@graphql/addMessage.graphql' {
 }
     
 
+declare module '*/@graphql/checkUsernameAvailability.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CheckUsername: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/createTrip.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -62,6 +71,15 @@ declare module '*/@graphql/login.graphql' {
 }
     
 
+declare module '*/@graphql/loginUser.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const LoginUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/me.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -84,6 +102,24 @@ declare module '*/@graphql/register.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const Register: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/registerUser.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const RegisterUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/requestChallenge.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const RequestChallenge: DocumentNode;
 
   export default defaultDocument;
 }
