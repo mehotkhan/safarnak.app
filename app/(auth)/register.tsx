@@ -1,18 +1,14 @@
-import { CustomText } from '@components/ui/CustomText';
-import { Stack, router } from 'expo-router';
-import { View, KeyboardAvoidingView, Platform, Image, TouchableOpacity, Alert } from 'react-native';
-import CustomButton from '@components/ui/CustomButton';
-import InputField from '@components/ui/InputField';
-// import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState, useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { Ionicons } from '@expo/vector-icons';
-// import { useRegisterMutation } from '@api';
-// import { login } from '@store/slices/authSlice';
-// import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { generateRandomName } from '@/utils/nameGenerator';
 import { useLanguage } from '@components/context/LanguageContext';
+import CustomButton from '@components/ui/CustomButton';
+import { CustomText } from '@components/ui/CustomText';
+import InputField from '@components/ui/InputField';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
+import { Stack, router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Alert, Image, KeyboardAvoidingView, Platform, TouchableOpacity, View } from 'react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const authRegisterBg = require('@assets/images/auth-login.jpg');
@@ -20,8 +16,6 @@ const authRegisterBg = require('@assets/images/auth-login.jpg');
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const { currentLanguage } = useLanguage();
-  // const dispatch = useAppDispatch();
-  // const { isAuthenticated } = useAppSelector(state => state.auth);
   
   // Biometric Auth Hook
   const {
@@ -37,12 +31,6 @@ export default function RegisterScreen() {
   const nameToUsername = (displayName: string) => {
     // Replace spaces with dots - allow UTF-8 characters (Persian, Arabic, etc.)
     return displayName.trim().replace(/\s+/g, '.');
-  };
-
-  // Helper function: sanitize username to match server rules (UTF-8 compatible)
-  const sanitizeUsername = (value: string) => {
-    // Replace spaces with dots - allow UTF-8 characters
-    return value.trim().replace(/\s+/g, '.');
   };
 
   // Helper: generate a valid name + username pair based on current language
@@ -81,16 +69,6 @@ export default function RegisterScreen() {
     }
   });
   
-  const [suggestion, setSuggestion] = useState(() => {
-    try {
-      return generateValidNamePair(currentLanguage);
-    } catch (error) {
-      console.error('[Register] Error initializing suggestion:', error);
-      const fallback = 'user.' + Math.random().toString(36).substring(2, 8);
-      return { displayName: fallback, username: fallback };
-    }
-  });
-  const [isPublicKeyExpanded, setIsPublicKeyExpanded] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Load stored username on mount to check if user is already registered
@@ -131,15 +109,7 @@ export default function RegisterScreen() {
     const pair = generateValidNamePair(currentLanguage);
     setDisplayName(pair.displayName);
     setUsername(pair.username);
-    // Prepare another suggestion for the tip
-    setSuggestion(generateValidNamePair(currentLanguage));
   };
-
-  // Regenerate suggestion when language changes
-  useEffect(() => {
-    setSuggestion(generateValidNamePair(currentLanguage));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLanguage]);
 
   const handleRegister = async () => {
     if (!username.trim()) {
@@ -176,9 +146,10 @@ export default function RegisterScreen() {
         console.log('[Register] Username:', result.username);
         console.log('[Register] Public Key (Wallet Address):', result.publicKey);
 
-    Alert.alert(
-      t('register.success.title') || 'Success',
-          `${t('register.success.registerSuccess') || 'Account created successfully!'}\n\nUsername: ${result.username}\nPublic Key: ${result.publicKey?.slice(0, 10)}...${result.publicKey?.slice(-8)}`,
+        // Show success alert with option to view public key
+        Alert.alert(
+          t('register.success.title') || 'Success',
+          `${t('register.success.registerSuccess') || 'Account created successfully!'}\n\nUsername: ${result.username}`,
           [
             {
               text: 'OK',
@@ -206,9 +177,6 @@ export default function RegisterScreen() {
     } finally {
       setLoading(false);
     }
-
-    // GraphQL registration code (will be implemented later)
-    // TODO: Connect to GraphQL mutation after biometric registration succeeds
   };
 
   return (
@@ -293,67 +261,10 @@ export default function RegisterScreen() {
               <CustomText style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, marginLeft: 2 }}>
                 {t('register.usernameRules') || 'Auto from name (spaces → dots)'}
               </CustomText>
-              <View className="flex-row items-center mt-1 ml-1">
-                <CustomText style={{ fontSize: 11, color: '#9ca3af', marginRight: 6 }}>
-                  {t('register.generateNameHint') || 'Try:'}
-                </CustomText>
-                <TouchableOpacity
-                  onPress={() => {
-                    setDisplayName(suggestion.displayName);
-                    setUsername(suggestion.username);
-                    setSuggestion(generateValidNamePair(currentLanguage));
-                  }}
-                  disabled={loading}
-                  activeOpacity={0.7}
-                >
-                  <CustomText style={{ fontSize: 11, color: '#3b82f6', fontWeight: '500' }}>
-                    {suggestion.displayName}
-                  </CustomText>
-                </TouchableOpacity>
-              </View>
+        
             </View>
 
-            {/* Public Key Display - Collapsible (Only show after registration) */}
-            {generatedPublicKey && (
-            <View className="mb-4">
-              <TouchableOpacity
-                onPress={() => setIsPublicKeyExpanded(!isPublicKeyExpanded)}
-                className="flex-row items-center justify-between mb-2"
-                activeOpacity={0.7}
-              >
-                <CustomText style={{ fontSize: 14, color: '#374151', fontWeight: '500' }}>
-                    {t('register.publicKeyLabel') || 'Public Key (Wallet Address)'}
-                </CustomText>
-                <Ionicons 
-                  name={isPublicKeyExpanded ? "chevron-up" : "chevron-down"} 
-                  size={20} 
-                  color="#6b7280" 
-                />
-              </TouchableOpacity>
-              
-              {isPublicKeyExpanded && (
-                <View className="bg-gray-100 border border-gray-300 rounded-lg p-3">
-                  <CustomText 
-                    style={{ 
-                        fontSize: 12, 
-                      color: '#4b5563', 
-                      fontFamily: 'monospace',
-                        lineHeight: 16
-                    }}
-                  >
-                      {generatedPublicKey}
-                  </CustomText>
-                </View>
-              )}
-              
-               <CustomText style={{ fontSize: 11, color: '#9ca3af', marginTop: 4, marginLeft: 2 }}>
-                 {isPublicKeyExpanded 
-                    ? (t('register.publicKeyHint') || 'Your wallet address')
-                  : (t('register.publicKeyCollapsedHint') || 'Tap to view')
-                 }
-               </CustomText>
-            </View>
-            )}
+
 
             {/* Error Message - Show biometric auth errors */}
             {authError && (

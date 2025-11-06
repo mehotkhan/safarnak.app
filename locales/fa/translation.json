@@ -93,6 +93,7 @@
     "publicKeyLabel": "کلید عمومی (آدرس کیف پول)",
     "publicKeyHint": "آدرس کیف پول شما",
     "publicKeyCollapsedHint": "برای مشاهده لمس کنید",
+    "publicKeyHintEmpty": "پس از ثبت نام ایجاد می‌شود",
     "passwordLabel": "رمز عبور",
     "passwordPlaceholder": "یک رمز عبور ایجاد کنید",
     "registerButton": "ثبت نام با بیومتریک",

@@ -105,6 +105,7 @@
     "publicKeyLabel": "Public Key (Wallet Address)",
     "publicKeyHint": "Your wallet address",
     "publicKeyCollapsedHint": "Tap to view",
+    "publicKeyHintEmpty": "Will be generated after registration",
     "passwordLabel": "Password",
     "passwordPlaceholder": "Create a password",
     "registerButton": "Register with Biometrics",
