@@ -7,12 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, Stack } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, TouchableOpacity, View, Image } from 'react-native';
 // import { useRegisterMutation } from '@api';
 // import { login } from '@store/slices/authSlice';
 // import { useAppDispatch, useAppSelector } from '@store/hooks';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Alert } from 'react-native';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const authRegisterBg = require('@assets/images/auth-register.jpg');
 
 export default function RegisterScreen() {
   const { t } = useTranslation();
@@ -107,18 +110,20 @@ export default function RegisterScreen() {
       className="flex-1 bg-white dark:bg-gray-900"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Image source={authRegisterBg} className="absolute w-full h-full" resizeMode="cover" />
       <Stack.Screen options={{ title: t('login.register.title') }} />
       <View className="flex-1 justify-center px-6">
-        <View className="items-center mb-8">
-          <CustomText weight='bold' className="text-3xl text-center mb-3 text-gray-900 dark:text-gray-100">
-            {t('login.register.title')}
-          </CustomText>
-          <CustomText className="text-base text-center text-gray-600 dark:text-gray-400 leading-6">
-            {t('login.register.subtitle')}
-          </CustomText>
-        </View>
+        <View className="bg-white/90 dark:bg-gray-900/90 rounded-2xl p-6 shadow-lg">
+          <View className="items-center mb-6">
+            <CustomText weight='bold' className="text-2xl text-center mb-2 text-gray-900 dark:text-gray-100">
+              {t('login.register.title')}
+            </CustomText>
+            <CustomText className="text-sm text-center text-gray-600 dark:text-gray-400 leading-6">
+              {t('login.register.subtitle')}
+            </CustomText>
+          </View>
 
-        <View className="w-full">
+          <View className="w-full">
           {/* Auto-generated name display with refresh button */}
           <View className="mb-6">
             <View className="bg-gray-50 dark:bg-gray-800 rounded-xl p-4 border border-gray-200 dark:border-gray-700">
@@ -195,6 +200,7 @@ export default function RegisterScreen() {
               {t('login.toggleToLogin')}
             </CustomText>
           </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>

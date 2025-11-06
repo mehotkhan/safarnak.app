@@ -8,11 +8,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, TouchableOpacity, KeyboardAvoidingView, Platform, View as RNView } from 'react-native';
+import { Alert, TouchableOpacity, KeyboardAvoidingView, Platform, View as RNView, Image } from 'react-native';
 
 import { useLoginMutation } from '@api';
 import { login } from '@store/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
+
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const authLoginBg = require('@assets/images/auth-login.jpg');
 
 export default function LoginScreen() {
   const { t } = useTranslation();
@@ -80,18 +83,20 @@ export default function LoginScreen() {
       className="flex-1 bg-[#f8f9fa]"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
+      <Image source={authLoginBg} className="absolute w-full h-full" resizeMode="cover" />
       <Stack.Screen options={{ title: t('login.title') }} />
       <View className="flex-1 justify-center px-6">
-        <View className="items-center mb-12">
-          <CustomText weight='bold' style={{ fontSize: 32, textAlign: 'center', marginBottom: 12, color: '#1a1a1a' }}>
-            {t('login.title')}
-          </CustomText>
-          <CustomText style={{ fontSize: 16, textAlign: 'center', color: '#6b7280', lineHeight: 24 }}>
-            {t('login.subtitle')}
-          </CustomText>
-        </View>
+        <View className="bg-white/90 rounded-2xl p-6 shadow-lg">
+          <View className="items-center mb-6">
+            <CustomText weight='bold' style={{ fontSize: 28, textAlign: 'center', marginBottom: 8, color: '#1a1a1a' }}>
+              {t('login.title')}
+            </CustomText>
+            <CustomText style={{ fontSize: 15, textAlign: 'center', color: '#6b7280', lineHeight: 22 }}>
+              {t('login.subtitle')}
+            </CustomText>
+          </View>
 
-        <View className="w-full">
+          <View className="w-full">
           <InputField
             label={t('login.usernameLabel')}
             value={username}
@@ -135,7 +140,7 @@ export default function LoginScreen() {
             disabled={loading}
           />
 
-          <OAuth />
+          {/* <OAuth /> */}
 
           <TouchableOpacity
             className="items-center py-2"
@@ -146,6 +151,7 @@ export default function LoginScreen() {
               {t('login.toggleToRegister')}
             </CustomText>
           </TouchableOpacity>
+          </View>
         </View>
       </View>
     </KeyboardAvoidingView>

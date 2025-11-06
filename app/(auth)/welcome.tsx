@@ -7,7 +7,15 @@ import CustomButton from '@components/ui/CustomButton';
 import { Stack } from 'expo-router';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const splashImage = require('@assets/images/welcome-splash.png');
+const onboardingImage1 = require('@assets/images/welcome-onboarding1.jpg');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const onboardingImage2 = require('@assets/images/welcome-onboarding2.jpg');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const onboardingImage3 = require('@assets/images/welcome-onboarding3.jpg');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const onboardingImage4 = require('@assets/images/welcome-onboarding4.jpg');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const onboardingImage5 = require('@assets/images/welcome-onboarding5.jpg');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const logoBeta = require('@assets/images/icon.png');
 
@@ -21,31 +29,31 @@ export default function WelcomeScreen() {
       id: 1,
       title: t('welcome.onboarding1.title'),
       description: t('welcome.onboarding1.description'),
-      image: splashImage,
+      image: onboardingImage1,
     },
     {
       id: 2,
       title: t('welcome.onboarding2.title'),
       description: t('welcome.onboarding2.description'),
-      image: splashImage,
+      image: onboardingImage2,
     },
     {
       id: 3,
       title: t('welcome.onboarding3.title'),
       description: t('welcome.onboarding3.description'),
-      image: splashImage,
+      image: onboardingImage3,
     },
     {
       id: 4,
       title: t('welcome.onboarding4.title'),
       description: t('welcome.onboarding4.description'),
-      image: splashImage,
+      image: onboardingImage4,
     },
     {
       id: 5,
       title: t('welcome.onboarding5.title'),
       description: t('welcome.onboarding5.description'),
-      image: splashImage,
+      image: onboardingImage5,
     },
   ];
 
