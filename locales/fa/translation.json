@@ -316,6 +316,7 @@
     "title": "تنظیمات",
     "subtitle": "تنظیمات حساب کاربری و برنامه",
     "appSettings": "تنظیمات برنامه",
+    "quickControls": "کنترل‌های سریع",
     "accountPrivacy": "حساب و حریم خصوصی",
     "dataInfo": "داده و اطلاعات",
     "receivePush": "دریافت اعلان‌های پوش",
@@ -761,9 +762,16 @@
     "schemaVersion": "نسخه اسکیما",
     "storageBreakdown": "جزئیات ذخیره‌سازی",
     "apolloCache": "کش Apollo",
+    "apolloCacheStorage": "کش Apollo",
     "localDatabase": "پایگاه داده محلی",
     "cachedAt": "کش شده در",
     "oldestCached": "قدیمی‌ترین",
-    "newestCached": "جدیدترین"
+    "newestCached": "جدیدترین",
+    "databaseStorage": "ذخیره‌سازی پایگاه داده",
+    "totalStorage": "حجم کل",
+    "unifiedDatabase": "پایگاه داده یکپارچه",
+    "structuredData": "ساختاریافته",
+    "structuredDataStorage": "داده ساختاریافته",
+    "connection": "اتصال"
   }
 }

@@ -385,6 +385,7 @@
     "title": "Settings",
     "subtitle": "Account and app settings",
     "appSettings": "App Settings",
+    "quickControls": "Quick Controls",
     "accountPrivacy": "Account & Privacy",
     "dataInfo": "Data & Info",
     "receivePush": "Receive push notifications",
@@ -761,9 +762,16 @@
     "schemaVersion": "Schema Version",
     "storageBreakdown": "Storage Breakdown",
     "apolloCache": "Apollo Cache",
+    "apolloCacheStorage": "Apollo Cache",
     "localDatabase": "Local Database",
     "cachedAt": "Cached At",
     "oldestCached": "Oldest",
-    "newestCached": "Newest"
+    "newestCached": "Newest",
+    "databaseStorage": "Database Storage",
+    "totalStorage": "Total Storage",
+    "unifiedDatabase": "Unified DB",
+    "structuredData": "Structured",
+    "structuredDataStorage": "Structured Data",
+    "connection": "Connection"
   }
 }

@@ -224,174 +224,70 @@ export default function GeneralSettingsScreen() {
       }
     >
       <View className="px-4 py-4">
-        {/* App Settings */}
+        {/* Removed top hero/profile button as requested */}
+
+        {/* Quick Controls */}
         <View className="mb-4">
           <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase">
-            {t('settings.appSettings', { defaultValue: 'App Settings' })}
+            {t('settings.quickControls', { defaultValue: 'Quick Controls' })}
           </CustomText>
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
-            <SettingRow
-              icon="language-outline"
-              title={t('profile.language')}
-              subtitle={t('profile.languageSubtitle', { defaultValue: 'Change app language' })}
-              rightComponent={<LanguageSwitcher />}
-              isDark={isDark}
-            />
-            <SettingRow
-              icon={isDark ? 'moon' : 'sunny'}
-              title={t('profile.theme')}
-              subtitle={isDark ? t('profile.darkMode') : t('profile.lightMode')}
-              rightComponent={<ThemeToggle />}
-              isDark={isDark}
-            />
+          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
+            <View className="flex-row gap-3">
+              <View className="flex-1">
+                <View className="rounded-xl px-3 py-3 border border-gray-200 dark:border-neutral-800">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center">
+                      <View className="w-9 h-9 rounded-full items-center justify-center mr-2" style={{ backgroundColor: isDark ? '#f59e0b20' : '#f59e0b20' }}>
+                        <Ionicons name="language-outline" size={18} color={isDark ? '#fbbf24' : '#f59e0b'} />
+                      </View>
+                    </View>
+                    <LanguageSwitcher variant="dropdownMini" />
+                  </View>
+                </View>
+              </View>
+              <View className="flex-1">
+                <View className="rounded-xl px-3 py-3 border border-gray-200 dark:border-neutral-800">
+                  <View className="flex-row items-center justify-between">
+                    <View className="flex-row items-center">
+                      <View className="w-9 h-9 rounded-full items-center justify-center mr-2" style={{ backgroundColor: isDark ? '#10b98120' : '#10b98120' }}>
+                        <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? '#10b981' : '#f59e0b'} />
+                      </View>
+                      <CustomText weight="medium" className="text-sm text-black dark:text-white">
+                        {t('profile.theme')}
+                      </CustomText>
+                    </View>
+                    <ThemeToggle showLabel={false} />
+                  </View>
+                </View>
+              </View>
+            </View>
           </View>
         </View>
 
-        {/* Data & Info */}
+        {/* Connectivity */}
         <View className="mb-4">
           <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase">
-            {t('settings.dataInfo', { defaultValue: 'Data & Info' })}
+            {t('systemStatus.network')}
           </CustomText>
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
-            <SettingRow
-              icon="server-outline"
-              title={t('settings.dataManagement')}
-              subtitle={t('settings.downloadDeleteData', { defaultValue: 'Download or delete your data' })}
-              onPress={handleDataManagement}
-              isDark={isDark}
-            />
-            <SettingRow
-              icon="information-circle-outline"
-              title={t('settings.aboutApp', { app: t('common.appName') })}
-              subtitle={`${t('settings.version', { defaultValue: 'Version' })}: ${APP_VERSION}`}
-              onPress={handleAbout}
-              isDark={isDark}
-            />
-          </View>
-        </View>
-
-        {/* System Status - Network Status */}
-        <View className="mb-4">
-          <CustomText
-            weight="bold"
-            className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
-          >
-            {t('systemStatus.network', { defaultValue: 'Network Status' })}
-          </CustomText>
-
-          <StatusBadge
-            label={t('systemStatus.onlineStatus', { defaultValue: 'Online Status' })}
-            value={
-              isOnline
-                ? t('systemStatus.online', { defaultValue: 'Online' })
-                : t('systemStatus.offline', { defaultValue: 'Offline' })
-            }
-            isActive={isOnline}
-            icon="cloud"
-          />
-
-          <StatusBadge
-            label={t('systemStatus.backendStatus', {
-              defaultValue: 'Backend Server',
-            })}
-            value={
-              isBackendReachable
-                ? t('systemStatus.reachable', { defaultValue: 'Reachable' })
-                : t('systemStatus.unreachable', { defaultValue: 'Unreachable' })
-            }
-            isActive={isBackendReachable}
-            icon="server"
-          />
-
-          {networkType && (
-            <StatusBadge
-              label={t('systemStatus.connectionType', {
-                defaultValue: 'Connection Type',
-              })}
-              value={networkType.charAt(0).toUpperCase() + networkType.slice(1)}
-              isActive={true}
-              icon="wifi"
-            />
-          )}
-        </View>
-
-        {/* Database Storage */}
-        <View className="mb-4">
-          <CustomText
-            weight="bold"
-            className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
-          >
-            {t('systemStatus.databaseStorage', {
-              defaultValue: 'Database Storage',
-            })}
-          </CustomText>
-
-          <View className="flex-row justify-between gap-3 mb-2">
-            <View className="flex-1">
-              <StatCard
-                title={t('systemStatus.totalStorage', {
-                  defaultValue: 'Total Storage',
-                })}
-                value={stats ? formatBytes(stats.storage.totalSize) : '0 B'}
-                subtitle={t('systemStatus.unifiedDatabase', {
-                  defaultValue: 'Unified DB',
-                })}
-                icon="server-outline"
-                color={isDark ? Colors.dark.primary : Colors.light.primary}
-              />
-            </View>
-            <View className="flex-1">
-              <StatCard
-                title={t('systemStatus.totalEntities', {
-                  defaultValue: 'Total Entities',
-                })}
-                value={stats ? stats.totalEntities.toString() : '0'}
-                subtitle={t('systemStatus.structuredData', {
-                  defaultValue: 'Structured',
-                })}
-                icon="cube-outline"
-                color={isDark ? Colors.dark.primary : Colors.light.primary}
-              />
-            </View>
-          </View>
-
-          {/* Storage Breakdown */}
-          <View className="bg-white dark:bg-neutral-900 rounded-xl p-3 border border-gray-200 dark:border-neutral-800">
-            <CustomText weight="medium" className="text-sm text-black dark:text-white mb-2">
-              {t('systemStatus.storageBreakdown', {
-                defaultValue: 'Storage Breakdown',
-              })}
-            </CustomText>
-            <View className="space-y-1.5">
-              <View className="flex-row items-center justify-between">
-                <CustomText className="text-xs text-gray-600 dark:text-gray-400">
-                  {t('systemStatus.apolloCacheStorage', {
-                    defaultValue: 'Apollo Cache',
-                  })}
-                </CustomText>
-                <CustomText weight="medium" className="text-xs text-black dark:text-white">
-                  {stats ? formatBytes(stats.storage.apolloCacheSize) : '0 B'}
+          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
+            <View className="flex-row gap-2 flex-wrap">
+              <View className="px-3 py-2 rounded-full flex-row items-center" style={{ backgroundColor: isOnline ? (isDark ? '#10b98120' : '#10b98120') : (isDark ? '#ef444420' : '#ef444420') }}>
+                <Ionicons name="cloud" size={14} color={isOnline ? '#10b981' : '#ef4444'} />
+                <CustomText weight="medium" className="text-xs ml-1.5" style={{ color: isOnline ? '#10b981' : (isDark ? '#fecaca' : '#991b1b') }}>
+                  {isOnline ? t('systemStatus.online') : t('systemStatus.offline')}
                 </CustomText>
               </View>
-              <View className="flex-row items-center justify-between">
-                <CustomText className="text-xs text-gray-600 dark:text-gray-400">
-                  {t('systemStatus.structuredDataStorage', {
-                    defaultValue: 'Structured Data',
-                  })}
-                </CustomText>
-                <CustomText weight="medium" className="text-xs text-black dark:text-white">
-                  {stats ? formatBytes(stats.storage.structuredDataSize) : '0 B'}
+              <View className="px-3 py-2 rounded-full flex-row items-center" style={{ backgroundColor: isBackendReachable ? (isDark ? '#10b98120' : '#10b98120') : (isDark ? '#ef444420' : '#ef444420') }}>
+                <Ionicons name="server" size={14} color={isBackendReachable ? '#10b981' : '#ef4444'} />
+                <CustomText weight="medium" className="text-xs ml-1.5" style={{ color: isBackendReachable ? '#10b981' : (isDark ? '#fecaca' : '#991b1b') }}>
+                  {isBackendReachable ? t('systemStatus.reachable') : t('systemStatus.unreachable')}
                 </CustomText>
               </View>
-              {stats && stats.apolloCache.totalEntries > 0 && (
-                <View className="flex-row items-center justify-between pt-1 border-t border-gray-200 dark:border-neutral-800">
-                  <CustomText className="text-xs text-gray-600 dark:text-gray-400">
-                    {t('systemStatus.apolloCache', {
-                      defaultValue: 'Cache Entries',
-                    })}
-                  </CustomText>
-                  <CustomText weight="medium" className="text-xs text-black dark:text-white">
-                    {stats.apolloCache.totalEntries}
+              {networkType && (
+                <View className="px-3 py-2 rounded-full flex-row items-center" style={{ backgroundColor: isDark ? '#60a5fa20' : '#60a5fa20' }}>
+                  <Ionicons name="wifi" size={14} color={isDark ? '#93c5fd' : '#3b82f6'} />
+                  <CustomText weight="medium" className="text-xs ml-1.5" style={{ color: isDark ? '#93c5fd' : '#3b82f6' }}>
+                    {t('systemStatus.connection')}: {networkType.charAt(0).toUpperCase() + networkType.slice(1)}
                   </CustomText>
                 </View>
               )}
@@ -399,78 +295,125 @@ export default function GeneralSettingsScreen() {
           </View>
         </View>
 
-        {/* Entity Stats - Compact */}
-        {stats && (
-          <View className="mb-4">
-            <CustomText
-              weight="bold"
-              className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
-            >
-              {t('systemStatus.entityBreakdown', {
-                defaultValue: 'Entity Stats',
-              })}
-            </CustomText>
+        {/* Storage & Data */}
+        <View className="mb-4">
+          <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase">
+            {t('systemStatus.databaseStorage')}
+          </CustomText>
+          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
+            <View className="flex-row gap-3 mb-3">
+              <View className="flex-1">
+                <StatCard
+                  title={t('systemStatus.totalStorage')}
+                  value={stats ? formatBytes(stats.storage.totalSize) : '0 B'}
+                  subtitle={t('systemStatus.unifiedDatabase')}
+                  icon="server-outline"
+                  color={isDark ? Colors.dark.primary : Colors.light.primary}
+                />
+              </View>
+              <View className="flex-1">
+                <StatCard
+                  title={t('systemStatus.totalEntities')}
+                  value={stats ? stats.totalEntities.toString() : '0'}
+                  subtitle={t('systemStatus.structuredData')}
+                  icon="cube-outline"
+                  color={isDark ? Colors.dark.primary : Colors.light.primary}
+                />
+              </View>
+            </View>
+            <View className="flex-row gap-3 mb-3">
+              <View className="flex-1">
+                <StatCard
+                  title={t('systemStatus.apolloCache')}
+                  value={stats ? String(stats.apolloCache.totalEntries) : '0'}
+                  subtitle={t('systemStatus.apolloCacheStorage')}
+                  icon="layers-outline"
+                  color={isDark ? Colors.dark.primary : Colors.light.primary}
+                />
+              </View>
+            </View>
 
             <View className="bg-white dark:bg-neutral-900 rounded-xl p-3 border border-gray-200 dark:border-neutral-800">
-              {[
-                { key: 'trips', label: t('systemStatus.trips', { defaultValue: 'Trips' }), data: stats.entities.trips },
-                { key: 'users', label: t('systemStatus.users', { defaultValue: 'Users' }), data: stats.entities.users },
-                { key: 'messages', label: t('systemStatus.messages', { defaultValue: 'Messages' }), data: stats.entities.messages },
-                { key: 'tours', label: t('systemStatus.tours', { defaultValue: 'Tours' }), data: stats.entities.tours },
-                { key: 'places', label: t('systemStatus.places', { defaultValue: 'Places' }), data: stats.entities.places },
-              ].map((entity, index, arr) => (
-                <View
-                  key={entity.key}
-                  className={`flex-row items-center justify-between py-2 ${
-                    index < arr.length - 1 ? 'border-b border-gray-200 dark:border-neutral-800' : ''
-                  }`}
-                >
-                  <CustomText className="text-sm text-gray-700 dark:text-gray-300">
-                    {entity.label}
+              <CustomText weight="medium" className="text-sm text-black dark:text-white mb-2">
+                {t('systemStatus.storageBreakdown')}
+              </CustomText>
+              <View className="space-y-1.5">
+                <View className="flex-row items-center justify-between">
+                  <CustomText className="text-xs text-gray-600 dark:text-gray-400">
+                    {t('systemStatus.apolloCacheStorage')}
                   </CustomText>
-                  <View className="flex-row items-center gap-3">
-                    <CustomText weight="bold" className="text-sm text-primary">
-                      {entity.data.count}
-                    </CustomText>
-                    {entity.data.pendingCount > 0 && (
-                      <View className="flex-row items-center">
-                        <Ionicons name="time-outline" size={12} color="#f59e0b" />
-                        <CustomText className="text-xs text-gray-500 dark:text-gray-400 ml-1">
-                          {entity.data.pendingCount}
-                        </CustomText>
-                      </View>
-                    )}
-                  </View>
+                  <CustomText weight="medium" className="text-xs text-black dark:text-white">
+                    {stats ? formatBytes(stats.storage.apolloCacheSize) : '0 B'}
+                  </CustomText>
                 </View>
-              ))}
+                <View className="flex-row items-center justify-between">
+                  <CustomText className="text-xs text-gray-600 dark:text-gray-400">
+                    {t('systemStatus.structuredDataStorage')}
+                  </CustomText>
+                  <CustomText weight="medium" className="text-xs text-black dark:text-white">
+                    {stats ? formatBytes(stats.storage.structuredDataSize) : '0 B'}
+                  </CustomText>
+                </View>
+              </View>
             </View>
           </View>
-        )}
+        </View>
 
-        {/* Info */}
+        {/* Navigation & Info */}
+        <View className="mb-4">
+          <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase">
+            {t('settings.appSettings', { defaultValue: 'App Settings' })}
+          </CustomText>
+          <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4 border border-gray-200 dark:border-neutral-800">
+            <SettingRow
+              icon="options-outline"
+              title={t('settings.preferences', { defaultValue: 'Preferences' })}
+              subtitle={t('profile.preferencesSubtitle')}
+              onPress={() => router.push('/(app)/(profile)/settings/preferences' as any)}
+              isDark={isDark}
+            />
+            <SettingRow
+              icon="shield-outline"
+              title={t('settings.privacy', { defaultValue: 'Privacy' })}
+              subtitle={t('settings.privacySubtitle', { defaultValue: 'Permissions and data usage' })}
+              onPress={() => router.push('/(app)/(profile)/settings/privacy' as any)}
+              isDark={isDark}
+            />
+            <SettingRow
+              icon="notifications-outline"
+              title={t('settings.notifications', { defaultValue: 'Notifications' })}
+              subtitle={t('profile.notificationsSubtitle')}
+              onPress={() => router.push('/(app)/(profile)/settings/notifications' as any)}
+              isDark={isDark}
+            />
+            <SettingRow
+              icon="server-outline"
+              title={t('settings.dataManagement', { defaultValue: 'Data Management' })}
+              subtitle={t('settings.downloadDeleteData', { defaultValue: 'Download or delete your data' })}
+              onPress={handleDataManagement}
+              isDark={isDark}
+            />
+            <SettingRow
+              icon="information-circle-outline"
+              title={t('settings.about', { defaultValue: 'About' })}
+              subtitle={`${t('settings.version', { defaultValue: 'Version' })}: ${APP_VERSION}`}
+              onPress={handleAbout}
+              isDark={isDark}
+            />
+          </View>
+        </View>
+
+        {/* Info Banner */}
         <View className="mb-4">
           <View className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-200 dark:border-blue-800">
             <View className="flex-row items-start">
-              <Ionicons
-                name="information-circle"
-                size={20}
-                color={isDark ? '#60a5fa' : '#3b82f6'}
-                style={{ marginRight: 10, marginTop: 1 }}
-              />
+              <Ionicons name="information-circle" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} style={{ marginRight: 10, marginTop: 1 }} />
               <View className="flex-1">
-                  <CustomText
-                    weight="medium"
-                    className="text-sm text-blue-900 dark:text-blue-200 mb-1"
-                  >
-                  {t('systemStatus.infoTitle', {
-                    defaultValue: 'About This Database',
-                  })}
+                <CustomText weight="medium" className="text-sm text-blue-900 dark:text-blue-200 mb-1">
+                  {t('systemStatus.infoTitle')}
                 </CustomText>
                 <CustomText className="text-xs text-blue-800 dark:text-blue-300 leading-4">
-                  {t('systemStatus.infoDescription', {
-                    defaultValue:
-                      'Your data is stored in a unified Drizzle SQLite database. Data persists offline and syncs when connection is restored.',
-                  })}
+                  {t('systemStatus.infoDescription')}
                 </CustomText>
               </View>
             </View>
@@ -484,12 +427,7 @@ export default function GeneralSettingsScreen() {
             onPress={handleLogout}
             bgVariant="danger"
             IconLeft={() => (
-              <Ionicons
-                name="log-out-outline"
-                size={20}
-                color="#fff"
-                style={{ marginRight: 8 }}
-              />
+              <Ionicons name="log-out-outline" size={20} color="#fff" style={{ marginRight: 8 }} />
             )}
           />
         </View>
