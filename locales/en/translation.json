@@ -92,10 +92,34 @@
       "registerSuccess": "Account created successfully!",
       "offlineMode": "Offline Mode",
       "offlineMessage": "Logged in offline. Data will sync when connection is restored."
+    }
+  },
+  "register": {
+    "title": "Create Account",
+    "subtitle": "Join the adventure",
+    "authInfo": {
+      "title": "How Our Auth Works",
+      "description": "We use cryptographic key pairs for secure authentication. Your identity is protected by RSA encryption, ensuring privacy and security across all devices."
     },
-    "register": {
-      "title": "Create Account",
-      "subtitle": "Create a new account to get started"
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "Enter username",
+    "generateNameHint": "Tap shuffle to generate a random name",
+    "publicKeyLabel": "Public Key",
+    "publicKeyHint": "Your unique cryptographic identity",
+    "publicKeyCollapsedHint": "Tap to view your public key",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "Create a password",
+    "registerButton": "Register",
+    "toggleToLogin": "Already have an account? Login",
+    "errors": {
+      "fieldsRequired": "All fields are required",
+      "userExists": "User with this username already exists",
+      "networkError": "Network error. Please check your connection.",
+      "databaseError": "Registration failed. Please try again."
+    },
+    "success": {
+      "title": "Success",
+      "registerSuccess": "Account created successfully!"
     }
   },
   "welcome": {
