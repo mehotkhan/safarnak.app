@@ -193,6 +193,18 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         updated_at INTEGER DEFAULT (strftime('%s', 'now'))
       );
 
+      CREATE TABLE IF NOT EXISTS cached_map_tiles (
+        id TEXT PRIMARY KEY NOT NULL,
+        layer TEXT NOT NULL,
+        z INTEGER NOT NULL,
+        x INTEGER NOT NULL,
+        y INTEGER NOT NULL,
+        file_path TEXT NOT NULL,
+        file_size INTEGER NOT NULL,
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_accessed INTEGER DEFAULT (strftime('%s', 'now'))
+      );
+
       CREATE INDEX IF NOT EXISTS idx_cached_trips_user_id ON cached_trips(user_id);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_destination ON cached_trips(destination);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_status ON cached_trips(status);
@@ -203,6 +215,10 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_pending_mutations_queued_at ON pending_mutations(queued_at);
       CREATE INDEX IF NOT EXISTS idx_apollo_cache_entity ON apollo_cache_entries(entity_type, entity_id);
       CREATE INDEX IF NOT EXISTS idx_apollo_cache_updated_at ON apollo_cache_entries(updated_at);
+      CREATE INDEX IF NOT EXISTS idx_cached_map_tiles_layer ON cached_map_tiles(layer);
+      CREATE INDEX IF NOT EXISTS idx_cached_map_tiles_coords ON cached_map_tiles(z, x, y);
+      CREATE INDEX IF NOT EXISTS idx_cached_map_tiles_cached_at ON cached_map_tiles(cached_at);
+      CREATE INDEX IF NOT EXISTS idx_cached_map_tiles_last_accessed ON cached_map_tiles(last_accessed);
     `);
 
     // Silent migration - no logs to avoid cluttering boot

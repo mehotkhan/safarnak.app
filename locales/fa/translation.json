@@ -73,7 +73,8 @@
     },
     "success": {
       "title": "موفقیت",
-      "loginSuccess": "با موفقیت وارد شدید!"
+      "loginSuccess": "با موفقیت وارد شدید!",
+      "welcomeBack": "خوش آمدید، {{username}}!"
     }
   },
   "register": {
@@ -112,7 +113,14 @@
     },
     "success": {
       "title": "موفقیت",
-      "registerSuccess": "حساب با موفقیت ایجاد شد!"
+      "registerSuccess": "حساب با موفقیت ایجاد شد!",
+      "usernameLabel": "نام کاربری"
+    },
+    "alerts": {
+      "ok": "تأیید",
+      "cancel": "لغو",
+      "clearData": "پاک کردن داده‌ها",
+      "alreadyRegisteredMessage": "کاربر \"{{username}}\" قبلاً ثبت نام شده است. لطفاً ابتدا داده‌ها را پاک کنید تا کاربر جدیدی ثبت نام کنید."
     }
   },
   "welcome": {
@@ -368,7 +376,28 @@
     "preferences": "ترجیحات",
     "privacy": "حریم خصوصی",
     "notifications": "اعلان‌ها",
-    "saved": "تنظیمات با موفقیت ذخیره شد!"
+    "saved": "تنظیمات با موفقیت ذخیره شد!",
+    "devices": "دستگاه‌ها",
+    "devicesInfoTitle": "مدیریت دستگاه‌ها",
+    "devicesInfoDescription": "دستگاه‌های متصل خود را مدیریت کنید. هر دستگاه کلید احراز هویت مخصوص به خود را دارد. لغو دسترسی یک دستگاه، آن را فوراً خارج می‌کند.",
+    "currentDevice": "دستگاه فعلی",
+    "allDevices": "همه دستگاه‌ها",
+    "active": "فعال",
+    "current": "فعلی",
+    "deviceId": "شناسه دستگاه",
+    "publicKey": "کلید عمومی",
+    "lastSeen": "آخرین مشاهده",
+    "noDevices": "دستگاهی یافت نشد",
+    "errorLoadingDevices": "خطا در بارگذاری دستگاه‌ها",
+    "cannotRevokeCurrentDevice": "نمی‌توان دستگاه فعلی را لغو کرد",
+    "cannotRevokeCurrentDeviceMessage": "شما نمی‌توانید دستگاهی که در حال استفاده از آن هستید را لغو کنید. لطفاً از دستگاه دیگری برای لغو این دستگاه استفاده کنید.",
+    "revokeDevice": "لغو دسترسی دستگاه",
+    "revokeDeviceConfirm": "آیا مطمئن هستید که می‌خواهید این دستگاه را لغو کنید؟ این دستگاه فوراً خارج می‌شود.",
+    "revoke": "لغو",
+    "deviceRevoked": "دستگاه با موفقیت لغو شد",
+    "revokeDeviceError": "لغو دستگاه با خطا مواجه شد",
+    "device": "دستگاه",
+    "thisDevice": "این دستگاه"
   },
   "placeDetail": {
     "title": "جزئیات مکان",

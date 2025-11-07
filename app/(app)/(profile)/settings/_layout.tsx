@@ -20,6 +20,7 @@ export default function SettingsLayout() {
     { key: 'preferences', label: t('settings.preferences', { defaultValue: 'Preferences' }), icon: 'heart-outline', route: '/(app)/(profile)/settings/preferences' },
     { key: 'privacy', label: t('settings.privacy', { defaultValue: 'Privacy' }), icon: 'shield-outline', route: '/(app)/(profile)/settings/privacy' },
     { key: 'notifications', label: t('settings.notifications', { defaultValue: 'Notifications' }), icon: 'notifications-outline', route: '/(app)/(profile)/settings/notifications' },
+    { key: 'devices', label: t('settings.devices', { defaultValue: 'Devices' }), icon: 'phone-portrait-outline', route: '/(app)/(profile)/settings/devices' },
   ];
 
   const handleTabPress = (route: string) => {

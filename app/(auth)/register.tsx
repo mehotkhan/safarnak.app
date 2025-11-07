@@ -20,7 +20,6 @@ export default function RegisterScreen() {
   // Biometric Auth Hook
   const {
     registerUser,
-    publicKey: generatedPublicKey,
     error: authError,
     checkBiometrics,
     loadStoredUsername,
@@ -80,10 +79,10 @@ export default function RegisterScreen() {
           console.log('[Register] Found existing user:', stored);
           Alert.alert(
             t('register.errors.alreadyRegistered') || 'Already Registered',
-            `User "${stored}" is already registered. Please clear data first to register a new user.`,
+            t('register.alerts.alreadyRegisteredMessage', { username: stored }) || `User "${stored}" is already registered. Please clear data first to register a new user.`,
             [
               {
-                text: 'Clear Data',
+                text: t('register.alerts.clearData') || 'Clear Data',
                 onPress: async () => {
                   try {
                     await clearStoredData();
@@ -94,7 +93,7 @@ export default function RegisterScreen() {
                 },
                 style: 'destructive',
               },
-              { text: 'Cancel', style: 'cancel' },
+              { text: t('register.alerts.cancel') || 'Cancel', style: 'cancel' },
             ]
           );
         }
@@ -141,18 +140,17 @@ export default function RegisterScreen() {
       // Register with biometrics
       const result = await registerUser(username.trim());
 
-      if (result) {
+      if (result && result.user) {
         console.log('[Register] ✅ Registration successful!');
-        console.log('[Register] Username:', result.username);
-        console.log('[Register] Public Key (Wallet Address):', result.publicKey);
+        console.log('[Register] Username:', result.user.username);
 
-        // Show success alert with option to view public key
+        // Show success alert
         Alert.alert(
           t('register.success.title') || 'Success',
-          `${t('register.success.registerSuccess') || 'Account created successfully!'}\n\nUsername: ${result.username}`,
+          `${t('register.success.registerSuccess') || 'Account created successfully!'}\n\n${t('register.success.usernameLabel') || 'Username'}: ${result.user.username}`,
           [
             {
-              text: 'OK',
+              text: t('common.ok') || 'OK',
               onPress: () => {
                 console.log('[Register] User acknowledged registration success');
                 // Navigate to app feed page

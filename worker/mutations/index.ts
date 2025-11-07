@@ -8,6 +8,7 @@ import { registerUser } from './registerUser';
 import { loginUser } from './loginUser';
 import { createTrip } from './createTrip';
 import { updateTrip, deleteTrip } from './updateTrip';
+import { revokeDevice } from './revokeDevice';
 
 // Placeholder resolvers for bookmarks
 const bookmarkTour = async () => true;
@@ -23,7 +24,8 @@ export const Mutation = {
   deleteTrip,
   bookmarkTour,
   bookmarkPlace,
+  revokeDevice,
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, bookmarkTour, bookmarkPlace };
+export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, bookmarkTour, bookmarkPlace, revokeDevice };

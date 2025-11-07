@@ -6,6 +6,18 @@ CREATE TABLE `apollo_cache_entries` (
 	`updated_at` integer DEFAULT (strftime('%s', 'now'))
 );
 --> statement-breakpoint
+CREATE TABLE `cached_map_tiles` (
+	`id` text PRIMARY KEY NOT NULL,
+	`layer` text NOT NULL,
+	`z` integer NOT NULL,
+	`x` integer NOT NULL,
+	`y` integer NOT NULL,
+	`file_path` text NOT NULL,
+	`file_size` integer NOT NULL,
+	`cached_at` integer DEFAULT (strftime('%s', 'now')),
+	`last_accessed` integer DEFAULT (strftime('%s', 'now'))
+);
+--> statement-breakpoint
 CREATE TABLE `cached_messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`content` text NOT NULL,
@@ -133,8 +145,11 @@ CREATE TABLE `devices` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`device_id` text NOT NULL,
+	`public_key` text NOT NULL,
 	`type` text,
 	`last_seen` text DEFAULT (CURRENT_TIMESTAMP),
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP),
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

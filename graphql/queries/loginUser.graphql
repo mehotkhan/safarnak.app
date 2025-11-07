@@ -1,5 +1,5 @@
-mutation LoginUser($username: String!, $signature: String!) {
-  loginUser(username: $username, signature: $signature) {
+mutation LoginUser($username: String!, $signature: String!, $deviceId: String!, $publicKey: String) {
+  loginUser(username: $username, signature: $signature, deviceId: $deviceId, publicKey: $publicKey) {
     user {
       id
       name

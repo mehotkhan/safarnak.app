@@ -4,6 +4,7 @@ import { persistReducer, persistStore } from 'redux-persist';
 
 import authReducer from './slices/authSlice';
 import themeReducer from './slices/themeSlice';
+import mapCacheReducer from './slices/mapCacheSlice';
 import { offlineMiddleware } from './middleware/offlineMiddleware';
 
 // Web-compatible storage
@@ -12,12 +13,13 @@ const storage = typeof window !== 'undefined' ? AsyncStorage : AsyncStorage;
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['auth', 'theme'], // Persist auth and theme slices
+  whitelist: ['auth', 'theme', 'mapCache'], // Persist auth, theme, and mapCache slices
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
   theme: themeReducer,
+  mapCache: mapCacheReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

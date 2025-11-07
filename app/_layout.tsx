@@ -8,7 +8,7 @@ import {
   DefaultTheme,
   ThemeProvider,
 } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+import { useFonts, loadAsync } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
@@ -25,6 +25,13 @@ import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import '../i18n';
 import '../global.css';
+
+// Polyfill Buffer for react-native-quick-crypto (must be loaded before any crypto operations)
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+if (typeof global.Buffer === 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  global.Buffer = require('buffer').Buffer;
+}
 
 // Disable noisy warnings in development
 if (__DEV__) {
@@ -63,23 +70,40 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
+  // Load essential fonts first (SpaceMono and VazirRegular)
+  // These are needed for initial render
+  const [essentialFontsLoaded, essentialFontsError] = useFonts({
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     VazirRegular: require('../assets/fonts/Vazir-Regular.ttf'),
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    VazirMedium: require('../assets/fonts/Vazir-Medium.ttf'),
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    VazirBold: require('../assets/fonts/Vazir-Bold.ttf'),
   });
 
+  // Load non-essential fonts (VazirMedium, VazirBold) asynchronously after initial render
+  // These are only needed for medium/bold text weights, which are less common
   useEffect(() => {
-    if (error) throw error;
-    if (loaded) SplashScreen.hideAsync();
-  }, [error, loaded]);
+    if (essentialFontsLoaded) {
+      // Load additional fonts in background - app will use VazirRegular as fallback
+      loadAsync({
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        VazirMedium: require('../assets/fonts/Vazir-Medium.ttf'),
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        VazirBold: require('../assets/fonts/Vazir-Bold.ttf'),
+      }).catch((err) => {
+        // Silently fail - app will continue with VazirRegular for medium/bold weights
+        if (__DEV__) {
+          console.warn('Failed to load additional fonts:', err);
+        }
+      });
+    }
+  }, [essentialFontsLoaded]);
 
-  if (!loaded) return null;
+  useEffect(() => {
+    if (essentialFontsError) throw essentialFontsError;
+    if (essentialFontsLoaded) SplashScreen.hideAsync();
+  }, [essentialFontsError, essentialFontsLoaded]);
+
+  if (!essentialFontsLoaded) return null;
 
   // Component that needs theme state (inside providers)
   function ThemedApp() {

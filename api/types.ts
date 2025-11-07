@@ -50,6 +50,16 @@ export type CreateTripInput = {
   travelers: Scalars['Int']['input'];
 };
 
+export type Device = {
+  __typename?: 'Device';
+  createdAt: Scalars['String']['output'];
+  deviceId: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  lastSeen: Scalars['String']['output'];
+  publicKey: Scalars['String']['output'];
+  type?: Maybe<Scalars['String']['output']>;
+};
+
 export type ItineraryDay = {
   __typename?: 'ItineraryDay';
   activities: Array<Scalars['String']['output']>;
@@ -74,6 +84,7 @@ export type Mutation = {
   loginUser: AuthPayload;
   registerUser: AuthPayload;
   requestChallenge: Scalars['String']['output'];
+  revokeDevice: Scalars['Boolean']['output'];
   updateTrip: Trip;
 };
 
@@ -104,12 +115,15 @@ export type MutationDeleteTripArgs = {
 
 
 export type MutationLoginUserArgs = {
+  deviceId: Scalars['String']['input'];
+  publicKey?: InputMaybe<Scalars['String']['input']>;
   signature: Scalars['String']['input'];
   username: Scalars['String']['input'];
 };
 
 
 export type MutationRegisterUserArgs = {
+  deviceId: Scalars['String']['input'];
   publicKey: Scalars['String']['input'];
   signature: Scalars['String']['input'];
   username: Scalars['String']['input'];
@@ -119,6 +133,11 @@ export type MutationRegisterUserArgs = {
 export type MutationRequestChallengeArgs = {
   isRegister: Scalars['Boolean']['input'];
   username: Scalars['String']['input'];
+};
+
+
+export type MutationRevokeDeviceArgs = {
+  deviceId: Scalars['String']['input'];
 };
 
 
@@ -151,6 +170,7 @@ export type Query = {
   checkUsernameAvailability: Scalars['Boolean']['output'];
   getAlerts: Array<Alert>;
   getMessages: Array<Message>;
+  getMyDevices: Array<Device>;
   getPlace?: Maybe<Place>;
   getPlaces: Array<Place>;
   getTour?: Maybe<Tour>;

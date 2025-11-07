@@ -1,5 +1,5 @@
-mutation RegisterUser($username: String!, $publicKey: String!, $signature: String!) {
-  registerUser(username: $username, publicKey: $publicKey, signature: $signature) {
+mutation RegisterUser($username: String!, $publicKey: String!, $signature: String!, $deviceId: String!) {
+  registerUser(username: $username, publicKey: $publicKey, signature: $signature, deviceId: $deviceId) {
     user {
       id
       name

@@ -34,6 +34,11 @@ export type GetMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type GetMessagesQuery = { __typename?: 'Query', getMessages: Array<{ __typename?: 'Message', id: string, content: string, createdAt: string }> };
 
+export type GetMyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetMyDevicesQuery = { __typename?: 'Query', getMyDevices: Array<{ __typename?: 'Device', id: string, deviceId: string, publicKey: string, type?: string | null, lastSeen: string, createdAt: string }> };
+
 export type GetTripQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -51,6 +56,8 @@ export type GetTripsQuery = { __typename?: 'Query', getTrips: Array<{ __typename
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
   signature: Scalars['String']['input'];
+  deviceId: Scalars['String']['input'];
+  publicKey?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -59,6 +66,8 @@ export type LoginMutation = { __typename?: 'Mutation', loginUser: { __typename?:
 export type LoginUserMutationVariables = Exact<{
   username: Scalars['String']['input'];
   signature: Scalars['String']['input'];
+  deviceId: Scalars['String']['input'];
+  publicKey?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
@@ -78,6 +87,7 @@ export type RegisterMutationVariables = Exact<{
   username: Scalars['String']['input'];
   publicKey: Scalars['String']['input'];
   signature: Scalars['String']['input'];
+  deviceId: Scalars['String']['input'];
 }>;
 
 
@@ -87,6 +97,7 @@ export type RegisterUserMutationVariables = Exact<{
   username: Scalars['String']['input'];
   publicKey: Scalars['String']['input'];
   signature: Scalars['String']['input'];
+  deviceId: Scalars['String']['input'];
 }>;
 
 
@@ -99,6 +110,13 @@ export type RequestChallengeMutationVariables = Exact<{
 
 
 export type RequestChallengeMutation = { __typename?: 'Mutation', requestChallenge: string };
+
+export type RevokeDeviceMutationVariables = Exact<{
+  deviceId: Scalars['String']['input'];
+}>;
+
+
+export type RevokeDeviceMutation = { __typename?: 'Mutation', revokeDevice: boolean };
 
 export type TripUpdatesSubscriptionVariables = Exact<{
   tripId: Scalars['ID']['input'];
@@ -328,6 +346,50 @@ export type GetMessagesQueryHookResult = ReturnType<typeof useGetMessagesQuery>;
 export type GetMessagesLazyQueryHookResult = ReturnType<typeof useGetMessagesLazyQuery>;
 export type GetMessagesSuspenseQueryHookResult = ReturnType<typeof useGetMessagesSuspenseQuery>;
 export type GetMessagesQueryResult = Apollo.QueryResult<GetMessagesQuery, GetMessagesQueryVariables>;
+export const GetMyDevicesDocument = gql`
+    query GetMyDevices {
+  getMyDevices {
+    id
+    deviceId
+    publicKey
+    type
+    lastSeen
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetMyDevicesQuery__
+ *
+ * To run a query within a React component, call `useGetMyDevicesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetMyDevicesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetMyDevicesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetMyDevicesQuery(baseOptions?: Apollo.QueryHookOptions<GetMyDevicesQuery, GetMyDevicesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetMyDevicesQuery, GetMyDevicesQueryVariables>(GetMyDevicesDocument, options);
+      }
+export function useGetMyDevicesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMyDevicesQuery, GetMyDevicesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetMyDevicesQuery, GetMyDevicesQueryVariables>(GetMyDevicesDocument, options);
+        }
+export function useGetMyDevicesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMyDevicesQuery, GetMyDevicesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetMyDevicesQuery, GetMyDevicesQueryVariables>(GetMyDevicesDocument, options);
+        }
+export type GetMyDevicesQueryHookResult = ReturnType<typeof useGetMyDevicesQuery>;
+export type GetMyDevicesLazyQueryHookResult = ReturnType<typeof useGetMyDevicesLazyQuery>;
+export type GetMyDevicesSuspenseQueryHookResult = ReturnType<typeof useGetMyDevicesSuspenseQuery>;
+export type GetMyDevicesQueryResult = Apollo.QueryResult<GetMyDevicesQuery, GetMyDevicesQueryVariables>;
 export const GetTripDocument = gql`
     query GetTrip($id: ID!) {
   getTrip(id: $id) {
@@ -443,8 +505,13 @@ export type GetTripsLazyQueryHookResult = ReturnType<typeof useGetTripsLazyQuery
 export type GetTripsSuspenseQueryHookResult = ReturnType<typeof useGetTripsSuspenseQuery>;
 export type GetTripsQueryResult = Apollo.QueryResult<GetTripsQuery, GetTripsQueryVariables>;
 export const LoginDocument = gql`
-    mutation Login($username: String!, $signature: String!) {
-  loginUser(username: $username, signature: $signature) {
+    mutation Login($username: String!, $signature: String!, $deviceId: String!, $publicKey: String) {
+  loginUser(
+    username: $username
+    signature: $signature
+    deviceId: $deviceId
+    publicKey: $publicKey
+  ) {
     user {
       id
       name
@@ -472,6 +539,8 @@ export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutati
  *   variables: {
  *      username: // value for 'username'
  *      signature: // value for 'signature'
+ *      deviceId: // value for 'deviceId'
+ *      publicKey: // value for 'publicKey'
  *   },
  * });
  */
@@ -483,8 +552,13 @@ export type LoginMutationHookResult = ReturnType<typeof useLoginMutation>;
 export type LoginMutationResult = Apollo.MutationResult<LoginMutation>;
 export type LoginMutationOptions = Apollo.BaseMutationOptions<LoginMutation, LoginMutationVariables>;
 export const LoginUserDocument = gql`
-    mutation LoginUser($username: String!, $signature: String!) {
-  loginUser(username: $username, signature: $signature) {
+    mutation LoginUser($username: String!, $signature: String!, $deviceId: String!, $publicKey: String) {
+  loginUser(
+    username: $username
+    signature: $signature
+    deviceId: $deviceId
+    publicKey: $publicKey
+  ) {
     user {
       id
       name
@@ -512,6 +586,8 @@ export type LoginUserMutationFn = Apollo.MutationFunction<LoginUserMutation, Log
  *   variables: {
  *      username: // value for 'username'
  *      signature: // value for 'signature'
+ *      deviceId: // value for 'deviceId'
+ *      publicKey: // value for 'publicKey'
  *   },
  * });
  */
@@ -604,8 +680,13 @@ export function useNewAlertsSubscription(baseOptions?: Apollo.SubscriptionHookOp
 export type NewAlertsSubscriptionHookResult = ReturnType<typeof useNewAlertsSubscription>;
 export type NewAlertsSubscriptionResult = Apollo.SubscriptionResult<NewAlertsSubscription>;
 export const RegisterDocument = gql`
-    mutation Register($username: String!, $publicKey: String!, $signature: String!) {
-  registerUser(username: $username, publicKey: $publicKey, signature: $signature) {
+    mutation Register($username: String!, $publicKey: String!, $signature: String!, $deviceId: String!) {
+  registerUser(
+    username: $username
+    publicKey: $publicKey
+    signature: $signature
+    deviceId: $deviceId
+  ) {
     user {
       id
       name
@@ -634,6 +715,7 @@ export type RegisterMutationFn = Apollo.MutationFunction<RegisterMutation, Regis
  *      username: // value for 'username'
  *      publicKey: // value for 'publicKey'
  *      signature: // value for 'signature'
+ *      deviceId: // value for 'deviceId'
  *   },
  * });
  */
@@ -645,8 +727,13 @@ export type RegisterMutationHookResult = ReturnType<typeof useRegisterMutation>;
 export type RegisterMutationResult = Apollo.MutationResult<RegisterMutation>;
 export type RegisterMutationOptions = Apollo.BaseMutationOptions<RegisterMutation, RegisterMutationVariables>;
 export const RegisterUserDocument = gql`
-    mutation RegisterUser($username: String!, $publicKey: String!, $signature: String!) {
-  registerUser(username: $username, publicKey: $publicKey, signature: $signature) {
+    mutation RegisterUser($username: String!, $publicKey: String!, $signature: String!, $deviceId: String!) {
+  registerUser(
+    username: $username
+    publicKey: $publicKey
+    signature: $signature
+    deviceId: $deviceId
+  ) {
     user {
       id
       name
@@ -675,6 +762,7 @@ export type RegisterUserMutationFn = Apollo.MutationFunction<RegisterUserMutatio
  *      username: // value for 'username'
  *      publicKey: // value for 'publicKey'
  *      signature: // value for 'signature'
+ *      deviceId: // value for 'deviceId'
  *   },
  * });
  */
@@ -717,6 +805,37 @@ export function useRequestChallengeMutation(baseOptions?: Apollo.MutationHookOpt
 export type RequestChallengeMutationHookResult = ReturnType<typeof useRequestChallengeMutation>;
 export type RequestChallengeMutationResult = Apollo.MutationResult<RequestChallengeMutation>;
 export type RequestChallengeMutationOptions = Apollo.BaseMutationOptions<RequestChallengeMutation, RequestChallengeMutationVariables>;
+export const RevokeDeviceDocument = gql`
+    mutation RevokeDevice($deviceId: String!) {
+  revokeDevice(deviceId: $deviceId)
+}
+    `;
+export type RevokeDeviceMutationFn = Apollo.MutationFunction<RevokeDeviceMutation, RevokeDeviceMutationVariables>;
+
+/**
+ * __useRevokeDeviceMutation__
+ *
+ * To run a mutation, you first call `useRevokeDeviceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRevokeDeviceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [revokeDeviceMutation, { data, loading, error }] = useRevokeDeviceMutation({
+ *   variables: {
+ *      deviceId: // value for 'deviceId'
+ *   },
+ * });
+ */
+export function useRevokeDeviceMutation(baseOptions?: Apollo.MutationHookOptions<RevokeDeviceMutation, RevokeDeviceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RevokeDeviceMutation, RevokeDeviceMutationVariables>(RevokeDeviceDocument, options);
+      }
+export type RevokeDeviceMutationHookResult = ReturnType<typeof useRevokeDeviceMutation>;
+export type RevokeDeviceMutationResult = Apollo.MutationResult<RevokeDeviceMutation>;
+export type RevokeDeviceMutationOptions = Apollo.BaseMutationOptions<RevokeDeviceMutation, RevokeDeviceMutationVariables>;
 export const TripUpdatesDocument = gql`
     subscription TripUpdates($tripId: ID!) {
   tripUpdates(tripId: $tripId) {

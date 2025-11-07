@@ -5,7 +5,6 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 import { client } from './client';
 import { drizzleCacheStorage } from './cache-storage';
 
@@ -122,25 +121,17 @@ export const shouldRetryRequest = (error: any, attempt: number): boolean => {
 
 /**
  * Comprehensive logout function that clears session data:
- * - SecureStore: Clears JWT token only (keeps privateKey and username for re-login)
  * - AsyncStorage: Clears user data, offline queue, Redux persist
  * - SQLite cache: Clears Apollo cache
  * - Apollo Client cache: Clears in-memory cache
  * 
- * Note: Private key and username are preserved so user can login again after logout.
+ * Note: Device key pair and username are preserved so user can login again after logout.
  * These represent the user's identity and should persist across sessions.
  */
 export async function clearAllUserData(): Promise<void> {
   try {
-    // Clear SecureStore items (only JWT token - keep private key and username for re-login)
-    // Private key and username are the user's identity and should persist across logouts
-    try {
-      await SecureStore.deleteItemAsync('jwtToken');
-      // Note: We keep 'username' and 'privateKey' so user can login again after logout
-    } catch (error) {
-      // SecureStore might not be available on all platforms
-      console.warn('Error clearing SecureStore:', error);
-    }
+    // Note: We keep device key pair and username in AsyncStorage so user can login again after logout
+    // Only clear user data and token, not the device key pair
 
     // Clear Apollo Client cache (in-memory)
     await client.cache.reset();

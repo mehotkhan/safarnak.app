@@ -9,18 +9,20 @@ type Query {
   getPlace(id: ID!): Place
   getAlerts: [Alert!]!
   checkUsernameAvailability(username: String!): Boolean!
+  getMyDevices: [Device!]!
 }
 
 type Mutation {
   addMessage(content: String!): Message!
   requestChallenge(username: String!, isRegister: Boolean!): String!
-  registerUser(username: String!, publicKey: String!, signature: String!): AuthPayload!
-  loginUser(username: String!, signature: String!): AuthPayload!
+  registerUser(username: String!, publicKey: String!, signature: String!, deviceId: String!): AuthPayload!
+  loginUser(username: String!, signature: String!, deviceId: String!, publicKey: String): AuthPayload!
   createTrip(input: CreateTripInput!): Trip!
   updateTrip(id: ID!, input: UpdateTripInput!): Trip!
   deleteTrip(id: ID!): Boolean!
   bookmarkTour(tourId: ID!): Boolean!
   bookmarkPlace(placeId: ID!): Boolean!
+  revokeDevice(deviceId: String!): Boolean!
 }
 
 type Subscription {
@@ -166,5 +168,14 @@ type TripUpdate {
   totalSteps: Int!
   status: String!
   data: String
+  createdAt: String!
+}
+
+type Device {
+  id: ID!
+  deviceId: String!
+  publicKey: String!
+  type: String
+  lastSeen: String!
   createdAt: String!
 }

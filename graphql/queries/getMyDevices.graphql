@@ -1,0 +1,11 @@
+query GetMyDevices {
+  getMyDevices {
+    id
+    deviceId
+    publicKey
+    type
+    lastSeen
+    createdAt
+  }
+}
+

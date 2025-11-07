@@ -16,11 +16,14 @@ import { ThemeToggle } from '@components/ui/ThemeToggle';
 import { useTheme } from '@components/context/ThemeContext';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useDatabaseStats } from '@hooks/useDatabaseStats';
-import { useAppDispatch } from '@store/hooks';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
 import { logout } from '@store/slices/authSlice';
+import { setEnabled as setMapCacheEnabled, setAutoClearDays } from '@store/slices/mapCacheSlice';
 import { clearAllUserData } from '@api';
 import { persistor } from '@store';
 import Colors from '@constants/Colors';
+import { getCacheStats, clearCache, cleanupOldTiles } from '@/utils/mapTileCache';
+import { useEffect } from 'react';
 
 // Read version from package.json
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -161,6 +164,16 @@ export default function GeneralSettingsScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Map cache settings
+  const mapCacheEnabled = useAppSelector(state => state.mapCache.enabled);
+  const mapCacheAutoClearDays = useAppSelector(state => state.mapCache.autoClearDays);
+  const [mapCacheStats, setMapCacheStats] = useState<{
+    totalTiles: number;
+    totalSize: number;
+    tilesByLayer: Record<string, number>;
+  } | null>(null);
+  const [clearingCache, setClearingCache] = useState(false);
 
   // System Status hooks
   const {
@@ -220,10 +233,73 @@ export default function GeneralSettingsScreen() {
     ]);
   };
 
+  // Load map cache stats
+  useEffect(() => {
+    loadMapCacheStats();
+  }, []);
+
+  const loadMapCacheStats = async () => {
+    try {
+      const stats = await getCacheStats();
+      setMapCacheStats({
+        totalTiles: stats.totalTiles,
+        totalSize: stats.totalSize,
+        tilesByLayer: stats.tilesByLayer,
+      });
+    } catch (error) {
+      console.error('Error loading map cache stats:', error);
+    }
+  };
+
+  const handleClearMapCache = () => {
+    Alert.alert(
+      t('settings.clearMapCache', { defaultValue: 'Clear Map Cache' }),
+      t('settings.clearMapCacheConfirm', {
+        defaultValue: 'Are you sure you want to clear all cached map tiles? This cannot be undone.',
+      }),
+      [
+        { text: t('common.cancel'), style: 'cancel' },
+        {
+          text: t('common.clear', { defaultValue: 'Clear' }),
+          style: 'destructive',
+          onPress: async () => {
+            setClearingCache(true);
+            try {
+              await clearCache();
+              await loadMapCacheStats();
+              Alert.alert(
+                t('common.success'),
+                t('settings.mapCacheCleared', { defaultValue: 'Map cache cleared successfully!' })
+              );
+            } catch (error) {
+              console.error('Error clearing map cache:', error);
+              Alert.alert(
+                t('common.error'),
+                t('settings.mapCacheClearError', { defaultValue: 'Failed to clear map cache' })
+              );
+            } finally {
+              setClearingCache(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleMapCacheAutoClearChange = (days: number) => {
+    dispatch(setAutoClearDays(days));
+    // Trigger cleanup if enabled
+    if (days > 0) {
+      cleanupOldTiles(days).catch(error => {
+        console.error('Error cleaning up old tiles:', error);
+      });
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([refetchStats(), refetchSystemStatus()]);
+      await Promise.all([refetchStats(), refetchSystemStatus(), loadMapCacheStats()]);
     } catch (error) {
       console.error('Error refreshing stats:', error);
     } finally {
@@ -307,6 +383,130 @@ export default function GeneralSettingsScreen() {
                 </View>
               )}
             </View>
+          </View>
+        </View>
+
+        {/* Map Cache Settings */}
+        <View className="mb-4">
+          <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase">
+            {t('settings.mapCache', { defaultValue: 'Map Cache' })}
+          </CustomText>
+          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
+            {/* Enable/Disable Toggle */}
+            <View className="flex-row items-center justify-between py-3 border-b border-gray-200 dark:border-neutral-800">
+              <View className="flex-1">
+                <CustomText weight="medium" className="text-base text-black dark:text-white mb-1">
+                  {t('settings.enableMapCache', { defaultValue: 'Enable Map Caching' })}
+                </CustomText>
+                <CustomText className="text-sm text-gray-500 dark:text-gray-400">
+                  {t('settings.enableMapCacheDescription', {
+                    defaultValue: 'Cache map tiles for offline use',
+                  })}
+                </CustomText>
+              </View>
+              <TouchableOpacity
+                onPress={() => dispatch(setMapCacheEnabled(!mapCacheEnabled))}
+                className={`w-12 h-7 rounded-full justify-center ${
+                  mapCacheEnabled ? 'bg-primary' : 'bg-gray-300 dark:bg-neutral-700'
+                }`}
+              >
+                <View
+                  className={`w-5 h-5 rounded-full bg-white ${
+                    mapCacheEnabled ? 'ml-5' : 'ml-1'
+                  }`}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Cache Statistics */}
+            {mapCacheStats && (
+              <View className="py-3 border-b border-gray-200 dark:border-neutral-800">
+                <CustomText weight="medium" className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  {t('settings.cacheStatistics', { defaultValue: 'Cache Statistics' })}
+                </CustomText>
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <CustomText className="text-xs text-gray-500 dark:text-gray-400">
+                      {t('settings.totalTiles', { defaultValue: 'Total Tiles' })}
+                    </CustomText>
+                    <CustomText weight="bold" className="text-lg text-black dark:text-white">
+                      {mapCacheStats.totalTiles.toLocaleString()}
+                    </CustomText>
+                  </View>
+                  <View className="flex-1">
+                    <CustomText className="text-xs text-gray-500 dark:text-gray-400">
+                      {t('settings.cacheSize', { defaultValue: 'Cache Size' })}
+                    </CustomText>
+                    <CustomText weight="bold" className="text-lg text-black dark:text-white">
+                      {formatBytes(mapCacheStats.totalSize)}
+                    </CustomText>
+                  </View>
+                </View>
+              </View>
+            )}
+
+            {/* Auto-Clear Settings */}
+            <View className="py-3 border-b border-gray-200 dark:border-neutral-800">
+              <CustomText weight="medium" className="text-sm text-black dark:text-white mb-2">
+                {t('settings.autoClearCache', { defaultValue: 'Auto-Clear Cache' })}
+              </CustomText>
+              <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                {t('settings.autoClearCacheDescription', {
+                  defaultValue: 'Automatically clear tiles older than specified days',
+                })}
+              </CustomText>
+              <View className="flex-row gap-2">
+                {[0, 1, 7, 30].map(days => (
+                  <TouchableOpacity
+                    key={days}
+                    onPress={() => handleMapCacheAutoClearChange(days)}
+                    className={`px-3 py-1.5 rounded-full border ${
+                      mapCacheAutoClearDays === days
+                        ? 'bg-primary border-primary'
+                        : 'bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700'
+                    }`}
+                  >
+                    <CustomText
+                      className={`text-xs ${
+                        mapCacheAutoClearDays === days
+                          ? 'text-white'
+                          : 'text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {days === 0
+                        ? t('settings.never', { defaultValue: 'Never' })
+                        : days === 1
+                        ? t('settings.oneDay', { defaultValue: '1 Day' })
+                        : `${days} ${t('settings.days', { defaultValue: 'Days' })}`}
+                    </CustomText>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+
+            {/* Clear Cache Button */}
+            <TouchableOpacity
+              onPress={handleClearMapCache}
+              disabled={clearingCache || !mapCacheStats || mapCacheStats.totalTiles === 0}
+              className={`py-3 rounded-xl items-center ${
+                clearingCache || !mapCacheStats || mapCacheStats.totalTiles === 0
+                  ? 'bg-gray-100 dark:bg-neutral-800'
+                  : 'bg-red-50 dark:bg-red-900/20'
+              }`}
+            >
+              <CustomText
+                weight="medium"
+                className={`text-sm ${
+                  clearingCache || !mapCacheStats || mapCacheStats.totalTiles === 0
+                    ? 'text-gray-400 dark:text-gray-600'
+                    : 'text-red-600 dark:text-red-400'
+                }`}
+              >
+                {clearingCache
+                  ? t('common.clearing', { defaultValue: 'Clearing...' })
+                  : t('settings.clearMapCache', { defaultValue: 'Clear Map Cache' })}
+              </CustomText>
+            </TouchableOpacity>
           </View>
         </View>
 

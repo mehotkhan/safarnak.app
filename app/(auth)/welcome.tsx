@@ -1,7 +1,7 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native';
 import React, { useRef, useState } from 'react';
 import { router } from 'expo-router';
-import Swiper from 'react-native-swiper';
+import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
 import CustomButton from '@components/ui/CustomButton';
 import { Stack } from 'expo-router';
@@ -24,7 +24,7 @@ const logoBeta = require('@assets/images/icon.png');
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage } = useLanguage();
-  const swiperRef = useRef<Swiper>(null);
+  const pagerRef = useRef<PagerView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
 
@@ -142,14 +142,11 @@ export default function WelcomeScreen() {
         </View>
       </View>
 
-      <Swiper
-        ref={swiperRef}
-        loop={false}
-        dot={<View className="w-8 h-1 mx-1 bg-white/40 rounded" />}
-        activeDot={<View className="w-8 h-1 mx-1 bg-[#30D5C8] rounded" />}
-        onIndexChanged={(index) => setActiveIndex(index)}
-        containerStyle={{}}
-        paginationStyle={{ bottom: 20 }}
+      <PagerView
+        ref={pagerRef}
+        style={{ flex: 1 }}
+        initialPage={0}
+        onPageSelected={(e) => setActiveIndex(e.nativeEvent.position)}
       >
         {onboarding.map((item) => (
           <View key={item.id} className="flex-1">
@@ -162,7 +159,19 @@ export default function WelcomeScreen() {
             </View>
           </View>
         ))}
-      </Swiper>
+      </PagerView>
+
+      {/* Pagination Dots */}
+      <View className="absolute bottom-32 left-0 right-0 flex-row justify-center items-center">
+        {onboarding.map((_, index) => (
+          <View
+            key={index}
+            className={`w-8 h-1 mx-1 rounded ${
+              index === activeIndex ? 'bg-[#30D5C8]' : 'bg-white/40'
+            }`}
+          />
+        ))}
+      </View>
 
       <View className="absolute bottom-10 left-0 right-0 px-6 z-20">
         <CustomButton
@@ -171,7 +180,7 @@ export default function WelcomeScreen() {
             if (isLastSlide) {
               router.push('/(auth)/register' as any);
             } else {
-              swiperRef.current?.scrollBy(1);
+              pagerRef.current?.setPage(activeIndex + 1);
             }
           }}
           bgVariant="primary"

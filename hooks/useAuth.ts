@@ -1,3 +1,13 @@
+/**
+ * Authentication hook for biometric authentication
+ * 
+ * Features:
+ * - Key pair generation on registration (stored in Redux + AsyncStorage)
+ * - Fingerprint validation for login (unlocks access to private key)
+ * - Multi-device support (each device has its own key pair)
+ * - JWT token and user data stored in Redux + AsyncStorage (no SecureStore)
+ */
+
 import { useState, useCallback } from 'react';
 import {
   useCheckUsernameLazyQuery,
@@ -6,28 +16,22 @@ import {
   useLoginUserMutation,
 } from '@api';
 import * as LocalAuthentication from 'expo-local-authentication';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Device from 'expo-device';
-import { ethers } from 'ethers';
-import QuickCrypto from 'react-native-quick-crypto';
-import { useAppDispatch } from '@store/hooks';
-import { login as loginAction } from '@store/slices/authSlice';
+import { useAppDispatch, useAppSelector } from '@store/hooks';
+import { login as loginAction, setDeviceKeyPair } from '@store/slices/authSlice';
+import { generateKeyPair, signMessage, generateDeviceId } from './crypto';
+import { storeUserData } from '@api/utils';
+
 // Ensure crypto.getRandomValues is available in RN
-// Safe to import multiple times; no-ops after first
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 require('react-native-get-random-values');
-
-// GraphQL operations are imported from auto-generated hooks
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
 export interface AuthResult {
-  publicKey?: string;
-  username?: string;
-  signature?: string;
-  recoveredAddress?: string;
   user?: {
     id: string;
     name: string;
@@ -37,14 +41,18 @@ export interface AuthResult {
   token?: string;
 }
 
+// Storage keys
+const DEVICE_KEY_PAIR_KEY = '@safarnak_device_keypair';
+const USERNAME_KEY = '@safarnak_username';
+
 // ============================================================================
 // useAuth Hook
 // ============================================================================
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
+  const { deviceKeyPair } = useAppSelector((state) => state.auth);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [publicKey, setPublicKey] = useState<string | null>(null);
   const [storedUsername, setStoredUsername] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,10 +62,25 @@ export const useAuth = () => {
   const [registerMutation] = useRegisterUserMutation();
   const [loginMutation] = useLoginUserMutation();
 
-  // Load stored username on init
+  // Load stored device key pair from AsyncStorage
+  const loadDeviceKeyPair = useCallback(async () => {
+    try {
+      const stored = await AsyncStorage.getItem(DEVICE_KEY_PAIR_KEY);
+      if (stored) {
+        const keyPair = JSON.parse(stored);
+        dispatch(setDeviceKeyPair(keyPair));
+        return keyPair;
+      }
+    } catch (err: any) {
+      console.error('[useAuth] Failed to load device key pair:', err);
+    }
+    return null;
+  }, [dispatch]);
+
+  // Load stored username from AsyncStorage
   const loadStoredUsername = useCallback(async (): Promise<string | null> => {
     try {
-      const username = await SecureStore.getItemAsync('username');
+      const username = await AsyncStorage.getItem(USERNAME_KEY);
       setStoredUsername(username);
       return username;
     } catch (err: any) {
@@ -70,7 +93,8 @@ export const useAuth = () => {
   const checkBiometrics = useCallback(async (): Promise<boolean> => {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
-      const supportedTypes = await LocalAuthentication.supportedAuthenticationTypesAsync();
+      const supportedTypes =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
       console.log('[useAuth] Biometric check:', {
@@ -86,41 +110,44 @@ export const useAuth = () => {
     }
   }, []);
 
-  // Sign message with private key (biometric unlocked)
-  const signMessage = useCallback(async (message: string): Promise<string> => {
-    const authResult = await LocalAuthentication.authenticateAsync({
-      promptMessage: 'Authenticate to sign',
-      fallbackLabel: 'Use Passcode',
-      disableDeviceFallback: false,
-    });
+  // Authenticate with biometrics (fingerprint/face ID)
+  const authenticateWithBiometrics = useCallback(async (): Promise<boolean> => {
+    try {
+      const result = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Authenticate to continue',
+        cancelLabel: 'Cancel',
+        disableDeviceFallback: false,
+      });
 
-    if (!authResult.success) {
-      throw new Error(`Authentication failed: ${authResult.error}`);
+      return result.success;
+    } catch (err: any) {
+      console.error('[useAuth] Biometric authentication failed:', err);
+      return false;
     }
-
-    const privateKey = await SecureStore.getItemAsync('privateKey', {
-      requireAuthentication: true,
-      authenticationPrompt: 'Access keys',
-    });
-
-    if (!privateKey) {
-      throw new Error('No private key found');
-    }
-
-    // Create wallet from private key
-    const wallet = new ethers.Wallet(privateKey);
-
-    // Sign the message directly (ethers.signMessage handles hashing internally)
-    const signature = await wallet.signMessage(message);
-
-    console.log('[useAuth] Signed message:', {
-      message: message.substring(0, 16) + '...',
-      signature: signature.substring(0, 16) + '...',
-      walletAddress: wallet.address,
-    });
-
-    return signature;
   }, []);
+
+  // Sign message with private key (after biometric unlock)
+  const signMessageWithBiometric = useCallback(
+    async (message: string): Promise<string> => {
+      // First, authenticate with biometrics
+      const authenticated = await authenticateWithBiometrics();
+      if (!authenticated) {
+        throw new Error('Biometric authentication failed or cancelled');
+      }
+
+      // Get private key from Redux state
+      const keyPair = deviceKeyPair;
+      if (!keyPair || !keyPair.privateKey) {
+        throw new Error(
+          'Device key pair not found. Please register first or restore from storage.'
+        );
+      }
+
+      // Sign the message
+      return await signMessage(message, keyPair.privateKey);
+    },
+    [deviceKeyPair, authenticateWithBiometrics]
+  );
 
   // Generate and store new key pair (Registration)
   const registerUser = useCallback(
@@ -148,55 +175,20 @@ export const useAuth = () => {
 
         console.log('[useAuth] Username available, generating key pair...');
 
+        // Generate device ID
+        const deviceId = generateDeviceId();
+
+        // Generate key pair
+        const { publicKey, privateKey } = await generateKeyPair();
+
         // Get device information for logging
         const deviceInfo = {
+          deviceId,
           modelName: Device.modelName,
           brand: Device.brand,
           osName: Device.osName,
         };
         console.log('[useAuth] Device info:', deviceInfo);
-
-        // Create a cryptographically secure random wallet compatible with RN
-        // Use react-native-quick-crypto to generate 32 random bytes for private key
-        const toHex = (bytes: Uint8Array) =>
-          '0x' + Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
-
-        let wallet: ethers.Wallet | null = null;
-        for (let attempt = 0; attempt < 5; attempt++) {
-          const rand = QuickCrypto.randomBytes(32);
-          try {
-            const candidate = new ethers.Wallet(toHex(rand));
-            wallet = candidate;
-            break;
-          } catch {
-            // Try again if invalid key (extremely rare)
-          }
-        }
-        if (!wallet) {
-          throw new Error('Failed to generate secure key. Please try again.');
-        }
-        const privateKey = wallet.privateKey;
-        const publicKeyAddress = wallet.address;
-
-        console.log('[useAuth] Generated wallet address:', publicKeyAddress);
-
-        // Store private key securely with biometric protection
-        const authResult = await LocalAuthentication.authenticateAsync({
-          promptMessage: 'Enroll biometrics for registration',
-          fallbackLabel: 'Use Passcode',
-          disableDeviceFallback: false,
-        });
-
-        if (!authResult.success) {
-          throw new Error(`Enrollment failed: ${authResult.error}`);
-        }
-
-        await SecureStore.setItemAsync('privateKey', privateKey, {
-          requireAuthentication: true,
-          authenticationPrompt: 'Authenticate to store keys',
-        });
-
-        console.log('[useAuth] Private key stored securely');
 
         // Request challenge from backend
         const { data: challengeData } = await requestChallengeMutation({
@@ -208,41 +200,55 @@ export const useAuth = () => {
           throw new Error('Failed to get challenge from server');
         }
 
-        console.log('[useAuth] Challenge received, signing...');
+        console.log('[useAuth] Challenge received, authenticating with biometrics...');
 
-        // Sign the nonce
-        const signature = await signMessage(nonce);
+        // Authenticate with biometrics before signing (required for registration)
+        const authenticated = await authenticateWithBiometrics();
+        if (!authenticated) {
+          throw new Error('Biometric authentication failed or cancelled');
+        }
 
-        // Register user on backend
-        const { data: regData } = await registerMutation({
-          variables: { username, publicKey: publicKeyAddress, signature },
+        console.log('[useAuth] Biometric authentication successful, signing challenge...');
+
+        // Sign the challenge with the new private key (after biometric authentication)
+        const signature = await signMessage(nonce, privateKey);
+
+        // Register user on backend (sends publicKey, server creates device entry)
+        const { data: registerData } = await registerMutation({
+          variables: { username, publicKey, signature, deviceId },
         });
 
-        if (!regData?.registerUser) {
+        if (!registerData?.registerUser) {
           throw new Error('Registration failed');
         }
 
-        const { user, token } = regData.registerUser;
+        const { user, token } = registerData.registerUser;
 
-        // Store JWT token and username
-        await SecureStore.setItemAsync('jwtToken', token);
-        await SecureStore.setItemAsync('username', username);
+        // Store device key pair in Redux and AsyncStorage
+        const keyPair = { publicKey, privateKey, deviceId };
+        dispatch(setDeviceKeyPair(keyPair));
+        await AsyncStorage.setItem(DEVICE_KEY_PAIR_KEY, JSON.stringify(keyPair));
 
-        // Update Redux state for AuthWrapper
-        dispatch(loginAction({ user, token }));
+        // Store username
+        await AsyncStorage.setItem(USERNAME_KEY, username);
+
+        // Store user data and token in AsyncStorage (via api/utils)
+        await storeUserData(user, token);
+
+        // Update Redux state
+        dispatch(loginAction({ user, token, deviceKeyPair: keyPair }));
 
         setStoredUsername(username);
-        setPublicKey(publicKeyAddress);
         setIsAuthenticated(true);
         setError(null);
 
         console.log('[useAuth] ✅ Registration successful!', {
           userId: user.id,
           username: user.username,
-          publicKey: publicKeyAddress,
+          deviceId,
         });
 
-        return { publicKey: publicKeyAddress, username, user, token };
+        return { user, token };
       } catch (err: any) {
         const errorMessage = err.message || 'Registration failed';
         console.error('[useAuth] Registration error:', errorMessage, err);
@@ -250,7 +256,14 @@ export const useAuth = () => {
         return null;
       }
     },
-    [checkBiometrics, runCheckUsernameAvailability, requestChallengeMutation, registerMutation, signMessage, dispatch]
+    [
+      checkBiometrics,
+      authenticateWithBiometrics,
+      runCheckUsernameAvailability,
+      requestChallengeMutation,
+      registerMutation,
+      dispatch,
+    ]
   );
 
   // Login / Validate (Unlock and Sign Data)
@@ -268,6 +281,18 @@ export const useAuth = () => {
           throw new Error('Biometrics not available');
         }
 
+        // Load device key pair if not in Redux
+        let keyPair = deviceKeyPair;
+        if (!keyPair) {
+          keyPair = await loadDeviceKeyPair();
+        }
+
+        if (!keyPair || !keyPair.privateKey) {
+          throw new Error(
+            'Device key pair not found. Please register first or restore from storage.'
+          );
+        }
+
         // Request challenge from backend
         const { data: challengeData } = await requestChallengeMutation({
           variables: { username, isRegister: false },
@@ -278,14 +303,20 @@ export const useAuth = () => {
           throw new Error('Failed to get challenge from server');
         }
 
-        console.log('[useAuth] Challenge received, signing...');
+        console.log('[useAuth] Challenge received, authenticating with biometrics...');
 
-        // Sign the nonce
-        const signature = await signMessage(nonce);
+        // Sign the nonce (this will trigger biometric authentication)
+        const signature = await signMessageWithBiometric(nonce);
 
-        // Login user on backend
+        // Login user on backend (server verifies signature and creates/updates device entry)
+        // Send publicKey for new device login (server will check if device exists)
         const { data: loginData } = await loginMutation({
-          variables: { username, signature },
+          variables: {
+            username,
+            signature,
+            deviceId: keyPair.deviceId,
+            publicKey: keyPair.publicKey, // Send publicKey for potential new device registration
+          },
         });
 
         if (!loginData?.loginUser) {
@@ -294,12 +325,14 @@ export const useAuth = () => {
 
         const { user, token } = loginData.loginUser;
 
-        // Store JWT token and username for future logins
-        await SecureStore.setItemAsync('jwtToken', token);
-        await SecureStore.setItemAsync('username', username);
+        // Store user data and token in AsyncStorage (via api/utils)
+        await storeUserData(user, token);
 
-        // Update Redux state for AuthWrapper
-        dispatch(loginAction({ user, token }));
+        // Store username
+        await AsyncStorage.setItem(USERNAME_KEY, username);
+
+        // Update Redux state
+        dispatch(loginAction({ user, token, deviceKeyPair: keyPair }));
 
         setStoredUsername(username);
         setIsAuthenticated(true);
@@ -308,9 +341,10 @@ export const useAuth = () => {
         console.log('[useAuth] ✅ Login successful!', {
           userId: user.id,
           username: user.username,
+          deviceId: keyPair.deviceId,
         });
 
-        return { signature, user, token };
+        return { user, token };
       } catch (err: any) {
         const errorMessage = err.message || 'Login failed';
         console.error('[useAuth] Login error:', errorMessage, err);
@@ -318,7 +352,15 @@ export const useAuth = () => {
         return null;
       }
     },
-    [checkBiometrics, requestChallengeMutation, loginMutation, signMessage, dispatch]
+    [
+      checkBiometrics,
+      deviceKeyPair,
+      loadDeviceKeyPair,
+      requestChallengeMutation,
+      loginMutation,
+      signMessageWithBiometric,
+      dispatch,
+    ]
   );
 
   // Logout / Cancel
@@ -326,10 +368,9 @@ export const useAuth = () => {
     try {
       console.log('[useAuth] Logging out...');
       await LocalAuthentication.cancelAuthenticate();
-      await SecureStore.deleteItemAsync('jwtToken');
-      await SecureStore.deleteItemAsync('username');
+      // Note: We keep device key pair and username for re-login
+      // Only clear token and user data (handled by Redux logout action)
       setIsAuthenticated(false);
-      setPublicKey(null);
       setStoredUsername(null);
       // Note: Redux logout is handled by the logout action in authSlice
       console.log('[useAuth] Logout successful');
@@ -342,13 +383,12 @@ export const useAuth = () => {
   const clearStoredData = useCallback(async () => {
     try {
       console.log('[useAuth] Clearing all stored data...');
-      await SecureStore.deleteItemAsync('username');
-      await SecureStore.deleteItemAsync('privateKey');
-      await SecureStore.deleteItemAsync('jwtToken');
+      await AsyncStorage.removeItem(USERNAME_KEY);
+      await AsyncStorage.removeItem(DEVICE_KEY_PAIR_KEY);
       setStoredUsername(null);
-      setPublicKey(null);
       setIsAuthenticated(false);
       setError(null);
+      // Note: Redux state is cleared by logout action
       console.log('[useAuth] All stored data cleared');
     } catch (err: any) {
       console.error('[useAuth] Failed to clear stored data:', err);
@@ -358,13 +398,13 @@ export const useAuth = () => {
   return {
     isAuthenticated,
     storedUsername,
-    publicKey,
     error,
     registerUser,
     loginAndValidate,
     logout,
     checkBiometrics,
     loadStoredUsername,
+    loadDeviceKeyPair,
     clearStoredData,
   };
 };

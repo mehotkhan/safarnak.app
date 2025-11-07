@@ -85,7 +85,8 @@
     },
     "success": {
       "title": "Success",
-      "loginSuccess": "Logged in successfully!"
+      "loginSuccess": "Logged in successfully!",
+      "welcomeBack": "Welcome back, {{username}}!"
     }
   },
   "register": {
@@ -124,7 +125,14 @@
     },
     "success": {
       "title": "Success",
-      "registerSuccess": "Account created successfully!"
+      "registerSuccess": "Account created successfully!",
+      "usernameLabel": "Username"
+    },
+    "alerts": {
+      "ok": "OK",
+      "cancel": "Cancel",
+      "clearData": "Clear Data",
+      "alreadyRegisteredMessage": "User \"{{username}}\" is already registered. Please clear data first to register a new user."
     }
   },
   "welcome": {
@@ -437,7 +445,28 @@
     "preferences": "Preferences",
     "privacy": "Privacy",
     "notifications": "Notifications",
-    "saved": "Settings saved successfully!"
+    "saved": "Settings saved successfully!",
+    "devices": "Devices",
+    "devicesInfoTitle": "Device Management",
+    "devicesInfoDescription": "Manage your connected devices. Each device has its own authentication key. Revoking a device will log it out immediately.",
+    "currentDevice": "Current Device",
+    "allDevices": "All Devices",
+    "active": "Active",
+    "current": "Current",
+    "deviceId": "Device ID",
+    "publicKey": "Public Key",
+    "lastSeen": "Last Seen",
+    "noDevices": "No devices found",
+    "errorLoadingDevices": "Error loading devices",
+    "cannotRevokeCurrentDevice": "Cannot Revoke Current Device",
+    "cannotRevokeCurrentDeviceMessage": "You cannot revoke the device you are currently using. Please use another device to revoke this one.",
+    "revokeDevice": "Revoke Device",
+    "revokeDeviceConfirm": "Are you sure you want to revoke this device? It will be logged out immediately.",
+    "revoke": "Revoke",
+    "deviceRevoked": "Device revoked successfully",
+    "revokeDeviceError": "Failed to revoke device",
+    "device": "Device",
+    "thisDevice": "This Device"
   },
   "feed": {
     "newPost": {

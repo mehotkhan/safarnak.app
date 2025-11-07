@@ -138,24 +138,26 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
       
       // Validate token by looking it up in KV storage
-      // Token format: stored in KV as `token:${token}` -> userId (UUID string)
+      // Token format: stored in KV as `token:${token}` -> JSON string with userId and deviceId
+      // Tokens are generated during login/registration and stored with TTL (7 days)
       try {
-        const storedUserId = await env.KV?.get(`token:${token}`);
-        if (storedUserId) {
-          userId = storedUserId; // Already a UUID string, no parsing needed
+        const tokenData = await env.KV?.get(`token:${token}`);
+        if (tokenData) {
+          const parsed = JSON.parse(tokenData);
+          if (parsed && typeof parsed.userId === 'string') {
+            userId = parsed.userId; // Extract userId from token data
+          } else {
+            console.warn('Invalid token format: missing userId');
+          }
         }
       } catch (error) {
+        // Token not found or invalid JSON format - authentication fails
         console.warn('Token validation error:', error);
       }
     }
 
-    // Fallback: Try x-user-id header (for backward compatibility or direct access)
-    if (!userId) {
-      const userIdHeader = request.headers.get('x-user-id');
-      if (userIdHeader) {
-        userId = userIdHeader; // Already a UUID string
-      }
-    }
+    // Note: Authentication is JWT token-based only via Authorization Bearer header
+    // No other authentication methods are supported (x-user-id header removed for security)
 
     // Compose default publishable context and add userId
     const base = createDefaultPublishableContext({ env, executionCtx, ...settings });

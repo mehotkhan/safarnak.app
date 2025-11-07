@@ -260,9 +260,11 @@ export const payments = sqliteTable('payments', {
 export const devices = sqliteTable('devices', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id).notNull(),
-  deviceId: text('device_id').unique().notNull(),
-  type: text('type'),
+  deviceId: text('device_id').unique().notNull(), // Unique device identifier (e.g., UUID)
+  publicKey: text('public_key').notNull(), // Public key for this device (used for signature verification)
+  type: text('type'), // Device type (e.g., 'ios', 'android', 'web')
   lastSeen: text('last_seen').default(sql`(CURRENT_TIMESTAMP)`),
+  ...timestampColumns,
 });
 
 export const notifications = sqliteTable('notifications', {
@@ -376,6 +378,19 @@ export const apolloCacheEntries = sqliteTable('apollo_cache_entries', {
   entityType: text('entity_type'), // Extracted __typename (null for ROOT_QUERY, etc.)
   entityId: text('entity_id'), // Extracted ID (null for ROOT_QUERY, etc.)
   updatedAt: integer('updated_at').default(sql`(strftime('%s', 'now'))`),
+});
+
+// Map tile cache table (client-only)
+export const cachedMapTiles = sqliteTable('cached_map_tiles', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  layer: text('layer').notNull(), // 'standard', 'satellite', 'terrain'
+  z: integer('z').notNull(), // Zoom level
+  x: integer('x').notNull(), // Tile X coordinate
+  y: integer('y').notNull(), // Tile Y coordinate
+  filePath: text('file_path').notNull(), // Local file path to cached tile
+  fileSize: integer('file_size').notNull(), // File size in bytes
+  cachedAt: integer('cached_at').default(sql`(strftime('%s', 'now'))`), // When tile was cached
+  lastAccessed: integer('last_accessed').default(sql`(strftime('%s', 'now'))`), // Last access time for LRU
 });
 
 // ============================================================================
@@ -518,4 +533,5 @@ export const clientSchema = {
   pendingMutations,
   syncMetadata,
   apolloCacheEntries,
+  cachedMapTiles,
 };

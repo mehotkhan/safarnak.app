@@ -44,6 +44,15 @@ declare module '*/@graphql/getMessages.graphql' {
 }
     
 
+declare module '*/@graphql/getMyDevices.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetMyDevices: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/getTrip.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -120,6 +129,15 @@ declare module '*/@graphql/requestChallenge.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const RequestChallenge: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/revokeDevice.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const RevokeDevice: DocumentNode;
 
   export default defaultDocument;
 }

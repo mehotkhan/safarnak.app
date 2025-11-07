@@ -72,10 +72,10 @@ export default function LoginScreen() {
         console.log('[Login] ✅ Login successful!');
         Alert.alert(
           t('login.success.title') || 'Success',
-          `${t('login.success.loginSuccess') || 'Login successful!'}\n\nWelcome back, ${username}!`,
+          `${t('login.success.loginSuccess') || 'Login successful!'}\n\n${t('login.success.welcomeBack', { username }) || `Welcome back, ${username}!`}`,
           [
             {
-              text: 'OK',
+              text: t('common.ok') || 'OK',
               onPress: () => router.replace('/(app)/(feed)' as any),
             },
           ]

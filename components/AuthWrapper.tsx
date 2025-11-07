@@ -1,5 +1,4 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import React, { useCallback, useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
@@ -8,6 +7,7 @@ import { restoreUser, setLoading } from '@store/slices/authSlice';
 import { useAppDispatch, useAppSelector } from '@store/hooks';
 
 const USER_STORAGE_KEY = '@safarnak_user';
+const DEVICE_KEY_PAIR_KEY = '@safarnak_device_keypair';
 
 export default function AuthWrapper({
   children,
@@ -19,40 +19,27 @@ export default function AuthWrapper({
 
   const checkAuthStatus = useCallback(async () => {
     try {
-      // First, check SecureStore for JWT token (new biometric auth)
-      const jwtToken = await SecureStore.getItemAsync('jwtToken');
-      
-      if (jwtToken) {
-        // JWT token exists, fetch user data from GraphQL
-        // We'll use the me query to get user data
-        // For now, restore with token - the me query will update user data
-        const username = await SecureStore.getItemAsync('username');
-        if (username) {
-          // We have token and username, restore auth state
-          // The actual user data will be fetched by the me query in components
-          dispatch(
-            restoreUser({
-              user: {
-                id: '', // Will be filled by me query
-                name: username,
-                username: username,
-                createdAt: new Date().toISOString(),
-              },
-              token: jwtToken,
-            })
-          );
-          return;
-        }
-      }
-
-      // Fallback: Check AsyncStorage (legacy auth)
+      // Check AsyncStorage for user data and token
       const savedUser = await AsyncStorage.getItem(USER_STORAGE_KEY);
       if (savedUser) {
         const userData = JSON.parse(savedUser);
+        
+        // Load device key pair if available
+        let deviceKeyPair = null;
+        try {
+          const storedKeyPair = await AsyncStorage.getItem(DEVICE_KEY_PAIR_KEY);
+          if (storedKeyPair) {
+            deviceKeyPair = JSON.parse(storedKeyPair);
+          }
+        } catch (err) {
+          console.warn('[AuthWrapper] Failed to load device key pair:', err);
+        }
+
         dispatch(
           restoreUser({
             user: userData.user || null,
-            token: userData.token || 'local',
+            token: userData.token || null,
+            deviceKeyPair: deviceKeyPair || undefined,
           })
         );
       } else {

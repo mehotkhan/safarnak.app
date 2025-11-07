@@ -16,7 +16,6 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 import { persistCache } from 'apollo3-cache-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import * as SecureStore from 'expo-secure-store';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { drizzleCacheStorage } from './cache-storage';
@@ -101,17 +100,7 @@ const wsClient = createClient({
   connectionParams: async () => {
     // Add auth token to WebSocket connection
     try {
-      // First try SecureStore (for biometric auth JWT)
-      const jwtToken = await SecureStore.getItemAsync('jwtToken');
-      if (jwtToken) {
-        return {
-          headers: {
-            Authorization: `Bearer ${jwtToken}`,
-          },
-        };
-      }
-
-      // Fallback to AsyncStorage (for legacy password auth)
+      // Get token from AsyncStorage (stored by useAuth hook)
       const savedUser = await AsyncStorage.getItem('@safarnak_user');
       if (savedUser) {
         const userData = JSON.parse(savedUser);
@@ -193,18 +182,7 @@ const splitLink = split(
 
 const authLink = setContext(async (_, { headers }) => {
   try {
-    // First try SecureStore (for biometric auth JWT)
-    const jwtToken = await SecureStore.getItemAsync('jwtToken');
-    if (jwtToken) {
-      return {
-        headers: {
-          ...headers,
-          authorization: `Bearer ${jwtToken}`,
-        },
-      };
-    }
-
-    // Fallback to AsyncStorage (for legacy password auth)
+    // Get token from AsyncStorage (stored by useAuth hook)
     const savedUser = await AsyncStorage.getItem('@safarnak_user');
     if (savedUser) {
       const userData = JSON.parse(savedUser);

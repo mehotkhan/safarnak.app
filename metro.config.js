@@ -19,6 +19,8 @@ config.resolver.extraNodeModules = {
   '@constants': path.resolve(__dirname, 'constants'),
   '@locales': path.resolve(__dirname, 'locales'),
   '@assets': path.resolve(__dirname, 'assets'),
+  // Polyfill buffer for react-native-quick-crypto
+  buffer: require.resolve('buffer'),
 };
 
 // Use resolver.alias for subpath mapping to ensure Metro resolves correctly
