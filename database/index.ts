@@ -14,7 +14,7 @@
  */
 
 // Server exports (Cloudflare D1)
-export { getServerDB, type ServerDB } from './server';
+export { getServerDB, type ServerDB, serverSchema, schema } from './server';
 export {
   // Server tables
   users,
@@ -54,9 +54,6 @@ export {
   locationsRelations,
   placesRelations,
   thoughtsRelations,
-  // Schema objects
-  serverSchema,
-  schema, // Legacy name for drizzle.config.ts
 } from './schema';
 
 // Client exports (Expo SQLite)

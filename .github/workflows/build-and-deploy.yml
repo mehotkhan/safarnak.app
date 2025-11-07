@@ -83,21 +83,6 @@ jobs:
           const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
           const current = pkg.version.trim();
           
-          // Check latest commit message first
-          let latestMsg = process.env.COMMIT_MSG || '';
-          if (!latestMsg || latestMsg === 'null') {
-            try { latestMsg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
-          }
-          
-          // Skip bump if latest commit has [skip ci] or is a version bump commit
-          if (latestMsg.includes('[skip ci]') || latestMsg.includes('chore: bump version') || latestMsg.includes('chore(release)')) {
-            console.log('⏭️  Skipping version bump (version commit or [skip ci])');
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${current}\n`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=skip\n`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=false\n`);
-            process.exit(0);
-          }
-          
           // Fetch all tags to get latest release
           try {
             cp.execSync('git fetch --tags --force 2>/dev/null', { stdio: 'ignore' });
@@ -121,32 +106,77 @@ jobs:
           let commitMessages = [];
           try {
             if (lastTag) {
+              console.log(`\n📋 Collecting all commits between ${lastTag} and HEAD...`);
               const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges`, { encoding: 'utf8' }).trim();
               commitMessages = commits.split('\n\n').filter(msg => msg.trim());
+              console.log(`   Range: ${lastTag}..HEAD (exclusive of tag, inclusive of HEAD)`);
             } else {
-              // No previous tag, check last 50 commits
+              console.log('\n📋 No previous release tag found, checking last 50 commits...');
               const commits = cp.execSync('git log --pretty=%B --no-merges -50', { encoding: 'utf8' }).trim();
               commitMessages = commits.split('\n\n').filter(msg => msg.trim());
             }
           } catch (e) {
             console.log('ℹ️  Could not get commits, using latest commit only');
+            let latestMsg = process.env.COMMIT_MSG || '';
+            if (!latestMsg || latestMsg === 'null') {
+              try { latestMsg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
+            }
             commitMessages = [latestMsg];
           }
           
+          console.log(`\n📊 Found ${commitMessages.length} commit(s) since last release (before filtering)`);
+          
+          // Helper function to check if a commit should be filtered out
+          const shouldFilterCommit = (msg) => {
+            const firstLine = msg.trim().split('\n')[0];
+            
+            // Check for version bump commits
+            // Matches: "chore: bump version to 1.8.0 [skip ci]", "chore: bump version", "chore(release): ..."
+            const isVersionBump = (
+              /^chore\s*[:(]\s*bump\s+version/i.test(firstLine) ||
+              /^chore\s*[:(]\s*release/i.test(firstLine) ||
+              (msg.includes('[skip ci]') && /bump\s+version/i.test(msg))
+            );
+            
+            // Check for [skip ci] flag
+            const hasSkipCI = msg.includes('[skip ci]');
+            
+            return isVersionBump || hasSkipCI;
+          };
+          
           // Filter out version bump commits and [skip ci] commits
-          commitMessages = commitMessages.filter(msg => {
-            return !msg.includes('[skip ci]') && 
-                   !msg.includes('chore: bump version') && 
-                   !msg.includes('chore(release)');
+          const filteredCommitMessages = [];
+          const filteredOutCommits = [];
+          
+          commitMessages.forEach((msg, index) => {
+            const firstLine = msg.split('\n')[0];
+            if (shouldFilterCommit(msg)) {
+              const reason = /bump\s+version/i.test(msg) ? 'version bump' : '[skip ci]';
+              filteredOutCommits.push({ index: index + 1, msg: firstLine.substring(0, 60), reason });
+            } else {
+              filteredCommitMessages.push(msg);
+            }
           });
           
-          if (commitMessages.length === 0) {
-            console.log('⏭️  No relevant commits found (all filtered out)');
+          // Log filtered commits for debugging
+          if (filteredOutCommits.length > 0) {
+            console.log(`\n🔍 Filtered out ${filteredOutCommits.length} commit(s):`);
+            filteredOutCommits.forEach(({ index, msg, reason }) => {
+              console.log(`   ${index}. ${msg} (${reason})`);
+            });
+          }
+          
+          if (filteredCommitMessages.length === 0) {
+            console.log('\n⏭️  No relevant commits found (all commits were filtered out)');
+            console.log(`   Total commits: ${commitMessages.length}, All were version bumps or [skip ci]`);
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${current}\n`);
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=skip\n`);
             fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=false\n`);
             process.exit(0);
           }
+          
+          // Use filtered commits for analysis
+          commitMessages = filteredCommitMessages;
           
           console.log(`📊 Analyzing ${commitMessages.length} commit(s) since last release:`);
           commitMessages.forEach((msg, i) => {

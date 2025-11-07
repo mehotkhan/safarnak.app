@@ -497,31 +497,8 @@ export const thoughtsRelations = relations(thoughts, ({ one }) => ({
 // SCHEMA EXPORTS
 // ============================================================================
 
-// Server schema (for worker and migrations)
-export const serverSchema = {
-  users,
-  challenges,
-  trips,
-  tours,
-  messages,
-  subscriptions,
-  userPreferences,
-  itineraries,
-  plans,
-  posts,
-  comments,
-  reactions,
-  payments,
-  userSubscriptions,
-  devices,
-  notifications,
-  locations,
-  places,
-  thoughts,
-};
-
-// Legacy export name (for drizzle.config.ts compatibility)
-export const schema = serverSchema;
+// Note: serverSchema is now exported from './server.ts' to keep server-related code together
+// This file only exports table definitions and clientSchema
 
 // Client schema (for local database)
 export const clientSchema = {

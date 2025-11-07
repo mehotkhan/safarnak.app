@@ -10,7 +10,53 @@
  */
 
 import { drizzle } from 'drizzle-orm/d1';
-import { serverSchema } from './schema';
+import {
+  users,
+  challenges,
+  trips,
+  tours,
+  messages,
+  subscriptions,
+  userPreferences,
+  itineraries,
+  plans,
+  posts,
+  comments,
+  reactions,
+  payments,
+  userSubscriptions,
+  devices,
+  notifications,
+  locations,
+  places,
+  thoughts,
+} from './schema';
+
+/**
+ * Server schema (for worker and migrations)
+ * Contains only server tables (Cloudflare D1), excluding all client-only cached tables
+ */
+export const serverSchema = {
+  users,
+  challenges,
+  trips,
+  tours,
+  messages,
+  subscriptions,
+  userPreferences,
+  itineraries,
+  plans,
+  posts,
+  comments,
+  reactions,
+  payments,
+  userSubscriptions,
+  devices,
+  notifications,
+  locations,
+  places,
+  thoughts,
+};
 
 /**
  * Get Drizzle database instance for Cloudflare D1
@@ -27,6 +73,29 @@ export function getServerDB(d1: D1Database) {
  */
 export type ServerDB = ReturnType<typeof getServerDB>;
 
+// Export schema for drizzle-kit migrations (server tables only)
+export const schema = serverSchema;
+
 // Re-export server schema tables for convenience
-export * from './schema';
+export {
+  users,
+  challenges,
+  trips,
+  tours,
+  messages,
+  subscriptions,
+  userPreferences,
+  itineraries,
+  plans,
+  posts,
+  comments,
+  reactions,
+  payments,
+  userSubscriptions,
+  devices,
+  notifications,
+  locations,
+  places,
+  thoughts,
+} from './schema';
 

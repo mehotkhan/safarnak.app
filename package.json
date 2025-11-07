@@ -16,6 +16,7 @@
     "worker:deploy": "wrangler deploy --config wrangler.jsonc",
     "db:generate": "drizzle-kit generate --config drizzle.config.ts",
     "db:migrate": "wrangler d1 migrations apply my-d1-db --local --config wrangler.jsonc",
+    "db:drop-remote": "wrangler d1 execute my-d1-db --remote --file=scripts/cleanup-remote-d1.sql --config wrangler.jsonc",
     "db:studio": "drizzle-kit studio --config drizzle.config.ts --port 4983",
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",

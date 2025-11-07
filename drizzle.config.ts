@@ -1,7 +1,9 @@
 import { defineConfig } from 'drizzle-kit';
 
 export default defineConfig({
-  schema: './database/schema.ts', // Unified schema (server tables only exported as 'schema')
+  // Use server.ts which exports serverSchema as 'schema' (server tables only)
+  // This ensures migrations only include server tables, excluding client-only cached tables
+  schema: './database/server.ts',
   out: './migrations', // Server-only migrations (Cloudflare D1)
   dialect: 'sqlite',
   verbose: true,

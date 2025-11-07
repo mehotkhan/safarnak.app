@@ -5,6 +5,7 @@ PRAGMA foreign_keys = OFF;
 -- This ensures a clean slate before running migrations
 DROP TABLE IF EXISTS d1_migrations;
 DROP TABLE IF EXISTS apollo_cache_entries;
+DROP TABLE IF EXISTS cached_map_tiles;
 DROP TABLE IF EXISTS cached_messages;
 DROP TABLE IF EXISTS cached_places;
 DROP TABLE IF EXISTS cached_tours;
