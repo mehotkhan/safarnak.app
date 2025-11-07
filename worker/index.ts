@@ -40,6 +40,25 @@ export const resolvers = {
   Query,
   Mutation,
   Subscription,
+  PostRelatedEntity: {
+    __resolveType(obj: any) {
+      // Determine the type based on the object properties
+      // Trips have 'destination' and 'status'
+      if (obj.destination !== undefined || obj.status !== undefined) {
+        return 'Trip';
+      }
+      // Tours have 'title' and 'category'
+      if (obj.title !== undefined || obj.category !== undefined) {
+        return 'Tour';
+      }
+      // Places have 'name' and 'type'
+      if (obj.name !== undefined && obj.type !== undefined) {
+        return 'Place';
+      }
+      // Fallback - try to determine from __typename if present
+      return obj.__typename || 'Trip';
+    },
+  },
 };
 
 // Re-export types for external use (if needed)

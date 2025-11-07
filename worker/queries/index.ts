@@ -4,15 +4,14 @@
 import { getMessages } from './getMessages';
 import { me } from './me';
 import { getTrips, getTrip } from './getTrips';
+import { getTours, getTour } from './getTours';
+import { getPlaces, getPlace } from './getPlaces';
+import { getPosts } from './getPosts';
+import { getPost } from './getPost';
+import { getBookmarks } from './getBookmarks';
 import { getAlerts } from './getAlerts';
 import { checkUsernameAvailability } from './checkUsernameAvailability';
 import { getMyDevices } from './getMyDevices';
-
-// Placeholder resolvers for tours and places
-const getTours = async () => [];
-const getTour = async () => null;
-const getPlaces = async () => [];
-const getPlace = async () => null;
 
 export const Query = {
   getMessages,
@@ -23,10 +22,13 @@ export const Query = {
   getTour,
   getPlaces,
   getPlace,
+  getPosts,
+  getPost,
+  getBookmarks,
   getAlerts,
   checkUsernameAvailability,
   getMyDevices,
 };
 
 // Re-export individual resolvers
-export { getMessages, me, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getAlerts, checkUsernameAvailability, getMyDevices };
+export { getMessages, me, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getPosts, getPost, getBookmarks, getAlerts, checkUsernameAvailability, getMyDevices };

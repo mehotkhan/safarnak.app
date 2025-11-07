@@ -8,6 +8,15 @@ import { registerUser } from './registerUser';
 import { loginUser } from './loginUser';
 import { createTrip } from './createTrip';
 import { updateTrip, deleteTrip } from './updateTrip';
+import { createTour } from './createTour';
+import { updateTour } from './updateTour';
+import { createPlace } from './createPlace';
+import { updatePlace } from './updatePlace';
+import { createPost } from './createPost';
+import { createComment } from './createComment';
+import { createReaction } from './createReaction';
+import { deleteReaction } from './deleteReaction';
+import { bookmarkPost } from './bookmarkPost';
 import { revokeDevice } from './revokeDevice';
 
 // Placeholder resolvers for bookmarks
@@ -22,10 +31,19 @@ export const Mutation = {
   createTrip,
   updateTrip,
   deleteTrip,
+  createTour,
+  updateTour,
+  createPlace,
+  updatePlace,
+  createPost,
+  createComment,
+  createReaction,
+  deleteReaction,
+  bookmarkPost,
   bookmarkTour,
   bookmarkPlace,
   revokeDevice,
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, bookmarkTour, bookmarkPlace, revokeDevice };
+export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, createPlace, updatePlace, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice };

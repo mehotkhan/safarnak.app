@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
@@ -7,6 +7,7 @@ import CustomButton from '@components/ui/CustomButton';
 import { Stack } from 'expo-router';
 import { useLanguage } from '@components/context/LanguageContext';
 import { Ionicons } from '@expo/vector-icons';
+import { useAppSelector } from '@store/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage1 = require('@assets/images/welcome-onboarding1.jpg');
@@ -24,9 +25,17 @@ const logoBeta = require('@assets/images/icon.png');
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage } = useLanguage();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
   const pagerRef = useRef<PagerView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(app)/(feed)' as any);
+    }
+  }, [isAuthenticated]);
 
   const languages = [
     { code: 'en', name: t('language.enNative') },

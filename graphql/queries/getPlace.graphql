@@ -1,0 +1,27 @@
+query GetPlace($id: ID!) {
+  getPlace(id: $id) {
+    id
+    name
+    location
+    distance
+    rating
+    reviews
+    type
+    isOpen
+    description
+    tips
+    coordinates {
+      latitude
+      longitude
+    }
+    phone
+    website
+    hours
+    price
+    locationId
+    ownerId
+    imageUrl
+    createdAt
+  }
+}
+

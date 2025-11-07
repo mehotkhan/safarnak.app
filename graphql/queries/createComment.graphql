@@ -1,0 +1,16 @@
+mutation CreateComment($postId: ID!, $content: String!) {
+  createComment(postId: $postId, content: $content) {
+    id
+    postId
+    userId
+    user {
+      id
+      name
+      username
+      avatar
+    }
+    content
+    createdAt
+  }
+}
+

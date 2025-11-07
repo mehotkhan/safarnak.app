@@ -9,6 +9,7 @@ import { Stack, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Image, KeyboardAvoidingView, Platform, TouchableOpacity, View } from 'react-native';
+import { useAppSelector } from '@store/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const authRegisterBg = require('@assets/images/auth-login.jpg');
@@ -16,6 +17,7 @@ const authRegisterBg = require('@assets/images/auth-login.jpg');
 export default function RegisterScreen() {
   const { t } = useTranslation();
   const { currentLanguage } = useLanguage();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
   
   // Biometric Auth Hook
   const {
@@ -25,6 +27,13 @@ export default function RegisterScreen() {
     loadStoredUsername,
     clearStoredData,
   } = useAuth();
+
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(app)/(feed)' as any);
+    }
+  }, [isAuthenticated]);
   
   // Helper function: convert display name to username (spaces → dots)
   const nameToUsername = (displayName: string) => {

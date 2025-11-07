@@ -23,6 +23,7 @@ import MapView from '@components/MapView';
 import { useGetTripQuery, useTripUpdatesSubscription, useUpdateTripMutation } from '@api';
 import Colors from '@constants/Colors';
 import FloatingChatInput from '@components/ui/FloatingChatInput';
+import ShareModal from '@components/ui/ShareModal';
 
 export default function TripDetailScreen() {
   const { t } = useTranslation();
@@ -73,6 +74,7 @@ export default function TripDetailScreen() {
   const [workflowMessage, setWorkflowMessage] = useState<string | null>(null);
   const [workflowTitle, setWorkflowTitle] = useState<string | null>(null);
   const [workflowStatus, setWorkflowStatus] = useState<string | null>(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const { data: tripUpdateData, loading: subscriptionLoading, error: subscriptionError } = useTripUpdatesSubscription({
     variables: { tripId },
@@ -317,19 +319,8 @@ export default function TripDetailScreen() {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: t('plan.shareMessage', {
-          destination: trip.destination || '',
-          startDate: trip.startDate || '',
-          endDate: trip.endDate || '',
-        }),
-        title: trip.destination || t('plan.title'),
-      });
-    } catch (error) {
-      console.error('Error sharing:', error);
-    }
+  const handleShare = () => {
+    setShowShareModal(true);
   };
 
   const handleDelete = () => {
@@ -707,6 +698,15 @@ export default function TripDetailScreen() {
           keyboardVisible={isKeyboardVisible}
         />
       </Animated.View>
+
+      {/* Share Modal */}
+      <ShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        type="trip"
+        relatedId={tripId}
+        entityTitle={trip?.destination as string}
+      />
     </View>
   );
 }

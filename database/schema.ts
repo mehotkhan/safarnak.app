@@ -235,6 +235,15 @@ export const reactions = sqliteTable('reactions', {
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
+export const bookmarks = sqliteTable('bookmarks', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').references(() => users.id).notNull(),
+  postId: text('post_id').references(() => posts.id),
+  tourId: text('tour_id').references(() => tours.id),
+  placeId: text('place_id').references(() => places.id),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
 export const userSubscriptions = sqliteTable('user_subscriptions', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id).notNull(),

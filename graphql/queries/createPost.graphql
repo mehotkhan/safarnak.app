@@ -1,0 +1,57 @@
+mutation CreatePost($input: CreatePostInput!) {
+  createPost(input: $input) {
+    id
+    userId
+    user {
+      id
+      name
+      username
+      avatar
+    }
+    content
+    attachments
+    type
+    relatedId
+    relatedEntity {
+      ... on Trip {
+        id
+        destination
+        startDate
+        endDate
+        preferences
+        tripCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Tour {
+        id
+        title
+        location
+        price
+        rating
+        tourDescription: description
+        imageUrl
+        tourCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Place {
+        id
+        name
+        location
+        placeDescription: description
+        imageUrl
+        placeCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+    }
+    commentsCount
+    reactionsCount
+    createdAt
+  }
+}
+

@@ -1,0 +1,89 @@
+query GetPosts($type: String, $limit: Int, $offset: Int, $after: String, $before: String) {
+  getPosts(type: $type, limit: $limit, offset: $offset, after: $after, before: $before) {
+    posts {
+      id
+      userId
+      user {
+        id
+        name
+        username
+        avatar
+        createdAt
+      }
+      content
+      attachments
+      type
+      relatedId
+      relatedEntity {
+        ... on Trip {
+          id
+          destination
+          startDate
+          endDate
+          preferences
+          tripCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Tour {
+          id
+          title
+          location
+          price
+          rating
+          tourDescription: description
+          imageUrl
+          tourCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Place {
+          id
+          name
+          location
+          placeDescription: description
+          imageUrl
+          placeCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+      }
+      comments {
+        id
+        userId
+        user {
+          id
+          name
+          username
+          avatar
+        }
+        content
+        createdAt
+      }
+      commentsCount
+      reactions {
+        id
+        userId
+        user {
+          id
+          name
+          username
+        }
+        emoji
+        createdAt
+      }
+      reactionsCount
+      isBookmarked
+      createdAt
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    nextOffset
+    previousOffset
+  }
+}
+

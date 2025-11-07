@@ -1,0 +1,77 @@
+query GetBookmarks($type: String) {
+  getBookmarks(type: $type) {
+    id
+    userId
+    postId
+    tourId
+    placeId
+    post {
+      id
+      userId
+      user {
+        id
+        name
+        username
+        avatar
+      }
+      content
+      attachments
+      type
+      relatedId
+      relatedEntity {
+        ... on Trip {
+          id
+          destination
+          tripCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Tour {
+          id
+          title
+          location
+          imageUrl
+          tourCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Place {
+          id
+          name
+          location
+          imageUrl
+          placeCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+      }
+      commentsCount
+      reactionsCount
+      createdAt
+    }
+    tour {
+      id
+      title
+      location
+      price
+      rating
+      imageUrl
+      category
+      createdAt
+    }
+    place {
+      id
+      name
+      location
+      rating
+      type
+      imageUrl
+      createdAt
+    }
+    createdAt
+  }
+}
+

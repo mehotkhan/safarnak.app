@@ -1,0 +1,16 @@
+mutation CreateReaction($postId: ID, $commentId: ID, $emoji: String!) {
+  createReaction(postId: $postId, commentId: $commentId, emoji: $emoji) {
+    id
+    postId
+    commentId
+    userId
+    user {
+      id
+      name
+      username
+    }
+    emoji
+    createdAt
+  }
+}
+

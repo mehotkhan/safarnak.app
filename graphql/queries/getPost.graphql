@@ -1,0 +1,81 @@
+query GetPost($id: ID!) {
+  getPost(id: $id) {
+    id
+    userId
+    user {
+      id
+      name
+      username
+      avatar
+    }
+    content
+    attachments
+    type
+    relatedId
+    relatedEntity {
+      ... on Trip {
+        id
+        destination
+        startDate
+        endDate
+        preferences
+        tripCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Tour {
+        id
+        title
+        location
+        price
+        rating
+        tourDescription: description
+        imageUrl
+        tourCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Place {
+        id
+        name
+        location
+        placeDescription: description
+        imageUrl
+        placeCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+    }
+    comments {
+      id
+      userId
+      user {
+        id
+        name
+        username
+        avatar
+      }
+      content
+      createdAt
+    }
+    commentsCount
+    reactions {
+      id
+      userId
+      user {
+        id
+        name
+        username
+      }
+      emoji
+      createdAt
+    }
+    reactionsCount
+    isBookmarked
+    createdAt
+  }
+}
+

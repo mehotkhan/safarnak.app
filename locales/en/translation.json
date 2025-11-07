@@ -28,7 +28,8 @@
     "back": "Back",
     "disabled": "Disabled",
     "of": "of",
-    "notAvailable": "N/A"
+    "notAvailable": "N/A",
+    "people": "people"
   },
   "language": {
     "en": "English",
@@ -469,6 +470,34 @@
     "thisDevice": "This Device"
   },
   "feed": {
+    "tabs": {
+      "all": "All",
+      "tours": "Tours",
+      "places": "Places"
+    },
+    "timeFilters": {
+      "allTime": "All Time",
+      "today": "Today",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month"
+    },
+    "create": {
+      "title": "Create",
+      "tour": "Tour",
+      "place": "Place",
+      "post": "Post",
+      "archive": "My Archive",
+      "selectType": "Select a type to create",
+      "selectTypeDescription": "Choose Tour or Place to get started"
+    },
+    "nav": {
+      "places": "Places",
+      "tours": "Tours",
+      "archive": "My Archive"
+    },
+    "noImage": "Travel Image",
+    "edit": "Edit",
+    "share": "Share",
     "newPost": {
       "title": "Create Post",
       "postType": "Post Type",
@@ -494,6 +523,132 @@
       "errors": {
         "titleContentRequired": "Title and content are required"
       }
+    },
+    "share": {
+      "title": "Share to Feed",
+      "sharing": "Sharing",
+      "addMessage": "Add a message (optional)",
+      "placeholder": "What's on your mind?",
+      "share": "Share",
+      "success": "Shared successfully!",
+      "error": "Failed to share",
+      "invalidItem": "Invalid item to share",
+      "contentRequired": "Please add some content to your post"
+    },
+    "post": {
+      "relatedEntity": "Related",
+      "noComments": "No comments yet. Be the first to comment!"
+    },
+    "viewAllComments": "View {{count}} more comments",
+    "emptyState": "No posts yet",
+    "emptyDescription": "Be the first to share something!"
+  },
+  "tours": {
+    "title": "Tours",
+    "description": "Discover amazing tours",
+    "new": "Create Tour",
+    "detail": "Tour Details",
+    "emptyState": "No tours yet",
+    "emptyDescription": "Create your first tour",
+    "form": {
+      "title": "Title *",
+      "titlePlaceholder": "Enter tour title",
+      "description": "Description *",
+      "descriptionPlaceholder": "Describe your tour...",
+      "shortDescription": "Short Description",
+      "shortDescriptionPlaceholder": "Brief summary (optional)",
+      "price": "Price *",
+      "currency": "Currency",
+      "duration": "Duration *",
+      "durationType": "Duration Type",
+      "location": "Location *",
+      "locationPlaceholder": "Enter location",
+      "category": "Category *",
+      "difficulty": "Difficulty",
+      "highlights": "Highlights (comma-separated)",
+      "highlightsPlaceholder": "e.g., Scenic views, Local guide, Photography",
+      "inclusions": "Inclusions (comma-separated)",
+      "inclusionsPlaceholder": "e.g., Transportation, Meals, Equipment",
+      "minParticipants": "Min Participants",
+      "maxParticipants": "Max Participants",
+      "maxParticipantsPlaceholder": "Optional",
+      "imageUrl": "Image URL",
+      "imageUrlPlaceholder": "https://...",
+      "create": "Create Tour"
+    },
+    "detail": {
+      "description": "Description",
+      "highlights": "Highlights",
+      "inclusions": "Inclusions",
+      "participants": "Participants",
+      "people": "people"
+    },
+    "durationTypes": {
+      "hours": "hours",
+      "days": "days",
+      "weeks": "weeks"
+    },
+    "errors": {
+      "loadFailed": "Failed to load tours",
+      "createFailed": "Failed to create tour",
+      "notFound": "Tour not found",
+      "locationServicesDisabled": "Location services are disabled",
+      "locationPermissionDenied": "Location permission denied",
+      "locationFailed": "Failed to get location",
+      "titleMin": "Title must be at least 3 characters",
+      "descriptionMin": "Description must be at least 10 characters",
+      "priceRequired": "Price must be greater than 0",
+      "durationRequired": "Duration must be greater than 0",
+      "locationRequired": "Location is required",
+      "categoryRequired": "Category is required"
+    }
+  },
+  "places": {
+    "title": "Places",
+    "description": "Discover amazing places",
+    "new": "Create Place",
+    "detail": "Place Details",
+    "emptyState": "No places yet",
+    "emptyDescription": "Create your first place",
+    "open": "Open",
+    "closed": "Closed",
+    "form": {
+      "name": "Name *",
+      "namePlaceholder": "Enter place name",
+      "location": "Location *",
+      "locationPlaceholder": "Enter location",
+      "description": "Description *",
+      "descriptionPlaceholder": "Describe the place...",
+      "type": "Type *",
+      "phone": "Phone",
+      "phonePlaceholder": "Optional",
+      "website": "Website",
+      "websitePlaceholder": "https://...",
+      "hours": "Opening Hours",
+      "hoursPlaceholder": "e.g., Mon-Fri 9AM-5PM",
+      "tips": "Tips",
+      "tipsPlaceholder": "Helpful tips for visitors...",
+      "imageUrl": "Image URL",
+      "imageUrlPlaceholder": "https://...",
+      "isOpen": "Currently Open",
+      "create": "Create Place"
+    },
+    "detail": {
+      "description": "Description",
+      "tips": "Tips",
+      "hours": "Opening Hours"
+    },
+    "errors": {
+      "loadFailed": "Failed to load places",
+      "createFailed": "Failed to create place",
+      "notFound": "Place not found",
+      "locationRequired": "Please get your current location first",
+      "locationServicesDisabled": "Location services are disabled",
+      "locationPermissionDenied": "Location permission denied",
+      "locationFailed": "Failed to get location",
+      "nameMin": "Name must be at least 2 characters",
+      "descriptionMin": "Description must be at least 10 characters",
+      "typeRequired": "Type is required"
     }
   },
   "profile": {
@@ -663,6 +818,7 @@
       "saved": "Notification settings saved successfully!"
     },
     "bookmarks": {
+      "posts": "Posts",
       "tours": "Tours",
       "places": "Places",
       "emptyState": "No bookmarked {{type}} yet",

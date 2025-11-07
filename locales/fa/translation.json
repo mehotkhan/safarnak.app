@@ -28,7 +28,8 @@
     "back": "بازگشت",
     "disabled": "غیرفعال",
     "of": "از",
-    "notAvailable": "در دسترس نیست"
+    "notAvailable": "در دسترس نیست",
+    "people": "نفر"
   },
   "language": {
     "en": "انگلیسی",
@@ -412,6 +413,34 @@
     "kmAway": "کیلومتر دورتر"
   },
   "feed": {
+    "tabs": {
+      "all": "همه",
+      "tours": "تورها",
+      "places": "مکان‌ها"
+    },
+    "timeFilters": {
+      "allTime": "همه زمان‌ها",
+      "today": "امروز",
+      "thisWeek": "این هفته",
+      "thisMonth": "این ماه"
+    },
+    "create": {
+      "title": "ایجاد",
+      "tour": "تور",
+      "place": "مکان",
+      "post": "پست",
+      "archive": "آرشیو من",
+      "selectType": "نوع را انتخاب کنید",
+      "selectTypeDescription": "تور یا مکان را برای شروع انتخاب کنید"
+    },
+    "nav": {
+      "places": "مکان‌ها",
+      "tours": "تورها",
+      "archive": "آرشیو من"
+    },
+    "noImage": "تصویر سفر",
+    "edit": "ویرایش",
+    "share": "اشتراک‌گذاری",
     "newPost": {
       "title": "ایجاد پست",
       "postType": "نوع پست",
@@ -437,6 +466,132 @@
       "errors": {
         "titleContentRequired": "عنوان و محتوا الزامی است"
       }
+    },
+    "share": {
+      "title": "اشتراک‌گذاری در فید",
+      "sharing": "در حال اشتراک‌گذاری",
+      "addMessage": "پیام اضافه کنید (اختیاری)",
+      "placeholder": "به چه چیزی فکر می‌کنید؟",
+      "share": "اشتراک‌گذاری",
+      "success": "با موفقیت به‌اشتراک گذاشته شد!",
+      "error": "اشتراک‌گذاری ناموفق بود",
+      "invalidItem": "آیتم نامعتبر برای اشتراک‌گذاری",
+      "contentRequired": "لطفاً محتوایی به پست خود اضافه کنید"
+    },
+    "post": {
+      "relatedEntity": "مرتبط",
+      "noComments": "هنوز نظری وجود ندارد. اولین نفری باشید که نظر می‌دهد!"
+    },
+    "viewAllComments": "مشاهده {{count}} نظر دیگر",
+    "emptyState": "هنوز پستی وجود ندارد",
+    "emptyDescription": "اولین نفری باشید که چیزی به‌اشتراک می‌گذارد!"
+  },
+  "tours": {
+    "title": "تورها",
+    "description": "تورهای شگفت‌انگیز را کشف کنید",
+    "new": "ایجاد تور",
+    "detail": "جزئیات تور",
+    "emptyState": "هنوز توری وجود ندارد",
+    "emptyDescription": "اولین تور خود را ایجاد کنید",
+    "form": {
+      "title": "عنوان *",
+      "titlePlaceholder": "عنوان تور را وارد کنید",
+      "description": "توضیحات *",
+      "descriptionPlaceholder": "تور خود را توصیف کنید...",
+      "shortDescription": "توضیحات کوتاه",
+      "shortDescriptionPlaceholder": "خلاصه کوتاه (اختیاری)",
+      "price": "قیمت *",
+      "currency": "ارز",
+      "duration": "مدت زمان *",
+      "durationType": "نوع مدت زمان",
+      "location": "مکان *",
+      "locationPlaceholder": "مکان را وارد کنید",
+      "category": "دسته‌بندی *",
+      "difficulty": "سختی",
+      "highlights": "نکات برجسته (جدا شده با کاما)",
+      "highlightsPlaceholder": "مثلاً: مناظر زیبا، راهنمای محلی، عکاسی",
+      "inclusions": "موارد شامل شده (جدا شده با کاما)",
+      "inclusionsPlaceholder": "مثلاً: حمل و نقل، وعده‌های غذایی، تجهیزات",
+      "minParticipants": "حداقل شرکت‌کنندگان",
+      "maxParticipants": "حداکثر شرکت‌کنندگان",
+      "maxParticipantsPlaceholder": "اختیاری",
+      "imageUrl": "آدرس تصویر",
+      "imageUrlPlaceholder": "https://...",
+      "create": "ایجاد تور"
+    },
+    "detail": {
+      "description": "توضیحات",
+      "highlights": "نکات برجسته",
+      "inclusions": "موارد شامل شده",
+      "participants": "شرکت‌کنندگان",
+      "people": "نفر"
+    },
+    "durationTypes": {
+      "hours": "ساعت",
+      "days": "روز",
+      "weeks": "هفته"
+    },
+    "errors": {
+      "loadFailed": "بارگذاری تورها ناموفق بود",
+      "createFailed": "ایجاد تور ناموفق بود",
+      "notFound": "تور پیدا نشد",
+      "locationServicesDisabled": "سرویس‌های موقعیت غیرفعال هستند",
+      "locationPermissionDenied": "دسترسی موقعیت رد شد",
+      "locationFailed": "دریافت موقعیت ناموفق بود",
+      "titleMin": "عنوان باید حداقل ۳ کاراکتر باشد",
+      "descriptionMin": "توضیحات باید حداقل ۱۰ کاراکتر باشد",
+      "priceRequired": "قیمت باید بیشتر از ۰ باشد",
+      "durationRequired": "مدت زمان باید بیشتر از ۰ باشد",
+      "locationRequired": "مکان الزامی است",
+      "categoryRequired": "دسته‌بندی الزامی است"
+    }
+  },
+  "places": {
+    "title": "مکان‌ها",
+    "description": "مکان‌های شگفت‌انگیز را کشف کنید",
+    "new": "ایجاد مکان",
+    "detail": "جزئیات مکان",
+    "emptyState": "هنوز مکانی وجود ندارد",
+    "emptyDescription": "اولین مکان خود را ایجاد کنید",
+    "open": "باز",
+    "closed": "بسته",
+    "form": {
+      "name": "نام *",
+      "namePlaceholder": "نام مکان را وارد کنید",
+      "location": "مکان *",
+      "locationPlaceholder": "مکان را وارد کنید",
+      "description": "توضیحات *",
+      "descriptionPlaceholder": "مکان را توصیف کنید...",
+      "type": "نوع *",
+      "phone": "تلفن",
+      "phonePlaceholder": "اختیاری",
+      "website": "وب‌سایت",
+      "websitePlaceholder": "https://...",
+      "hours": "ساعات کاری",
+      "hoursPlaceholder": "مثلاً: دوشنبه-جمعه ۹ صبح-۵ عصر",
+      "tips": "نکات",
+      "tipsPlaceholder": "نکات مفید برای بازدیدکنندگان...",
+      "imageUrl": "آدرس تصویر",
+      "imageUrlPlaceholder": "https://...",
+      "isOpen": "در حال حاضر باز است",
+      "create": "ایجاد مکان"
+    },
+    "detail": {
+      "description": "توضیحات",
+      "tips": "نکات",
+      "hours": "ساعات کاری"
+    },
+    "errors": {
+      "loadFailed": "بارگذاری مکان‌ها ناموفق بود",
+      "createFailed": "ایجاد مکان ناموفق بود",
+      "notFound": "مکان پیدا نشد",
+      "locationRequired": "لطفاً ابتدا موقعیت فعلی خود را دریافت کنید",
+      "locationServicesDisabled": "سرویس‌های موقعیت غیرفعال هستند",
+      "locationPermissionDenied": "دسترسی موقعیت رد شد",
+      "locationFailed": "دریافت موقعیت ناموفق بود",
+      "nameMin": "نام باید حداقل ۲ کاراکتر باشد",
+      "descriptionMin": "توضیحات باید حداقل ۱۰ کاراکتر باشد",
+      "typeRequired": "نوع الزامی است"
     }
   },
   "profile": {
@@ -474,7 +629,7 @@
     "preferencesTitle": "ترجیحات",
     "preferencesSubtitle": "ترجیحات و علایق سفر",
     "bookmarksTitle": "نشانه‌ها",
-    "bookmarksSubtitle": "تورها و مکان‌های ذخیره شده",
+    "bookmarksSubtitle": "پست‌ها، تورها و مکان‌های ذخیره شده",
     "sections": {
       "myContent": "محتوای من",
       "travel": "سفر",
@@ -606,6 +761,7 @@
       "saved": "تنظیمات اعلان‌ها با موفقیت ذخیره شد!"
     },
     "bookmarks": {
+      "posts": "پست‌ها",
       "tours": "تورها",
       "places": "مکان‌ها",
       "emptyState": "هنوز {{type}} نشانه‌گذاری نشده",

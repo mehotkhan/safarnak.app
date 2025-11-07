@@ -3,8 +3,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Image,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -12,67 +10,22 @@ import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
-import TextArea from '@components/ui/TextArea';
-import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
-import InputField from '@components/ui/InputField';
 
-const postTypes = [
-  { id: 'trip', label: 'Trip', icon: 'airplane' },
-  { id: 'place', label: 'Place', icon: 'location' },
-  { id: 'experience', label: 'Experience', icon: 'star' },
-  { id: 'photo', label: 'Photo', icon: 'image' },
+const createTabs = [
+  { id: 'tour', label: 'tour', icon: 'map-outline', route: '/(app)/(feed)/tours/new' },
+  { id: 'place', label: 'place', icon: 'location-outline', route: '/(app)/(feed)/places/new' },
 ];
 
 export default function CreatePostScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [selectedTab, setSelectedTab] = useState('tour');
 
-  const [formData, setFormData] = useState({
-    title: '',
-    content: '',
-    type: 'trip',
-    location: '',
-    images: [] as string[],
-  });
-
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSelectType = (type: string) => {
-    setFormData(prev => ({ ...prev, type }));
-  };
-
-  const handleAddImage = () => {
-    // Simulate image picker
-    Alert.alert(t('feed.newPost.imagePickerTitle'), t('feed.newPost.imagePickerMessage'));
-  };
-
-  const handleSubmit = async () => {
-    if (!formData.title.trim() || !formData.content.trim()) {
-      Alert.alert(t('common.error'), t('feed.newPost.errors.titleContentRequired'));
-      return;
-    }
-
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert(
-        t('common.success'),
-        t('feed.newPost.successMessage'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => router.back(),
-          },
-        ]
-      );
-    }, 1000);
+  const handleTabPress = (tabId: string, route: string) => {
+    setSelectedTab(tabId);
+    router.push(route as any);
   };
 
   return (
@@ -80,124 +33,76 @@ export default function CreatePostScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       className="flex-1 bg-white dark:bg-black"
     >
-      <Stack.Screen options={{ title: t('feed.newPost.title'), headerShown: true }} />
+      <Stack.Screen 
+        options={{ 
+          title: t('feed.create.title') || 'Create', 
+          headerShown: true,
+        }} 
+      />
 
-      <ScrollView className="flex-1 px-6 py-4">
-        {/* Post Type Selection */}
-        <View className="mb-4">
-          <CustomText
-            weight="medium"
-            className="text-base text-black dark:text-white mb-2"
+      <View className="flex-1">
+        {/* Tabs */}
+        <View className="px-4 pt-4 pb-2 border-b border-gray-200 dark:border-neutral-800">
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            className="flex-row"
           >
-            {t('feed.newPost.postType')}
-          </CustomText>
-          <View className="flex-row flex-wrap gap-2">
-            {postTypes.map(type => (
+            {createTabs.map((tab) => (
               <TouchableOpacity
-                key={type.id}
-                onPress={() => handleSelectType(type.id)}
-                className={`flex-row items-center px-4 py-2 rounded-full border ${
-                  formData.type === type.id
-                    ? 'bg-primary border-primary'
-                    : 'bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700'
+                key={tab.id}
+                onPress={() => handleTabPress(tab.id, tab.route)}
+                className={`flex-row items-center px-6 py-3 rounded-full mr-3 ${
+                  selectedTab === tab.id
+                    ? 'bg-primary'
+                    : 'bg-gray-100 dark:bg-neutral-800'
                 }`}
+                activeOpacity={0.7}
               >
                 <Ionicons
-                  name={type.icon as any}
-                  size={16}
-                  color={formData.type === type.id ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
+                  name={tab.icon as any}
+                  size={20}
+                  color={
+                    selectedTab === tab.id
+                      ? '#fff'
+                      : isDark
+                        ? '#9ca3af'
+                        : '#6b7280'
+                  }
                 />
                 <CustomText
-                  className={`ml-2 ${
-                    formData.type === type.id
+                  weight={selectedTab === tab.id ? 'bold' : 'regular'}
+                  className={`ml-2 text-base ${
+                    selectedTab === tab.id
                       ? 'text-white'
                       : 'text-gray-700 dark:text-gray-300'
                   }`}
                 >
-                  {t(`feed.newPost.types.${type.label.toLowerCase()}`)}
+                  {t(`feed.create.${tab.label}`) || tab.label}
                 </CustomText>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
-        {/* Title */}
-        <View className="mb-4">
-          <InputField
-            label={t('feed.newPost.titleLabel')}
-            placeholder={t('feed.newPost.titlePlaceholder')}
-            value={formData.title}
-            onChangeText={value => handleInputChange('title', value)}
-            icon="text-outline"
+        {/* Content Area - Will be replaced by child routes */}
+        <View className="flex-1 items-center justify-center px-6">
+          <Ionicons 
+            name="add-circle-outline" 
+            size={64} 
+            color={isDark ? '#4b5563' : '#d1d5db'} 
           />
-        </View>
-
-        {/* Location */}
-        <View className="mb-4">
-          <InputField
-            label={t('feed.newPost.locationLabel')}
-            placeholder={t('feed.newPost.locationPlaceholder')}
-            value={formData.location}
-            onChangeText={value => handleInputChange('location', value)}
-            icon="location-outline"
-          />
-        </View>
-
-        {/* Content */}
-        <View className="mb-4">
-          <TextArea
-            label={t('feed.newPost.contentLabel')}
-            placeholder={t('feed.newPost.contentPlaceholder')}
-            value={formData.content}
-            onChangeText={value => handleInputChange('content', value)}
-            rows={8}
-          />
-        </View>
-
-        {/* Images */}
-        <View className="mb-4">
           <CustomText
-            weight="medium"
-            className="text-base text-black dark:text-white mb-2"
+            weight="bold"
+            className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center"
           >
-            {t('feed.newPost.photosLabel')}
+            {t('feed.create.selectType') || 'Select a type to create'}
           </CustomText>
-          <TouchableOpacity
-            onPress={handleAddImage}
-            className="h-32 bg-gray-100 dark:bg-neutral-900 rounded-2xl border-2 border-dashed border-gray-300 dark:border-neutral-700 items-center justify-center"
-          >
-            <Ionicons name="camera" size={40} color={isDark ? '#9ca3af' : '#6b7280'} />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              {t('feed.newPost.addPhotos')}
-            </CustomText>
-          </TouchableOpacity>
-
-          {formData.images.length > 0 && (
-            <View className="flex-row flex-wrap gap-2 mt-3">
-              {formData.images.map((image, index) => (
-                <View key={index} className="w-20 h-20 rounded-lg bg-gray-200 dark:bg-neutral-800" />
-              ))}
-            </View>
-          )}
+          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+            {t('feed.create.selectTypeDescription') || 'Choose Tour or Place to get started'}
+          </CustomText>
         </View>
-
-        {/* Submit Button */}
-        <CustomButton
-          title={loading ? t('feed.newPost.posting') : t('feed.newPost.postButton')}
-          onPress={handleSubmit}
-          disabled={loading}
-          IconLeft={() => (
-            <Ionicons
-              name="send"
-              size={20}
-              color="#fff"
-              style={{ marginRight: 8 }}
-            />
-          )}
-        />
-
-        <View className="h-8" />
-      </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }

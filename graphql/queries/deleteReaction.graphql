@@ -1,0 +1,4 @@
+mutation DeleteReaction($reactionId: ID!) {
+  deleteReaction(reactionId: $reactionId)
+}
+

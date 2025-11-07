@@ -8,12 +8,14 @@ import { router } from 'expo-router';
 import { useAuth } from '@hooks/useAuth';
 import CustomButton from '@components/ui/CustomButton';
 import InputField from '@components/ui/InputField';
+import { useAppSelector } from '@store/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const authLoginBg = require('@assets/images/auth-login.jpg');
 
 export default function LoginScreen() {
   const { t } = useTranslation();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
   const {
     loginAndValidate,
     storedUsername,
@@ -24,6 +26,13 @@ export default function LoginScreen() {
 
   const [loading, setLoading] = useState(false);
   const [username, setUsername] = useState('');
+
+  // Auto-redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.replace('/(app)/(feed)' as any);
+    }
+  }, [isAuthenticated]);
 
   // Load stored username on mount and set as default
   useEffect(() => {

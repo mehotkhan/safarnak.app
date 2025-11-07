@@ -7,6 +7,9 @@ type Query {
   getTour(id: ID!): Tour
   getPlaces(category: String, limit: Int): [Place!]!
   getPlace(id: ID!): Place
+  getPosts(type: String, limit: Int, offset: Int, after: String, before: String): PostsConnection!
+  getPost(id: ID!): Post
+  getBookmarks(type: String): [Bookmark!]!
   getAlerts: [Alert!]!
   checkUsernameAvailability(username: String!): Boolean!
   getMyDevices: [Device!]!
@@ -20,6 +23,15 @@ type Mutation {
   createTrip(input: CreateTripInput!): Trip!
   updateTrip(id: ID!, input: UpdateTripInput!): Trip!
   deleteTrip(id: ID!): Boolean!
+  createTour(input: CreateTourInput!): Tour!
+  updateTour(id: ID!, input: UpdateTourInput!): Tour!
+  createPlace(input: CreatePlaceInput!): Place!
+  updatePlace(id: ID!, input: UpdatePlaceInput!): Place!
+  createPost(input: CreatePostInput!): Post!
+  createComment(postId: ID!, content: String!): Comment!
+  createReaction(postId: ID, commentId: ID, emoji: String!): Reaction!
+  deleteReaction(reactionId: ID!): Boolean!
+  bookmarkPost(postId: ID!): Boolean!
   bookmarkTour(tourId: ID!): Boolean!
   bookmarkPlace(placeId: ID!): Boolean!
   revokeDevice(deviceId: String!): Boolean!
@@ -41,6 +53,7 @@ type User {
   id: ID!
   name: String!
   username: String!
+  avatar: String
   publicKey: String
   createdAt: String!
 }
@@ -118,13 +131,24 @@ type Tour {
   rating: Float!
   reviews: Int!
   duration: Int!
+  durationType: String!
   category: String!
-  description: String!
+  description: String
+  shortDescription: String
   highlights: [String!]!
   inclusions: [String!]!
-  maxParticipants: Int!
+  maxParticipants: Int
+  minParticipants: Int!
   difficulty: String!
+  currency: String!
+  coordinates: Coordinates
+  imageUrl: String
+  gallery: [String!]!
+  tags: [String!]!
+  isActive: Boolean!
+  isFeatured: Boolean!
   createdAt: String!
+  updatedAt: String!
 }
 
 type Place {
@@ -134,7 +158,7 @@ type Place {
   distance: Float
   rating: Float!
   reviews: Int!
-  category: String!
+  type: String!
   isOpen: Boolean!
   description: String!
   tips: [String!]!
@@ -142,6 +166,10 @@ type Place {
   phone: String
   website: String
   hours: String
+  price: Int
+  locationId: ID
+  ownerId: ID
+  imageUrl: String
   createdAt: String!
 }
 
@@ -178,4 +206,154 @@ type Device {
   type: String
   lastSeen: String!
   createdAt: String!
+}
+
+type Post {
+  id: ID!
+  userId: ID!
+  user: User!
+  content: String
+  attachments: [String!]!
+  type: String
+  relatedId: ID
+  relatedEntity: PostRelatedEntity
+  comments: [Comment!]!
+  commentsCount: Int!
+  reactions: [Reaction!]!
+  reactionsCount: Int!
+  isBookmarked: Boolean!
+  createdAt: String!
+}
+
+union PostRelatedEntity = Trip | Tour | Place
+
+type Comment {
+  id: ID!
+  postId: ID!
+  userId: ID!
+  user: User!
+  content: String!
+  createdAt: String!
+}
+
+type Reaction {
+  id: ID!
+  postId: ID
+  commentId: ID
+  userId: ID!
+  user: User!
+  emoji: String!
+  createdAt: String!
+}
+
+type Bookmark {
+  id: ID!
+  userId: ID!
+  postId: ID
+  tourId: ID
+  placeId: ID
+  post: Post
+  tour: Tour
+  place: Place
+  createdAt: String!
+}
+
+type PostsConnection {
+  posts: [Post!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  nextOffset: Int
+  previousOffset: Int
+}
+
+input CreateTourInput {
+  title: String!
+  description: String
+  shortDescription: String
+  price: Float!
+  currency: String
+  duration: Int!
+  durationType: String
+  location: String!
+  coordinates: CoordinatesInput
+  category: String!
+  difficulty: String
+  highlights: [String!]
+  inclusions: [String!]
+  maxParticipants: Int
+  minParticipants: Int
+  imageUrl: String
+  gallery: [String!]
+  tags: [String!]
+  isActive: Boolean
+  isFeatured: Boolean
+}
+
+input UpdateTourInput {
+  title: String
+  description: String
+  shortDescription: String
+  price: Float
+  currency: String
+  duration: Int
+  durationType: String
+  location: String
+  coordinates: CoordinatesInput
+  category: String
+  difficulty: String
+  highlights: [String!]
+  inclusions: [String!]
+  maxParticipants: Int
+  minParticipants: Int
+  imageUrl: String
+  gallery: [String!]
+  tags: [String!]
+  isActive: Boolean
+  isFeatured: Boolean
+}
+
+input CreatePlaceInput {
+  name: String!
+  location: String!
+  description: String!
+  type: String!
+  coordinates: CoordinatesInput!
+  distance: Float
+  tips: [String!]
+  phone: String
+  website: String
+  hours: String
+  price: Int
+  locationId: ID
+  imageUrl: String
+}
+
+input UpdatePlaceInput {
+  name: String
+  location: String
+  description: String
+  type: String
+  coordinates: CoordinatesInput
+  distance: Float
+  tips: [String!]
+  phone: String
+  website: String
+  hours: String
+  price: Int
+  locationId: ID
+  imageUrl: String
+  isOpen: Boolean
+}
+
+input CreatePostInput {
+  content: String
+  attachments: [String!]
+  type: String
+  relatedId: ID
+}
+
+input CoordinatesInput {
+  latitude: Float!
+  longitude: Float!
 }

@@ -1,3 +1,16 @@
+CREATE TABLE `bookmarks` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`post_id` text,
+	`tour_id` text,
+	`place_id` text,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`tour_id`) REFERENCES `tours`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`place_id`) REFERENCES `places`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `challenges` (
 	`id` text PRIMARY KEY NOT NULL,
 	`username` text NOT NULL,

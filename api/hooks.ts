@@ -1,4 +1,4 @@
-import { Exact, Scalars, CreateTripInput, UpdateTripInput } from './types';
+import { Exact, Scalars, CreateTripInput, UpdateTripInput, CreateTourInput, UpdateTourInput, CreatePlaceInput, UpdatePlaceInput, CreatePostInput } from './types';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
@@ -10,12 +10,61 @@ export type AddMessageMutationVariables = Exact<{
 
 export type AddMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Message', id: string, content: string, createdAt: string } };
 
+export type BookmarkPostMutationVariables = Exact<{
+  postId: Scalars['ID']['input'];
+}>;
+
+
+export type BookmarkPostMutation = { __typename?: 'Mutation', bookmarkPost: boolean };
+
 export type CheckUsernameQueryVariables = Exact<{
   username: Scalars['String']['input'];
 }>;
 
 
 export type CheckUsernameQuery = { __typename?: 'Query', checkUsernameAvailability: boolean };
+
+export type CreateCommentMutationVariables = Exact<{
+  postId: Scalars['ID']['input'];
+  content: Scalars['String']['input'];
+}>;
+
+
+export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'Comment', id: string, postId: string, userId: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null } } };
+
+export type CreatePlaceMutationVariables = Exact<{
+  input: CreatePlaceInput;
+}>;
+
+
+export type CreatePlaceMutation = { __typename?: 'Mutation', createPlace: { __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } };
+
+export type CreatePostMutationVariables = Exact<{
+  input: CreatePostInput;
+}>;
+
+
+export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+      | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
+      | { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+      | { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+     | null } };
+
+export type CreateReactionMutationVariables = Exact<{
+  postId?: InputMaybe<Scalars['ID']['input']>;
+  commentId?: InputMaybe<Scalars['ID']['input']>;
+  emoji: Scalars['String']['input'];
+}>;
+
+
+export type CreateReactionMutation = { __typename?: 'Mutation', createReaction: { __typename?: 'Reaction', id: string, postId?: string | null, commentId?: string | null, userId: string, emoji: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string } } };
+
+export type CreateTourMutationVariables = Exact<{
+  input: CreateTourInput;
+}>;
+
+
+export type CreateTourMutation = { __typename?: 'Mutation', createTour: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
 
 export type CreateTripMutationVariables = Exact<{
   input: CreateTripInput;
@@ -24,10 +73,28 @@ export type CreateTripMutationVariables = Exact<{
 
 export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } };
 
+export type DeleteReactionMutationVariables = Exact<{
+  reactionId: Scalars['ID']['input'];
+}>;
+
+
+export type DeleteReactionMutation = { __typename?: 'Mutation', deleteReaction: boolean };
+
 export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetAlertsQuery = { __typename?: 'Query', getAlerts: Array<{ __typename?: 'Alert', id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string }> };
+
+export type GetBookmarksQueryVariables = Exact<{
+  type?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetBookmarksQuery = { __typename?: 'Query', getBookmarks: Array<{ __typename?: 'Bookmark', id: string, userId: string, postId?: string | null, tourId?: string | null, placeId?: string | null, createdAt: string, post?: { __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+        | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
+        | { __typename?: 'Tour', id: string, title: string, location: string, imageUrl?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+        | { __typename?: 'Trip', id: string, destination?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+       | null } | null, tour?: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, category: string, createdAt: string } | null, place?: { __typename?: 'Place', id: string, name: string, location: string, rating: number, type: string, imageUrl?: string | null, createdAt: string } | null }> };
 
 export type GetMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -38,6 +105,62 @@ export type GetMyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type GetMyDevicesQuery = { __typename?: 'Query', getMyDevices: Array<{ __typename?: 'Device', id: string, deviceId: string, publicKey: string, type?: string | null, lastSeen: string, createdAt: string }> };
+
+export type GetPlaceQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetPlaceQuery = { __typename?: 'Query', getPlace?: { __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } | null };
+
+export type GetPlacesQueryVariables = Exact<{
+  category?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetPlacesQuery = { __typename?: 'Query', getPlaces: Array<{ __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }> };
+
+export type GetPostQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetPostQuery = { __typename?: 'Query', getPost?: { __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+      | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
+      | { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+      | { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+     | null, comments: Array<{ __typename?: 'Comment', id: string, userId: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, userId: string, emoji: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string } }> } | null };
+
+export type GetPostsQueryVariables = Exact<{
+  type?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  before?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GetPostsQuery = { __typename?: 'Query', getPosts: { __typename?: 'PostsConnection', totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean, nextOffset?: number | null, previousOffset?: number | null, posts: Array<{ __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string }, relatedEntity?:
+        | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
+        | { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+        | { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+       | null, comments: Array<{ __typename?: 'Comment', id: string, userId: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, userId: string, emoji: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string } }> }> } };
+
+export type GetTourQueryVariables = Exact<{
+  id: Scalars['ID']['input'];
+}>;
+
+
+export type GetTourQuery = { __typename?: 'Query', getTour?: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } | null };
+
+export type GetToursQueryVariables = Exact<{
+  category?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetToursQuery = { __typename?: 'Query', getTours: Array<{ __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }> };
 
 export type GetTripQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -125,6 +248,22 @@ export type TripUpdatesSubscriptionVariables = Exact<{
 
 export type TripUpdatesSubscription = { __typename?: 'Subscription', tripUpdates: { __typename?: 'TripUpdate', id: string, tripId: string, type: string, title: string, message: string, step: number, totalSteps: number, status: string, data?: string | null, createdAt: string } };
 
+export type UpdatePlaceMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdatePlaceInput;
+}>;
+
+
+export type UpdatePlaceMutation = { __typename?: 'Mutation', updatePlace: { __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } };
+
+export type UpdateTourMutationVariables = Exact<{
+  id: Scalars['ID']['input'];
+  input: UpdateTourInput;
+}>;
+
+
+export type UpdateTourMutation = { __typename?: 'Mutation', updateTour: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
+
 export type UpdateTripMutationVariables = Exact<{
   id: Scalars['ID']['input'];
   input: UpdateTripInput;
@@ -169,6 +308,37 @@ export function useAddMessageMutation(baseOptions?: Apollo.MutationHookOptions<A
 export type AddMessageMutationHookResult = ReturnType<typeof useAddMessageMutation>;
 export type AddMessageMutationResult = Apollo.MutationResult<AddMessageMutation>;
 export type AddMessageMutationOptions = Apollo.BaseMutationOptions<AddMessageMutation, AddMessageMutationVariables>;
+export const BookmarkPostDocument = gql`
+    mutation BookmarkPost($postId: ID!) {
+  bookmarkPost(postId: $postId)
+}
+    `;
+export type BookmarkPostMutationFn = Apollo.MutationFunction<BookmarkPostMutation, BookmarkPostMutationVariables>;
+
+/**
+ * __useBookmarkPostMutation__
+ *
+ * To run a mutation, you first call `useBookmarkPostMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useBookmarkPostMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [bookmarkPostMutation, { data, loading, error }] = useBookmarkPostMutation({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *   },
+ * });
+ */
+export function useBookmarkPostMutation(baseOptions?: Apollo.MutationHookOptions<BookmarkPostMutation, BookmarkPostMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<BookmarkPostMutation, BookmarkPostMutationVariables>(BookmarkPostDocument, options);
+      }
+export type BookmarkPostMutationHookResult = ReturnType<typeof useBookmarkPostMutation>;
+export type BookmarkPostMutationResult = Apollo.MutationResult<BookmarkPostMutation>;
+export type BookmarkPostMutationOptions = Apollo.BaseMutationOptions<BookmarkPostMutation, BookmarkPostMutationVariables>;
 export const CheckUsernameDocument = gql`
     query CheckUsername($username: String!) {
   checkUsernameAvailability(username: $username)
@@ -207,6 +377,293 @@ export type CheckUsernameQueryHookResult = ReturnType<typeof useCheckUsernameQue
 export type CheckUsernameLazyQueryHookResult = ReturnType<typeof useCheckUsernameLazyQuery>;
 export type CheckUsernameSuspenseQueryHookResult = ReturnType<typeof useCheckUsernameSuspenseQuery>;
 export type CheckUsernameQueryResult = Apollo.QueryResult<CheckUsernameQuery, CheckUsernameQueryVariables>;
+export const CreateCommentDocument = gql`
+    mutation CreateComment($postId: ID!, $content: String!) {
+  createComment(postId: $postId, content: $content) {
+    id
+    postId
+    userId
+    user {
+      id
+      name
+      username
+      avatar
+    }
+    content
+    createdAt
+  }
+}
+    `;
+export type CreateCommentMutationFn = Apollo.MutationFunction<CreateCommentMutation, CreateCommentMutationVariables>;
+
+/**
+ * __useCreateCommentMutation__
+ *
+ * To run a mutation, you first call `useCreateCommentMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateCommentMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createCommentMutation, { data, loading, error }] = useCreateCommentMutation({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *      content: // value for 'content'
+ *   },
+ * });
+ */
+export function useCreateCommentMutation(baseOptions?: Apollo.MutationHookOptions<CreateCommentMutation, CreateCommentMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateCommentMutation, CreateCommentMutationVariables>(CreateCommentDocument, options);
+      }
+export type CreateCommentMutationHookResult = ReturnType<typeof useCreateCommentMutation>;
+export type CreateCommentMutationResult = Apollo.MutationResult<CreateCommentMutation>;
+export type CreateCommentMutationOptions = Apollo.BaseMutationOptions<CreateCommentMutation, CreateCommentMutationVariables>;
+export const CreatePlaceDocument = gql`
+    mutation CreatePlace($input: CreatePlaceInput!) {
+  createPlace(input: $input) {
+    id
+    name
+    location
+    distance
+    rating
+    reviews
+    type
+    isOpen
+    description
+    tips
+    coordinates {
+      latitude
+      longitude
+    }
+    phone
+    website
+    hours
+    price
+    locationId
+    ownerId
+    imageUrl
+    createdAt
+  }
+}
+    `;
+export type CreatePlaceMutationFn = Apollo.MutationFunction<CreatePlaceMutation, CreatePlaceMutationVariables>;
+
+/**
+ * __useCreatePlaceMutation__
+ *
+ * To run a mutation, you first call `useCreatePlaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreatePlaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createPlaceMutation, { data, loading, error }] = useCreatePlaceMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreatePlaceMutation(baseOptions?: Apollo.MutationHookOptions<CreatePlaceMutation, CreatePlaceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreatePlaceMutation, CreatePlaceMutationVariables>(CreatePlaceDocument, options);
+      }
+export type CreatePlaceMutationHookResult = ReturnType<typeof useCreatePlaceMutation>;
+export type CreatePlaceMutationResult = Apollo.MutationResult<CreatePlaceMutation>;
+export type CreatePlaceMutationOptions = Apollo.BaseMutationOptions<CreatePlaceMutation, CreatePlaceMutationVariables>;
+export const CreatePostDocument = gql`
+    mutation CreatePost($input: CreatePostInput!) {
+  createPost(input: $input) {
+    id
+    userId
+    user {
+      id
+      name
+      username
+      avatar
+    }
+    content
+    attachments
+    type
+    relatedId
+    relatedEntity {
+      ... on Trip {
+        id
+        destination
+        startDate
+        endDate
+        preferences
+        tripCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Tour {
+        id
+        title
+        location
+        price
+        rating
+        tourDescription: description
+        imageUrl
+        tourCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Place {
+        id
+        name
+        location
+        placeDescription: description
+        imageUrl
+        placeCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+    }
+    commentsCount
+    reactionsCount
+    createdAt
+  }
+}
+    `;
+export type CreatePostMutationFn = Apollo.MutationFunction<CreatePostMutation, CreatePostMutationVariables>;
+
+/**
+ * __useCreatePostMutation__
+ *
+ * To run a mutation, you first call `useCreatePostMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreatePostMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createPostMutation, { data, loading, error }] = useCreatePostMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreatePostMutation(baseOptions?: Apollo.MutationHookOptions<CreatePostMutation, CreatePostMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreatePostMutation, CreatePostMutationVariables>(CreatePostDocument, options);
+      }
+export type CreatePostMutationHookResult = ReturnType<typeof useCreatePostMutation>;
+export type CreatePostMutationResult = Apollo.MutationResult<CreatePostMutation>;
+export type CreatePostMutationOptions = Apollo.BaseMutationOptions<CreatePostMutation, CreatePostMutationVariables>;
+export const CreateReactionDocument = gql`
+    mutation CreateReaction($postId: ID, $commentId: ID, $emoji: String!) {
+  createReaction(postId: $postId, commentId: $commentId, emoji: $emoji) {
+    id
+    postId
+    commentId
+    userId
+    user {
+      id
+      name
+      username
+    }
+    emoji
+    createdAt
+  }
+}
+    `;
+export type CreateReactionMutationFn = Apollo.MutationFunction<CreateReactionMutation, CreateReactionMutationVariables>;
+
+/**
+ * __useCreateReactionMutation__
+ *
+ * To run a mutation, you first call `useCreateReactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateReactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createReactionMutation, { data, loading, error }] = useCreateReactionMutation({
+ *   variables: {
+ *      postId: // value for 'postId'
+ *      commentId: // value for 'commentId'
+ *      emoji: // value for 'emoji'
+ *   },
+ * });
+ */
+export function useCreateReactionMutation(baseOptions?: Apollo.MutationHookOptions<CreateReactionMutation, CreateReactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateReactionMutation, CreateReactionMutationVariables>(CreateReactionDocument, options);
+      }
+export type CreateReactionMutationHookResult = ReturnType<typeof useCreateReactionMutation>;
+export type CreateReactionMutationResult = Apollo.MutationResult<CreateReactionMutation>;
+export type CreateReactionMutationOptions = Apollo.BaseMutationOptions<CreateReactionMutation, CreateReactionMutationVariables>;
+export const CreateTourDocument = gql`
+    mutation CreateTour($input: CreateTourInput!) {
+  createTour(input: $input) {
+    id
+    title
+    location
+    price
+    rating
+    reviews
+    duration
+    durationType
+    category
+    description
+    shortDescription
+    highlights
+    inclusions
+    maxParticipants
+    minParticipants
+    difficulty
+    currency
+    coordinates {
+      latitude
+      longitude
+    }
+    imageUrl
+    gallery
+    tags
+    isActive
+    isFeatured
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type CreateTourMutationFn = Apollo.MutationFunction<CreateTourMutation, CreateTourMutationVariables>;
+
+/**
+ * __useCreateTourMutation__
+ *
+ * To run a mutation, you first call `useCreateTourMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateTourMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createTourMutation, { data, loading, error }] = useCreateTourMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCreateTourMutation(baseOptions?: Apollo.MutationHookOptions<CreateTourMutation, CreateTourMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateTourMutation, CreateTourMutationVariables>(CreateTourDocument, options);
+      }
+export type CreateTourMutationHookResult = ReturnType<typeof useCreateTourMutation>;
+export type CreateTourMutationResult = Apollo.MutationResult<CreateTourMutation>;
+export type CreateTourMutationOptions = Apollo.BaseMutationOptions<CreateTourMutation, CreateTourMutationVariables>;
 export const CreateTripDocument = gql`
     mutation CreateTrip($input: CreateTripInput!) {
   createTrip(input: $input) {
@@ -257,6 +714,37 @@ export function useCreateTripMutation(baseOptions?: Apollo.MutationHookOptions<C
 export type CreateTripMutationHookResult = ReturnType<typeof useCreateTripMutation>;
 export type CreateTripMutationResult = Apollo.MutationResult<CreateTripMutation>;
 export type CreateTripMutationOptions = Apollo.BaseMutationOptions<CreateTripMutation, CreateTripMutationVariables>;
+export const DeleteReactionDocument = gql`
+    mutation DeleteReaction($reactionId: ID!) {
+  deleteReaction(reactionId: $reactionId)
+}
+    `;
+export type DeleteReactionMutationFn = Apollo.MutationFunction<DeleteReactionMutation, DeleteReactionMutationVariables>;
+
+/**
+ * __useDeleteReactionMutation__
+ *
+ * To run a mutation, you first call `useDeleteReactionMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDeleteReactionMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [deleteReactionMutation, { data, loading, error }] = useDeleteReactionMutation({
+ *   variables: {
+ *      reactionId: // value for 'reactionId'
+ *   },
+ * });
+ */
+export function useDeleteReactionMutation(baseOptions?: Apollo.MutationHookOptions<DeleteReactionMutation, DeleteReactionMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DeleteReactionMutation, DeleteReactionMutationVariables>(DeleteReactionDocument, options);
+      }
+export type DeleteReactionMutationHookResult = ReturnType<typeof useDeleteReactionMutation>;
+export type DeleteReactionMutationResult = Apollo.MutationResult<DeleteReactionMutation>;
+export type DeleteReactionMutationOptions = Apollo.BaseMutationOptions<DeleteReactionMutation, DeleteReactionMutationVariables>;
 export const GetAlertsDocument = gql`
     query GetAlerts {
   getAlerts {
@@ -305,6 +793,117 @@ export type GetAlertsQueryHookResult = ReturnType<typeof useGetAlertsQuery>;
 export type GetAlertsLazyQueryHookResult = ReturnType<typeof useGetAlertsLazyQuery>;
 export type GetAlertsSuspenseQueryHookResult = ReturnType<typeof useGetAlertsSuspenseQuery>;
 export type GetAlertsQueryResult = Apollo.QueryResult<GetAlertsQuery, GetAlertsQueryVariables>;
+export const GetBookmarksDocument = gql`
+    query GetBookmarks($type: String) {
+  getBookmarks(type: $type) {
+    id
+    userId
+    postId
+    tourId
+    placeId
+    post {
+      id
+      userId
+      user {
+        id
+        name
+        username
+        avatar
+      }
+      content
+      attachments
+      type
+      relatedId
+      relatedEntity {
+        ... on Trip {
+          id
+          destination
+          tripCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Tour {
+          id
+          title
+          location
+          imageUrl
+          tourCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Place {
+          id
+          name
+          location
+          imageUrl
+          placeCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+      }
+      commentsCount
+      reactionsCount
+      createdAt
+    }
+    tour {
+      id
+      title
+      location
+      price
+      rating
+      imageUrl
+      category
+      createdAt
+    }
+    place {
+      id
+      name
+      location
+      rating
+      type
+      imageUrl
+      createdAt
+    }
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetBookmarksQuery__
+ *
+ * To run a query within a React component, call `useGetBookmarksQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetBookmarksQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetBookmarksQuery({
+ *   variables: {
+ *      type: // value for 'type'
+ *   },
+ * });
+ */
+export function useGetBookmarksQuery(baseOptions?: Apollo.QueryHookOptions<GetBookmarksQuery, GetBookmarksQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetBookmarksQuery, GetBookmarksQueryVariables>(GetBookmarksDocument, options);
+      }
+export function useGetBookmarksLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetBookmarksQuery, GetBookmarksQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetBookmarksQuery, GetBookmarksQueryVariables>(GetBookmarksDocument, options);
+        }
+export function useGetBookmarksSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetBookmarksQuery, GetBookmarksQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetBookmarksQuery, GetBookmarksQueryVariables>(GetBookmarksDocument, options);
+        }
+export type GetBookmarksQueryHookResult = ReturnType<typeof useGetBookmarksQuery>;
+export type GetBookmarksLazyQueryHookResult = ReturnType<typeof useGetBookmarksLazyQuery>;
+export type GetBookmarksSuspenseQueryHookResult = ReturnType<typeof useGetBookmarksSuspenseQuery>;
+export type GetBookmarksQueryResult = Apollo.QueryResult<GetBookmarksQuery, GetBookmarksQueryVariables>;
 export const GetMessagesDocument = gql`
     query GetMessages {
   getMessages {
@@ -390,6 +989,512 @@ export type GetMyDevicesQueryHookResult = ReturnType<typeof useGetMyDevicesQuery
 export type GetMyDevicesLazyQueryHookResult = ReturnType<typeof useGetMyDevicesLazyQuery>;
 export type GetMyDevicesSuspenseQueryHookResult = ReturnType<typeof useGetMyDevicesSuspenseQuery>;
 export type GetMyDevicesQueryResult = Apollo.QueryResult<GetMyDevicesQuery, GetMyDevicesQueryVariables>;
+export const GetPlaceDocument = gql`
+    query GetPlace($id: ID!) {
+  getPlace(id: $id) {
+    id
+    name
+    location
+    distance
+    rating
+    reviews
+    type
+    isOpen
+    description
+    tips
+    coordinates {
+      latitude
+      longitude
+    }
+    phone
+    website
+    hours
+    price
+    locationId
+    ownerId
+    imageUrl
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetPlaceQuery__
+ *
+ * To run a query within a React component, call `useGetPlaceQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPlaceQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPlaceQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetPlaceQuery(baseOptions: Apollo.QueryHookOptions<GetPlaceQuery, GetPlaceQueryVariables> & ({ variables: GetPlaceQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPlaceQuery, GetPlaceQueryVariables>(GetPlaceDocument, options);
+      }
+export function useGetPlaceLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPlaceQuery, GetPlaceQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPlaceQuery, GetPlaceQueryVariables>(GetPlaceDocument, options);
+        }
+export function useGetPlaceSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPlaceQuery, GetPlaceQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPlaceQuery, GetPlaceQueryVariables>(GetPlaceDocument, options);
+        }
+export type GetPlaceQueryHookResult = ReturnType<typeof useGetPlaceQuery>;
+export type GetPlaceLazyQueryHookResult = ReturnType<typeof useGetPlaceLazyQuery>;
+export type GetPlaceSuspenseQueryHookResult = ReturnType<typeof useGetPlaceSuspenseQuery>;
+export type GetPlaceQueryResult = Apollo.QueryResult<GetPlaceQuery, GetPlaceQueryVariables>;
+export const GetPlacesDocument = gql`
+    query GetPlaces($category: String, $limit: Int) {
+  getPlaces(category: $category, limit: $limit) {
+    id
+    name
+    location
+    distance
+    rating
+    reviews
+    type
+    isOpen
+    description
+    tips
+    coordinates {
+      latitude
+      longitude
+    }
+    phone
+    website
+    hours
+    price
+    locationId
+    ownerId
+    imageUrl
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetPlacesQuery__
+ *
+ * To run a query within a React component, call `useGetPlacesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPlacesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPlacesQuery({
+ *   variables: {
+ *      category: // value for 'category'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetPlacesQuery(baseOptions?: Apollo.QueryHookOptions<GetPlacesQuery, GetPlacesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPlacesQuery, GetPlacesQueryVariables>(GetPlacesDocument, options);
+      }
+export function useGetPlacesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPlacesQuery, GetPlacesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPlacesQuery, GetPlacesQueryVariables>(GetPlacesDocument, options);
+        }
+export function useGetPlacesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPlacesQuery, GetPlacesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPlacesQuery, GetPlacesQueryVariables>(GetPlacesDocument, options);
+        }
+export type GetPlacesQueryHookResult = ReturnType<typeof useGetPlacesQuery>;
+export type GetPlacesLazyQueryHookResult = ReturnType<typeof useGetPlacesLazyQuery>;
+export type GetPlacesSuspenseQueryHookResult = ReturnType<typeof useGetPlacesSuspenseQuery>;
+export type GetPlacesQueryResult = Apollo.QueryResult<GetPlacesQuery, GetPlacesQueryVariables>;
+export const GetPostDocument = gql`
+    query GetPost($id: ID!) {
+  getPost(id: $id) {
+    id
+    userId
+    user {
+      id
+      name
+      username
+      avatar
+    }
+    content
+    attachments
+    type
+    relatedId
+    relatedEntity {
+      ... on Trip {
+        id
+        destination
+        startDate
+        endDate
+        preferences
+        tripCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Tour {
+        id
+        title
+        location
+        price
+        rating
+        tourDescription: description
+        imageUrl
+        tourCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+      ... on Place {
+        id
+        name
+        location
+        placeDescription: description
+        imageUrl
+        placeCoordinates: coordinates {
+          latitude
+          longitude
+        }
+      }
+    }
+    comments {
+      id
+      userId
+      user {
+        id
+        name
+        username
+        avatar
+      }
+      content
+      createdAt
+    }
+    commentsCount
+    reactions {
+      id
+      userId
+      user {
+        id
+        name
+        username
+      }
+      emoji
+      createdAt
+    }
+    reactionsCount
+    isBookmarked
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGetPostQuery__
+ *
+ * To run a query within a React component, call `useGetPostQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPostQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPostQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetPostQuery(baseOptions: Apollo.QueryHookOptions<GetPostQuery, GetPostQueryVariables> & ({ variables: GetPostQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPostQuery, GetPostQueryVariables>(GetPostDocument, options);
+      }
+export function useGetPostLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostQuery, GetPostQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPostQuery, GetPostQueryVariables>(GetPostDocument, options);
+        }
+export function useGetPostSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPostQuery, GetPostQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPostQuery, GetPostQueryVariables>(GetPostDocument, options);
+        }
+export type GetPostQueryHookResult = ReturnType<typeof useGetPostQuery>;
+export type GetPostLazyQueryHookResult = ReturnType<typeof useGetPostLazyQuery>;
+export type GetPostSuspenseQueryHookResult = ReturnType<typeof useGetPostSuspenseQuery>;
+export type GetPostQueryResult = Apollo.QueryResult<GetPostQuery, GetPostQueryVariables>;
+export const GetPostsDocument = gql`
+    query GetPosts($type: String, $limit: Int, $offset: Int, $after: String, $before: String) {
+  getPosts(
+    type: $type
+    limit: $limit
+    offset: $offset
+    after: $after
+    before: $before
+  ) {
+    posts {
+      id
+      userId
+      user {
+        id
+        name
+        username
+        avatar
+        createdAt
+      }
+      content
+      attachments
+      type
+      relatedId
+      relatedEntity {
+        ... on Trip {
+          id
+          destination
+          startDate
+          endDate
+          preferences
+          tripCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Tour {
+          id
+          title
+          location
+          price
+          rating
+          tourDescription: description
+          imageUrl
+          tourCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+        ... on Place {
+          id
+          name
+          location
+          placeDescription: description
+          imageUrl
+          placeCoordinates: coordinates {
+            latitude
+            longitude
+          }
+        }
+      }
+      comments {
+        id
+        userId
+        user {
+          id
+          name
+          username
+          avatar
+        }
+        content
+        createdAt
+      }
+      commentsCount
+      reactions {
+        id
+        userId
+        user {
+          id
+          name
+          username
+        }
+        emoji
+        createdAt
+      }
+      reactionsCount
+      isBookmarked
+      createdAt
+    }
+    totalCount
+    hasNextPage
+    hasPreviousPage
+    nextOffset
+    previousOffset
+  }
+}
+    `;
+
+/**
+ * __useGetPostsQuery__
+ *
+ * To run a query within a React component, call `useGetPostsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPostsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPostsQuery({
+ *   variables: {
+ *      type: // value for 'type'
+ *      limit: // value for 'limit'
+ *      offset: // value for 'offset'
+ *      after: // value for 'after'
+ *      before: // value for 'before'
+ *   },
+ * });
+ */
+export function useGetPostsQuery(baseOptions?: Apollo.QueryHookOptions<GetPostsQuery, GetPostsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPostsQuery, GetPostsQueryVariables>(GetPostsDocument, options);
+      }
+export function useGetPostsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPostsQuery, GetPostsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPostsQuery, GetPostsQueryVariables>(GetPostsDocument, options);
+        }
+export function useGetPostsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPostsQuery, GetPostsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPostsQuery, GetPostsQueryVariables>(GetPostsDocument, options);
+        }
+export type GetPostsQueryHookResult = ReturnType<typeof useGetPostsQuery>;
+export type GetPostsLazyQueryHookResult = ReturnType<typeof useGetPostsLazyQuery>;
+export type GetPostsSuspenseQueryHookResult = ReturnType<typeof useGetPostsSuspenseQuery>;
+export type GetPostsQueryResult = Apollo.QueryResult<GetPostsQuery, GetPostsQueryVariables>;
+export const GetTourDocument = gql`
+    query GetTour($id: ID!) {
+  getTour(id: $id) {
+    id
+    title
+    location
+    price
+    rating
+    reviews
+    duration
+    durationType
+    category
+    description
+    shortDescription
+    highlights
+    inclusions
+    maxParticipants
+    minParticipants
+    difficulty
+    currency
+    coordinates {
+      latitude
+      longitude
+    }
+    imageUrl
+    gallery
+    tags
+    isActive
+    isFeatured
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetTourQuery__
+ *
+ * To run a query within a React component, call `useGetTourQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTourQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTourQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetTourQuery(baseOptions: Apollo.QueryHookOptions<GetTourQuery, GetTourQueryVariables> & ({ variables: GetTourQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTourQuery, GetTourQueryVariables>(GetTourDocument, options);
+      }
+export function useGetTourLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTourQuery, GetTourQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTourQuery, GetTourQueryVariables>(GetTourDocument, options);
+        }
+export function useGetTourSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTourQuery, GetTourQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTourQuery, GetTourQueryVariables>(GetTourDocument, options);
+        }
+export type GetTourQueryHookResult = ReturnType<typeof useGetTourQuery>;
+export type GetTourLazyQueryHookResult = ReturnType<typeof useGetTourLazyQuery>;
+export type GetTourSuspenseQueryHookResult = ReturnType<typeof useGetTourSuspenseQuery>;
+export type GetTourQueryResult = Apollo.QueryResult<GetTourQuery, GetTourQueryVariables>;
+export const GetToursDocument = gql`
+    query GetTours($category: String, $limit: Int) {
+  getTours(category: $category, limit: $limit) {
+    id
+    title
+    location
+    price
+    rating
+    reviews
+    duration
+    durationType
+    category
+    description
+    shortDescription
+    highlights
+    inclusions
+    maxParticipants
+    minParticipants
+    difficulty
+    currency
+    coordinates {
+      latitude
+      longitude
+    }
+    imageUrl
+    gallery
+    tags
+    isActive
+    isFeatured
+    createdAt
+    updatedAt
+  }
+}
+    `;
+
+/**
+ * __useGetToursQuery__
+ *
+ * To run a query within a React component, call `useGetToursQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetToursQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetToursQuery({
+ *   variables: {
+ *      category: // value for 'category'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetToursQuery(baseOptions?: Apollo.QueryHookOptions<GetToursQuery, GetToursQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetToursQuery, GetToursQueryVariables>(GetToursDocument, options);
+      }
+export function useGetToursLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetToursQuery, GetToursQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetToursQuery, GetToursQueryVariables>(GetToursDocument, options);
+        }
+export function useGetToursSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetToursQuery, GetToursQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetToursQuery, GetToursQueryVariables>(GetToursDocument, options);
+        }
+export type GetToursQueryHookResult = ReturnType<typeof useGetToursQuery>;
+export type GetToursLazyQueryHookResult = ReturnType<typeof useGetToursLazyQuery>;
+export type GetToursSuspenseQueryHookResult = ReturnType<typeof useGetToursSuspenseQuery>;
+export type GetToursQueryResult = Apollo.QueryResult<GetToursQuery, GetToursQueryVariables>;
 export const GetTripDocument = gql`
     query GetTrip($id: ID!) {
   getTrip(id: $id) {
@@ -875,6 +1980,122 @@ export function useTripUpdatesSubscription(baseOptions: Apollo.SubscriptionHookO
       }
 export type TripUpdatesSubscriptionHookResult = ReturnType<typeof useTripUpdatesSubscription>;
 export type TripUpdatesSubscriptionResult = Apollo.SubscriptionResult<TripUpdatesSubscription>;
+export const UpdatePlaceDocument = gql`
+    mutation UpdatePlace($id: ID!, $input: UpdatePlaceInput!) {
+  updatePlace(id: $id, input: $input) {
+    id
+    name
+    location
+    distance
+    rating
+    reviews
+    type
+    isOpen
+    description
+    tips
+    coordinates {
+      latitude
+      longitude
+    }
+    phone
+    website
+    hours
+    price
+    locationId
+    ownerId
+    imageUrl
+    createdAt
+  }
+}
+    `;
+export type UpdatePlaceMutationFn = Apollo.MutationFunction<UpdatePlaceMutation, UpdatePlaceMutationVariables>;
+
+/**
+ * __useUpdatePlaceMutation__
+ *
+ * To run a mutation, you first call `useUpdatePlaceMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdatePlaceMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updatePlaceMutation, { data, loading, error }] = useUpdatePlaceMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdatePlaceMutation(baseOptions?: Apollo.MutationHookOptions<UpdatePlaceMutation, UpdatePlaceMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdatePlaceMutation, UpdatePlaceMutationVariables>(UpdatePlaceDocument, options);
+      }
+export type UpdatePlaceMutationHookResult = ReturnType<typeof useUpdatePlaceMutation>;
+export type UpdatePlaceMutationResult = Apollo.MutationResult<UpdatePlaceMutation>;
+export type UpdatePlaceMutationOptions = Apollo.BaseMutationOptions<UpdatePlaceMutation, UpdatePlaceMutationVariables>;
+export const UpdateTourDocument = gql`
+    mutation UpdateTour($id: ID!, $input: UpdateTourInput!) {
+  updateTour(id: $id, input: $input) {
+    id
+    title
+    location
+    price
+    rating
+    reviews
+    duration
+    durationType
+    category
+    description
+    shortDescription
+    highlights
+    inclusions
+    maxParticipants
+    minParticipants
+    difficulty
+    currency
+    coordinates {
+      latitude
+      longitude
+    }
+    imageUrl
+    gallery
+    tags
+    isActive
+    isFeatured
+    createdAt
+    updatedAt
+  }
+}
+    `;
+export type UpdateTourMutationFn = Apollo.MutationFunction<UpdateTourMutation, UpdateTourMutationVariables>;
+
+/**
+ * __useUpdateTourMutation__
+ *
+ * To run a mutation, you first call `useUpdateTourMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateTourMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateTourMutation, { data, loading, error }] = useUpdateTourMutation({
+ *   variables: {
+ *      id: // value for 'id'
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateTourMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTourMutation, UpdateTourMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateTourMutation, UpdateTourMutationVariables>(UpdateTourDocument, options);
+      }
+export type UpdateTourMutationHookResult = ReturnType<typeof useUpdateTourMutation>;
+export type UpdateTourMutationResult = Apollo.MutationResult<UpdateTourMutation>;
+export type UpdateTourMutationOptions = Apollo.BaseMutationOptions<UpdateTourMutation, UpdateTourMutationVariables>;
 export const UpdateTripDocument = gql`
     mutation UpdateTrip($id: ID!, $input: UpdateTripInput!) {
   updateTrip(id: $id, input: $input) {

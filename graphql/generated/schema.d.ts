@@ -8,10 +8,64 @@ declare module '*/@graphql/addMessage.graphql' {
 }
     
 
+declare module '*/@graphql/bookmarkPost.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const BookmarkPost: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/checkUsernameAvailability.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const CheckUsername: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createComment.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreateComment: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createPlace.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreatePlace: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createPost.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreatePost: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createReaction.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreateReaction: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createTour.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreateTour: DocumentNode;
 
   export default defaultDocument;
 }
@@ -26,10 +80,28 @@ declare module '*/@graphql/createTrip.graphql' {
 }
     
 
+declare module '*/@graphql/deleteReaction.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const DeleteReaction: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/getAlerts.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const GetAlerts: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getBookmarks.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetBookmarks: DocumentNode;
 
   export default defaultDocument;
 }
@@ -48,6 +120,60 @@ declare module '*/@graphql/getMyDevices.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const GetMyDevices: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getPlace.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetPlace: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getPlaces.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetPlaces: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getPost.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetPost: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getPosts.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetPosts: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getTour.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetTour: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getTours.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetTours: DocumentNode;
 
   export default defaultDocument;
 }
@@ -147,6 +273,24 @@ declare module '*/@graphql/tripUpdates.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const TripUpdates: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/updatePlace.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdatePlace: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/updateTour.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateTour: DocumentNode;
 
   export default defaultDocument;
 }

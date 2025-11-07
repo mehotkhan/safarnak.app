@@ -22,13 +22,18 @@ const getBgVariantStyle = (variant: ButtonBgVariant) => {
     case 'success':
       return 'bg-green-500';
     case 'outline':
-      return 'bg-transparent border border-gray-300';
+      return 'bg-transparent border border-gray-300 dark:border-gray-600';
     default:
       return 'bg-primary';
   }
 };
 
-const getTextVariantStyle = (variant: ButtonTextVariant) => {
+const getTextVariantStyle = (variant: ButtonTextVariant, bgVariant?: ButtonBgVariant) => {
+  // For outline buttons, use dark text in light mode and light text in dark mode
+  if (bgVariant === 'outline') {
+    return 'text-gray-900 dark:text-gray-100';
+  }
+  
   switch (variant) {
     case 'primary':
       return 'text-black';
@@ -66,9 +71,12 @@ export default function CustomButton({
     >
       {IconLeft && <IconLeft />}
       {loading ? (
-        <ActivityIndicator color="#fff" size="small" />
+        <ActivityIndicator 
+          color={bgVariant === 'outline' ? (textVariant === 'default' ? '#374151' : '#fff') : '#fff'} 
+          size="small" 
+        />
       ) : (
-        <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant)}`}>{title}</Text>
+        <Text className={`text-lg font-bold ${getTextVariantStyle(textVariant, bgVariant)}`}>{title}</Text>
       )}
       {IconRight && <IconRight />}
     </TouchableOpacity>
