@@ -12,7 +12,7 @@ import QuickCrypto from 'react-native-quick-crypto';
 
 // Polyfill Buffer for react-native-quick-crypto
 // react-native-quick-crypto requires Buffer to be available globally
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+ 
 if (typeof global.Buffer === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   global.Buffer = require('buffer').Buffer;

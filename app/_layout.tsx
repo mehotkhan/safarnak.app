@@ -27,7 +27,7 @@ import '../i18n';
 import '../global.css';
 
 // Polyfill Buffer for react-native-quick-crypto (must be loaded before any crypto operations)
-// eslint-disable-next-line @typescript-eslint/no-require-imports
+ 
 if (typeof global.Buffer === 'undefined') {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   global.Buffer = require('buffer').Buffer;

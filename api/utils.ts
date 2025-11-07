@@ -121,17 +121,16 @@ export const shouldRetryRequest = (error: any, attempt: number): boolean => {
 
 /**
  * Comprehensive logout function that clears session data:
- * - AsyncStorage: Clears user data, offline queue, Redux persist
+ * - AsyncStorage: Clears user data, offline queue, Redux persist, device key pair
  * - SQLite cache: Clears Apollo cache
  * - Apollo Client cache: Clears in-memory cache
  * 
- * Note: Device key pair and username are preserved so user can login again after logout.
- * These represent the user's identity and should persist across sessions.
+ * Note: Device key pair is cleared on logout. A new key pair will be generated on next login.
  */
 export async function clearAllUserData(): Promise<void> {
   try {
-    // Note: We keep device key pair and username in AsyncStorage so user can login again after logout
-    // Only clear user data and token, not the device key pair
+    // Clear device key pair - new one will be generated on next login
+    const DEVICE_KEY_PAIR_STORAGE_KEY = '@safarnak_device_keypair';
 
     // Clear Apollo Client cache (in-memory)
     await client.cache.reset();
@@ -144,6 +143,7 @@ export async function clearAllUserData(): Promise<void> {
       USER_STORAGE_KEY,
       QUEUE_STORAGE_KEY,
       PERSIST_ROOT_KEY,
+      DEVICE_KEY_PAIR_STORAGE_KEY, // Clear device key pair on logout
     ];
 
     // Also try to remove any other persisted keys
