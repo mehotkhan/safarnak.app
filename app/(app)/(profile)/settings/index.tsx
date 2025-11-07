@@ -233,10 +233,21 @@ export default function GeneralSettingsScreen() {
     ]);
   };
 
-  // Load map cache stats
+  // Load map cache stats on mount and when map cache is enabled
   useEffect(() => {
     loadMapCacheStats();
-  }, []);
+  }, [mapCacheEnabled]);
+  
+  // Also refresh stats when screen comes into focus
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (mapCacheEnabled) {
+        loadMapCacheStats();
+      }
+    }, 5000); // Refresh every 5 seconds when cache is enabled
+    
+    return () => clearInterval(interval);
+  }, [mapCacheEnabled]);
 
   const loadMapCacheStats = async () => {
     try {
@@ -315,7 +326,6 @@ export default function GeneralSettingsScreen() {
       }
     >
       <View className="px-4 py-4">
-        {/* Removed top hero/profile button as requested */}
 
         {/* Quick Controls */}
         <View className="mb-4">
@@ -571,50 +581,6 @@ export default function GeneralSettingsScreen() {
                 </View>
               </View>
             </View>
-          </View>
-        </View>
-
-        {/* Navigation & Info */}
-        <View className="mb-4">
-          <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase">
-            {t('settings.appSettings', { defaultValue: 'App Settings' })}
-          </CustomText>
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4 border border-gray-200 dark:border-neutral-800">
-            <SettingRow
-              icon="options-outline"
-              title={t('settings.preferences', { defaultValue: 'Preferences' })}
-              subtitle={t('profile.preferencesSubtitle')}
-              onPress={() => router.push('/(app)/(profile)/settings/preferences' as any)}
-              isDark={isDark}
-            />
-            <SettingRow
-              icon="shield-outline"
-              title={t('settings.privacy', { defaultValue: 'Privacy' })}
-              subtitle={t('settings.privacySubtitle', { defaultValue: 'Permissions and data usage' })}
-              onPress={() => router.push('/(app)/(profile)/settings/privacy' as any)}
-              isDark={isDark}
-            />
-            <SettingRow
-              icon="notifications-outline"
-              title={t('settings.notifications', { defaultValue: 'Notifications' })}
-              subtitle={t('profile.notificationsSubtitle')}
-              onPress={() => router.push('/(app)/(profile)/settings/notifications' as any)}
-              isDark={isDark}
-            />
-            <SettingRow
-              icon="server-outline"
-              title={t('settings.dataManagement', { defaultValue: 'Data Management' })}
-              subtitle={t('settings.downloadDeleteData', { defaultValue: 'Download or delete your data' })}
-              onPress={handleDataManagement}
-              isDark={isDark}
-            />
-            <SettingRow
-              icon="information-circle-outline"
-              title={t('settings.about', { defaultValue: 'About' })}
-              subtitle={`${t('settings.version', { defaultValue: 'Version' })}: ${APP_VERSION}`}
-              onPress={handleAbout}
-              isDark={isDark}
-            />
           </View>
         </View>
 
