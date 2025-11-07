@@ -42,6 +42,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Fetch full history to properly detect commit messages
+          fetch-tags: true  # Fetch all tags to properly detect last release
 
       - name: Free disk space
         run: |
@@ -83,11 +84,17 @@ jobs:
           const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
           const current = pkg.version.trim();
           
-          // Fetch all tags to get latest release
+          // Fetch all tags to get latest release (ensure we have all tags)
           try {
-            cp.execSync('git fetch --tags --force 2>/dev/null', { stdio: 'ignore' });
+            cp.execSync('git fetch origin --tags --force 2>/dev/null', { stdio: 'ignore' });
+            console.log('✅ Fetched tags from origin');
           } catch (e) {
-            console.log('ℹ️  Could not fetch tags, continuing...');
+            console.log('ℹ️  Could not fetch tags from origin, trying local tags...');
+            try {
+              cp.execSync('git fetch --tags --force 2>/dev/null', { stdio: 'ignore' });
+            } catch (e2) {
+              console.log('ℹ️  Could not fetch tags, continuing with local tags...');
+            }
           }
           
           // Get latest release tag (matching pattern vX.Y.Z)
@@ -97,9 +104,20 @@ jobs:
             if (tags) {
               lastTag = tags.split('\n')[0];
               console.log(`📋 Found last release tag: ${lastTag}`);
+              
+              // Verify the tag exists in the current repository
+              try {
+                cp.execSync(`git rev-parse ${lastTag}`, { stdio: 'ignore' });
+                console.log(`✅ Tag ${lastTag} verified in repository`);
+              } catch (e) {
+                console.log(`⚠️  Tag ${lastTag} not found in repository, will use all commits`);
+                lastTag = '';
+              }
+            } else {
+              console.log('ℹ️  No previous release tag found');
             }
           } catch (e) {
-            console.log('ℹ️  No previous release tag found');
+            console.log('ℹ️  Error finding tags:', e.message);
           }
           
           // Get all commits since last release (or last 50 commits if no tag)
@@ -107,9 +125,23 @@ jobs:
           try {
             if (lastTag) {
               console.log(`\n📋 Collecting all commits between ${lastTag} and HEAD...`);
-              const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges`, { encoding: 'utf8' }).trim();
+              // Use --no-walk to ensure we get commits in order
+              const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges --reverse`, { encoding: 'utf8' }).trim();
               commitMessages = commits.split('\n\n').filter(msg => msg.trim());
               console.log(`   Range: ${lastTag}..HEAD (exclusive of tag, inclusive of HEAD)`);
+              console.log(`   Found ${commitMessages.length} commit(s) in range`);
+              
+              // Verify we got commits
+              if (commitMessages.length === 0) {
+                console.log('⚠️  No commits found in range, checking if tag is at HEAD...');
+                const tagCommit = cp.execSync(`git rev-parse ${lastTag}`, { encoding: 'utf8' }).trim();
+                const headCommit = cp.execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+                console.log(`   Tag commit: ${tagCommit.substring(0, 7)}`);
+                console.log(`   HEAD commit: ${headCommit.substring(0, 7)}`);
+                if (tagCommit === headCommit) {
+                  console.log('ℹ️  Tag is at HEAD, no new commits since last release');
+                }
+              }
             } else {
               console.log('\n📋 No previous release tag found, checking last 50 commits...');
               const commits = cp.execSync('git log --pretty=%B --no-merges -50', { encoding: 'utf8' }).trim();
@@ -117,6 +149,7 @@ jobs:
             }
           } catch (e) {
             console.log('ℹ️  Could not get commits, using latest commit only');
+            console.log('   Error:', e.message);
             let latestMsg = process.env.COMMIT_MSG || '';
             if (!latestMsg || latestMsg === 'null') {
               try { latestMsg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
@@ -125,6 +158,18 @@ jobs:
           }
           
           console.log(`\n📊 Found ${commitMessages.length} commit(s) since last release (before filtering)`);
+          
+          // Debug: Show first few lines of each commit
+          if (commitMessages.length > 0) {
+            console.log('\n📝 Raw commits found:');
+            commitMessages.slice(0, 5).forEach((msg, i) => {
+              const firstLine = msg.split('\n')[0];
+              console.log(`   ${i + 1}. ${firstLine.substring(0, 80)}`);
+            });
+            if (commitMessages.length > 5) {
+              console.log(`   ... and ${commitMessages.length - 5} more`);
+            }
+          }
           
           // Helper function to check if a commit should be filtered out
           const shouldFilterCommit = (msg) => {
@@ -178,7 +223,7 @@ jobs:
           // Use filtered commits for analysis
           commitMessages = filteredCommitMessages;
           
-          console.log(`📊 Analyzing ${commitMessages.length} commit(s) since last release:`);
+          console.log(`\n📊 Analyzing ${commitMessages.length} commit(s) since last release:`);
           commitMessages.forEach((msg, i) => {
             const firstLine = msg.split('\n')[0];
             console.log(`  ${i + 1}. ${firstLine.substring(0, 60)}${firstLine.length > 60 ? '...' : ''}`);
@@ -188,22 +233,44 @@ jobs:
           let hasFeat = false;
           let hasFix = false;
           let hasBreaking = false;
+          const commitTypes = [];
           
           commitMessages.forEach(msg => {
             const firstLine = msg.trim().split('\n')[0];
+            let commitType = 'other';
+            
             // Check for features (minor bump)
             if (/^(feat|feature)(\(|:)/i.test(firstLine)) {
               hasFeat = true;
+              commitType = 'feat';
             }
             // Check for fixes (patch bump)
-            if (/^(fix|bugfix)(\(|:)/i.test(firstLine)) {
+            else if (/^(fix|bugfix)(\(|:)/i.test(firstLine)) {
               hasFix = true;
+              commitType = 'fix';
             }
             // Check for breaking changes
             if (msg.includes('BREAKING CHANGE') || /^[^:]+!:/.test(firstLine)) {
               hasBreaking = true;
+              commitType = 'breaking';
             }
+            // Check for refactor
+            else if (/^refactor(\(|:)/i.test(firstLine)) {
+              commitType = 'refactor';
+            }
+            // Check for chore
+            else if (/^chore(\(|:)/i.test(firstLine)) {
+              commitType = 'chore';
+            }
+            
+            commitTypes.push(commitType);
           });
+          
+          console.log(`\n📈 Commit type analysis:`);
+          console.log(`   Features: ${hasFeat ? '✅' : '❌'}`);
+          console.log(`   Fixes: ${hasFix ? '✅' : '❌'}`);
+          console.log(`   Breaking: ${hasBreaking ? '✅' : '❌'}`);
+          console.log(`   Types found: ${[...new Set(commitTypes)].join(', ')}`);
           
           // Determine bump type based on commit analysis
           let bump = 'build';
