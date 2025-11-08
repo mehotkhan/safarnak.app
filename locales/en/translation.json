@@ -174,6 +174,7 @@
     "emptyState": "No plans yet. Create your first AI trip!",
     "startAITrip": "Start AI Trip",
     "createTrip": "Create Trip",
+    "createPlan": "Create Trip",
     "viewPlan": "View Plan",
     "editPlan": "Edit Plan",
     "deletePlan": "Delete Plan",
@@ -243,6 +244,27 @@
   "plan.errors": {
     "loadFailed": "Failed to load trips"
   },
+  "trips": {
+    "title": "Trips",
+    "tabs": {
+      "trips": "Trips",
+      "tours": "Tours",
+      "places": "Places",
+      "locations": "Locations",
+      "toursEmpty": "No tours yet",
+      "toursEmptyDescription": "Create your first tour",
+      "toursDescription": "Manage your tours",
+      "toursCreate": "Create Tour",
+      "placesEmpty": "No places yet",
+      "placesEmptyDescription": "Create your first place",
+      "placesDescription": "Manage your places",
+      "placesCreate": "Create Place",
+      "locationsEmpty": "No locations yet",
+      "locationsEmptyDescription": "Create your first location",
+      "locationsDescription": "Manage locations archive",
+      "locationsCreate": "Create Location"
+    }
+  },
   "plan.notFound": "Trip Not Found",
   "plan.tripNotFound": "The trip you're looking for doesn't exist or was deleted.",
   "plan.form.errors": {
@@ -264,17 +286,20 @@
     "description": "Discover tours, places, and community",
     "searchPlaceholder": "Search tours, places...",
     "filters": "Filters",
+    "featured": "Featured",
     "categories": {
       "all": "All",
       "tours": "Tours",
       "trips": "Trips",
       "places": "Places",
+      "posts": "Posts",
       "popular": "Popular",
       "nearby": "Nearby",
       "adventure": "Adventure",
       "culture": "Culture",
       "food": "Food",
-      "nature": "Nature"
+      "nature": "Nature",
+      "relaxation": "Relaxation"
     },
     "sort": {
       "popular": "Most Popular",
@@ -288,6 +313,7 @@
       "reviews": "reviews",
       "duration": "Duration",
       "days": "days",
+      "hours": "hours",
       "joinTour": "Join Tour",
       "bookmark": "Bookmark"
     },
@@ -296,6 +322,47 @@
       "closed": "Closed",
       "distance": "km away",
       "viewDetails": "View Details"
+    },
+    "posts": {
+      "justNow": "just now",
+      "minutesAgo": "m ago",
+      "hoursAgo": "h ago",
+      "daysAgo": "d ago"
+    },
+    "filters": {
+      "title": "Filters",
+      "category": "Category",
+      "type": "Type",
+      "priceRange": "Price Range",
+      "minPrice": "Min Price",
+      "maxPrice": "Max Price",
+      "minRating": "Minimum Rating",
+      "difficulty": "Difficulty",
+      "sortBy": "Sort By",
+      "openNow": "Open Now",
+      "apply": "Apply",
+      "reset": "Reset",
+      "easy": "Easy",
+      "medium": "Medium",
+      "hard": "Hard",
+      "restaurant": "Restaurant",
+      "attraction": "Attraction",
+      "hotel": "Hotel",
+      "market": "Market",
+      "museum": "Museum",
+      "park": "Park"
+    },
+    "empty": {
+      "tours": "No tours found",
+      "toursDescription": "Try adjusting your filters or search query",
+      "places": "No places found",
+      "placesDescription": "Try adjusting your filters or search query",
+      "posts": "No posts found",
+      "postsDescription": "Try adjusting your filters or search query"
+    },
+    "error": {
+      "title": "Error loading content",
+      "message": "Something went wrong. Please try again."
     }
   },
   "me": {

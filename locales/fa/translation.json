@@ -162,6 +162,7 @@
     "emptyState": "هنوز برنامه‌ای ندارید. اولین سفر هوش مصنوعی خود را ایجاد کنید!",
     "startAITrip": "شروع سفر هوشمند",
     "createTrip": "ایجاد سفر",
+    "createPlan": "ایجاد سفر",
     "viewPlan": "مشاهده برنامه",
     "editPlan": "ویرایش برنامه",
     "deletePlan": "حذف برنامه",
@@ -247,22 +248,45 @@
   },
   "plan.form.successTitle": "موفقیت",
   "plan.form.generated": "برنامه سفر هوشمند با موفقیت ایجاد شد!",
+  "trips": {
+    "title": "سفرها",
+    "tabs": {
+      "trips": "سفرها",
+      "tours": "تورها",
+      "places": "مکان‌ها",
+      "locations": "موقعیت‌ها",
+      "toursEmpty": "هنوز توری وجود ندارد",
+      "toursEmptyDescription": "اولین تور خود را ایجاد کنید",
+      "toursDescription": "تورهای خود را مدیریت کنید",
+      "toursCreate": "ایجاد تور",
+      "placesEmpty": "هنوز مکانی وجود ندارد",
+      "placesEmptyDescription": "اولین مکان خود را ایجاد کنید",
+      "placesDescription": "مکان‌های خود را مدیریت کنید",
+      "placesCreate": "ایجاد مکان",
+      "locationsEmpty": "هنوز موقعیتی وجود ندارد",
+      "locationsEmptyDescription": "اولین موقعیت خود را ایجاد کنید",
+      "locationsDescription": "آرشیو موقعیت‌ها را مدیریت کنید",
+      "locationsCreate": "ایجاد موقعیت"
+    }
+  },
   "explore": {
     "title": "کاوش",
     "description": "تورها، مکان‌ها و جامعه را کشف کنید",
     "searchPlaceholder": "جستجوی تورها، مکان‌ها...",
-    "filters": "فیلترها",
+    "featured": "ویژه",
     "categories": {
       "all": "همه",
       "tours": "تورها",
       "trips": "سفرها",
       "places": "مکان‌ها",
+      "posts": "پست‌ها",
       "popular": "محبوب",
       "nearby": "نزدیک",
       "adventure": "ماجراجویی",
       "culture": "فرهنگ",
       "food": "غذا",
-      "nature": "طبیعت"
+      "nature": "طبیعت",
+      "relaxation": "آرامش"
     },
     "sort": {
       "popular": "محبوب‌ترین",
@@ -276,6 +300,7 @@
       "reviews": "نظرات",
       "duration": "مدت",
       "days": "روز",
+      "hours": "ساعت",
       "joinTour": "شرکت در تور",
       "bookmark": "نشانه‌گذاری"
     },
@@ -284,6 +309,47 @@
       "closed": "بسته",
       "distance": "کیلومتر دورتر",
       "viewDetails": "مشاهده جزئیات"
+    },
+    "posts": {
+      "justNow": "همین الان",
+      "minutesAgo": "دقیقه پیش",
+      "hoursAgo": "ساعت پیش",
+      "daysAgo": "روز پیش"
+    },
+    "filters": {
+      "title": "فیلترها",
+      "category": "دسته‌بندی",
+      "type": "نوع",
+      "priceRange": "محدوده قیمت",
+      "minPrice": "حداقل قیمت",
+      "maxPrice": "حداکثر قیمت",
+      "minRating": "حداقل امتیاز",
+      "difficulty": "سختی",
+      "sortBy": "مرتب‌سازی بر اساس",
+      "openNow": "هم‌اکنون باز",
+      "apply": "اعمال",
+      "reset": "بازنشانی",
+      "easy": "آسان",
+      "medium": "متوسط",
+      "hard": "سخت",
+      "restaurant": "رستوران",
+      "attraction": "جاذبه",
+      "hotel": "هتل",
+      "market": "بازار",
+      "museum": "موزه",
+      "park": "پارک"
+    },
+    "empty": {
+      "tours": "تور یافت نشد",
+      "toursDescription": "فیلترها یا عبارت جستجو را تغییر دهید",
+      "places": "مکانی یافت نشد",
+      "placesDescription": "فیلترها یا عبارت جستجو را تغییر دهید",
+      "posts": "پستی یافت نشد",
+      "postsDescription": "فیلترها یا عبارت جستجو را تغییر دهید"
+    },
+    "error": {
+      "title": "خطا در بارگذاری محتوا",
+      "message": "مشکلی پیش آمد. لطفاً دوباره تلاش کنید."
     }
   },
   "me": {
