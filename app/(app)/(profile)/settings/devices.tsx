@@ -250,13 +250,13 @@ export default function DevicesScreen() {
               </CustomText>
             </View>
           ) : (
-            <View className="space-y-3">
+            <View className="gap-3">
               {devices.map((device: any) => {
                 const isCurrent = isCurrentDevice(device);
                 return (
                   <View
                     key={device.id}
-                    className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800"
+                    className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800 mb-3"
                   >
                     <View className="flex-row items-start justify-between mb-3">
                       <View className="flex-1">

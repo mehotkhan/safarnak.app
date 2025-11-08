@@ -562,7 +562,7 @@ export default function GeneralSettingsScreen() {
               <CustomText weight="medium" className="text-sm text-black dark:text-white mb-2">
                 {t('systemStatus.storageBreakdown')}
               </CustomText>
-              <View className="space-y-1.5">
+              <View className="gap-1.5">
                 <View className="flex-row items-center justify-between">
                   <CustomText className="text-xs text-gray-600 dark:text-gray-400">
                     {t('systemStatus.apolloCacheStorage')}
