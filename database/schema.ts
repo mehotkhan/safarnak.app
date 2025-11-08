@@ -266,6 +266,21 @@ export const payments = sqliteTable('payments', {
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
+export const bookings = sqliteTable('bookings', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tourId: text('tour_id').references(() => tours.id).notNull(),
+  userId: text('user_id').references(() => users.id).notNull(),
+  participants: integer('participants').notNull().default(1),
+  selectedDate: text('selected_date').notNull(),
+  fullName: text('full_name').notNull(),
+  email: text('email').notNull(),
+  phone: text('phone'),
+  specialRequests: text('special_requests'),
+  totalPrice: real('total_price').notNull(),
+  status: text('status').default('pending'),
+  ...timestampColumns,
+});
+
 export const devices = sqliteTable('devices', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id).notNull(),
@@ -293,9 +308,11 @@ export const locations = sqliteTable('locations', {
   description: text('description'),
   popularActivities: text('popular_activities'),
   averageCost: integer('average_cost'),
+  bestTimeToVisit: text('best_time_to_visit'),
+  population: text('population'),
   embedding: text('embedding'),
   imageUrl: text('image_url'),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  ...timestampColumns,
 });
 
 export const places = sqliteTable('places', {
