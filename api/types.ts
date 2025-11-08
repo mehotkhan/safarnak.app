@@ -34,6 +34,32 @@ export type AuthPayload = {
   user: User;
 };
 
+export type BookTourInput = {
+  email: Scalars['String']['input'];
+  fullName: Scalars['String']['input'];
+  participants: Scalars['Int']['input'];
+  phone?: InputMaybe<Scalars['String']['input']>;
+  selectedDate: Scalars['String']['input'];
+  specialRequests?: InputMaybe<Scalars['String']['input']>;
+  tourId: Scalars['ID']['input'];
+};
+
+export type Booking = {
+  __typename?: 'Booking';
+  createdAt: Scalars['String']['output'];
+  email: Scalars['String']['output'];
+  fullName: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  participants: Scalars['Int']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
+  selectedDate: Scalars['String']['output'];
+  specialRequests?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  totalPrice: Scalars['Float']['output'];
+  tourId: Scalars['ID']['output'];
+  userId: Scalars['ID']['output'];
+};
+
 export type Bookmark = {
   __typename?: 'Bookmark';
   createdAt: Scalars['String']['output'];
@@ -66,6 +92,17 @@ export type Coordinates = {
 export type CoordinatesInput = {
   latitude: Scalars['Float']['input'];
   longitude: Scalars['Float']['input'];
+};
+
+export type CreateLocationInput = {
+  averageCost?: InputMaybe<Scalars['Float']['input']>;
+  bestTimeToVisit?: InputMaybe<Scalars['String']['input']>;
+  coordinates: CoordinatesInput;
+  country: Scalars['String']['input'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  popularActivities?: InputMaybe<Array<Scalars['String']['input']>>;
+  population?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type CreatePlaceInput = {
@@ -141,6 +178,21 @@ export type ItineraryDay = {
   title: Scalars['String']['output'];
 };
 
+export type Location = {
+  __typename?: 'Location';
+  averageCost?: Maybe<Scalars['Float']['output']>;
+  bestTimeToVisit?: Maybe<Scalars['String']['output']>;
+  coordinates: Coordinates;
+  country: Scalars['String']['output'];
+  createdAt: Scalars['String']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  popularActivities: Array<Scalars['String']['output']>;
+  population?: Maybe<Scalars['String']['output']>;
+  updatedAt: Scalars['String']['output'];
+};
+
 export type Message = {
   __typename?: 'Message';
   content: Scalars['String']['output'];
@@ -151,21 +203,27 @@ export type Message = {
 export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Message;
+  bookTour: Booking;
   bookmarkPlace: Scalars['Boolean']['output'];
   bookmarkPost: Scalars['Boolean']['output'];
   bookmarkTour: Scalars['Boolean']['output'];
   createComment: Comment;
+  createLocation: Location;
   createPlace: Place;
   createPost: Post;
   createReaction: Reaction;
   createTour: Tour;
   createTrip: Trip;
+  deleteLocation: Scalars['Boolean']['output'];
+  deletePlace: Scalars['Boolean']['output'];
   deleteReaction: Scalars['Boolean']['output'];
+  deleteTour: Scalars['Boolean']['output'];
   deleteTrip: Scalars['Boolean']['output'];
   loginUser: AuthPayload;
   registerUser: AuthPayload;
   requestChallenge: Scalars['String']['output'];
   revokeDevice: Scalars['Boolean']['output'];
+  updateLocation: Location;
   updatePlace: Place;
   updateTour: Tour;
   updateTrip: Trip;
@@ -174,6 +232,11 @@ export type Mutation = {
 
 export type MutationAddMessageArgs = {
   content: Scalars['String']['input'];
+};
+
+
+export type MutationBookTourArgs = {
+  input: BookTourInput;
 };
 
 
@@ -195,6 +258,11 @@ export type MutationBookmarkTourArgs = {
 export type MutationCreateCommentArgs = {
   content: Scalars['String']['input'];
   postId: Scalars['ID']['input'];
+};
+
+
+export type MutationCreateLocationArgs = {
+  input: CreateLocationInput;
 };
 
 
@@ -225,8 +293,23 @@ export type MutationCreateTripArgs = {
 };
 
 
+export type MutationDeleteLocationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type MutationDeletePlaceArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
 export type MutationDeleteReactionArgs = {
   reactionId: Scalars['ID']['input'];
+};
+
+
+export type MutationDeleteTourArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -259,6 +342,12 @@ export type MutationRequestChallengeArgs = {
 
 export type MutationRevokeDeviceArgs = {
   deviceId: Scalars['String']['input'];
+};
+
+
+export type MutationUpdateLocationArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateLocationInput;
 };
 
 
@@ -337,6 +426,8 @@ export type Query = {
   checkUsernameAvailability: Scalars['Boolean']['output'];
   getAlerts: Array<Alert>;
   getBookmarks: Array<Bookmark>;
+  getLocation?: Maybe<Location>;
+  getLocations: Array<Location>;
   getMessages: Array<Message>;
   getMyDevices: Array<Device>;
   getPlace?: Maybe<Place>;
@@ -347,6 +438,7 @@ export type Query = {
   getTours: Array<Tour>;
   getTrip?: Maybe<Trip>;
   getTrips: Array<Trip>;
+  getUser?: Maybe<User>;
   me?: Maybe<User>;
 };
 
@@ -358,6 +450,16 @@ export type QueryCheckUsernameAvailabilityArgs = {
 
 export type QueryGetBookmarksArgs = {
   type?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetLocationArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryGetLocationsArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -404,6 +506,11 @@ export type QueryGetTripArgs = {
 
 export type QueryGetTripsArgs = {
   status?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetUserArgs = {
+  id: Scalars['ID']['input'];
 };
 
 export type Reaction = {
@@ -490,6 +597,17 @@ export type TripUpdate = {
   totalSteps: Scalars['Int']['output'];
   tripId: Scalars['ID']['output'];
   type: Scalars['String']['output'];
+};
+
+export type UpdateLocationInput = {
+  averageCost?: InputMaybe<Scalars['Float']['input']>;
+  bestTimeToVisit?: InputMaybe<Scalars['String']['input']>;
+  coordinates?: InputMaybe<CoordinatesInput>;
+  country?: InputMaybe<Scalars['String']['input']>;
+  description?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  popularActivities?: InputMaybe<Array<Scalars['String']['input']>>;
+  population?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdatePlaceInput = {

@@ -8,6 +8,15 @@ declare module '*/@graphql/addMessage.graphql' {
 }
     
 
+declare module '*/@graphql/bookTour.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const BookTour: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/bookmarkPost.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -30,6 +39,15 @@ declare module '*/@graphql/createComment.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const CreateComment: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createLocation.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreateLocation: DocumentNode;
 
   export default defaultDocument;
 }
@@ -80,10 +98,37 @@ declare module '*/@graphql/createTrip.graphql' {
 }
     
 
+declare module '*/@graphql/deleteLocation.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const DeleteLocation: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/deletePlace.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const DeletePlace: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/deleteReaction.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const DeleteReaction: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/deleteTour.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const DeleteTour: DocumentNode;
 
   export default defaultDocument;
 }
@@ -102,6 +147,24 @@ declare module '*/@graphql/getBookmarks.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const GetBookmarks: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getLocation.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetLocation: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getLocations.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetLocations: DocumentNode;
 
   export default defaultDocument;
 }
@@ -197,6 +260,15 @@ declare module '*/@graphql/getTrips.graphql' {
 }
     
 
+declare module '*/@graphql/getUser.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/login.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -273,6 +345,15 @@ declare module '*/@graphql/tripUpdates.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const TripUpdates: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/updateLocation.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateLocation: DocumentNode;
 
   export default defaultDocument;
 }
