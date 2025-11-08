@@ -409,17 +409,17 @@ export default function ExploreScreen() {
     try {
       if (!toursData?.getTours || !Array.isArray(toursData.getTours)) return [];
       let tours = [...toursData.getTours].filter((tour: any) => tour != null);
-      
-      // Search filter
-      if (debouncedSearch) {
-        const query = debouncedSearch.toLowerCase();
-        tours = tours.filter(
-          (tour: any) =>
+    
+    // Search filter
+    if (debouncedSearch) {
+      const query = debouncedSearch.toLowerCase();
+      tours = tours.filter(
+        (tour: any) =>
             tour?.title?.toLowerCase().includes(query) ||
             tour?.location?.toLowerCase().includes(query) ||
             tour?.description?.toLowerCase().includes(query)
-        );
-      }
+      );
+    }
 
     // Price filter
     if (tourFilters.minPrice !== undefined) {
@@ -469,17 +469,17 @@ export default function ExploreScreen() {
     try {
       if (!placesData?.getPlaces || !Array.isArray(placesData.getPlaces)) return [];
       let places = [...placesData.getPlaces].filter((place: any) => place != null);
-      
-      // Search filter
-      if (debouncedSearch) {
-        const query = debouncedSearch.toLowerCase();
-        places = places.filter(
-          (place: any) =>
+    
+    // Search filter
+    if (debouncedSearch) {
+      const query = debouncedSearch.toLowerCase();
+      places = places.filter(
+        (place: any) =>
             place?.name?.toLowerCase().includes(query) ||
             place?.location?.toLowerCase().includes(query) ||
             place?.description?.toLowerCase().includes(query)
-        );
-      }
+      );
+    }
 
     // Rating filter
     if (placeFilters.minRating !== undefined) {
@@ -519,17 +519,17 @@ export default function ExploreScreen() {
     try {
       if (!postsData?.getPosts?.posts || !Array.isArray(postsData.getPosts.posts)) return [];
       let posts = [...postsData.getPosts.posts].filter((post: any) => post != null);
-      
-      // Search filter
-      if (debouncedSearch) {
-        const query = debouncedSearch.toLowerCase();
-        posts = posts.filter(
-          (post: any) =>
+    
+    // Search filter
+    if (debouncedSearch) {
+      const query = debouncedSearch.toLowerCase();
+      posts = posts.filter(
+        (post: any) =>
             post?.content?.toLowerCase().includes(query) ||
             post?.user?.name?.toLowerCase().includes(query) ||
             post?.user?.username?.toLowerCase().includes(query)
-        );
-      }
+      );
+    }
 
     // Sort
     if (postFilters.sortBy) {
@@ -663,12 +663,12 @@ export default function ExploreScreen() {
           renderItem={({ item }) => {
             if (!item?.id) return null;
             return (
-              <TourCard
-                tour={item}
-                onPress={() => handleTourPress(item.id)}
-                isDark={isDark}
-                t={t}
-              />
+            <TourCard
+              tour={item}
+              onPress={() => handleTourPress(item.id)}
+              isDark={isDark}
+              t={t}
+            />
             );
           }}
           contentContainerStyle={{ padding: 16 }}
@@ -704,12 +704,12 @@ export default function ExploreScreen() {
           renderItem={({ item }) => {
             if (!item?.id) return null;
             return (
-              <PlaceCard
-                place={item}
-                onPress={() => handlePlacePress(item.id)}
-                isDark={isDark}
-                t={t}
-              />
+            <PlaceCard
+              place={item}
+              onPress={() => handlePlacePress(item.id)}
+              isDark={isDark}
+              t={t}
+            />
             );
           }}
           contentContainerStyle={{ padding: 16 }}
@@ -744,15 +744,14 @@ export default function ExploreScreen() {
           removeClippedSubviews={true}
           renderItem={({ item }) => {
             if (!item?.id) return null;
-            const post = item as any;
             return (
-              <PostCard
-                post={post}
-                onPress={() => handlePostPress(post.id)}
-                onUserPress={() => handleUserPress(post.userId || '')}
-                isDark={isDark}
-                t={t}
-              />
+            <PostCard
+              post={item}
+              onPress={() => handlePostPress(item.id)}
+                onUserPress={() => handleUserPress((item as any).userId || '')}
+              isDark={isDark}
+              t={t}
+            />
             );
           }}
           contentContainerStyle={{ padding: 16 }}

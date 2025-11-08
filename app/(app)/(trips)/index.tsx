@@ -482,12 +482,12 @@ export default function PlanScreen() {
           
           if (activeTab === 'trips') {
             return (
-              <TripCard
-                trip={item}
-                onPress={() => handleTripPress(item.id)}
-                isDark={isDark}
-                t={t}
-              />
+          <TripCard
+            trip={item}
+            onPress={() => handleTripPress(item.id)}
+            isDark={isDark}
+            t={t}
+          />
             );
           } else if (activeTab === 'tours') {
             return (
