@@ -167,7 +167,7 @@ export default function CreateTourScreen() {
       if (tour?.id) {
         Keyboard.dismiss();
         setTimeout(() => {
-          router.replace(`/(app)/(feed)/tours/${tour.id}` as any);
+          router.replace(`/(app)/(explore)/tours/${tour.id}` as any);
         }, 100);
       } else {
         throw new Error(t('tours.errors.createFailed') || 'Failed to create tour');

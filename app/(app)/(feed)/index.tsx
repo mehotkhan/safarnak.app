@@ -6,7 +6,6 @@ import {
   FlatList,
   Image,
   Dimensions,
-  Animated,
   Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -459,104 +458,14 @@ export default function HomeScreen() {
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
   const [offset, setOffset] = useState(0);
-  const [fabExpanded, setFabExpanded] = useState(false);
-  const [navFabExpanded, setNavFabExpanded] = useState(false);
   const [timeFilterOpen, setTimeFilterOpen] = useState(false);
   const limit = 20;
 
-  // FAB animation values
-  const fabRotation = useMemo(() => new Animated.Value(0), []);
-  const fabScale = useMemo(() => new Animated.Value(0), []);
-  const navFabRotation = useMemo(() => new Animated.Value(0), []);
-  const navFabScale = useMemo(() => new Animated.Value(0), []);
-
-  // Animate Create FAB expansion
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fabRotation, {
-        toValue: fabExpanded ? 1 : 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.spring(fabScale, {
-        toValue: fabExpanded ? 1 : 0,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [fabExpanded, fabRotation, fabScale]);
-
-  // Animate Navigation FAB expansion
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(navFabRotation, {
-        toValue: navFabExpanded ? 1 : 0,
-        duration: 200,
-        useNativeDriver: true,
-      }),
-      Animated.spring(navFabScale, {
-        toValue: navFabExpanded ? 1 : 0,
-        tension: 50,
-        friction: 7,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [navFabExpanded, navFabRotation, navFabScale]);
-
-  const toggleFab = () => {
-    setFabExpanded(!fabExpanded);
-    if (navFabExpanded) setNavFabExpanded(false);
-  };
-
-  const toggleNavFab = () => {
-    setNavFabExpanded(!navFabExpanded);
-    if (fabExpanded) setFabExpanded(false);
-  };
-
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const handleCreateTour = () => {
-    setFabExpanded(false);
-    router.push('/(app)/(feed)/tours/new' as any);
-  };
-
-  const handleCreatePlace = () => {
-    setFabExpanded(false);
-    router.push('/(app)/(feed)/places/new' as any);
-  };
-
   const handleCreatePost = () => {
-    setFabExpanded(false);
     setShowShareModal(true);
   };
-
-  const handleNavigateToPlaces = () => {
-    setNavFabExpanded(false);
-    router.push('/(app)/(feed)/places' as any);
-  };
-
-  const handleNavigateToTours = () => {
-    setNavFabExpanded(false);
-    router.push('/(app)/(feed)/tours' as any);
-  };
-
-  const handleNavigateToArchive = () => {
-    setNavFabExpanded(false);
-    if (user?.id) {
-      router.push(`/(app)/(explore)/users/${user.id}` as any);
-    }
-  };
-
-  const rotateInterpolate = fabRotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '45deg'],
-  });
-
-  const navRotateInterpolate = navFabRotation.interpolate({
-    inputRange: [0, 1],
-    outputRange: ['0deg', '45deg'],
-  });
 
   // Reset offset when category, tab, or time filter changes
   useEffect(() => {
@@ -734,9 +643,9 @@ export default function HomeScreen() {
     if (post.type === 'trip') {
       router.push(`/(app)/(trips)/${post.relatedId}` as any);
     } else if (post.type === 'tour') {
-      router.push(`/(app)/(feed)/tours/${post.relatedId}` as any);
+      router.push(`/(app)/(explore)/tours/${post.relatedId}` as any);
     } else if (post.type === 'place') {
-      router.push(`/(app)/(feed)/places/${post.relatedId}` as any);
+      router.push(`/(app)/(explore)/places/${post.relatedId}` as any);
     } else {
       // For normal posts, navigate to post detail page
       router.push(`/(app)/(feed)/${postId}` as any);
@@ -1009,191 +918,22 @@ export default function HomeScreen() {
         }
       />
 
-      {/* Backdrop overlay when FAB expanded */}
-      {(fabExpanded || navFabExpanded) && (
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => {
-            setFabExpanded(false);
-            setNavFabExpanded(false);
-          }}
-          className="absolute inset-0 bg-black/20"
-          style={{ zIndex: 998 }}
-        />
-      )}
-
-      {/* Navigation FAB - Links to Places, Tours, Archive */}
-      <View className="absolute bottom-6 right-24" style={{ zIndex: 999 }}>
-        {/* Expanded Options */}
-        {navFabExpanded && (
-          <View className="absolute bottom-20 right-0 items-end gap-3">
-            {/* User Archive Option */}
-            <Animated.View
-              style={{
-                transform: [{ scale: navFabScale }],
-                opacity: navFabScale,
-              }}
-            >
-              <TouchableOpacity
-                onPress={handleNavigateToArchive}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full shadow-lg border border-gray-200 dark:border-neutral-700"
-                activeOpacity={0.8}
-                disabled={!user?.id}
-              >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
-                  <Ionicons name="archive-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
-                </View>
-                <CustomText weight="medium" className="text-base text-black dark:text-white">
-                  {t('feed.nav.archive') || 'My Archive'}
-                </CustomText>
-              </TouchableOpacity>
-            </Animated.View>
-
-            {/* Tours List Option */}
-            <Animated.View
-              style={{
-                transform: [{ scale: navFabScale }],
-                opacity: navFabScale,
-              }}
-            >
-              <TouchableOpacity
-                onPress={handleNavigateToTours}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full shadow-lg border border-gray-200 dark:border-neutral-700"
-                activeOpacity={0.8}
-              >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
-                  <Ionicons name="map-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
-                </View>
-                <CustomText weight="medium" className="text-base text-black dark:text-white">
-                  {t('feed.nav.tours') || 'Tours'}
-                </CustomText>
-              </TouchableOpacity>
-            </Animated.View>
-
-            {/* Places List Option */}
-            <Animated.View
-              style={{
-                transform: [{ scale: navFabScale }],
-                opacity: navFabScale,
-              }}
-            >
-              <TouchableOpacity
-                onPress={handleNavigateToPlaces}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full shadow-lg border border-gray-200 dark:border-neutral-700"
-                activeOpacity={0.8}
-              >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
-                  <Ionicons name="location-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
-                </View>
-                <CustomText weight="medium" className="text-base text-black dark:text-white">
-                  {t('feed.nav.places') || 'Places'}
-                </CustomText>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        )}
-
-        {/* Main Navigation FAB Button */}
-        <TouchableOpacity
-          onPress={toggleNavFab}
-          className="w-14 h-14 items-center justify-center rounded-full bg-gray-600 dark:bg-gray-700 shadow-lg"
-          activeOpacity={0.8}
-        >
-          <Animated.View
-            style={{
-              transform: [{ rotate: navRotateInterpolate }],
-            }}
-          >
-            <Ionicons name="navigate" size={28} color="#fff" />
-          </Animated.View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Multi-Add FAB - Create Post, Place, Tour */}
-      <View className="absolute bottom-6 right-6" style={{ zIndex: 999 }}>
-        {/* Expanded Options */}
-        {fabExpanded && (
-          <View className="absolute bottom-20 right-0 items-end gap-3">
-            {/* Create Post Option */}
-            <Animated.View
-              style={{
-                transform: [{ scale: fabScale }],
-                opacity: fabScale,
-              }}
-            >
+      {/* Create Post FAB - Simple button, no expansion */}
               <TouchableOpacity
                 onPress={handleCreatePost}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full shadow-lg border border-gray-200 dark:border-neutral-700"
-                activeOpacity={0.8}
-              >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
-                  <Ionicons name="create-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
-                </View>
-                <CustomText weight="medium" className="text-base text-black dark:text-white">
-                  {t('feed.create.post') || 'Post'}
-                </CustomText>
-              </TouchableOpacity>
-            </Animated.View>
-
-            {/* Create Place Option */}
-            <Animated.View
+        className="absolute bottom-6 right-6 w-14 h-14 items-center justify-center rounded-full bg-primary shadow-lg"
               style={{
-                transform: [{ scale: fabScale }],
-                opacity: fabScale,
-              }}
-            >
-              <TouchableOpacity
-                onPress={handleCreatePlace}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full shadow-lg border border-gray-200 dark:border-neutral-700"
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.3,
+          shadowRadius: 4.65,
+          elevation: 8,
+          zIndex: 999,
+        }}
                 activeOpacity={0.8}
               >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
-                  <Ionicons name="location" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
-                </View>
-                <CustomText weight="medium" className="text-base text-black dark:text-white">
-                  {t('feed.create.place') || 'Place'}
-                </CustomText>
+        <Ionicons name="create-outline" size={28} color="#fff" />
               </TouchableOpacity>
-            </Animated.View>
-
-            {/* Create Tour Option */}
-            <Animated.View
-              style={{
-                transform: [{ scale: fabScale }],
-                opacity: fabScale,
-              }}
-            >
-              <TouchableOpacity
-                onPress={handleCreateTour}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full shadow-lg border border-gray-200 dark:border-neutral-700"
-                activeOpacity={0.8}
-              >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
-                  <Ionicons name="map" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
-                </View>
-                <CustomText weight="medium" className="text-base text-black dark:text-white">
-                  {t('feed.create.tour') || 'Tour'}
-                </CustomText>
-              </TouchableOpacity>
-            </Animated.View>
-          </View>
-        )}
-
-        {/* Main FAB Button */}
-        <TouchableOpacity
-          onPress={toggleFab}
-          className="w-14 h-14 items-center justify-center rounded-full bg-primary shadow-lg"
-          activeOpacity={0.8}
-        >
-          <Animated.View
-            style={{
-              transform: [{ rotate: rotateInterpolate }],
-            }}
-          >
-            <Ionicons name="add" size={28} color="#fff" />
-          </Animated.View>
-        </TouchableOpacity>
-      </View>
 
       {/* Share Modal for creating normal posts */}
       <ShareModal

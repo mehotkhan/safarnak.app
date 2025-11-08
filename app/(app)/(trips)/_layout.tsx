@@ -42,6 +42,54 @@ export default function TripsLayout() {
           presentation: 'card',
         }}
       />
+      {/* Tours Management */}
+      <Stack.Screen 
+        name="tours/index" 
+        options={{
+          headerShown: true,
+          title: t('trips.tabs.tours') || 'My Tours',
+        }}
+      />
+      <Stack.Screen 
+        name="tours/new" 
+        options={{
+          headerShown: true,
+          title: t('tours.new') || 'Create Tour',
+          presentation: 'modal',
+        }}
+      />
+      {/* Places Management */}
+      <Stack.Screen 
+        name="places/index" 
+        options={{
+          headerShown: true,
+          title: t('trips.tabs.places') || 'My Places',
+        }}
+      />
+      <Stack.Screen 
+        name="places/new" 
+        options={{
+          headerShown: true,
+          title: t('places.new') || 'Create Place',
+          presentation: 'modal',
+        }}
+      />
+      {/* Locations Management */}
+      <Stack.Screen 
+        name="locations/index" 
+        options={{
+          headerShown: true,
+          title: t('trips.tabs.locations') || 'Locations',
+        }}
+      />
+      <Stack.Screen 
+        name="locations/new" 
+        options={{
+          headerShown: true,
+          title: t('locations.new') || 'Create Location',
+          presentation: 'modal',
+        }}
+      />
     </Stack>
   );
 }

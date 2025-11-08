@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Image,
-  FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -12,96 +12,107 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
+import { useGetUserQuery, useGetPostsQuery, useGetTripsQuery } from '@api';
+import { useAppSelector } from '@store/hooks';
+import Colors from '@constants/Colors';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const appIcon = require('@assets/images/icon.png');
-
-// Mock user data
-const mockUser = {
-  id: '2',
-  name: 'Sarah Johnson',
-  username: 'sarah_travels',
-  bio: 'Travel enthusiast 🌍 | Photographer 📸 | Always planning the next adventure',
-  location: 'San Francisco, CA',
-  website: 'https://sarahtravels.com',
-  joinedDate: 'January 2024',
-  stats: {
-    trips: 12,
-    posts: 45,
-    followers: 1234,
-    following: 567,
-  },
-  isFollowing: false,
-  recentPosts: [
-    {
-      id: '1',
-      type: 'trip',
-      title: 'Amazing Week in Tokyo',
-      image: 'https://picsum.photos/seed/tokyo-post/300/300',
-      likes: 234,
-      comments: 45,
-    },
-    {
-      id: '2',
-      type: 'place',
-      title: 'Hidden Gem in the Alps',
-      image: 'https://picsum.photos/seed/alps-post/300/300',
-      likes: 567,
-      comments: 89,
-    },
-    {
-      id: '3',
-      type: 'experience',
-      title: 'Street Food Adventure',
-      image: 'https://picsum.photos/seed/food-post/300/300',
-      likes: 890,
-      comments: 123,
-    },
-  ],
-  trips: [
-    {
-      id: '1',
-      destination: 'Tokyo, Japan',
-      dates: 'Mar 2025',
-      image: 'https://picsum.photos/seed/tokyo-trip/200/200',
-    },
-    {
-      id: '2',
-      destination: 'Swiss Alps',
-      dates: 'Jun 2025',
-      image: 'https://picsum.photos/seed/alps-trip/200/200',
-    },
-  ],
-};
 
 export default function UserProfileScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [user, setUser] = useState(mockUser);
+  const userId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
+  const { user: currentUser } = useAppSelector(state => state.auth);
   const [selectedTab, setSelectedTab] = useState<'posts' | 'trips'>('posts');
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  // GraphQL queries
+  const { data, loading, error } = useGetUserQuery({
+    variables: { id: userId },
+    skip: !userId,
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  const user = data?.getUser as any;
+
+  // Fetch user's posts
+  const { data: postsData } = useGetPostsQuery({
+    variables: { limit: 20, offset: 0 },
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  // Fetch user's trips
+  const { data: tripsData } = useGetTripsQuery({
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  // Filter posts and trips by user
+  const userPosts = useMemo(() => {
+    if (!postsData?.getPosts?.posts || !userId) return [];
+    return postsData.getPosts.posts.filter((post: any) => post.userId === userId).slice(0, 9);
+  }, [postsData, userId]);
+
+  const userTrips = useMemo(() => {
+    if (!tripsData?.getTrips || !userId) return [];
+    return tripsData.getTrips.filter((trip: any) => trip.userId === userId);
+  }, [tripsData, userId]);
 
   const handleFollow = () => {
-    setUser(prev => ({
-      ...prev,
-      isFollowing: !prev.isFollowing,
-      stats: {
-        ...prev.stats,
-        followers: prev.isFollowing ? prev.stats.followers - 1 : prev.stats.followers + 1,
-      },
-    }));
+    setIsFollowing(!isFollowing);
+    // TODO: Implement follow mutation when available
   };
 
   const handleMessage = () => {
-    router.push(`/(app)/(profile)/messages/${id}` as any);
+    router.push(`/(app)/(profile)/messages/${userId}` as any);
   };
+
+  if (loading) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+        <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+        <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+          {t('common.loading')}
+        </CustomText>
+      </View>
+    );
+  }
+
+  if (error || !user) {
+    return (
+      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-black">
+        <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
+        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          {t('common.error')}
+        </CustomText>
+        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          {String((error as any)?.message || t('common.errorMessage') || 'User not found')}
+        </CustomText>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="mt-4 bg-primary px-6 py-3 rounded-lg"
+        >
+          <CustomText className="text-white" weight="medium">
+            {t('common.back') || 'Go Back'}
+          </CustomText>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
+  const isOwnProfile = currentUser?.id === userId;
+  const joinedDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
       <Stack.Screen 
         options={{ 
-          title: user.username, 
+          title: user.username || 'User', 
           headerShown: true,
           headerBackVisible: true,
         }} 
@@ -123,7 +134,7 @@ export default function UserProfileScreen() {
           <View className="flex-1 flex-row justify-around">
             <View className="items-center">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                {user.stats.posts}
+                {userPosts.length}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('userProfile.posts')}
@@ -131,7 +142,7 @@ export default function UserProfileScreen() {
             </View>
             <View className="items-center">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                {user.stats.followers}
+                0
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('userProfile.followers')}
@@ -139,7 +150,7 @@ export default function UserProfileScreen() {
             </View>
             <View className="items-center">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                {user.stats.following}
+                0
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('userProfile.following')}
@@ -152,67 +163,60 @@ export default function UserProfileScreen() {
         <CustomText weight="bold" className="text-xl text-black dark:text-white mb-1">
           {user.name}
         </CustomText>
-        <CustomText className="text-base text-gray-700 dark:text-gray-300 mb-3">
-          {user.bio}
-        </CustomText>
+        {user.avatar && (
+          <View className="mb-3">
+            <Image
+              source={{ uri: user.avatar }}
+              className="w-16 h-16 rounded-full"
+              resizeMode="cover"
+            />
+          </View>
+        )}
 
-        {/* Location & Website */}
-        {user.location && (
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="location" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
+        {joinedDate && (
+          <View className="flex-row items-center mb-3">
+            <Ionicons name="calendar-outline" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
             <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-              {user.location}
+              {t('userProfile.joined')} {joinedDate}
             </CustomText>
           </View>
         )}
-        {user.website && (
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="link" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
-            <CustomText className="text-sm text-primary ml-2">
-              {user.website}
-            </CustomText>
-          </View>
-        )}
-        <View className="flex-row items-center">
-          <Ionicons name="calendar-outline" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-            {t('userProfile.joined')} {user.joinedDate}
-          </CustomText>
-        </View>
 
         {/* Action Buttons */}
-        <View className="flex-row gap-3 mt-4">
-          <View className="flex-1">
-            <CustomButton
-              title={user.isFollowing ? t('userProfile.following') : t('userProfile.follow')}
-              onPress={handleFollow}
-              bgVariant={user.isFollowing ? 'secondary' : 'primary'}
-              IconLeft={() => (
-                <Ionicons
-                  name={user.isFollowing ? 'checkmark' : 'person-add'}
-                  size={16}
-                  color={user.isFollowing ? (isDark ? '#fff' : '#000') : '#fff'}
-                  style={{ marginRight: 8 }}
-                />
-              )}
-            />
+        {!isOwnProfile && (
+          <View className="flex-row gap-3 mt-4">
+            <View className="flex-1">
+              <CustomButton
+                title={isFollowing ? t('userProfile.following') : t('userProfile.follow')}
+                onPress={handleFollow}
+                bgVariant={isFollowing ? 'secondary' : 'primary'}
+                IconLeft={() => (
+                  <Ionicons
+                    name={isFollowing ? 'checkmark' : 'person-add'}
+                    size={16}
+                    color={isFollowing ? (isDark ? '#fff' : '#000') : '#fff'}
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+              />
+            </View>
+            <View className="flex-1">
+              <CustomButton
+                title={t('userProfile.message')}
+                onPress={handleMessage}
+                bgVariant="secondary"
+                IconLeft={() => (
+                  <Ionicons
+                    name="mail-outline"
+                    size={16}
+                    color={isDark ? '#fff' : '#000'}
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+              />
+            </View>
           </View>
-          <View className="flex-1">
-            <CustomButton
-              title={t('userProfile.message')}
-              onPress={handleMessage}
-              bgVariant="secondary"
-              IconLeft={() => (
-                <Ionicons
-                  name="mail-outline"
-                  size={16}
-                  color={isDark ? '#fff' : '#000'}
-                  style={{ marginRight: 8 }}
-                />
-              )}
-            />
-          </View>
-        </View>
+        )}
       </View>
 
       {/* Tabs */}
@@ -260,33 +264,63 @@ export default function UserProfileScreen() {
       {/* Content */}
       <View className="px-6 py-4">
         {selectedTab === 'posts' ? (
-          <View className="flex-row flex-wrap gap-2">
-            {user.recentPosts.map(post => (
-              <TouchableOpacity
-                key={post.id}
-                onPress={() => router.push(`/(app)/(feed)/${post.id}` as any)}
-                className="w-[32%] aspect-square bg-gray-200 dark:bg-neutral-800 rounded-lg items-center justify-center"
-              >
-                <Ionicons name="image-outline" size={40} color={isDark ? '#666' : '#9ca3af'} />
-              </TouchableOpacity>
-            ))}
-          </View>
+          userPosts.length > 0 ? (
+            <View className="flex-row flex-wrap gap-2">
+              {userPosts.map((post: any) => (
+                <TouchableOpacity
+                  key={post.id}
+                  onPress={() => router.push(`/(app)/(feed)/${post.id}` as any)}
+                  className="w-[32%] aspect-square bg-gray-200 dark:bg-neutral-800 rounded-lg items-center justify-center"
+                >
+                  {post.attachments && post.attachments.length > 0 ? (
+                    <Image
+                      source={{ uri: post.attachments[0] }}
+                      className="w-full h-full rounded-lg"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Ionicons name="image-outline" size={40} color={isDark ? '#666' : '#9ca3af'} />
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View className="items-center justify-center py-12">
+              <Ionicons name="image-outline" size={64} color={isDark ? '#4b5563' : '#d1d5db'} />
+              <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+                {t('userProfile.noPosts') || 'No posts yet'}
+              </CustomText>
+            </View>
+          )
         ) : (
-          <View>
-            {user.trips.map(trip => (
-              <TouchableOpacity
-                key={trip.id}
-                className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
-              >
-                <CustomText weight="bold" className="text-lg text-black dark:text-white mb-1">
-                  {trip.destination}
-                </CustomText>
-                <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-                  {trip.dates}
-                </CustomText>
-              </TouchableOpacity>
-            ))}
-          </View>
+          userTrips.length > 0 ? (
+            <View>
+              {userTrips.map((trip: any) => (
+                <TouchableOpacity
+                  key={trip.id}
+                  onPress={() => router.push(`/(app)/(trips)/${trip.id}` as any)}
+                  className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
+                >
+                  <CustomText weight="bold" className="text-lg text-black dark:text-white mb-1">
+                    {trip.destination || 'Untitled Trip'}
+                  </CustomText>
+                  {trip.startDate && (
+                    <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                      {new Date(trip.startDate).toLocaleDateString()}
+                      {trip.endDate && ` - ${new Date(trip.endDate).toLocaleDateString()}`}
+                    </CustomText>
+                  )}
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <View className="items-center justify-center py-12">
+              <Ionicons name="airplane-outline" size={64} color={isDark ? '#4b5563' : '#d1d5db'} />
+              <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+                {t('userProfile.noTrips') || 'No trips yet'}
+              </CustomText>
+            </View>
+          )
         )}
       </View>
     </ScrollView>

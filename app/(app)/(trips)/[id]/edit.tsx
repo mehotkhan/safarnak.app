@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
@@ -14,35 +15,125 @@ import TextArea from '@components/ui/TextArea';
 import DatePicker from '@components/ui/DatePicker';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
+import { useGetTripQuery, useUpdateTripMutation, GetTripDocument, GetTripsDocument } from '@api';
+import Colors from '@constants/Colors';
 
 export default function EditTripScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
 
-  const [formData, setFormData] = useState({
-    destination: 'Tokyo, Japan',
-    startDate: '2024-12-01',
-    endDate: '2024-12-08',
-    travelers: '2',
-    budget: '3000',
-    preferences: 'Culture, Food, Photography',
-    accommodation: 'hotel',
+  // Load trip data
+  const { data, loading: loadingTrip, error: tripError } = useGetTripQuery({
+    variables: { id: tripId },
+    skip: !tripId,
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
   });
 
-  const [loading, setLoading] = useState(false);
+  const trip = data?.getTrip as any;
 
-  const handleSave = async () => {
-    setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
+  // Derive initial form data from trip
+  const initialFormData = useMemo(() => {
+    if (!trip) {
+      return {
+        destination: '',
+        startDate: '',
+        endDate: '',
+        travelers: '1',
+        budget: '',
+        preferences: '',
+        accommodation: 'hotel',
+      };
+    }
+    return {
+      destination: trip.destination || '',
+      startDate: trip.startDate || '',
+      endDate: trip.endDate || '',
+      travelers: String(trip.travelers || 1),
+      budget: trip.budget ? String(trip.budget) : '',
+      preferences: trip.preferences || '',
+      accommodation: trip.accommodation || 'hotel',
+    };
+  }, [trip]);
+
+  const [formData, setFormData] = useState(initialFormData);
+
+  // Update form when trip data changes
+  useEffect(() => {
+    setFormData(initialFormData);
+  }, [initialFormData]);
+
+  const [updateTrip, { loading: updating }] = useUpdateTripMutation({
+    refetchQueries: [GetTripDocument, GetTripsDocument],
+    awaitRefetchQueries: true,
+    onCompleted: () => {
       Alert.alert(t('common.success'), t('plan.form.updated'));
       router.back();
-    }, 1000);
+    },
+    onError: (error) => {
+      Alert.alert(t('common.error'), error.message || t('plan.form.errors.generic'));
+    },
+  });
+
+  const handleSave = async () => {
+    if (!tripId) {
+      Alert.alert(t('common.error'), t('plan.form.errors.notAuthenticated'));
+      return;
+    }
+
+    try {
+      await updateTrip({
+        variables: {
+          id: tripId,
+          input: {
+            destination: formData.destination || undefined,
+            startDate: formData.startDate || undefined,
+            endDate: formData.endDate || undefined,
+            travelers: parseInt(formData.travelers, 10) || 1,
+            budget: formData.budget ? parseFloat(formData.budget) : undefined,
+            preferences: formData.preferences || undefined,
+            accommodation: formData.accommodation || undefined,
+          },
+        },
+      });
+    } catch (error: any) {
+      // Error handled by onError callback
+      console.error('Update trip error:', error);
+    }
   };
+
+  if (loadingTrip) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+        <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+        <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+          {t('common.loading')}
+        </CustomText>
+      </View>
+    );
+  }
+
+  if (tripError || !trip) {
+    return (
+      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-black">
+        <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
+        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          {t('common.error')}
+        </CustomText>
+        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          {String((tripError as any)?.message || t('plan.tripNotFound') || 'Trip not found')}
+        </CustomText>
+        <CustomButton
+          title={t('common.back')}
+          onPress={() => router.back()}
+          className="mt-4"
+        />
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -107,9 +198,10 @@ export default function EditTripScreen() {
         <View className="h-6" />
         
         <CustomButton
-          title={t('common.save')}
+          title={updating ? t('common.saving') : t('common.save')}
           onPress={handleSave}
-          loading={loading}
+          loading={updating}
+          disabled={updating}
           IconLeft={() => <Ionicons name="checkmark" size={20} color="#fff" style={{ marginRight: 8 }} />}
         />
         
@@ -119,6 +211,7 @@ export default function EditTripScreen() {
           title={t('common.cancel')}
           onPress={() => router.back()}
           bgVariant="secondary"
+          disabled={updating}
         />
 
         <View className="h-8" />
@@ -126,4 +219,3 @@ export default function EditTripScreen() {
     </View>
   );
 }
-

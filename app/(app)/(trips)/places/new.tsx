@@ -147,7 +147,7 @@ export default function CreatePlaceScreen() {
       if (place?.id) {
         Keyboard.dismiss();
         setTimeout(() => {
-          router.replace(`/(app)/(feed)/places/${place.id}` as any);
+          router.replace(`/(app)/(explore)/places/${place.id}` as any);
         }, 100);
       } else {
         throw new Error(t('places.errors.createFailed') || 'Failed to create place');

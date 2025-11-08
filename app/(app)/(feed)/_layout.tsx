@@ -18,19 +18,6 @@ export default function FeedLayout() {
           presentation: 'card',
         }}
       />
-      <Stack.Screen name="new" />
-      <Stack.Screen 
-        name="tours" 
-        options={{
-          headerShown: false,
-        }}
-      />
-      <Stack.Screen 
-        name="places" 
-        options={{
-          headerShown: false,
-        }}
-      />
     </Stack>
   );
 }

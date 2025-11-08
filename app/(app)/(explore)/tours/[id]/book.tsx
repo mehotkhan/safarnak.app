@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -13,34 +14,69 @@ import InputField from '@components/ui/InputField';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 import DatePicker from '@components/ui/DatePicker';
-
-// Mock tour data
-const mockTour = {
-  id: '1',
-  title: 'Cherry Blossom Tour',
-  location: 'Tokyo, Japan',
-  price: 1200,
-  duration: 7,
-  maxParticipants: 20,
-  availableDates: ['2025-03-20', '2025-03-27', '2025-04-03', '2025-04-10'],
-};
+import { useGetTourQuery, useBookTourMutation } from '@api';
+import { useAppSelector } from '@store/hooks';
+import Colors from '@constants/Colors';
 
 export default function BookTourScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const [loading, setLoading] = useState(false);
+  const tourId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
+  const { user } = useAppSelector(state => state.auth);
+
+  // GraphQL queries
+  const { data, loading: loadingTour, error: tourError } = useGetTourQuery({
+    variables: { id: tourId },
+    skip: !tourId,
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
+  const tour = data?.getTour as any;
+
+  const [bookTour, { loading: booking }] = useBookTourMutation({
+    onCompleted: (data) => {
+      Alert.alert(
+        t('common.success'),
+        t('tourBooking.successMessage'),
+        [
+          {
+            text: t('common.ok'),
+            onPress: () => router.replace('/(app)/(profile)/payments' as any),
+          },
+        ]
+      );
+    },
+    onError: (error) => {
+      Alert.alert(t('common.error'), error.message || t('tourBooking.errors.generic'));
+    },
+  });
 
   const [formData, setFormData] = useState({
     participants: '1',
     selectedDate: '',
-    fullName: '',
+    fullName: user?.name || '',
     email: '',
     phone: '',
     specialRequests: '',
     agreeTerms: false,
   });
+
+  // Generate available dates (mock for now - could be from tour data)
+  // Must be called before early returns to follow React Hooks rules
+  const availableDates = useMemo(() => {
+    // TODO: Get from tour data when available
+    const dates = [];
+    const today = new Date();
+    for (let i = 0; i < 4; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + (i + 1) * 7);
+      dates.push(date.toISOString().split('T')[0]);
+    }
+    return dates;
+  }, []);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -48,7 +84,7 @@ export default function BookTourScreen() {
 
   const calculateTotal = () => {
     const participants = parseInt(formData.participants) || 1;
-    return mockTour.price * participants;
+    return (tour?.price || 0) * participants;
   };
 
   const handleBooking = async () => {
@@ -62,23 +98,63 @@ export default function BookTourScreen() {
       return;
     }
 
-    setLoading(true);
+    if (!tourId || !user?.id) {
+      Alert.alert(t('common.error'), t('tourBooking.errors.notAuthenticated'));
+      return;
+    }
 
-    // Simulate API call
-    setTimeout(() => {
-      setLoading(false);
-      Alert.alert(
-        t('common.success'),
-        t('tourBooking.successMessage'),
-        [
-          {
-            text: t('common.ok'),
-            onPress: () => router.replace('/(app)/(profile)/payments' as any),
+    try {
+      await bookTour({
+        variables: {
+          input: {
+            tourId,
+            participants: parseInt(formData.participants) || 1,
+            selectedDate: formData.selectedDate,
+            fullName: formData.fullName,
+            email: formData.email,
+            phone: formData.phone || undefined,
+            specialRequests: formData.specialRequests || undefined,
           },
-        ]
-      );
-    }, 1500);
+        },
+      });
+    } catch (error: any) {
+      // Error handled by onError callback
+      console.error('Booking error:', error);
+    }
   };
+
+  if (loadingTour) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
+        <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+        <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+          {t('common.loading')}
+        </CustomText>
+      </View>
+    );
+  }
+
+  if (tourError || !tour) {
+    return (
+      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-black">
+        <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
+        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          {t('common.error')}
+        </CustomText>
+        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          {String((tourError as any)?.message || t('common.errorMessage') || 'Tour not found')}
+        </CustomText>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          className="mt-4 bg-primary px-6 py-3 rounded-lg"
+        >
+          <CustomText className="text-white" weight="medium">
+            {t('common.back') || 'Go Back'}
+          </CustomText>
+        </TouchableOpacity>
+      </View>
+      );
+  }
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
@@ -88,18 +164,18 @@ export default function BookTourScreen() {
         {/* Tour Summary */}
         <View className="bg-primary/10 dark:bg-primary/20 rounded-2xl p-4 mb-6">
           <CustomText weight="bold" className="text-xl text-black dark:text-white mb-2">
-            {mockTour.title}
+            {tour.title}
           </CustomText>
           <View className="flex-row items-center mb-1">
             <Ionicons name="location" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
             <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-              {mockTour.location}
+              {tour.location}
             </CustomText>
           </View>
           <View className="flex-row items-center">
             <Ionicons name="time-outline" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
             <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-              {mockTour.duration} {t('explore.tourCard.days')}
+              {tour.duration} {t('explore.tourCard.days')}
             </CustomText>
           </View>
         </View>
@@ -125,7 +201,7 @@ export default function BookTourScreen() {
             {t('tourBooking.selectDate')}
           </CustomText>
           <View className="flex-row flex-wrap gap-2">
-            {mockTour.availableDates.map(date => (
+            {availableDates.map((date: string) => (
               <TouchableOpacity
                 key={date}
                 onPress={() => handleInputChange('selectedDate', date)}
@@ -221,7 +297,7 @@ export default function BookTourScreen() {
               {t('tourBooking.pricePerPerson')}
             </CustomText>
             <CustomText className="text-base text-black dark:text-white">
-              ${mockTour.price}
+              ${tour.price}
             </CustomText>
           </View>
           <View className="flex-row justify-between mb-2">
@@ -229,7 +305,7 @@ export default function BookTourScreen() {
               {t('tourBooking.participants')} × {formData.participants}
             </CustomText>
             <CustomText className="text-base text-black dark:text-white">
-              ${mockTour.price * (parseInt(formData.participants) || 1)}
+              ${(tour.price || 0) * (parseInt(formData.participants) || 1)}
             </CustomText>
           </View>
           <View className="border-t border-gray-200 dark:border-neutral-800 pt-2 mt-2">
@@ -246,9 +322,10 @@ export default function BookTourScreen() {
 
         {/* Book Button */}
         <CustomButton
-          title={loading ? t('tourBooking.processing') : t('tourBooking.confirmBooking')}
+          title={booking ? t('tourBooking.processing') : t('tourBooking.confirmBooking')}
           onPress={handleBooking}
-          disabled={loading}
+          loading={booking}
+          disabled={booking}
           IconLeft={() => (
             <Ionicons
               name="checkmark-circle"
