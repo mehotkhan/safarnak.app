@@ -10,8 +10,12 @@ import { createTrip } from './createTrip';
 import { updateTrip, deleteTrip } from './updateTrip';
 import { createTour } from './createTour';
 import { updateTour } from './updateTour';
+import { deleteTour } from './deleteTour';
 import { createPlace } from './createPlace';
 import { updatePlace } from './updatePlace';
+import { deletePlace } from './deletePlace';
+import { createLocation, updateLocation, deleteLocation } from './updateLocation';
+import { bookTour } from './bookTour';
 import { createPost } from './createPost';
 import { createComment } from './createComment';
 import { createReaction } from './createReaction';
@@ -33,8 +37,14 @@ export const Mutation = {
   deleteTrip,
   createTour,
   updateTour,
+  deleteTour,
   createPlace,
   updatePlace,
+  deletePlace,
+  createLocation,
+  updateLocation,
+  deleteLocation,
+  bookTour,
   createPost,
   createComment,
   createReaction,
@@ -46,4 +56,4 @@ export const Mutation = {
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, createPlace, updatePlace, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice };
+export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, deleteTour, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, bookTour, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice };
