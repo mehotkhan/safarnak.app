@@ -1,0 +1,19 @@
+query GetLocations($limit: Int) {
+  getLocations(limit: $limit) {
+    id
+    name
+    country
+    description
+    coordinates {
+      latitude
+      longitude
+    }
+    popularActivities
+    averageCost
+    bestTimeToVisit
+    population
+    createdAt
+    updatedAt
+  }
+}
+

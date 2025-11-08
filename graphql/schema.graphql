@@ -1,12 +1,15 @@
 type Query {
   getMessages: [Message!]!
   me: User
+  getUser(id: ID!): User
   getTrips(status: String): [Trip!]!
   getTrip(id: ID!): Trip
   getTours(category: String, limit: Int): [Tour!]!
   getTour(id: ID!): Tour
   getPlaces(category: String, limit: Int): [Place!]!
   getPlace(id: ID!): Place
+  getLocations(limit: Int): [Location!]!
+  getLocation(id: ID!): Location
   getPosts(type: String, limit: Int, offset: Int, after: String, before: String): PostsConnection!
   getPost(id: ID!): Post
   getBookmarks(type: String): [Bookmark!]!
@@ -25,8 +28,14 @@ type Mutation {
   deleteTrip(id: ID!): Boolean!
   createTour(input: CreateTourInput!): Tour!
   updateTour(id: ID!, input: UpdateTourInput!): Tour!
+  deleteTour(id: ID!): Boolean!
   createPlace(input: CreatePlaceInput!): Place!
   updatePlace(id: ID!, input: UpdatePlaceInput!): Place!
+  deletePlace(id: ID!): Boolean!
+  createLocation(input: CreateLocationInput!): Location!
+  updateLocation(id: ID!, input: UpdateLocationInput!): Location!
+  deleteLocation(id: ID!): Boolean!
+  bookTour(input: BookTourInput!): Booking!
   createPost(input: CreatePostInput!): Post!
   createComment(postId: ID!, content: String!): Comment!
   createReaction(postId: ID, commentId: ID, emoji: String!): Reaction!
@@ -170,6 +179,35 @@ type Place {
   locationId: ID
   ownerId: ID
   imageUrl: String
+  createdAt: String!
+}
+
+type Location {
+  id: ID!
+  name: String!
+  country: String!
+  description: String
+  coordinates: Coordinates!
+  popularActivities: [String!]!
+  averageCost: Float
+  bestTimeToVisit: String
+  population: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Booking {
+  id: ID!
+  tourId: ID!
+  userId: ID!
+  participants: Int!
+  selectedDate: String!
+  fullName: String!
+  email: String!
+  phone: String
+  specialRequests: String
+  totalPrice: Float!
+  status: String!
   createdAt: String!
 }
 
@@ -344,6 +382,38 @@ input UpdatePlaceInput {
   locationId: ID
   imageUrl: String
   isOpen: Boolean
+}
+
+input CreateLocationInput {
+  name: String!
+  country: String!
+  description: String
+  coordinates: CoordinatesInput!
+  popularActivities: [String!]
+  averageCost: Float
+  bestTimeToVisit: String
+  population: String
+}
+
+input UpdateLocationInput {
+  name: String
+  country: String
+  description: String
+  coordinates: CoordinatesInput
+  popularActivities: [String!]
+  averageCost: Float
+  bestTimeToVisit: String
+  population: String
+}
+
+input BookTourInput {
+  tourId: ID!
+  participants: Int!
+  selectedDate: String!
+  fullName: String!
+  email: String!
+  phone: String
+  specialRequests: String
 }
 
 input CreatePostInput {

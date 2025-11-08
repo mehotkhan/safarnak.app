@@ -1,0 +1,19 @@
+query GetLocation($id: ID!) {
+  getLocation(id: $id) {
+    id
+    name
+    country
+    description
+    coordinates {
+      latitude
+      longitude
+    }
+    popularActivities
+    averageCost
+    bestTimeToVisit
+    population
+    createdAt
+    updatedAt
+  }
+}
+

@@ -1,0 +1,19 @@
+mutation UpdateLocation($id: ID!, $input: UpdateLocationInput!) {
+  updateLocation(id: $id, input: $input) {
+    id
+    name
+    country
+    description
+    coordinates {
+      latitude
+      longitude
+    }
+    popularActivities
+    averageCost
+    bestTimeToVisit
+    population
+    createdAt
+    updatedAt
+  }
+}
+

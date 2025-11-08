@@ -1,0 +1,17 @@
+mutation BookTour($input: BookTourInput!) {
+  bookTour(input: $input) {
+    id
+    tourId
+    userId
+    participants
+    selectedDate
+    fullName
+    email
+    phone
+    specialRequests
+    totalPrice
+    status
+    createdAt
+  }
+}
+
