@@ -3,8 +3,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  FlatList,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';

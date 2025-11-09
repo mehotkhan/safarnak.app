@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
+import { InfoBanner } from '@components/ui/InfoBanner';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetMyDevicesQuery, useRevokeDeviceMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
@@ -148,32 +149,16 @@ export default function DevicesScreen() {
       <View className="px-4 py-4">
         {/* Info Banner */}
         <View className="mb-4">
-          <View className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 border border-blue-200 dark:border-blue-800">
-            <View className="flex-row items-start">
-              <Ionicons
-                name="information-circle"
-                size={20}
-                color={isDark ? '#60a5fa' : '#3b82f6'}
-                style={{ marginRight: 10, marginTop: 1 }}
-              />
-              <View className="flex-1">
-                <CustomText
-                  weight="medium"
-                  className="text-sm text-blue-900 dark:text-blue-200 mb-1"
-                >
-                  {t('settings.devicesInfoTitle', {
-                    defaultValue: 'Device Management',
-                  })}
-                </CustomText>
-                <CustomText className="text-xs text-blue-800 dark:text-blue-300 leading-4">
-                  {t('settings.devicesInfoDescription', {
-                    defaultValue:
-                      'Manage your connected devices. Each device has its own authentication key. Revoking a device will log it out immediately.',
-                  })}
-                </CustomText>
-              </View>
-            </View>
-          </View>
+          <InfoBanner
+            type="info"
+            title={t('settings.devicesInfoTitle', {
+              defaultValue: 'Device Management',
+            })}
+            message={t('settings.devicesInfoDescription', {
+              defaultValue:
+                'Manage your connected devices. Each device has its own authentication key. Revoking a device will log it out immediately.',
+            })}
+          />
         </View>
 
         {/* Current Device Info */}

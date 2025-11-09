@@ -51,6 +51,12 @@
       "@constants/*": [
         "./constants/*"
       ],
+      "@utils": [
+        "./utils"
+      ],
+      "@utils/*": [
+        "./utils/*"
+      ],
       "@locales": [
         "./locales"
       ],

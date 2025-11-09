@@ -28,7 +28,6 @@ const placeTypes = ['restaurant', 'attraction', 'hotel', 'shop', 'museum', 'park
 
 export default function CreatePlaceScreen() {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);

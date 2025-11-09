@@ -30,7 +30,6 @@ const durationTypes = ['hours', 'days', 'weeks'];
 
 export default function CreateTourScreen() {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);

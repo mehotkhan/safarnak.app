@@ -1,439 +1,34 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Image,
   Dimensions,
-  Modal,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
+import { LoadingState } from '@components/ui/LoadingState';
+import { ErrorState } from '@components/ui/ErrorState';
+import { EmptyState } from '@components/ui/EmptyState';
+import { FeedItem } from '@components/cards';
 import { useTheme } from '@components/context/ThemeContext';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useGetPostsQuery, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation } from '@api';
 import ShareModal from '@components/ui/ShareModal';
 import { useAppSelector } from '@store/hooks';
-
-const { width } = Dimensions.get('window');
+import { useRefresh } from '@hooks/useRefresh';
+import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
+import { TabBar } from '@components/ui/TabBar';
+import { Dropdown } from '@components/ui/Dropdown';
 
 const categories = [
   { id: 'trips', label: 'trips', icon: 'airplane-outline' },
   { id: 'food', label: 'food', icon: 'restaurant-outline' },
   { id: 'culture', label: 'culture', icon: 'color-palette-outline' },
 ];
-
-interface FeedItemProps {
-  item: any;
-  isDark: boolean;
-  t: any;
-  onLike: () => Promise<void>;
-  onComment: () => void;
-  onShare: () => void;
-  onUserPress: () => void;
-  onPostPress: () => void;
-  onLocationPress?: () => void;
-  onBookmark?: (postId: string) => Promise<void>;
-  onEdit?: (postId: string) => void;
-  isOwner?: boolean;
-}
-
-// Helper function to format relative time
-const formatRelativeTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  return date.toLocaleDateString();
-};
-
-// Helper to get entity title and location
-const getEntityInfo = (post: any) => {
-  if (!post.relatedEntity) return { title: '', location: '', imageUrl: null, coordinates: null };
-  
-  if (post.type === 'trip') {
-    return {
-      title: post.relatedEntity.destination || 'Trip',
-      location: post.relatedEntity.destination || '',
-      imageUrl: null,
-      coordinates: post.relatedEntity.tripCoordinates || null,
-    };
-  } else if (post.type === 'tour') {
-    return {
-      title: post.relatedEntity.title || 'Tour',
-      location: post.relatedEntity.location || '',
-      imageUrl: post.relatedEntity.imageUrl || null,
-      coordinates: post.relatedEntity.tourCoordinates || null,
-    };
-  } else if (post.type === 'place') {
-    return {
-      title: post.relatedEntity.name || 'Place',
-      location: post.relatedEntity.location || '',
-      imageUrl: post.relatedEntity.imageUrl || null,
-      coordinates: post.relatedEntity.placeCoordinates || null,
-    };
-  }
-  return { title: '', location: '', imageUrl: null, coordinates: null };
-};
-
-const FeedItem = ({ 
-  item, 
-  isDark, 
-  t, 
-  onLike, 
-  onComment, 
-  onShare,
-  onUserPress,
-  onPostPress,
-  onLocationPress,
-  onBookmark,
-  onEdit,
-  isOwner = false,
-}: FeedItemProps) => {
-  const { user } = useAppSelector(state => state.auth);
-  const [optimisticBookmarked, setOptimisticBookmarked] = useState<boolean | null>(null);
-  const [showMenu, setShowMenu] = useState(false);
-  
-  // Use optimistic state if available, otherwise use server state
-  // When refetch completes and item.isBookmarked updates, it will naturally override
-  const bookmarked = optimisticBookmarked !== null ? optimisticBookmarked : (item.isBookmarked || false);
-  
-  // Clear optimistic state when server state updates (refetch completed)
-  const prevIsBookmarkedRef = useRef(item.isBookmarked);
-  useEffect(() => {
-    // If server state matches optimistic state, clear optimistic state (refetch completed)
-    if (optimisticBookmarked !== null && item.isBookmarked === optimisticBookmarked && prevIsBookmarkedRef.current !== item.isBookmarked) {
-      prevIsBookmarkedRef.current = item.isBookmarked;
-      // Use requestAnimationFrame to avoid setting state synchronously
-      requestAnimationFrame(() => {
-        setOptimisticBookmarked(null);
-      });
-    } else if (prevIsBookmarkedRef.current !== item.isBookmarked) {
-      prevIsBookmarkedRef.current = item.isBookmarked;
-    }
-  }, [item.isBookmarked, optimisticBookmarked]);
-  const entityInfo = getEntityInfo(item);
-  const imageUrl = entityInfo.imageUrl || (item.attachments && item.attachments[0]) || null;
-
-  // Generate placeholder image URL using Unsplash (travel category)
-  const placeholderImageUrl = useMemo(() => {
-    // Use item.id as seed, or hash it if needed
-    const seed = item.id ? item.id.substring(0, 8) : 'default';
-    return `https://source.unsplash.com/800x600/?travel,landscape&sig=${seed}`;
-  }, [item.id]);
-
-  // Get connected item type icon and label
-  const connectedItemInfo = useMemo(() => {
-    if (item.type === 'trip') {
-      return { icon: 'airplane-outline', label: 'Trip', color: '#3b82f6' };
-    } else if (item.type === 'tour') {
-      return { icon: 'map-outline', label: 'Tour', color: '#10b981' };
-    } else if (item.type === 'place') {
-      return { icon: 'location-outline', label: 'Place', color: '#f59e0b' };
-    }
-    return null;
-  }, [item.type]);
-
-  // Check if current user has already reacted with ❤️
-  const hasLiked = useMemo(() => {
-    if (!user?.id || !item.reactions) return false;
-    return item.reactions.some((r: any) => r.user?.id === user.id && r.emoji === '❤️');
-  }, [user?.id, item.reactions]);
-
-  const handleLike = async () => {
-    await onLike();
-  };
-
-  const handleBookmark = async () => {
-    if (onBookmark) {
-      const newBookmarked = !bookmarked;
-      setOptimisticBookmarked(newBookmarked);
-      try {
-        await onBookmark(item.id);
-        // Optimistic state will be cleared when refetch updates item.isBookmarked
-      } catch (error) {
-        // Revert on error
-        setOptimisticBookmarked(null);
-      }
-    }
-  };
-
-  const handleEdit = () => {
-    if (onEdit) {
-      setShowMenu(false);
-      onEdit(item.id);
-    }
-  };
-
-  return (
-    <View className="bg-white dark:bg-neutral-900 mb-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-neutral-800">
-      {/* User Header */}
-      <TouchableOpacity 
-        onPress={onUserPress}
-        className="flex-row items-center px-4 py-3"
-      >
-        <View className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3 border border-gray-200 dark:border-neutral-700">
-          {item.user?.avatar ? (
-            <Image
-              source={{ uri: item.user.avatar }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="w-full h-full items-center justify-center">
-              <Ionicons name="person" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-            </View>
-          )}
-        </View>
-        <View className="flex-1">
-          <View className="flex-row items-center">
-            <CustomText weight="bold" className="text-base text-black dark:text-white">
-              {item.user?.name || 'Unknown User'}
-            </CustomText>
-            {connectedItemInfo && (
-              <View className="flex-row items-center ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: `${connectedItemInfo.color}15` }}>
-                <Ionicons
-                  name={connectedItemInfo.icon as any}
-                  size={12}
-                  color={connectedItemInfo.color}
-                  style={{ marginRight: 4 }}
-                />
-                <CustomText className="text-xs" style={{ color: connectedItemInfo.color }}>
-                  {connectedItemInfo.label}
-                </CustomText>
-              </View>
-            )}
-          </View>
-          <View className="flex-row items-center mt-1">
-            {entityInfo.location ? (
-              <TouchableOpacity
-                onPress={e => {
-                  e.stopPropagation();
-                  onLocationPress?.();
-                }}
-                className="flex-row items-center"
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="location-outline"
-                  size={14}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                  style={{ marginRight: 4 }}
-                />
-                <CustomText className="text-sm text-gray-500 dark:text-gray-400">
-                  {entityInfo.location}
-                </CustomText>
-              </TouchableOpacity>
-            ) : null}
-            <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
-              • {formatRelativeTime(item.createdAt)}
-            </CustomText>
-          </View>
-        </View>
-        <View className="relative">
-          <TouchableOpacity 
-            onPress={() => setShowMenu(!showMenu)}
-            activeOpacity={0.7}
-          >
-            <Ionicons 
-              name="ellipsis-horizontal" 
-              size={20} 
-              color={isDark ? '#9ca3af' : '#6b7280'} 
-            />
-          </TouchableOpacity>
-          
-          <Modal
-            visible={showMenu}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setShowMenu(false)}
-          >
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() => setShowMenu(false)}
-              className="flex-1 bg-black/50 justify-center items-center"
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-neutral-800 rounded-xl shadow-2xl border border-gray-200 dark:border-neutral-700 min-w-[160px] overflow-hidden"
-              >
-                {isOwner && onEdit && (
-                  <TouchableOpacity
-                    onPress={handleEdit}
-                    className="flex-row items-center px-5 py-4 border-b border-gray-100 dark:border-neutral-700"
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons name="create-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-                    <CustomText className="text-base text-gray-700 dark:text-gray-300 ml-3 font-medium">
-                      {t('common.edit') || 'Edit'}
-                    </CustomText>
-                  </TouchableOpacity>
-                )}
-                <TouchableOpacity
-                  onPress={() => {
-                    setShowMenu(false);
-                    onShare();
-                  }}
-                  className="flex-row items-center px-5 py-4"
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="share-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-                  <CustomText className="text-base text-gray-700 dark:text-gray-300 ml-3 font-medium">
-                    {t('common.share') || 'Share'}
-                  </CustomText>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            </TouchableOpacity>
-          </Modal>
-        </View>
-      </TouchableOpacity>
-
-      {/* Image */}
-      <TouchableOpacity onPress={onPostPress} activeOpacity={0.9}>
-        <View className="w-full h-80 bg-gray-200 dark:bg-neutral-800 relative overflow-hidden">
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="w-full h-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
-              <Image
-                source={{ uri: placeholderImageUrl }}
-                className="w-full h-full opacity-50"
-                resizeMode="cover"
-              />
-              <View className="absolute inset-0 items-center justify-center">
-                <Ionicons name="image-outline" size={48} color={isDark ? '#4b5563' : '#9ca3af'} />
-                <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  {t('feed.noImage') || 'Travel Image'}
-                </CustomText>
-              </View>
-            </View>
-          )}
-        </View>
-      </TouchableOpacity>
-
-      {/* Content */}
-      {item.content && (
-        <View className="px-4 pt-3 pb-2">
-          <CustomText className="text-base text-gray-800 dark:text-gray-200 leading-5">
-            {item.content}
-          </CustomText>
-        </View>
-      )}
-
-      {/* Latest Comments */}
-      {item.comments && item.comments.length > 0 && (
-        <View className="px-4 pt-2 pb-3 border-t border-gray-100 dark:border-neutral-800">
-          {item.comments.slice(0, 4).map((comment: any, index: number) => (
-            <View key={comment.id || index} className="mb-2 last:mb-0">
-              <View className="flex-row items-start">
-                <View className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-2 flex-shrink-0">
-                  {comment.user?.avatar ? (
-                    <Image
-                      source={{ uri: comment.user.avatar }}
-                      className="w-full h-full"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View className="w-full h-full items-center justify-center">
-                      <Ionicons name="person" size={12} color={isDark ? '#9ca3af' : '#6b7280'} />
-                    </View>
-                  )}
-                </View>
-                <View className="flex-1">
-                  <View className="flex-row items-center mb-0.5">
-                    <CustomText weight="medium" className="text-xs text-black dark:text-white mr-2">
-                      {comment.user?.name || 'Unknown'}
-                    </CustomText>
-                    <CustomText className="text-xs text-gray-400 dark:text-gray-500">
-                      {formatRelativeTime(comment.createdAt)}
-                    </CustomText>
-                  </View>
-                  <CustomText className="text-sm text-gray-700 dark:text-gray-300 leading-4">
-                    {comment.content}
-                  </CustomText>
-                </View>
-              </View>
-            </View>
-          ))}
-          {item.commentsCount > 4 && (
-            <TouchableOpacity
-              onPress={() => {
-                onComment();
-                onPostPress();
-              }}
-              className="mt-1"
-              activeOpacity={0.7}
-            >
-              <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-                {t('feed.viewAllComments', { count: item.commentsCount - 4 }) || `View ${item.commentsCount - 4} more comments`}
-              </CustomText>
-            </TouchableOpacity>
-          )}
-        </View>
-      )}
-
-      {/* Actions */}
-      <View className="flex-row items-center px-4 py-3 border-t border-gray-100 dark:border-neutral-800">
-        <TouchableOpacity 
-          onPress={handleLike} 
-          className="flex-row items-center mr-6"
-          activeOpacity={0.7}
-        >
-          <Ionicons 
-            name={hasLiked ? 'heart' : 'heart-outline'} 
-            size={24} 
-            color={hasLiked ? '#ef4444' : (isDark ? '#9ca3af' : '#6b7280')} 
-          />
-          <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-2 font-medium">
-            {item.reactionsCount || 0}
-          </CustomText>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          onPress={() => {
-            onComment();
-            onPostPress();
-          }} 
-          className="flex-row items-center mr-6"
-          activeOpacity={0.7}
-        >
-          <Ionicons 
-            name="chatbubble-outline" 
-            size={24} 
-            color={isDark ? '#9ca3af' : '#6b7280'} 
-          />
-          <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-2 font-medium">
-            {item.commentsCount || 0}
-          </CustomText>
-        </TouchableOpacity>
-        <View className="flex-1" />
-        <TouchableOpacity 
-          onPress={handleBookmark}
-          activeOpacity={0.7}
-          disabled={!onBookmark}
-        >
-          <Ionicons 
-            name={bookmarked ? 'bookmark' : 'bookmark-outline'} 
-            size={24} 
-            color={bookmarked ? '#f59e0b' : (isDark ? '#9ca3af' : '#6b7280')} 
-          />
-        </TouchableOpacity>
-      </View>
-
-    </View>
-  );
-};
 
 const timeFilters = [
   { id: 'all', label: 'allTime', days: null },
@@ -456,9 +51,6 @@ export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedTab, setSelectedTab] = useState('all');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
-  const [refreshing, setRefreshing] = useState(false);
-  const [offset, setOffset] = useState(0);
-  const [timeFilterOpen, setTimeFilterOpen] = useState(false);
   const limit = 20;
 
   const [showShareModal, setShowShareModal] = useState(false);
@@ -467,18 +59,13 @@ export default function HomeScreen() {
     setShowShareModal(true);
   };
 
-  // Reset offset when category, tab, or time filter changes
-  useEffect(() => {
-    setOffset(0);
-  }, [selectedCategory, selectedTab, selectedTimeFilter]);
-
   const { isOnline, isBackendReachable } = useSystemStatus();
   
   // Show offline icon if offline OR backend unreachable
   const isOffline = !isOnline || !isBackendReachable;
 
   // Calculate date filter based on time filter
-  const getDateFilter = () => {
+  const getDateFilter = useCallback(() => {
     if (selectedTimeFilter === 'all') return { after: undefined, before: undefined };
     const filter = timeFilters.find(f => f.id === selectedTimeFilter);
     if (!filter || !filter.days) return { after: undefined, before: undefined };
@@ -489,17 +76,17 @@ export default function HomeScreen() {
       after: after.toISOString(),
       before: undefined,
     };
-  };
+  }, [selectedTimeFilter]);
 
   // Determine post type based on selected tab
-  const getPostType = () => {
+  const getPostType = useCallback(() => {
     if (selectedTab === 'tours') return 'tour';
     if (selectedTab === 'places') return 'place';
     // For 'all' tab, use category filter if selected
     if (selectedCategory === 'trips') return 'trip';
     // For 'all' tab with no category or other categories (food, culture), show all
     return undefined;
-  };
+  }, [selectedTab, selectedCategory]);
 
   const dateFilter = getDateFilter();
   const postType = getPostType();
@@ -534,30 +121,35 @@ export default function HomeScreen() {
     return data?.getPosts?.posts || [];
   }, [data]);
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    setOffset(0);
-    try {
+  // Use refresh hook
+  const { refreshing, onRefresh } = useRefresh(async () => {
       await refetch();
-    } finally {
-      setRefreshing(false);
-    }
-  }, [refetch]);
+  });
 
-  const handleLoadMore = useCallback(() => {
-    if (!data?.getPosts?.hasNextPage || loading) return;
-    const newOffset = offset + limit;
-    setOffset(newOffset);
-    fetchMore({
-      variables: {
+  // Use infinite scroll hook
+  const { loadMore, reset } = useInfiniteScroll({
+    limit,
+    hasNextPage: data?.getPosts?.hasNextPage || false,
+    loading,
+    fetchMore,
+    getVariables: (newOffset) => ({
         type: postType,
         limit,
         offset: newOffset,
         after: dateFilter.after,
         before: dateFilter.before,
-      },
+    }),
     });
-  }, [data, offset, limit, loading, fetchMore, postType, dateFilter]);
+
+  // Reset offset when category, tab, or time filter changes
+  useEffect(() => {
+    reset();
+  }, [selectedCategory, selectedTab, selectedTimeFilter, reset]);
+
+  const handleRefresh = useCallback(async () => {
+    reset();
+    await onRefresh();
+  }, [onRefresh, reset]);
 
   const handleLike = useCallback(async (postId: string, currentReactions: any[] = []) => {
     if (!user?.id) return;
@@ -587,7 +179,7 @@ export default function HomeScreen() {
     } catch (error) {
       console.error('Reaction error:', error);
     }
-  }, [user?.id, createReaction, deleteReaction]);
+  }, [user, createReaction, deleteReaction]);
 
   const handleComment = (postId: string) => {
     router.push(`/(app)/(feed)/${postId}` as any);
@@ -664,82 +256,13 @@ export default function HomeScreen() {
           </CustomText>
           <View className="flex-row items-center gap-2">
             {/* Time Filter Dropdown */}
-            <View style={{ position: 'relative' }}>
-              <TouchableOpacity
-                onPress={() => setTimeFilterOpen(!timeFilterOpen)}
-                className="flex-row items-center px-3 py-1.5 rounded-full bg-gray-100 dark:bg-neutral-800"
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name="time-outline"
-                  size={18}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                />
-                <Ionicons
-                  name={timeFilterOpen ? 'chevron-up' : 'chevron-down'}
-                  size={14}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                  style={{ marginLeft: 4 }}
-                />
-              </TouchableOpacity>
-
-              {timeFilterOpen && (
-                <>
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={() => setTimeFilterOpen(false)}
-                    className="absolute -inset-96"
-                    style={{ zIndex: 998 }}
-                  />
-                  <View
-                    className="absolute z-50 mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900"
-                    style={{
-                      minWidth: 140,
-                      paddingVertical: 4,
-                      shadowColor: '#000',
-                      shadowOpacity: 0.15,
-                      shadowRadius: 8,
-                      shadowOffset: { width: 0, height: 4 },
-                      elevation: 6,
-                    }}
-                  >
-                    {timeFilters.map((filter) => (
-                      <TouchableOpacity
-                        key={filter.id}
-                        onPress={() => {
-                          setSelectedTimeFilter(filter.id);
-                          setTimeFilterOpen(false);
-                        }}
-                        className={`flex-row items-center px-3 py-2 ${
-                          selectedTimeFilter === filter.id
-                            ? 'bg-gray-50 dark:bg-neutral-800'
-                            : ''
-                        }`}
-                      >
-                        <CustomText
-                          weight={selectedTimeFilter === filter.id ? 'bold' : 'regular'}
-                          className={`text-sm ${
-                            selectedTimeFilter === filter.id
-                              ? 'text-primary'
-                              : 'text-gray-700 dark:text-gray-300'
-                          }`}
-                        >
-                          {t(`feed.timeFilters.${filter.label}`) || filter.label}
-                        </CustomText>
-                        {selectedTimeFilter === filter.id && (
-                          <Ionicons
-                            name="checkmark"
-                            size={16}
-                            color="#3b82f6"
-                            style={{ marginLeft: 'auto' }}
-                          />
-                        )}
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </>
-              )}
-            </View>
+            <Dropdown
+              options={timeFilters.map(f => ({ id: f.id, label: f.label }))}
+              value={selectedTimeFilter}
+              onChange={setSelectedTimeFilter}
+              icon="time-outline"
+              translationKey="feed.timeFilters"
+            />
 
             {/* Messages Icon */}
             <TouchableOpacity
@@ -769,46 +292,18 @@ export default function HomeScreen() {
           className="flex-row"
           contentContainerStyle={{ paddingLeft: 0, paddingRight: 0 }}
         >
-          {feedTabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              onPress={() => {
-                setSelectedTab(tab.id);
+          <TabBar
+            tabs={feedTabs}
+            activeTab={selectedTab}
+            onTabChange={(tabId) => {
+              setSelectedTab(tabId);
                 // Reset category when switching tabs (categories only work with 'all' tab)
-                if (tab.id !== 'all') {
+              if (tabId !== 'all') {
                   setSelectedCategory(null);
                 }
               }}
-              className={`flex-row items-center px-3 py-1.5 rounded-full mr-2 ${
-                selectedTab === tab.id
-                  ? 'bg-primary'
-                  : 'bg-gray-100 dark:bg-neutral-800'
-              }`}
-              activeOpacity={0.7}
-            >
-              <Ionicons
-                name={tab.icon as any}
-                size={16}
-                color={
-                  selectedTab === tab.id
-                    ? '#fff'
-                    : isDark
-                      ? '#9ca3af'
-                      : '#6b7280'
-                }
-              />
-              <CustomText
-                weight={selectedTab === tab.id ? 'bold' : 'regular'}
-                className={`ml-1.5 text-xs ${
-                  selectedTab === tab.id
-                    ? 'text-white'
-                    : 'text-gray-700 dark:text-gray-300'
-                }`}
-              >
-                {t(`feed.tabs.${tab.label}`) || tab.label}
-              </CustomText>
-            </TouchableOpacity>
-          ))}
+            variant="scrollable"
+          />
 
           {/* Category Pills - Only show when "All" tab is selected, inline with tabs */}
           {selectedTab === 'all' &&
@@ -860,8 +355,6 @@ export default function HomeScreen() {
         renderItem={({ item }) => (
           <FeedItem
             item={item}
-            isDark={isDark}
-            t={t}
             onLike={() => handleLike(item.id, item.reactions)}
             onComment={() => handleComment(item.id)}
             onShare={handleShare}
@@ -882,38 +375,25 @@ export default function HomeScreen() {
         )}
         refreshing={refreshing}
         onRefresh={handleRefresh}
-        onEndReached={handleLoadMore}
+        onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 4 }}
         ListEmptyComponent={
           loading ? (
-            <View className="flex-1 items-center justify-center py-16">
-              <CustomText className="text-gray-500 dark:text-gray-400">Loading...</CustomText>
-            </View>
+            <LoadingState message="Loading..." className="py-16" />
           ) : error ? (
-            <View className="flex-1 items-center justify-center px-6 py-12">
-              <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-              <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
-                {t('common.error')}
-              </CustomText>
-              <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
-                {String((error as any)?.message || 'Failed to load posts')}
-              </CustomText>
-            </View>
+            <ErrorState
+              title={t('common.error')}
+              message={String((error as any)?.message || 'Failed to load posts')}
+              onRetry={() => refetch()}
+            />
           ) : (
-            <View className="flex-1 items-center justify-center px-6 py-12">
-              <Ionicons name="newspaper-outline" size={80} color={isDark ? '#4b5563' : '#d1d5db'} />
-              <CustomText
-                weight="bold"
-                className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center"
-              >
-                {t('feed.emptyState') || 'No posts yet'}
-              </CustomText>
-              <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
-                {t('feed.emptyDescription') || 'Be the first to share something!'}
-              </CustomText>
-            </View>
+            <EmptyState
+              icon="newspaper-outline"
+              title={t('feed.emptyState') || 'No posts yet'}
+              description={t('feed.emptyDescription') || 'Be the first to share something!'}
+            />
           )
         }
       />

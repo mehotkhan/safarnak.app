@@ -22,7 +22,6 @@ import MapView from '@components/MapView';
 export default function PlaceDetailScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const router = useRouter();
   const { id } = useLocalSearchParams();
   const placeId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [showShareModal, setShowShareModal] = useState(false);

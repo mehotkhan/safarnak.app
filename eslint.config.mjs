@@ -61,7 +61,15 @@ export default [
     rules: {
       // TypeScript rules
       ...typescript.configs.recommended.rules,
-      '@typescript-eslint/no-unused-vars': 'off', // Disable unused vars check
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+        },
+      ], // Warn on unused vars, imports, and functions
       '@typescript-eslint/no-explicit-any': 'off', // Allow any type
       '@typescript-eslint/no-var-requires': 'off', // Allow require() for compatibility
       '@typescript-eslint/ban-ts-comment': 'off', // Allow @ts-ignore comments
@@ -87,6 +95,7 @@ export default [
       'import/order': 'off', // Disable for now due to resolver issues
       'import/no-unresolved': 'off', // TypeScript handles this
       'import/extensions': 'off',
+      'import/no-unused-modules': 'off', // Too strict for now
 
       // Accessibility rules (disabled for React Native)
       'jsx-a11y/accessible-emoji': 'off',

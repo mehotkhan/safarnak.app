@@ -4,8 +4,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
   Image,
   Alert,
   ActivityIndicator,
@@ -14,56 +12,16 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
-import CustomButton from '@components/ui/CustomButton';
+import { LoadingState } from '@components/ui/LoadingState';
+import { ErrorState } from '@components/ui/ErrorState';
+import { UserAvatar } from '@components/ui/UserAvatar';
+import { KeyboardAwareView } from '@components/ui/KeyboardAwareView';
 import Colors from '@constants/Colors';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetPostQuery, useCreateCommentMutation, useCreateReactionMutation, useDeleteReactionMutation, GetPostDocument, GetPostsDocument } from '@api';
 import { useAppSelector } from '@store/hooks';
-
-// Helper function to format relative time
-const formatRelativeTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  const now = new Date();
-  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-  
-  if (diffInSeconds < 60) return 'just now';
-  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-  if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d ago`;
-  return date.toLocaleDateString();
-};
-
-// Helper to get entity info
-const getEntityInfo = (post: any) => {
-  if (!post.relatedEntity) return { title: '', location: '', imageUrl: null, type: null, id: null };
-  
-  if (post.type === 'trip') {
-    return {
-      title: post.relatedEntity.destination || 'Trip',
-      location: post.relatedEntity.destination || '',
-      imageUrl: null,
-      type: 'trip',
-      id: post.relatedId,
-    };
-  } else if (post.type === 'tour') {
-    return {
-      title: post.relatedEntity.title || 'Tour',
-      location: post.relatedEntity.location || '',
-      imageUrl: post.relatedEntity.imageUrl || null,
-      type: 'tour',
-      id: post.relatedId,
-    };
-  } else if (post.type === 'place') {
-    return {
-      title: post.relatedEntity.name || 'Place',
-      location: post.relatedEntity.location || '',
-      imageUrl: post.relatedEntity.imageUrl || null,
-      type: 'place',
-      id: post.relatedId,
-    };
-  }
-  return { title: '', location: '', imageUrl: null, type: null, id: null };
-};
+import { useDateTime } from '@utils/datetime';
+import { getEntityInfo } from '@utils/entityInfo';
 
 export default function PostDetailScreen() {
   const { t } = useTranslation();
@@ -71,6 +29,7 @@ export default function PostDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const postId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
+  const { formatRelativeTime } = useDateTime();
   const [commentText, setCommentText] = useState('');
 
   const { data, loading, error, refetch } = useGetPostQuery({
@@ -125,15 +84,10 @@ export default function PostDetailScreen() {
 
   if (!post && !loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-black px-6">
-        <Ionicons name="alert-circle-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
-          {t('common.error') || 'Error'}
-        </CustomText>
-        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
-          Post not found
-        </CustomText>
-      </View>
+      <ErrorState
+        title={t('common.error') || 'Error'}
+        message="Post not found"
+      />
     );
   }
 
@@ -196,32 +150,21 @@ export default function PostDetailScreen() {
   };
 
   if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
-        <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-      </View>
-    );
+    return <LoadingState message={t('common.loading')} />;
   }
 
   if (error || !post) {
     return (
-      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-black">
-        <Ionicons name="alert-circle-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
-          {t('common.error') || 'Error'}
-        </CustomText>
-        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
-          {String((error as any)?.message || 'Post not found')}
-        </CustomText>
-      </View>
+      <ErrorState
+        title={t('common.error') || 'Error'}
+        message={String((error as any)?.message || 'Post not found')}
+        onRetry={() => refetch()}
+      />
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      className="flex-1 bg-white dark:bg-black"
-    >
+    <KeyboardAwareView className="flex-1 bg-white dark:bg-black">
       <Stack.Screen 
         options={{ 
           title: entityInfo?.title || post.content || t('common.post') || 'Post',
@@ -232,19 +175,7 @@ export default function PostDetailScreen() {
       <ScrollView className="flex-1">
         {/* User Header */}
         <View className="flex-row items-center px-4 py-4 border-b border-gray-200 dark:border-neutral-800">
-          <View className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
-            {post.user?.avatar ? (
-              <Image
-                source={{ uri: post.user.avatar }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="w-full h-full items-center justify-center">
-                <Ionicons name="person" size={24} color={isDark ? '#9ca3af' : '#6b7280'} />
-              </View>
-            )}
-          </View>
+          <UserAvatar avatar={post.user?.avatar} size={48} className="mr-3" />
           <View className="flex-1">
             <CustomText weight="bold" className="text-base text-black dark:text-white">
               {post.user?.name || 'Unknown User'}
@@ -259,7 +190,7 @@ export default function PostDetailScreen() {
                 </>
               )}
               <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
-                • {formatRelativeTime(post.createdAt)}
+                • {formatRelativeTime(post.createdAt, t)}
               </CustomText>
             </View>
           </View>
@@ -376,26 +307,14 @@ export default function PostDetailScreen() {
             post.comments.map((comment: any) => (
               <View key={comment.id} className="mb-4">
                 <View className="flex-row items-start">
-                  <View className="w-8 h-8 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
-                    {comment.user?.avatar ? (
-                      <Image
-                        source={{ uri: comment.user.avatar }}
-                        className="w-full h-full"
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View className="w-full h-full items-center justify-center">
-                        <Ionicons name="person" size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
-                      </View>
-                    )}
-                  </View>
+                  <UserAvatar avatar={comment.user?.avatar} size={32} className="mr-3" />
                   <View className="flex-1">
                     <View className="flex-row items-center mb-1">
                       <CustomText weight="bold" className="text-sm text-black dark:text-white mr-2">
                         {comment.user?.name || 'Unknown'}
                       </CustomText>
                       <CustomText className="text-xs text-gray-400 dark:text-gray-500">
-                        {formatRelativeTime(comment.createdAt)}
+                        {formatRelativeTime(comment.createdAt, t)}
                       </CustomText>
                     </View>
                     <CustomText className="text-sm text-gray-700 dark:text-gray-300">
@@ -439,6 +358,6 @@ export default function PostDetailScreen() {
           )}
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAwareView>
   );
 }

@@ -2,90 +2,27 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
 
 import { useGetTripsQuery, useMeQuery } from '@api';
 import { useTheme } from '@components/context/ThemeContext';
 import { CustomText } from '@components/ui/CustomText';
+import { ListItem } from '@components/ui/ListItem';
 import Colors from '@constants/Colors';
 import { useAppSelector } from '@store/hooks';
-
-// Safe Clipboard import - handle case where native module isn't available
-let Clipboard: any = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  Clipboard = require('expo-clipboard');
-} catch (error) {
-  console.warn('[Profile] Clipboard module not available:', error);
-}
+import { useDateTime } from '@utils/datetime';
+import { copyToClipboard } from '@utils/clipboard';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const appIcon = require('@assets/images/icon.png');
 
-interface MenuItemProps {
-  icon: any;
-  title: string;
-  subtitle?: string;
-  onPress: () => void;
-  isDark: boolean;
-  badge?: number;
-  color?: string;
-}
-
-const MenuItem = ({
-  icon,
-  title,
-  subtitle,
-  onPress,
-  isDark,
-  badge,
-  color = isDark ? '#9ca3af' : '#6b7280',
-}: MenuItemProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    className="flex-row items-center py-4 border-b border-gray-200 dark:border-neutral-800"
-  >
-    <View
-      className="w-10 h-10 rounded-full items-center justify-center mr-4"
-      style={{ backgroundColor: color + '20' }}
-    >
-      <Ionicons name={icon} size={20} color={color} />
-    </View>
-    <View className="flex-1">
-      <CustomText
-        weight="medium"
-        className="text-base text-black dark:text-white"
-      >
-        {title}
-      </CustomText>
-      {subtitle && (
-        <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {subtitle}
-        </CustomText>
-      )}
-    </View>
-    {badge !== undefined && badge > 0 && (
-      <View className="w-6 h-6 bg-red-500 rounded-full items-center justify-center mr-3">
-        <CustomText className="text-xs text-white" weight="bold">
-          {badge > 9 ? '9+' : badge}
-        </CustomText>
-      </View>
-    )}
-    <Ionicons
-      name="chevron-forward"
-      size={20}
-      color={isDark ? '#666' : '#9ca3af'}
-    />
-  </TouchableOpacity>
-);
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
   const { user: reduxUser } = useAppSelector(state => state.auth);
-  
-  const [isPublicKeyExpanded, setIsPublicKeyExpanded] = useState(false);
+  const { formatDate } = useDateTime();
   
   // Fetch real user data
   const { data: meData, loading: meLoading } = useMeQuery({
@@ -150,45 +87,6 @@ export default function ProfileScreen() {
     router.push('/(app)/(profile)/bookmarks' as any);
   };
 
-  const copyToClipboard = async (text: string, label: string) => {
-    try {
-      if (!Clipboard) {
-        // Fallback: show text in alert if clipboard isn't available
-        Alert.alert(
-          label,
-          text,
-          [{ text: t('common.ok') || 'OK' }]
-        );
-        return;
-      }
-      await Clipboard.setStringAsync(text);
-      Alert.alert(
-        t('common.success'),
-        t('profile.copiedToClipboard', { label }) || `${label} copied to clipboard`
-      );
-    } catch (error) {
-      console.error('Failed to copy:', error);
-      // Fallback: show text in alert on error
-      Alert.alert(
-        label,
-        text,
-        [{ text: t('common.ok') || 'OK' }]
-      );
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString(undefined, {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      });
-    } catch {
-      return dateString;
-    }
-  };
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -316,7 +214,7 @@ export default function ProfileScreen() {
                   {t('profile.userId') || 'User ID'}
                 </CustomText>
                 <TouchableOpacity
-                  onPress={() => copyToClipboard(user.id, 'User ID')}
+                  onPress={() => copyToClipboard(user.id, 'User ID', t)}
                   activeOpacity={0.7}
                   className="flex-row items-center"
                 >
@@ -336,7 +234,7 @@ export default function ProfileScreen() {
                     {t('profile.memberSince') || 'Member Since'}
                   </CustomText>
                   <CustomText className="text-sm text-gray-800 dark:text-gray-200">
-                    {formatDate(user.createdAt)}
+                    {formatDate(user.createdAt, 'long')}
                   </CustomText>
                 </View>
               )}
@@ -349,38 +247,34 @@ export default function ProfileScreen() {
         {/* Menu - Simplified, no groupings */}
         <View className="px-6 pb-4">
           <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
-            <MenuItem
+            <ListItem
               icon="bookmark-outline"
               title={t('profile.bookmarksTitle')}
               subtitle={t('profile.bookmarksSubtitle')}
               onPress={handleBookmarks}
-              isDark={isDark}
-              color={isDark ? Colors.dark.primary : Colors.light.primary}
+              iconColor={isDark ? Colors.dark.primary : Colors.light.primary}
             />
-            <MenuItem
+            <ListItem
               icon="mail-outline"
               title={t('me.messages')}
               subtitle={t('me.messagesSubtitle')}
               onPress={handleMessages}
-              isDark={isDark}
               badge={3}
-              color={isDark ? Colors.dark.primary : Colors.light.primary}
+              iconColor={isDark ? Colors.dark.primary : Colors.light.primary}
             />
-            <MenuItem
+            <ListItem
               icon="settings-outline"
               title={t('profile.settings')}
               subtitle={t('settings.subtitle')}
               onPress={handleSettings}
-              isDark={isDark}
-              color={isDark ? Colors.dark.primary : Colors.light.primary}
+              iconColor={isDark ? Colors.dark.primary : Colors.light.primary}
             />
-            <MenuItem
+            <ListItem
               icon="card-outline"
               title={t('me.payments')}
               subtitle={t('me.paymentsSubtitle')}
               onPress={() => router.push('/(app)/(profile)/payments' as any)}
-              isDark={isDark}
-              color={isDark ? Colors.dark.primary : Colors.light.primary}
+              iconColor={isDark ? Colors.dark.primary : Colors.light.primary}
             />
           </View>
           <View className="h-8" />

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   Alert,
   Image,
-  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
@@ -13,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { CustomText } from '@components/ui/CustomText';
+import { ListItem } from '@components/ui/ListItem';
 import InputField from '@components/ui/InputField';
 import TextArea from '@components/ui/TextArea';
 import CustomButton from '@components/ui/CustomButton';
@@ -20,77 +20,18 @@ import { useTheme } from '@components/context/ThemeContext';
 import { useAppSelector } from '@store/hooks';
 import { useMeQuery, useUpdateUserMutation } from '@api';
 import Colors from '@constants/Colors';
+import { useDateTime } from '@utils/datetime';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const appIcon = require('@assets/images/icon.png');
 
-interface AccountRowProps {
-  icon: any;
-  title: string;
-  subtitle?: string;
-  onPress?: () => void;
-  isDark: boolean;
-  variant?: 'default' | 'danger';
-}
-
-const AccountRow = ({ 
-  icon, 
-  title, 
-  subtitle, 
-  onPress, 
-  isDark,
-  variant = 'default',
-}: AccountRowProps) => {
-  const color = variant === 'danger' 
-    ? '#ef4444' 
-    : (isDark ? Colors.dark.primary : Colors.light.primary);
-    
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={!onPress}
-      className="flex-row items-center py-4 border-b border-gray-200 dark:border-neutral-800"
-    >
-      <View
-        className="w-10 h-10 rounded-full items-center justify-center mr-3"
-        style={{ backgroundColor: color + '20' }}
-      >
-        <Ionicons name={icon} size={20} color={color} />
-      </View>
-      <View className="flex-1">
-        <CustomText
-          weight="medium"
-          className={`text-base ${
-            variant === 'danger' 
-              ? 'text-red-600 dark:text-red-400' 
-              : 'text-black dark:text-white'
-          }`}
-        >
-          {title}
-        </CustomText>
-        {subtitle && (
-          <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {subtitle}
-          </CustomText>
-        )}
-      </View>
-      {onPress && (
-        <Ionicons
-          name="chevron-forward"
-          size={20}
-          color={isDark ? '#666' : '#9ca3af'}
-        />
-      )}
-    </TouchableOpacity>
-  );
-};
 
 export default function AccountScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const router = useRouter();
   const params = useLocalSearchParams<{ edit?: string }>();
   const { user: reduxUser } = useAppSelector(state => state.auth);
+  const { formatDate } = useDateTime();
   const [isEditing, setIsEditing] = useState(params.edit === 'true');
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -427,7 +368,7 @@ export default function AccountScreen() {
                   </CustomText>
                   <CustomText weight="medium" className="text-base text-black dark:text-white">
                     {user?.createdAt 
-                      ? new Date(user.createdAt).toLocaleDateString()
+                      ? formatDate(user.createdAt, 'medium')
                       : t('common.notAvailable')}
                   </CustomText>
                 </View>
@@ -437,23 +378,23 @@ export default function AccountScreen() {
             {/* Account Actions */}
             <View className="mb-4">
               <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
-                <AccountRow
+                <ListItem
                   icon="lock-closed-outline"
                   title={t('profile.account.changePassword', { defaultValue: 'Change Password' })}
                   subtitle={t('profile.account.changePasswordSubtitle', { 
                     defaultValue: 'Update your password' 
                   })}
                   onPress={handleChangePassword}
-                  isDark={isDark}
+                  iconColor={isDark ? Colors.dark.primary : Colors.light.primary}
                 />
-                <AccountRow
+                <ListItem
                   icon="mail-outline"
                   title={t('profile.account.changeEmail', { defaultValue: 'Change Email' })}
                   subtitle={t('profile.account.changeEmailSubtitle', { 
                     defaultValue: 'Update your email address' 
                   })}
                   onPress={handleChangeEmail}
-                  isDark={isDark}
+                  iconColor={isDark ? Colors.dark.primary : Colors.light.primary}
                 />
               </View>
             </View>
@@ -461,14 +402,13 @@ export default function AccountScreen() {
             {/* Danger Zone */}
             <View className="mb-4">
               <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
-                <AccountRow
+                <ListItem
                   icon="trash-outline"
                   title={t('profile.account.deleteAccount', { defaultValue: 'Delete Account' })}
                   subtitle={t('profile.account.deleteAccountSubtitle', { 
                     defaultValue: 'Permanently delete your account and all data' 
                   })}
                   onPress={handleDeleteAccount}
-                  isDark={isDark}
                   variant="danger"
                 />
               </View>

@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
+import { RatingDisplay } from '@components/ui/RatingDisplay';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetTourQuery } from '@api';
@@ -141,18 +142,13 @@ export default function TourDetailScreen() {
 
           {/* Rating and Duration */}
           <View className="flex-row items-center mb-4">
-            <View className="flex-row items-center mr-4">
-              <Ionicons name="star" size={18} color="#fbbf24" />
-              <CustomText
-                weight="medium"
-                className="text-base text-gray-700 dark:text-gray-300 ml-1"
-              >
-                {tour.rating?.toFixed(1) || '0.0'}
-              </CustomText>
-              <CustomText className="text-sm text-gray-500 dark:text-gray-500 ml-1">
-                ({tour.reviews || 0})
-              </CustomText>
-            </View>
+            <RatingDisplay
+              rating={tour.rating || 0}
+              reviews={tour.reviews}
+              size="medium"
+              showReviews
+              className="mr-4"
+            />
             <View className="flex-row items-center">
               <Ionicons
                 name="time-outline"

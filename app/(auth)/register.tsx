@@ -2,6 +2,7 @@ import { generateRandomName } from '@/utils/nameGenerator';
 import { useLanguage } from '@components/context/LanguageContext';
 import CustomButton from '@components/ui/CustomButton';
 import { CustomText } from '@components/ui/CustomText';
+import { InfoBanner } from '@components/ui/InfoBanner';
 import InputField from '@components/ui/InputField';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
@@ -205,20 +206,13 @@ export default function RegisterScreen() {
           </View>
 
           {/* Auth Info Section */}
-          <View className="bg-blue-50 border border-blue-200 rounded-lg px-4 py-3 mb-4">
-            <View className="flex-row items-start mb-2">
-              <Ionicons name="information-circle" size={20} color="#3b82f6" style={{ marginRight: 8, marginTop: 2 }} />
-              <View className="flex-1">
-                <CustomText weight="bold" style={{ color: '#1e40af', fontSize: 14, marginBottom: 4 }}>
-                  {t('register.authInfo.title') || 'How Our Auth Works'}
-                </CustomText>
-                <CustomText style={{ color: '#1e3a8a', fontSize: 12, lineHeight: 18 }}>
-                  {t('register.authInfo.description') || 
-                    'We use cryptographic key pairs for secure authentication. Your identity is protected by RSA encryption, ensuring privacy and security across all devices.'}
-                </CustomText>
-              </View>
-            </View>
-          </View>
+          <InfoBanner
+            type="info"
+            title={t('register.authInfo.title') || 'How Our Auth Works'}
+            message={t('register.authInfo.description') || 
+              'We use cryptographic key pairs for secure authentication. Your identity is protected by RSA encryption, ensuring privacy and security across all devices.'}
+            className="mb-4"
+          />
 
           <View className="w-full">
             {/* Display Name Input + Generate Button Row */}

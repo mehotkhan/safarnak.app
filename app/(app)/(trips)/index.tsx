@@ -11,246 +11,13 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { TripCard, TourCard, PlaceCard, LocationCard } from '@components/cards';
+import { TabBar } from '@components/ui/TabBar';
 import { useGetTripsQuery, useGetToursQuery, useGetPlacesQuery, useGetLocationsQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
 
 type TabType = 'trips' | 'tours' | 'places' | 'locations';
-
-// Trip Card Component (existing)
-interface TripCardProps {
-  trip: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const TripCard = ({ trip, onPress, isDark, t }: TripCardProps) => {
-  const statusColor =
-    trip?.status === 'in_progress'
-      ? 'bg-blue-100 dark:bg-blue-900'
-      : 'bg-green-100 dark:bg-green-900';
-  const statusTextColor =
-    trip?.status === 'in_progress'
-      ? 'text-blue-800 dark:text-blue-200'
-      : 'text-green-800 dark:text-green-200';
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {trip?.destination || '—'}
-          </CustomText>
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {(trip?.startDate as string) || '—'} - {(trip?.endDate as string) || '—'}
-          </CustomText>
-        </View>
-        <View className={`px-3 py-1 rounded-full ${statusColor}`}>
-          <CustomText className={`text-xs ${statusTextColor}`}>
-            {t(`plan.${trip?.status === 'in_progress' ? 'inProgress' : 'completed'}`)}
-          </CustomText>
-        </View>
-      </View>
-
-      <View className="flex-row items-center mb-2">
-        <Ionicons
-          name="people-outline"
-          size={16}
-          color={isDark ? '#9ca3af' : '#6b7280'}
-        />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {trip?.travelers ?? 1} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
-        </CustomText>
-        <Ionicons
-          name="wallet-outline"
-          size={16}
-          color={isDark ? '#9ca3af' : '#6b7280'}
-          style={{ marginLeft: 16 }}
-        />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {trip?.budget ? `$${trip.budget}` : '—'}
-        </CustomText>
-      </View>
-
-      <CustomText className="text-sm text-gray-500 dark:text-gray-500">
-        {trip?.preferences || '—'}
-      </CustomText>
-    </TouchableOpacity>
-  );
-};
-
-// Tour Card Component
-interface TourCardProps {
-  tour: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {tour?.title || '—'}
-          </CustomText>
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {tour?.location || '—'}
-          </CustomText>
-        </View>
-        <View className="px-3 py-1 rounded-full bg-primary/10">
-          <CustomText className="text-xs text-primary">
-            ${typeof tour?.price === 'number' ? tour.price.toFixed(0) : '0'}
-          </CustomText>
-        </View>
-      </View>
-
-      <View className="flex-row items-center mb-2">
-        <Ionicons
-          name="time-outline"
-          size={16}
-          color={isDark ? '#9ca3af' : '#6b7280'}
-        />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {tour?.duration || 0} {tour?.durationType || 'days'}
-        </CustomText>
-        <Ionicons
-          name="star-outline"
-          size={16}
-          color={isDark ? '#9ca3af' : '#6b7280'}
-          style={{ marginLeft: 16 }}
-        />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {typeof tour?.rating === 'number' ? tour.rating.toFixed(1) : '0.0'} ({tour?.reviews || 0})
-        </CustomText>
-      </View>
-
-      <CustomText className="text-sm text-gray-500 dark:text-gray-500" numberOfLines={2}>
-        {tour?.description || tour?.shortDescription || '—'}
-      </CustomText>
-    </TouchableOpacity>
-  );
-};
-
-// Location Card Component
-interface LocationCardProps {
-  location: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const LocationCard = ({ location, onPress, isDark, t }: LocationCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {location?.name || '—'}
-          </CustomText>
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {location?.country || '—'}
-          </CustomText>
-        </View>
-      </View>
-
-      {location?.description && (
-        <CustomText className="text-sm text-gray-500 dark:text-gray-500" numberOfLines={2}>
-          {location.description}
-        </CustomText>
-      )}
-
-      {location?.popularActivities && location.popularActivities.length > 0 && (
-        <View className="flex-row flex-wrap mt-2">
-          {location.popularActivities.slice(0, 3).map((activity: string, index: number) => (
-            <View key={index} className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded-full mr-2 mb-2">
-              <CustomText className="text-xs text-gray-600 dark:text-gray-400">
-                {activity}
-              </CustomText>
-            </View>
-          ))}
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
-
-// Place Card Component
-interface PlaceCardProps {
-  place: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const PlaceCard = ({ place, onPress, isDark, t }: PlaceCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {place?.name || '—'}
-          </CustomText>
-          <View className="flex-row items-center">
-            <Ionicons
-              name="location-outline"
-              size={16}
-              color={isDark ? '#9ca3af' : '#6b7280'}
-            />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-              {place?.location || '—'}
-            </CustomText>
-          </View>
-        </View>
-        <View className="flex-row items-center">
-          <Ionicons name="star" size={16} color="#fbbf24" />
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-            {typeof place?.rating === 'number' ? place.rating.toFixed(1) : '0.0'}
-          </CustomText>
-        </View>
-      </View>
-
-      <CustomText className="text-sm text-gray-500 dark:text-gray-500" numberOfLines={2}>
-        {place?.description || '—'}
-      </CustomText>
-
-      {place?.isOpen !== undefined && (
-        <View className="flex-row items-center mt-2">
-          <View className={`w-2 h-2 rounded-full mr-2 ${place.isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
-          <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-            {place.isOpen ? (t('places.open') || 'Open') : (t('places.closed') || 'Closed')}
-          </CustomText>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
 
 export default function PlanScreen() {
   const { t } = useTranslation();
@@ -341,7 +108,7 @@ export default function PlanScreen() {
   const myPlaces = useMemo(() => {
     if (!user?.id) return [];
     return allPlaces.filter((place: any) => place.ownerId === user.id);
-  }, [allPlaces, user?.id]);
+  }, [allPlaces, user?.id]); 
 
   // Loading and error states
   const currentLoading = activeTab === 'trips' ? tripsLoading : activeTab === 'tours' ? toursLoading : activeTab === 'places' ? placesLoading : activeTab === 'locations' ? locationsLoading : false;
@@ -482,20 +249,17 @@ export default function PlanScreen() {
           
           if (activeTab === 'trips') {
             return (
-          <TripCard
-            trip={item}
-            onPress={() => handleTripPress(item.id)}
-            isDark={isDark}
-            t={t}
-          />
+              <TripCard
+                trip={item}
+                onPress={() => handleTripPress(item.id)}
+              />
             );
           } else if (activeTab === 'tours') {
             return (
               <TourCard
                 tour={item}
                 onPress={() => handleTourPress(item.id)}
-                isDark={isDark}
-                t={t}
+                variant="compact"
               />
             );
           } else if (activeTab === 'places') {
@@ -503,8 +267,7 @@ export default function PlanScreen() {
               <PlaceCard
                 place={item}
                 onPress={() => handlePlacePress(item.id)}
-                isDark={isDark}
-                t={t}
+                variant="compact"
               />
             );
           } else if (activeTab === 'locations') {
@@ -512,8 +275,6 @@ export default function PlanScreen() {
               <LocationCard
                 location={item}
                 onPress={() => handleLocationPress(item.id)}
-                isDark={isDark}
-                t={t}
               />
             );
           }
@@ -540,30 +301,15 @@ export default function PlanScreen() {
             </CustomText>
 
         {/* Tabs */}
-        <View className="flex-row bg-gray-100 dark:bg-neutral-900 rounded-xl p-1">
-          {(['trips', 'tours', 'places', 'locations'] as TabType[]).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-lg ${
-                activeTab === tab
-                  ? 'bg-white dark:bg-neutral-800'
-                  : ''
-              }`}
-            >
-              <CustomText
-                weight={activeTab === tab ? 'medium' : 'regular'}
-                className={`text-center text-xs ${
-                  activeTab === tab
-                    ? 'text-primary'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {t(`trips.tabs.${tab}`) || t(`explore.categories.${tab}`) || tab}
-              </CustomText>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <TabBar
+          tabs={(['trips', 'tours', 'places', 'locations'] as TabType[]).map(tab => ({
+            id: tab,
+            label: tab,
+          }))}
+          activeTab={activeTab}
+          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          variant="segmented"
+        />
       </View>
 
       {/* Content */}

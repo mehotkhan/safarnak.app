@@ -11,74 +11,15 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { TourCard } from '@components/cards';
 import { useGetToursQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
-
-interface TourCardProps {
-  tour: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {tour?.title || '—'}
-          </CustomText>
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {tour?.location || '—'}
-          </CustomText>
-        </View>
-        <View className="px-3 py-1 rounded-full bg-primary/10">
-          <CustomText className="text-xs text-primary">
-            ${tour?.price?.toFixed(0) || 0}
-          </CustomText>
-        </View>
-      </View>
-
-      <View className="flex-row items-center mb-2">
-        <Ionicons
-          name="time-outline"
-          size={16}
-          color={isDark ? '#9ca3af' : '#6b7280'}
-        />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {tour?.duration || 0} {tour?.durationType || 'days'}
-        </CustomText>
-        <Ionicons
-          name="star-outline"
-          size={16}
-          color={isDark ? '#9ca3af' : '#6b7280'}
-          style={{ marginLeft: 16 }}
-        />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-          {tour?.rating?.toFixed(1) || '0.0'} ({tour?.reviews || 0})
-        </CustomText>
-      </View>
-
-      <CustomText className="text-sm text-gray-500 dark:text-gray-500" numberOfLines={2}>
-        {tour?.description || tour?.shortDescription || '—'}
-      </CustomText>
-    </TouchableOpacity>
-  );
-};
 
 export default function ToursManagementScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const { user } = useAppSelector(state => state.auth);
   const [refreshing, setRefreshing] = useState(false);
 
   const { data, loading, error, refetch } = useGetToursQuery({
@@ -158,8 +99,7 @@ export default function ToursManagementScreen() {
             <TourCard
               tour={item}
               onPress={() => handleTourPress(item.id)}
-              isDark={isDark}
-              t={t}
+              variant="compact"
             />
           )}
           refreshing={refreshing}

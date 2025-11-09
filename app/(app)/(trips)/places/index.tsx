@@ -10,65 +10,10 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { PlaceCard } from '@components/cards';
 import { useGetPlacesQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
-
-interface PlaceCardProps {
-  place: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const PlaceCard = ({ place, onPress, isDark, t }: PlaceCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {place?.name || '—'}
-          </CustomText>
-          <View className="flex-row items-center">
-            <Ionicons
-              name="location-outline"
-              size={16}
-              color={isDark ? '#9ca3af' : '#6b7280'}
-            />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
-              {place?.location || '—'}
-            </CustomText>
-          </View>
-        </View>
-        <View className="flex-row items-center">
-          <Ionicons name="star" size={16} color="#fbbf24" />
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-            {place?.rating?.toFixed(1) || '0.0'}
-          </CustomText>
-        </View>
-      </View>
-
-      <CustomText className="text-sm text-gray-500 dark:text-gray-500" numberOfLines={2}>
-        {place?.description || '—'}
-      </CustomText>
-
-      {place?.isOpen !== undefined && (
-        <View className="flex-row items-center mt-2">
-          <View className={`w-2 h-2 rounded-full mr-2 ${place.isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
-          <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-            {place.isOpen ? (t('places.open') || 'Open') : (t('places.closed') || 'Closed')}
-          </CustomText>
-        </View>
-      )}
-    </TouchableOpacity>
-  );
-};
 
 export default function PlacesManagementScreen() {
   const { t } = useTranslation();
@@ -154,8 +99,7 @@ export default function PlacesManagementScreen() {
             <PlaceCard
               place={item}
               onPress={() => handlePlacePress(item.id)}
-              isDark={isDark}
-              t={t}
+              variant="compact"
             />
           )}
           refreshing={refreshing}

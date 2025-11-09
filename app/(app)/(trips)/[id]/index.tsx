@@ -4,10 +4,8 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
-  Share,
   ActivityIndicator,
   RefreshControl,
-  KeyboardAvoidingView,
   Platform,
   Keyboard,
 } from 'react-native';
@@ -17,6 +15,7 @@ import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { CustomText } from '@components/ui/CustomText';
+import { ProgressBar } from '@components/ui/ProgressBar';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 import MapView from '@components/MapView';
@@ -414,20 +413,12 @@ export default function TripDetailScreen() {
                   {/* Workflow Progress Bar - Show when we have step data from subscription */}
                   {currentStep !== null && totalSteps !== null && (
                     <View className="mt-2">
-                      <View className="flex-row items-center justify-between mb-1">
-                        <CustomText className="text-xs text-yellow-700 dark:text-yellow-300">
-                          {t('plan.form.step')} {currentStep} {t('common.of')} {totalSteps}
-                        </CustomText>
-                        <CustomText className="text-xs text-yellow-700 dark:text-yellow-300">
-                          {Math.round((currentStep / totalSteps) * 100)}%
-                        </CustomText>
-                      </View>
-                      <View className="h-2 bg-yellow-200 dark:bg-yellow-800 rounded-full overflow-hidden">
-                        <View
-                          className="h-full bg-yellow-500 dark:bg-yellow-400 rounded-full transition-all"
-                          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                        />
-                      </View>
+                      <ProgressBar
+                        current={currentStep}
+                        total={totalSteps}
+                        showLabel
+                        color={isDark ? '#fbbf24' : '#f59e0b'}
+                      />
                     </View>
                   )}
                   

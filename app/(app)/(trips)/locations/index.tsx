@@ -10,44 +10,9 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { LocationCard } from '@components/cards';
 import { useGetLocationsQuery } from '@api';
 import Colors from '@constants/Colors';
-
-interface LocationCardProps {
-  location: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const LocationCard = ({ location, onPress, isDark, t }: LocationCardProps) => {
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800"
-    >
-      <View className="flex-row justify-between items-start mb-3">
-        <View className="flex-1">
-          <CustomText
-            weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
-          >
-            {location?.name || '—'}
-          </CustomText>
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {location?.country || '—'}
-          </CustomText>
-        </View>
-      </View>
-
-      {location?.description && (
-        <CustomText className="text-sm text-gray-500 dark:text-gray-500" numberOfLines={2}>
-          {location.description}
-        </CustomText>
-      )}
-    </TouchableOpacity>
-  );
-};
 
 export default function LocationsManagementScreen() {
   const { t } = useTranslation();
@@ -144,8 +109,6 @@ export default function LocationsManagementScreen() {
             <LocationCard
               location={item}
               onPress={() => handleLocationPress(item.id)}
-              isDark={isDark}
-              t={t}
             />
           )}
           refreshing={refreshing}

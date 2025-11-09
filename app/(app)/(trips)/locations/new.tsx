@@ -3,7 +3,6 @@ import {
   View,
   ScrollView,
   Alert,
-  ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';

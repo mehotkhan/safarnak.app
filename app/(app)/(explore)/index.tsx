@@ -1,370 +1,28 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   View,
-  ScrollView,
-  TouchableOpacity,
   FlatList,
-  TextInput,
-  Image,
-  ActivityIndicator,
   RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
+import { LoadingState } from '@components/ui/LoadingState';
+import { ErrorState } from '@components/ui/ErrorState';
+import { EmptyState } from '@components/ui/EmptyState';
+import { TourCard, PlaceCard, PostCard } from '@components/cards';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetToursQuery, useGetPlacesQuery, useGetPostsQuery } from '@api';
 import FilterModal, { TourFilters, PlaceFilters, PostFilters } from '@components/ui/FilterModal';
+import { useDebounce } from '@hooks/useDebounce';
+import { useRefresh } from '@hooks/useRefresh';
+import { TabBar } from '@components/ui/TabBar';
+import { SearchBar } from '@components/ui/SearchBar';
 
 type TabType = 'tours' | 'places' | 'posts';
 
-// Debounce hook
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState<T>(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
-}
-
-// Tour Card Component
-interface TourCardProps {
-  tour: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const TourCard = ({ tour, onPress, isDark, t }: TourCardProps) => {
-  const imageUrl = tour.imageUrl || tour.gallery?.[0] || 'https://via.placeholder.com/400x300';
-  
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-4 border border-gray-200 dark:border-neutral-800"
-      activeOpacity={0.8}
-    >
-      <View className="h-48 bg-gray-200 dark:bg-neutral-800 relative">
-        <Image
-          source={{ uri: imageUrl }}
-          className="w-full h-full"
-          resizeMode="cover"
-        />
-        {tour.isFeatured && (
-          <View className="absolute top-2 right-2 bg-primary px-2 py-1 rounded-full">
-            <CustomText className="text-xs text-white" weight="medium">
-              {t('explore.featured')}
-            </CustomText>
-          </View>
-        )}
-        {tour.category && (
-          <View className="absolute top-2 left-2 bg-black/50 px-2 py-1 rounded-full">
-            <CustomText className="text-xs text-white">
-              {t(`explore.categories.${tour.category}`)}
-            </CustomText>
-          </View>
-        )}
-      </View>
-      <View className="p-4">
-        <CustomText
-          weight="bold"
-          className="text-lg text-black dark:text-white mb-1"
-          numberOfLines={2}
-        >
-          {tour.title || 'Untitled Tour'}
-        </CustomText>
-        <View className="flex-row items-center mb-2">
-          <Ionicons
-            name="location-outline"
-            size={14}
-            color={isDark ? '#9ca3af' : '#6b7280'}
-          />
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1" numberOfLines={1}>
-            {tour.location || 'Location not specified'}
-          </CustomText>
-        </View>
-        <View className="flex-row items-center justify-between mb-2">
-          <View className="flex-row items-center">
-            <Ionicons name="star" size={16} color="#fbbf24" />
-            <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-1">
-              {tour.rating?.toFixed(1) || '0.0'} ({tour.reviews || 0} {t('explore.tourCard.reviews')})
-            </CustomText>
-          </View>
-          <CustomText weight="bold" className="text-base text-primary">
-            {t('explore.tourCard.from')} ${tour.price?.toFixed(0) || '0'}
-          </CustomText>
-        </View>
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <Ionicons
-              name="time-outline"
-              size={14}
-              color={isDark ? '#9ca3af' : '#6b7280'}
-            />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-              {tour.duration || 0} {tour.durationType === 'days' ? t('explore.tourCard.days') : tour.durationType === 'hours' ? t('explore.tourCard.hours') : ''}
-            </CustomText>
-          </View>
-          {tour.difficulty && (
-            <View className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded-full">
-              <CustomText className="text-xs text-gray-600 dark:text-gray-400">
-                {t(`explore.filters.${tour.difficulty}`)}
-              </CustomText>
-            </View>
-          )}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// Place Card Component
-interface PlaceCardProps {
-  place: any;
-  onPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const PlaceCard = ({ place, onPress, isDark, t }: PlaceCardProps) => {
-  const imageUrl = place.imageUrl || 'https://via.placeholder.com/400x300';
-  
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-3 border border-gray-200 dark:border-neutral-800"
-      activeOpacity={0.8}
-    >
-      <View className="flex-row">
-        <View className="w-24 h-24 bg-gray-200 dark:bg-neutral-800">
-          <Image
-            source={{ uri: imageUrl }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        </View>
-        <View className="flex-1 p-3">
-          <View className="flex-row justify-between items-start mb-1">
-            <View className="flex-1 mr-2">
-              <CustomText
-                weight="bold"
-                className="text-base text-black dark:text-white mb-1"
-                numberOfLines={1}
-              >
-                {place.name || 'Unnamed Place'}
-              </CustomText>
-              <View className="flex-row items-center mb-1">
-                <Ionicons
-                  name="location-outline"
-                  size={12}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                />
-                <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1" numberOfLines={1}>
-                  {place.location || 'Location not specified'}
-                </CustomText>
-              </View>
-            </View>
-            <View
-              className={`px-2 py-1 rounded-full ${
-                place.isOpen
-                  ? 'bg-green-100 dark:bg-green-900'
-                  : 'bg-red-100 dark:bg-red-900'
-              }`}
-            >
-              <CustomText
-                className={`text-xs ${
-                  place.isOpen
-                    ? 'text-green-800 dark:text-green-200'
-                    : 'text-red-800 dark:text-red-200'
-                }`}
-              >
-                {place.isOpen ? t('explore.placeCard.open') : t('explore.placeCard.closed')}
-              </CustomText>
-            </View>
-          </View>
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center">
-              <Ionicons name="star" size={14} color="#fbbf24" />
-              <CustomText className="text-xs text-gray-700 dark:text-gray-300 ml-1">
-                {place.rating?.toFixed(1) || '0.0'} ({place.reviews || 0})
-              </CustomText>
-            </View>
-            {place.distance != null && typeof place.distance === 'number' && (
-              <CustomText className="text-xs text-gray-600 dark:text-gray-400">
-                {place.distance.toFixed(1)} {t('explore.placeCard.distance')}
-              </CustomText>
-            )}
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-// Post Card Component
-interface PostCardProps {
-  post: any;
-  onPress: () => void;
-  onUserPress: () => void;
-  isDark: boolean;
-  t: any;
-}
-
-const PostCard = ({ post, onPress, onUserPress, isDark, t }: PostCardProps) => {
-  const formatRelativeTime = (dateString: string): string => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
-    
-    if (diffInSeconds < 60) return t('explore.posts.justNow');
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}${t('explore.posts.minutesAgo')}`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}${t('explore.posts.hoursAgo')}`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}${t('explore.posts.daysAgo')}`;
-    return date.toLocaleDateString();
-  };
-
-  const getEntityInfo = () => {
-    if (!post.relatedEntity) return null;
-    
-    if (post.type === 'trip') {
-      return {
-        title: post.relatedEntity.destination || 'Trip',
-        imageUrl: null,
-      };
-    } else if (post.type === 'tour') {
-      return {
-        title: post.relatedEntity.title || 'Tour',
-        imageUrl: post.relatedEntity.imageUrl || null,
-      };
-    } else if (post.type === 'place') {
-      return {
-        title: post.relatedEntity.name || 'Place',
-        imageUrl: post.relatedEntity.imageUrl || null,
-      };
-    }
-    return null;
-  };
-
-  const entityInfo = getEntityInfo();
-  const hasImage = post.attachments?.[0] || entityInfo?.imageUrl;
-
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-3 border border-gray-200 dark:border-neutral-800"
-      activeOpacity={0.8}
-    >
-      {/* Header */}
-      <View className="flex-row items-center p-3 border-b border-gray-100 dark:border-neutral-800">
-        <TouchableOpacity onPress={onUserPress} className="flex-row items-center flex-1">
-          {post.user?.avatar ? (
-            <Image
-              source={{ uri: post.user.avatar }}
-              className="w-10 h-10 rounded-full mr-2"
-            />
-          ) : (
-            <View className="w-10 h-10 rounded-full bg-primary/20 items-center justify-center mr-2">
-              <Ionicons name="person" size={20} color="#3b82f6" />
-            </View>
-          )}
-          <View className="flex-1">
-            <CustomText weight="medium" className="text-sm text-black dark:text-white">
-              {post.user?.name || post.user?.username || 'User'}
-            </CustomText>
-            <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-              {formatRelativeTime(post.createdAt)}
-            </CustomText>
-          </View>
-        </TouchableOpacity>
-        {post.type && (
-          <View className="bg-primary/10 px-2 py-1 rounded-full">
-            <CustomText className="text-xs text-primary">
-              {t(`explore.categories.${post.type}s`)}
-            </CustomText>
-          </View>
-        )}
-      </View>
-
-      {/* Content */}
-      {hasImage && (
-        <View className="h-48 bg-gray-200 dark:bg-neutral-800">
-          <Image
-            source={{ uri: hasImage }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        </View>
-      )}
-      
-      {post.content && (
-        <View className="p-3">
-          <CustomText className="text-sm text-gray-700 dark:text-gray-300" numberOfLines={3}>
-            {post.content}
-          </CustomText>
-        </View>
-      )}
-
-      {entityInfo && (
-        <View className="px-3 pb-3">
-          <View className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-2 flex-row items-center">
-            <Ionicons
-              name={post.type === 'trip' ? 'airplane' : post.type === 'tour' ? 'map' : 'location'}
-              size={16}
-              color={isDark ? '#9ca3af' : '#6b7280'}
-            />
-            <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-2" numberOfLines={1}>
-              {entityInfo.title}
-            </CustomText>
-          </View>
-        </View>
-      )}
-
-      {/* Footer */}
-      <View className="flex-row items-center justify-between px-3 py-2 border-t border-gray-100 dark:border-neutral-800">
-        <View className="flex-row items-center">
-          <Ionicons
-            name="heart-outline"
-            size={18}
-            color={isDark ? '#9ca3af' : '#6b7280'}
-          />
-          <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
-            {post.reactionsCount || 0}
-          </CustomText>
-        </View>
-        <View className="flex-row items-center">
-          <Ionicons
-            name="chatbubble-outline"
-            size={18}
-            color={isDark ? '#9ca3af' : '#6b7280'}
-          />
-          <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
-            {post.commentsCount || 0}
-          </CustomText>
-        </View>
-        {post.isBookmarked && (
-          <Ionicons
-            name="bookmark"
-            size={18}
-            color="#3b82f6"
-          />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
-};
-
 export default function ExploreScreen() {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
   const router = useRouter();
   
   // State
@@ -554,22 +212,25 @@ export default function ExploreScreen() {
   }, [postsData, debouncedSearch, postFilters]);
 
   // Loading state
-  const isLoading = toursLoading || placesLoading || postsLoading;
   const currentLoading = activeTab === 'tours' ? toursLoading : activeTab === 'places' ? placesLoading : postsLoading;
 
   // Error state
   const currentError = activeTab === 'tours' ? toursError : activeTab === 'places' ? placesError : postsError;
 
-  // Refresh handler
+  // Refresh handlers for each tab
+  const { refreshing: toursRefreshing, onRefresh: onRefreshTours } = useRefresh(refetchTours);
+  const { refreshing: placesRefreshing, onRefresh: onRefreshPlaces } = useRefresh(refetchPlaces);
+  const { refreshing: postsRefreshing, onRefresh: onRefreshPosts } = useRefresh(refetchPosts);
+
   const handleRefresh = useCallback(() => {
     if (activeTab === 'tours') {
-      refetchTours();
+      onRefreshTours();
     } else if (activeTab === 'places') {
-      refetchPlaces();
+      onRefreshPlaces();
     } else {
-      refetchPosts();
+      onRefreshPosts();
     }
-  }, [activeTab, refetchTours, refetchPlaces, refetchPosts]);
+  }, [activeTab, onRefreshTours, onRefreshPlaces, onRefreshPosts]);
 
   // Navigation handlers
   const handleTourPress = useCallback((tourId: string) => {
@@ -606,50 +267,29 @@ export default function ExploreScreen() {
   const renderContent = () => {
     const hasData = currentFilteredData.length > 0;
     if (currentLoading && !hasData) {
-      return (
-        <View className="flex-1 items-center justify-center py-20">
-          <ActivityIndicator size="large" color="#3b82f6" />
-          <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
-            {t('common.loading')}
-          </CustomText>
-        </View>
-      );
+      return <LoadingState message={t('common.loading')} />;
     }
 
     if (currentError) {
       return (
-        <View className="flex-1 items-center justify-center py-20 px-6">
-          <Ionicons name="alert-circle-outline" size={48} color="#ef4444" />
-          <CustomText weight="medium" className="text-lg text-gray-900 dark:text-white mt-4 mb-2">
-            {t('explore.error.title')}
-          </CustomText>
-          <CustomText className="text-center text-gray-600 dark:text-gray-400 mb-4">
-            {currentError.message || t('explore.error.message')}
-          </CustomText>
-          <TouchableOpacity
-            onPress={handleRefresh}
-            className="bg-primary px-6 py-3 rounded-lg"
-          >
-            <CustomText className="text-white" weight="medium">
-              {t('common.retry')}
-            </CustomText>
-          </TouchableOpacity>
-        </View>
+        <ErrorState
+          title={t('explore.error.title')}
+          message={currentError.message || t('explore.error.message')}
+          iconSize={48}
+          onRetry={handleRefresh}
+        />
       );
     }
 
     if (activeTab === 'tours') {
       if (currentFilteredData.length === 0) {
         return (
-          <View className="flex-1 items-center justify-center py-20 px-6">
-            <Ionicons name="map-outline" size={64} color={isDark ? '#4b5563' : '#9ca3af'} />
-            <CustomText weight="medium" className="text-lg text-gray-900 dark:text-white mt-4 mb-2">
-              {t('explore.empty.tours')}
-            </CustomText>
-            <CustomText className="text-center text-gray-600 dark:text-gray-400">
-              {t('explore.empty.toursDescription')}
-            </CustomText>
-          </View>
+          <EmptyState
+            icon="map-outline"
+            title={t('explore.empty.tours')}
+            description={t('explore.empty.toursDescription')}
+            iconSize={64}
+          />
         );
       }
 
@@ -666,14 +306,13 @@ export default function ExploreScreen() {
             <TourCard
               tour={item}
               onPress={() => handleTourPress(item.id)}
-              isDark={isDark}
-              t={t}
+              variant="detailed"
             />
             );
           }}
           contentContainerStyle={{ padding: 16 }}
           refreshControl={
-            <RefreshControl refreshing={toursLoading} onRefresh={handleRefresh} />
+            <RefreshControl refreshing={toursRefreshing || toursLoading} onRefresh={handleRefresh} />
           }
         />
       );
@@ -682,15 +321,12 @@ export default function ExploreScreen() {
     if (activeTab === 'places') {
       if (currentFilteredData.length === 0) {
         return (
-          <View className="flex-1 items-center justify-center py-20 px-6">
-            <Ionicons name="location-outline" size={64} color={isDark ? '#4b5563' : '#9ca3af'} />
-            <CustomText weight="medium" className="text-lg text-gray-900 dark:text-white mt-4 mb-2">
-              {t('explore.empty.places')}
-            </CustomText>
-            <CustomText className="text-center text-gray-600 dark:text-gray-400">
-              {t('explore.empty.placesDescription')}
-            </CustomText>
-          </View>
+          <EmptyState
+            icon="location-outline"
+            title={t('explore.empty.places')}
+            description={t('explore.empty.placesDescription')}
+            iconSize={64}
+          />
         );
       }
 
@@ -707,14 +343,13 @@ export default function ExploreScreen() {
             <PlaceCard
               place={item}
               onPress={() => handlePlacePress(item.id)}
-              isDark={isDark}
-              t={t}
+              variant="detailed"
             />
             );
           }}
           contentContainerStyle={{ padding: 16 }}
           refreshControl={
-            <RefreshControl refreshing={placesLoading} onRefresh={handleRefresh} />
+            <RefreshControl refreshing={placesRefreshing || placesLoading} onRefresh={handleRefresh} />
           }
         />
       );
@@ -723,15 +358,12 @@ export default function ExploreScreen() {
     if (activeTab === 'posts') {
       if (currentFilteredData.length === 0) {
         return (
-          <View className="flex-1 items-center justify-center py-20 px-6">
-            <Ionicons name="newspaper-outline" size={64} color={isDark ? '#4b5563' : '#9ca3af'} />
-            <CustomText weight="medium" className="text-lg text-gray-900 dark:text-white mt-4 mb-2">
-              {t('explore.empty.posts')}
-            </CustomText>
-            <CustomText className="text-center text-gray-600 dark:text-gray-400">
-              {t('explore.empty.postsDescription')}
-            </CustomText>
-          </View>
+          <EmptyState
+            icon="newspaper-outline"
+            title={t('explore.empty.posts')}
+            description={t('explore.empty.postsDescription')}
+            iconSize={64}
+          />
         );
       }
 
@@ -749,14 +381,12 @@ export default function ExploreScreen() {
               post={item}
               onPress={() => handlePostPress(item.id)}
                 onUserPress={() => handleUserPress((item as any).userId || '')}
-              isDark={isDark}
-              t={t}
             />
             );
           }}
           contentContainerStyle={{ padding: 16 }}
           refreshControl={
-            <RefreshControl refreshing={postsLoading} onRefresh={handleRefresh} />
+            <RefreshControl refreshing={postsRefreshing || postsLoading} onRefresh={handleRefresh} />
           }
         />
       );
@@ -792,76 +422,26 @@ export default function ExploreScreen() {
         </CustomText>
 
         {/* Search Bar */}
-        <View className="flex-row items-center mb-4">
-          <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-neutral-900 rounded-full px-4 py-3 mr-3">
-            <Ionicons
-              name="search"
-              size={20}
-              color={isDark ? '#9ca3af' : '#6b7280'}
-            />
-            <TextInput
-              placeholder={t('explore.searchPlaceholder')}
-              placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
+        <SearchBar
               value={searchQuery}
               onChangeText={setSearchQuery}
-              className="flex-1 ml-2 text-black dark:text-white"
-            />
-            {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons
-                  name="close-circle"
-                  size={20}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-          <TouchableOpacity
-            onPress={() => setShowFilters(true)}
-            className={`w-12 h-12 rounded-full items-center justify-center ${
-              activeFilterCount > 0 ? 'bg-primary' : 'bg-gray-100 dark:bg-neutral-900'
-            }`}
-          >
-            <Ionicons
-              name="options-outline"
-              size={24}
-              color={activeFilterCount > 0 ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
-            />
-            {activeFilterCount > 0 && (
-              <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-5 h-5 items-center justify-center">
-                <CustomText className="text-xs text-white" weight="bold">
-                  {activeFilterCount}
-                </CustomText>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
+          placeholder={t('explore.searchPlaceholder')}
+          showFilterButton
+          filterButtonBadge={activeFilterCount}
+          onFilterPress={() => setShowFilters(true)}
+          className="mb-4"
+        />
 
         {/* Tabs */}
-        <View className="flex-row bg-gray-100 dark:bg-neutral-900 rounded-xl p-1">
-          {(['tours', 'places', 'posts'] as TabType[]).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              onPress={() => setActiveTab(tab)}
-              className={`flex-1 py-2 rounded-lg ${
-                activeTab === tab
-                  ? 'bg-white dark:bg-neutral-800'
-                  : ''
-              }`}
-            >
-              <CustomText
-                weight={activeTab === tab ? 'medium' : 'regular'}
-                className={`text-center ${
-                  activeTab === tab
-                    ? 'text-primary'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {t(`explore.categories.${tab}`)}
-              </CustomText>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <TabBar
+          tabs={(['tours', 'places', 'posts'] as TabType[]).map(tab => ({
+            id: tab,
+            label: tab,
+          }))}
+          activeTab={activeTab}
+          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+          variant="segmented"
+        />
       </View>
 
       {/* Content */}

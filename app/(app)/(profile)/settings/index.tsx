@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
+import { StatCard } from '@components/ui/StatCard';
 import CustomButton from '@components/ui/CustomButton';
 import { LanguageSwitcher } from '@components/context/LanguageSwitcher';
 import { ThemeToggle } from '@components/ui/ThemeToggle';
@@ -30,132 +31,12 @@ import { useEffect } from 'react';
 const packageJson = require('../../../../package.json');
 const APP_VERSION = packageJson.version;
 
-interface SettingRowProps {
-  icon: any;
-  title: string;
-  subtitle?: string;
-  onPress?: () => void;
-  rightComponent?: React.ReactNode;
-  isDark: boolean;
-}
-
-const SettingRow = ({ icon, title, subtitle, onPress, rightComponent, isDark }: SettingRowProps) => (
-  <TouchableOpacity
-    onPress={onPress}
-    disabled={!onPress}
-    className="flex-row items-center py-4 border-b border-gray-200 dark:border-neutral-800"
-  >
-    <View className="w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-900 items-center justify-center mr-3">
-      <Ionicons name={icon} size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-    </View>
-    <View className="flex-1">
-      <CustomText weight="medium" className="text-base text-black dark:text-white">
-        {title}
-      </CustomText>
-      {subtitle && (
-        <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {subtitle}
-        </CustomText>
-      )}
-    </View>
-    {rightComponent || (
-      onPress && <Ionicons name="chevron-forward" size={20} color={isDark ? '#666' : '#9ca3af'} />
-    )}
-  </TouchableOpacity>
-);
-
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
-}
-
-function StatusBadge({
-  label,
-  value,
-  isActive,
-  icon,
-}: {
-  label: string;
-  value: string;
-  isActive: boolean;
-  icon: string;
-}) {
-  const { isDark } = useTheme();
-  
-  return (
-    <View className="flex-row items-center justify-between p-3 bg-white dark:bg-neutral-900 rounded-xl mb-2 border border-gray-200 dark:border-neutral-800">
-      <View className="flex-row items-center flex-1">
-        <View
-          className="w-9 h-9 rounded-full items-center justify-center mr-3"
-          style={{
-            backgroundColor: isActive
-              ? (isDark ? '#10b98120' : '#10b98120')
-              : (isDark ? '#ef444420' : '#ef444420'),
-          }}
-        >
-          <Ionicons
-            name={icon as any}
-            size={18}
-            color={isActive ? '#10b981' : '#ef4444'}
-          />
-        </View>
-        <View className="flex-1">
-          <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
-            {label}
-          </CustomText>
-          <CustomText
-            weight="medium"
-            className="text-sm text-black dark:text-white"
-          >
-            {value}
-          </CustomText>
-        </View>
-      </View>
-      <View
-        className="w-2.5 h-2.5 rounded-full"
-        style={{ backgroundColor: isActive ? '#10b981' : '#ef4444' }}
-      />
-    </View>
-  );
-}
-
-function StatCard({
-  title,
-  value,
-  subtitle,
-  icon,
-  color,
-}: {
-  title: string;
-  value: string;
-  subtitle?: string;
-  icon: string;
-  color: string;
-}) {
-  return (
-    <View className="bg-white dark:bg-neutral-900 rounded-xl p-3 border border-gray-200 dark:border-neutral-800">
-      <View className="flex-row items-center justify-between mb-1.5">
-        <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-          {title}
-        </CustomText>
-        <Ionicons name={icon as any} size={16} color={color} />
-      </View>
-      <CustomText
-        weight="bold"
-        className="text-xl text-black dark:text-white mb-0.5"
-      >
-        {value}
-      </CustomText>
-      {subtitle && (
-        <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-          {subtitle}
-        </CustomText>
-      )}
-    </View>
-  );
 }
 
 export default function GeneralSettingsScreen() {
@@ -184,18 +65,7 @@ export default function GeneralSettingsScreen() {
   } = useSystemStatus();
   const { stats, refetch: refetchStats } = useDatabaseStats();
 
-  const handleDataManagement = () => {
-    Alert.alert(t('settings.dataManagement'), t('settings.dataManagementComingSoon', { 
-      defaultValue: 'Data management feature coming soon!' 
-    }));
-  };
-
-  const handleAbout = () => {
-    Alert.alert(t('settings.about'), `${t('common.appName')} v${APP_VERSION}\n\n${t('settings.aboutDescription', { 
-      defaultValue: 'Your offline-first travel companion' 
-    })}`);
-  };
-
+ 
   const handleLogout = () => {
     Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },
