@@ -29,12 +29,6 @@ export default function ProfileLayout() {
         }}
       />
       <Stack.Screen 
-        name="account" 
-        options={{
-          title: t('profile.accountTitle'),
-        }}
-      />
-      <Stack.Screen 
         name="subscription" 
         options={{
           title: t('me.subscription'),

@@ -1,13 +1,17 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Stack, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, TouchableOpacity, View, Alert } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 
-import { useGetTripsQuery, useMeQuery } from '@api';
+import { useGetTripsQuery, useMeQuery, useUpdateUserMutation } from '@api';
 import { useTheme } from '@components/context/ThemeContext';
 import { CustomText } from '@components/ui/CustomText';
 import { ListItem } from '@components/ui/ListItem';
+import InputField from '@components/ui/InputField';
+import CustomButton from '@components/ui/CustomButton';
 import Colors from '@constants/Colors';
 import { useAppSelector } from '@store/hooks';
 import { useDateTime } from '@utils/datetime';
@@ -21,11 +25,15 @@ export default function ProfileScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
+  const params = useLocalSearchParams<{ edit?: string }>();
   const { user: reduxUser } = useAppSelector(state => state.auth);
   const { formatDate } = useDateTime();
+  const [isEditing, setIsEditing] = useState(params.edit === 'true');
+  const [loading, setLoading] = useState(false);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   
   // Fetch real user data
-  const { data: meData, loading: meLoading } = useMeQuery({
+  const { data: meData, loading: meLoading, refetch: refetchMe } = useMeQuery({
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
@@ -35,10 +43,45 @@ export default function ProfileScreen() {
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
+
+  const [updateUser, { loading: updateLoading }] = useUpdateUserMutation();
   
   // Prioritize GraphQL user data over Redux (GraphQL has publicKey)
   const user = meData?.me || reduxUser;
+  const typedUser = user as NonNullable<typeof meData>['me'];
   const trips = useMemo(() => tripsData?.getTrips ?? [], [tripsData]);
+
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    username: user?.username || '',
+    email: '',
+    phone: '',
+  });
+
+  // Update form data when user data changes
+  useEffect(() => {
+    if (!typedUser) return;
+    
+    const shouldUpdate = 
+      formData.name !== (typedUser.name || '') ||
+      formData.username !== (typedUser.username || '') ||
+      formData.email !== (typedUser.email || '') ||
+      formData.phone !== (typedUser.phone || '');
+    
+    if (shouldUpdate) {
+      setFormData({
+        name: typedUser.name || '',
+        username: typedUser.username || '',
+        email: typedUser.email || '',
+        phone: typedUser.phone || '',
+      });
+    }
+    
+    if (typedUser.avatar !== avatarUri) {
+      setAvatarUri(typedUser.avatar || null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typedUser?.id, typedUser?.name, typedUser?.username, typedUser?.email, typedUser?.phone, typedUser?.avatar]);
   
   // Calculate stats
   const stats = useMemo(() => {
@@ -76,7 +119,157 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    router.push('/(app)/(profile)/account?edit=true' as any);
+    setIsEditing(true);
+  };
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleChangeAvatar = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('common.error'),
+          t('profile.edit.permissionDenied', {
+            defaultValue: 'Permission to access media library is required to change avatar.',
+          })
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        
+        if (asset.uri) {
+          // Read file and convert to base64 using legacy FileSystem API
+          const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+            encoding: FileSystem.EncodingType.Base64,
+          });
+
+          // Determine MIME type from URI or default to jpeg
+          let mimeType = 'image/jpeg';
+          if (asset.uri.endsWith('.png')) {
+            mimeType = 'image/png';
+          } else if (asset.uri.endsWith('.gif')) {
+            mimeType = 'image/gif';
+          } else if (asset.uri.endsWith('.webp')) {
+            mimeType = 'image/webp';
+          }
+
+          // Store base64 data temporarily (will be sent on save)
+          setAvatarUri(`data:${mimeType};base64,${base64}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert(
+        t('common.error'),
+        t('profile.edit.avatarError', {
+          defaultValue: 'Failed to select image. Please try again.',
+        })
+      );
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setLoading(true);
+
+      // Prepare update input
+      const updateInput: {
+        name?: string;
+        username?: string;
+        email?: string;
+        phone?: string;
+        avatarBase64?: string;
+        avatarMimeType?: string;
+      } = {};
+
+      if (formData.name && formData.name !== user?.name) {
+        updateInput.name = formData.name;
+      }
+
+      if (formData.username && formData.username !== user?.username) {
+        updateInput.username = formData.username;
+      }
+
+      if (formData.email) {
+        updateInput.email = formData.email;
+      }
+
+      if (formData.phone) {
+        updateInput.phone = formData.phone;
+      }
+
+      // Handle avatar if changed
+      if (avatarUri && avatarUri.startsWith('data:')) {
+        const [mimeType, base64] = avatarUri.split(',');
+        const mimeMatch = mimeType.match(/data:([^;]+)/);
+        updateInput.avatarMimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        updateInput.avatarBase64 = base64;
+      }
+
+      // Check if there's anything to update
+      if (Object.keys(updateInput).length === 0) {
+        setLoading(false);
+        setIsEditing(false);
+        return;
+      }
+
+      // Call the mutation
+      const result = await updateUser({
+        variables: { input: updateInput },
+        refetchQueries: ['Me'],
+      });
+
+      if (result.data?.updateUser) {
+        // Refetch user data
+        await refetchMe();
+        
+        setLoading(false);
+        setIsEditing(false);
+        
+        Alert.alert(
+          t('common.success'),
+          t('profile.edit.successMessage', {
+            defaultValue: 'Profile updated successfully!',
+          }),
+          [{ text: t('common.ok') }]
+        );
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      setLoading(false);
+      
+      Alert.alert(
+        t('common.error'),
+        error.message || t('profile.edit.updateError', {
+          defaultValue: 'Failed to update profile. Please try again.',
+        })
+      );
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({
+      name: typedUser?.name || '',
+      username: typedUser?.username || '',
+      email: typedUser?.email || '',
+      phone: typedUser?.phone || '',
+    });
+    setAvatarUri(typedUser?.avatar || null);
+    setIsEditing(false);
   };
 
   const handleSubscription = () => {
@@ -97,20 +290,40 @@ export default function ProfileScreen() {
             <View className="bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
               <View className="flex-row items-center justify-between px-6 py-4 pt-12">
                 <View className="flex-row items-center flex-1">
-                  <View 
-                    className="w-12 h-12 rounded-full overflow-hidden mr-3"
-                    style={{ 
-                      backgroundColor: isDark ? '#262626' : '#f5f5f5',
-                      borderWidth: 2,
-                      borderColor: isDark ? Colors.dark.primary : Colors.light.primary,
-                    }}
+                  <TouchableOpacity
+                    onPress={isEditing ? handleChangeAvatar : undefined}
+                    disabled={!isEditing}
+                    activeOpacity={isEditing ? 0.7 : 1}
                   >
-                    <Image
-                      source={appIcon}
-                      className="w-full h-full"
-                      resizeMode="contain"
-                    />
-                  </View>
+                    <View 
+                      className="w-12 h-12 rounded-full overflow-hidden mr-3"
+                      style={{ 
+                        backgroundColor: isDark ? '#262626' : '#f5f5f5',
+                        borderWidth: 2,
+                        borderColor: isDark ? Colors.dark.primary : Colors.light.primary,
+                      }}
+                    >
+                      {avatarUri ? (
+                        <Image
+                          source={{ uri: avatarUri }}
+                          className="w-full h-full"
+                          resizeMode="cover"
+                        />
+                      ) : typedUser?.avatar ? (
+                        <Image
+                          source={{ uri: typedUser.avatar }}
+                          className="w-full h-full"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Image
+                          source={appIcon}
+                          className="w-full h-full"
+                          resizeMode="contain"
+                        />
+                      )}
+                    </View>
+                  </TouchableOpacity>
                   <View className="flex-1">
                     <CustomText weight="bold" className="text-lg text-black dark:text-white">
                       {user?.name || t('profile.guest')}
@@ -120,16 +333,27 @@ export default function ProfileScreen() {
                     </CustomText>
                   </View>
                 </View>
-                <TouchableOpacity
-                  onPress={handleEditProfile}
-                  className="w-10 h-10 rounded-full items-center justify-center bg-gray-100 dark:bg-neutral-800"
-                >
-                  <Ionicons
-                    name="create-outline"
-                    size={20}
-                    color={isDark ? '#fff' : '#000'}
-                  />
-                </TouchableOpacity>
+                {!isEditing ? (
+                  <TouchableOpacity
+                    onPress={handleEditProfile}
+                    className="w-10 h-10 rounded-full items-center justify-center bg-gray-100 dark:bg-neutral-800"
+                  >
+                    <Ionicons
+                      name="create-outline"
+                      size={20}
+                      color={isDark ? '#fff' : '#000'}
+                    />
+                  </TouchableOpacity>
+                ) : (
+                  <TouchableOpacity
+                    onPress={handleCancel}
+                    className="px-3 py-1.5"
+                  >
+                    <CustomText className="text-primary" weight="medium">
+                      {t('common.cancel')}
+                    </CustomText>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           ),
@@ -137,9 +361,70 @@ export default function ProfileScreen() {
       />
 
       <ScrollView className="flex-1">
-        
-        {/* Stats */}
-        <View className="px-6 pt-4 pb-4">
+        {isEditing ? (
+          <>
+            {/* Edit Mode */}
+            <View className="px-6 pt-4 pb-4">
+              {/* Name */}
+              <InputField
+                label={t('profile.edit.nameLabel', { defaultValue: 'Name' })}
+                placeholder={t('profile.edit.namePlaceholder', { defaultValue: 'Enter your name' })}
+                value={formData.name}
+                onChangeText={value => handleInputChange('name', value)}
+                icon="person-outline"
+              />
+
+              {/* Username */}
+              <InputField
+                label={t('profile.edit.usernameLabel', { defaultValue: 'Username' })}
+                placeholder={t('profile.edit.usernamePlaceholder', { defaultValue: 'Enter your username' })}
+                value={formData.username}
+                onChangeText={value => handleInputChange('username', value)}
+                icon="at-outline"
+              />
+
+              {/* Email */}
+              <InputField
+                label={t('profile.edit.emailLabel', { defaultValue: 'Email' })}
+                placeholder={t('profile.edit.emailPlaceholder', { defaultValue: 'Enter your email' })}
+                value={formData.email}
+                onChangeText={value => handleInputChange('email', value)}
+                keyboardType="email-address"
+                icon="mail-outline"
+              />
+
+              {/* Phone */}
+              <InputField
+                label={t('profile.edit.phoneLabel', { defaultValue: 'Phone' })}
+                placeholder={t('profile.edit.phonePlaceholder', { defaultValue: 'Enter your phone number' })}
+                value={formData.phone}
+                onChangeText={value => handleInputChange('phone', value)}
+                keyboardType="phone-pad"
+                icon="call-outline"
+              />
+
+              {/* Action Buttons */}
+              <View className="mt-4 mb-4">
+                <CustomButton
+                  title={loading || updateLoading ? t('common.saving') : t('common.save')}
+                  onPress={handleSave}
+                  disabled={loading || updateLoading}
+                  IconLeft={() => (
+                    <Ionicons
+                      name="checkmark"
+                      size={20}
+                      color="#fff"
+                      style={{ marginRight: 8 }}
+                    />
+                  )}
+                />
+              </View>
+            </View>
+          </>
+        ) : (
+          <>
+            {/* Stats */}
+            <View className="px-6 pt-4 pb-4">
           <View className="flex-row items-center justify-around py-4 bg-gray-50 dark:bg-neutral-900 rounded-2xl">
             <TouchableOpacity 
               className="items-center flex-1"
@@ -279,6 +564,8 @@ export default function ProfileScreen() {
           </View>
           <View className="h-8" />
         </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );

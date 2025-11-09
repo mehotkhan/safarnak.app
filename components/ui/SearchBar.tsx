@@ -96,7 +96,7 @@ export const SearchBar = React.memo<SearchBarProps>(({
           {filterButtonBadge && filterButtonBadge > 0 && (
             <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-5 h-5 items-center justify-center">
               <CustomText className="text-xs text-white" weight="bold">
-                {filterButtonBadge > 9 ? '9+' : filterButtonBadge}
+                {filterButtonBadge > 9 ? '9+' : String(filterButtonBadge)}
               </CustomText>
             </View>
           )}

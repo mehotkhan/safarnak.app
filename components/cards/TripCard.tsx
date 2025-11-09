@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
+import { useDateTime } from '@utils/datetime';
 
 export interface TripCardProps {
   trip: any;
@@ -22,6 +23,7 @@ export interface TripCardProps {
 export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = '' }) => {
   const { isDark } = useTheme();
   const { t } = useTranslation();
+  const { formatDate } = useDateTime();
 
   const statusColor =
     trip?.status === 'in_progress'
@@ -47,7 +49,7 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
             {trip?.destination || '—'}
           </CustomText>
           <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {(trip?.startDate as string) || '—'} - {(trip?.endDate as string) || '—'}
+            {trip?.startDate ? formatDate(trip.startDate, 'short') : '—'} - {trip?.endDate ? formatDate(trip.endDate, 'short') : '—'}
           </CustomText>
         </View>
         <View className={`px-3 py-1 rounded-full ${statusColor}`}>

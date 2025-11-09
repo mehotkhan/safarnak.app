@@ -15,6 +15,7 @@ import { useTheme } from '@components/context/ThemeContext';
 import { useGetMyDevicesQuery, useRevokeDeviceMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
 import { useLanguage } from '@components/context/LanguageContext';
+import { useDateTime } from '@utils/datetime';
 import * as Device from 'expo-device';
 
 export default function DevicesScreen() {
@@ -33,22 +34,7 @@ export default function DevicesScreen() {
 
   const devices = data?.getMyDevices || [];
 
-  const formatDate = (dateString: string): string => {
-    try {
-      const date = new Date(dateString);
-      // Use current language for date formatting
-      const locale = currentLanguage === 'fa' ? 'fa-IR' : 'en-US';
-      return new Intl.DateTimeFormat(locale, {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      }).format(date);
-    } catch {
-      return dateString;
-    }
-  };
+  const { formatDateTime } = useDateTime();
 
   const getDeviceName = (device: any): string => {
     // Try to identify device type
@@ -273,7 +259,7 @@ export default function DevicesScreen() {
                         </CustomText>
                         <CustomText className="text-xs text-gray-500 dark:text-gray-400">
                           {t('settings.lastSeen', { defaultValue: 'Last Seen' })}:{' '}
-                          {formatDate(device.lastSeen)}
+                          {formatDateTime(device.lastSeen, 'short', 'short')}
                         </CustomText>
                       </View>
                       {!isCurrent && (
