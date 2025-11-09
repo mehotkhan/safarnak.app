@@ -23,6 +23,7 @@ type Mutation {
   requestChallenge(username: String!, isRegister: Boolean!): String!
   registerUser(username: String!, publicKey: String!, signature: String!, deviceId: String!): AuthPayload!
   loginUser(username: String!, signature: String!, deviceId: String!, publicKey: String): AuthPayload!
+  updateUser(input: UpdateUserInput!): User!
   createTrip(input: CreateTripInput!): Trip!
   updateTrip(id: ID!, input: UpdateTripInput!): Trip!
   deleteTrip(id: ID!): Boolean!
@@ -62,6 +63,8 @@ type User {
   id: ID!
   name: String!
   username: String!
+  email: String
+  phone: String
   avatar: String
   publicKey: String
   createdAt: String!
@@ -421,6 +424,15 @@ input CreatePostInput {
   attachments: [String!]
   type: String
   relatedId: ID
+}
+
+input UpdateUserInput {
+  name: String
+  username: String
+  email: String
+  phone: String
+  avatarBase64: String
+  avatarMimeType: String
 }
 
 input CoordinatesInput {

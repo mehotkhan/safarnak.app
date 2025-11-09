@@ -42,6 +42,9 @@ export const me = async (
       id: user.id,
       name: user.name,
       username: user.username,
+      email: user.email,
+      phone: user.phone,
+      avatar: user.avatar,
       publicKey: user.publicKey,
       createdAt: user.createdAt || new Date().toISOString(),
     };

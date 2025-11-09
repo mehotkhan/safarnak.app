@@ -3,6 +3,9 @@ query Me {
     id
     name
     username
+    email
+    phone
+    avatar
     publicKey
     createdAt
   }

@@ -5784,6 +5784,18 @@ expo-font@~14.0.9:
   dependencies:
     fontfaceobserver "^2.1.0"
 
+expo-image-loader@~6.0.0:
+  version "6.0.0"
+  resolved "https://registry.yarnpkg.com/expo-image-loader/-/expo-image-loader-6.0.0.tgz#15230442cbb90e101c080a4c81e37d974e43e072"
+  integrity sha512-nKs/xnOGw6ACb4g26xceBD57FKLFkSwEUTDXEDF3Gtcu3MqF3ZIYd3YM+sSb1/z9AKV1dYT7rMSGVNgsveXLIQ==
+
+expo-image-picker@~17.0.8:
+  version "17.0.8"
+  resolved "https://registry.yarnpkg.com/expo-image-picker/-/expo-image-picker-17.0.8.tgz#c4430994de81f3e9995c9ce77cb76403213b17d7"
+  integrity sha512-489ByhVs2XPoAu9zodivAKLv7hG4S/FOe8hO/C2U6jVxmRjpAKakKNjMml0IwWjf1+c/RYBqm1XxKaZ+vq/fDQ==
+  dependencies:
+    expo-image-loader "~6.0.0"
+
 expo-json-utils@~0.15.0:
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/expo-json-utils/-/expo-json-utils-0.15.0.tgz#6723574814b9e6b0a90e4e23662be76123ab6ae9"
@@ -5828,6 +5840,11 @@ expo-manifests@~1.0.8:
   dependencies:
     "@expo/config" "~12.0.8"
     expo-json-utils "~0.15.0"
+
+expo-media-library@~18.2.0:
+  version "18.2.0"
+  resolved "https://registry.yarnpkg.com/expo-media-library/-/expo-media-library-18.2.0.tgz#b7515e25df5951e6b579b2ca1bee934ed206fa43"
+  integrity sha512-aIYLIqmU8LFWrQcfZdwg9f/iWm0wC8uhZ7HiUiTnrigtxf417cVvNokX9afXpIOKBHAHRjVIbcs1nN8KZDE2Fw==
 
 expo-modules-autolinking@3.0.19:
   version "3.0.19"

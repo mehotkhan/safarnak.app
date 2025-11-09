@@ -6,6 +6,7 @@ import { addMessage } from './addMessage';
 import { requestChallenge } from './requestChallenge';
 import { registerUser } from './registerUser';
 import { loginUser } from './loginUser';
+import { updateUser } from './updateUser';
 import { createTrip } from './createTrip';
 import { updateTrip, deleteTrip } from './updateTrip';
 import { createTour } from './createTour';
@@ -32,6 +33,7 @@ export const Mutation = {
   requestChallenge,
   registerUser,
   loginUser,
+  updateUser,
   createTrip,
   updateTrip,
   deleteTrip,
@@ -56,4 +58,4 @@ export const Mutation = {
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, deleteTour, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, bookTour, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice };
+export { addMessage, requestChallenge, registerUser, loginUser, updateUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, deleteTour, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, bookTour, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice };

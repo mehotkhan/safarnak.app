@@ -385,3 +385,12 @@ declare module '*/@graphql/updateTrip.graphql' {
   export default defaultDocument;
 }
     
+
+declare module '*/@graphql/updateUser.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    

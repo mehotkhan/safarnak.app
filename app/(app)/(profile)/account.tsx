@@ -1,21 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Alert,
   Image,
+  Platform,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { CustomText } from '@components/ui/CustomText';
 import InputField from '@components/ui/InputField';
 import TextArea from '@components/ui/TextArea';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 import { useAppSelector } from '@store/hooks';
-import { useMeQuery } from '@api';
+import { useMeQuery, useUpdateUserMutation } from '@api';
 import Colors from '@constants/Colors';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -90,13 +93,20 @@ export default function AccountScreen() {
   const { user: reduxUser } = useAppSelector(state => state.auth);
   const [isEditing, setIsEditing] = useState(params.edit === 'true');
   const [loading, setLoading] = useState(false);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   
-  const { data: meData } = useMeQuery({
+  const { data: meData, refetch: refetchMe } = useMeQuery({
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
+
+  const [updateUser, { loading: updateLoading }] = useUpdateUserMutation();
   
   const user = meData?.me || reduxUser;
+  
+  // Type assertion for user to include optional fields from GraphQL query
+  // Use NonNullable to handle the null case from the query
+  const typedUser = user as NonNullable<typeof meData>['me'];
 
   const [formData, setFormData] = useState({
     name: user?.name || '',
@@ -108,46 +118,185 @@ export default function AccountScreen() {
     website: '',
   });
 
+  // Update form data when user data changes
+  useEffect(() => {
+    if (!typedUser) return;
+    
+    // Use a ref to track if we've initialized to avoid unnecessary updates
+    const shouldUpdate = 
+      formData.name !== (typedUser.name || '') ||
+      formData.username !== (typedUser.username || '') ||
+      formData.email !== (typedUser.email || '') ||
+      formData.phone !== (typedUser.phone || '');
+    
+    if (shouldUpdate) {
+      setFormData({
+        name: typedUser.name || '',
+        username: typedUser.username || '',
+        email: typedUser.email || '',
+        phone: typedUser.phone || '',
+        bio: formData.bio,
+        location: formData.location,
+        website: formData.website,
+      });
+    }
+    
+    if (typedUser.avatar !== avatarUri) {
+      setAvatarUri(typedUser.avatar || null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typedUser?.id, typedUser?.name, typedUser?.username, typedUser?.email, typedUser?.phone, typedUser?.avatar]);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleChangeAvatar = () => {
-    Alert.alert(
-      t('profile.edit.changeAvatar'),
-      t('profile.edit.changeAvatarMessage', { 
-        defaultValue: 'Avatar change feature coming soon!' 
-      })
-    );
+  const handleChangeAvatar = async () => {
+    try {
+      // Request permissions
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          t('common.error'),
+          t('profile.edit.permissionDenied', {
+            defaultValue: 'Permission to access media library is required to change avatar.',
+          })
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        
+        if (asset.uri) {
+          // Read file and convert to base64
+          const base64 = await FileSystem.readAsStringAsync(asset.uri, {
+            encoding: 'base64' as const,
+          });
+
+          // Determine MIME type from URI or default to jpeg
+          let mimeType = 'image/jpeg';
+          if (asset.uri.endsWith('.png')) {
+            mimeType = 'image/png';
+          } else if (asset.uri.endsWith('.gif')) {
+            mimeType = 'image/gif';
+          } else if (asset.uri.endsWith('.webp')) {
+            mimeType = 'image/webp';
+          }
+
+          // Store base64 data temporarily (will be sent on save)
+          setAvatarUri(`data:${mimeType};base64,${base64}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+      Alert.alert(
+        t('common.error'),
+        t('profile.edit.avatarError', {
+          defaultValue: 'Failed to select image. Please try again.',
+        })
+      );
+    }
   };
 
   const handleSave = async () => {
-    setLoading(true);
-    
-    // TODO: Implement API call to save profile
-    setTimeout(() => {
+    try {
+      setLoading(true);
+
+      // Prepare update input
+      const updateInput: {
+        name?: string;
+        username?: string;
+        email?: string;
+        phone?: string;
+        avatarBase64?: string;
+        avatarMimeType?: string;
+      } = {};
+
+      if (formData.name && formData.name !== user?.name) {
+        updateInput.name = formData.name;
+      }
+
+      if (formData.username && formData.username !== user?.username) {
+        updateInput.username = formData.username;
+      }
+
+      if (formData.email) {
+        updateInput.email = formData.email;
+      }
+
+      if (formData.phone) {
+        updateInput.phone = formData.phone;
+      }
+
+      // Handle avatar if changed
+      if (avatarUri && avatarUri.startsWith('data:')) {
+        const [mimeType, base64] = avatarUri.split(',');
+        const mimeMatch = mimeType.match(/data:([^;]+)/);
+        updateInput.avatarMimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+        updateInput.avatarBase64 = base64;
+      }
+
+      // Check if there's anything to update
+      if (Object.keys(updateInput).length === 0) {
+        setLoading(false);
+        setIsEditing(false);
+        return;
+      }
+
+      // Call the mutation
+      const result = await updateUser({
+        variables: { input: updateInput },
+        refetchQueries: ['Me'],
+      });
+
+      if (result.data?.updateUser) {
+        // Refetch user data
+        await refetchMe();
+        
+        setLoading(false);
+        setIsEditing(false);
+        
+        Alert.alert(
+          t('common.success'),
+          t('profile.edit.successMessage', {
+            defaultValue: 'Profile updated successfully!',
+          }),
+          [{ text: t('common.ok') }]
+        );
+      }
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
       setLoading(false);
-      setIsEditing(false);
+      
       Alert.alert(
-        t('common.success'),
-        t('profile.edit.successMessage', { 
-          defaultValue: 'Profile updated successfully!' 
-        }),
-        [{ text: t('common.ok') }]
+        t('common.error'),
+        error.message || t('profile.edit.updateError', {
+          defaultValue: 'Failed to update profile. Please try again.',
+        })
       );
-    }, 1000);
+    }
   };
 
   const handleCancel = () => {
     setFormData({
-      name: user?.name || '',
-      username: user?.username || '',
-      email: '',
-      phone: '',
+      name: typedUser?.name || '',
+      username: typedUser?.username || '',
+      email: typedUser?.email || '',
+      phone: typedUser?.phone || '',
       bio: '',
       location: '',
       website: '',
     });
+    setAvatarUri(typedUser?.avatar || null);
     setIsEditing(false);
   };
 
@@ -234,11 +383,19 @@ export default function AccountScreen() {
                 {/* Avatar */}
                 <View className="items-center py-4 border-b border-gray-200 dark:border-neutral-800">
                   <View className="w-20 h-20 rounded-full overflow-hidden bg-white dark:bg-neutral-800 border-2 border-primary mb-2">
-                    <Image
-                      source={appIcon}
-                      className="w-full h-full"
-                      resizeMode="contain"
-                    />
+                    {typedUser?.avatar ? (
+                      <Image
+                        source={{ uri: typedUser.avatar }}
+                        className="w-full h-full"
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <Image
+                        source={appIcon}
+                        className="w-full h-full"
+                        resizeMode="contain"
+                      />
+                    )}
                   </View>
                   <CustomText weight="medium" className="text-base text-black dark:text-white">
                     {user?.name || t('common.notAvailable')}
@@ -323,11 +480,25 @@ export default function AccountScreen() {
             {/* Avatar */}
             <View className="items-center mb-4">
               <View className="w-20 h-20 rounded-full overflow-hidden bg-white dark:bg-neutral-800 border-2 border-primary">
-                <Image
-                  source={appIcon}
-                  className="w-full h-full"
-                  resizeMode="contain"
-                />
+                {avatarUri ? (
+                  <Image
+                    source={{ uri: avatarUri }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                ) : typedUser?.avatar ? (
+                  <Image
+                    source={{ uri: typedUser.avatar }}
+                    className="w-full h-full"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Image
+                    source={appIcon}
+                    className="w-full h-full"
+                    resizeMode="contain"
+                  />
+                )}
               </View>
               <TouchableOpacity
                 onPress={handleChangeAvatar}
@@ -410,7 +581,7 @@ export default function AccountScreen() {
               <CustomButton
                 title={loading ? t('common.saving') : t('common.save')}
                 onPress={handleSave}
-                disabled={loading}
+                disabled={loading || updateLoading}
                 IconLeft={() => (
                   <Ionicons
                     name="checkmark"

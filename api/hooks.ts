@@ -1,4 +1,4 @@
-import { Exact, Scalars, BookTourInput, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTourInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTourInput, UpdateTripInput } from './types';
+import { Exact, Scalars, BookTourInput, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTourInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTourInput, UpdateTripInput, UpdateUserInput } from './types';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
@@ -255,7 +255,7 @@ export type LoginUserMutation = { __typename?: 'Mutation', loginUser: { __typena
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name: string, username: string, publicKey?: string | null, createdAt: string } | null };
+export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, createdAt: string } | null };
 
 export type NewAlertsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -335,6 +335,13 @@ export type UpdateTripMutationVariables = Exact<{
 
 
 export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } };
+
+export type UpdateUserMutationVariables = Exact<{
+  input: UpdateUserInput;
+}>;
+
+
+export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, publicKey?: string | null, createdAt: string } };
 
 
 export const AddMessageDocument = gql`
@@ -2106,6 +2113,9 @@ export const MeDocument = gql`
     id
     name
     username
+    email
+    phone
+    avatar
     publicKey
     createdAt
   }
@@ -2598,3 +2608,41 @@ export function useUpdateTripMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateTripMutationHookResult = ReturnType<typeof useUpdateTripMutation>;
 export type UpdateTripMutationResult = Apollo.MutationResult<UpdateTripMutation>;
 export type UpdateTripMutationOptions = Apollo.BaseMutationOptions<UpdateTripMutation, UpdateTripMutationVariables>;
+export const UpdateUserDocument = gql`
+    mutation UpdateUser($input: UpdateUserInput!) {
+  updateUser(input: $input) {
+    id
+    name
+    username
+    avatar
+    publicKey
+    createdAt
+  }
+}
+    `;
+export type UpdateUserMutationFn = Apollo.MutationFunction<UpdateUserMutation, UpdateUserMutationVariables>;
+
+/**
+ * __useUpdateUserMutation__
+ *
+ * To run a mutation, you first call `useUpdateUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateUserMutation, { data, loading, error }] = useUpdateUserMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<UpdateUserMutation, UpdateUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateUserMutation, UpdateUserMutationVariables>(UpdateUserDocument, options);
+      }
+export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
+export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
+export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;

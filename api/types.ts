@@ -227,6 +227,7 @@ export type Mutation = {
   updatePlace: Place;
   updateTour: Tour;
   updateTrip: Trip;
+  updateUser: User;
 };
 
 
@@ -366,6 +367,11 @@ export type MutationUpdateTourArgs = {
 export type MutationUpdateTripArgs = {
   id: Scalars['ID']['input'];
   input: UpdateTripInput;
+};
+
+
+export type MutationUpdateUserArgs = {
+  input: UpdateUserInput;
 };
 
 export type Place = {
@@ -664,12 +670,23 @@ export type UpdateTripInput = {
   userMessage?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateUserInput = {
+  avatarBase64?: InputMaybe<Scalars['String']['input']>;
+  avatarMimeType?: InputMaybe<Scalars['String']['input']>;
+  email?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  phone?: InputMaybe<Scalars['String']['input']>;
+  username?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type User = {
   __typename?: 'User';
   avatar?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['String']['output'];
+  email?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
+  phone?: Maybe<Scalars['String']['output']>;
   publicKey?: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
