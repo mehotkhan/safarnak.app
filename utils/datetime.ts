@@ -10,14 +10,17 @@
  * @see https://github.com/moment/luxon
  */
 
-import { DateTime, CalendarSystem } from 'luxon';
+import { DateTime } from 'luxon';
 import { useLanguage } from '@components/context/LanguageContext';
 
 /**
  * Calendar mapping based on language
- * Maps language codes to Luxon calendar systems
+ * Maps language codes to Intl calendar identifiers
+ * Luxon uses Intl.DateTimeFormat calendar option for calendar support
+ * 
+ * @see https://moment.github.io/luxon/#/calendars
  */
-const CALENDAR_MAP: Record<string, CalendarSystem> = {
+const CALENDAR_MAP: Record<string, string> = {
   'fa': 'persian', // Persian/Jalali calendar for Farsi
   'ar': 'islamic', // Islamic calendar for Arabic
   'en': 'gregory', // Gregorian calendar for English (default)
@@ -25,10 +28,29 @@ const CALENDAR_MAP: Record<string, CalendarSystem> = {
 };
 
 /**
- * Get the appropriate calendar system for a given language
+ * Locale mapping for proper formatting
+ * Maps language codes to locale identifiers
  */
-export function getCalendarForLanguage(language: string): CalendarSystem {
+const LOCALE_MAP: Record<string, string> = {
+  'fa': 'fa-IR', // Persian/Farsi locale
+  'ar': 'ar-SA', // Arabic locale
+  'en': 'en-US', // English locale
+};
+
+/**
+ * Get the appropriate calendar system for a given language
+ * Returns Intl calendar identifier for use in toLocaleString
+ */
+export function getCalendarForLanguage(language: string): string {
   return CALENDAR_MAP[language] || 'gregory';
+}
+
+/**
+ * Get the appropriate locale for a given language
+ * Returns locale identifier for use in toLocaleString
+ */
+export function getLocaleForLanguage(language: string): string {
+  return LOCALE_MAP[language] || 'en-US';
 }
 
 /**
@@ -46,10 +68,10 @@ export function formatRelativeTime(
   t?: (key: string) => string
 ): string {
   try {
-    const calendar = getCalendarForLanguage(language);
+    // Create DateTime object (always Gregorian internally)
     const date = typeof dateString === 'string' 
-      ? DateTime.fromISO(dateString, { calendar } as any)
-      : DateTime.fromJSDate(dateString, { calendar } as any);
+      ? DateTime.fromISO(dateString)
+      : DateTime.fromJSDate(dateString);
     
     if (!date.isValid) {
       return dateString.toString();
@@ -108,44 +130,51 @@ export function formatDate(
   format: 'short' | 'long' | 'medium' | string = 'medium'
 ): string {
   try {
-    const calendar = getCalendarForLanguage(language);
+    // Create DateTime object (always Gregorian internally)
     const date = typeof dateString === 'string'
-      ? DateTime.fromISO(dateString, { calendar } as any)
-      : DateTime.fromJSDate(dateString, { calendar } as any);
+      ? DateTime.fromISO(dateString)
+      : DateTime.fromJSDate(dateString);
     
     if (!date.isValid) {
       return dateString.toString();
     }
 
-    // Define format presets
+    const calendar = getCalendarForLanguage(language);
+    const locale = getLocaleForLanguage(language);
+    
+    // Define format presets with calendar support
+    // Luxon uses Intl.DateTimeFormat with calendar option for calendar-aware formatting
+    // When language is Persian (fa), calendar will be 'persian' (Jalali)
     const formatPresets: Record<string, Intl.DateTimeFormatOptions> = {
       short: { 
         year: 'numeric', 
         month: 'short', 
         day: 'numeric',
-        calendar: calendar as any,
+        calendar: calendar,
       },
       medium: { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric',
-        calendar: calendar as any,
+        calendar: calendar,
       },
       long: { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric',
         weekday: 'long',
-        calendar: calendar as any,
+        calendar: calendar,
       },
     };
 
     // Use preset or custom format
     if (formatPresets[format]) {
-      return date.toLocaleString(formatPresets[format]);
+      // Use toLocaleString with locale and calendar option for calendar-aware formatting
+      // This will display dates in Jalali calendar when language is Persian
+      return date.setLocale(locale).toLocaleString(formatPresets[format]);
     } else {
-      // Custom format string (Luxon format tokens)
-      return date.toFormat(format);
+      // For custom format strings, use medium format with calendar
+      return date.setLocale(locale).toLocaleString(formatPresets.medium);
     }
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -167,15 +196,16 @@ export function formatTime(
   format: 'short' | 'long' = 'short'
 ): string {
   try {
-    const calendar = getCalendarForLanguage(language);
+    // Create DateTime object (time formatting doesn't need calendar)
     const date = typeof dateString === 'string'
-      ? DateTime.fromISO(dateString, { calendar } as any)
-      : DateTime.fromJSDate(dateString, { calendar } as any);
+      ? DateTime.fromISO(dateString)
+      : DateTime.fromJSDate(dateString);
     
     if (!date.isValid) {
       return dateString.toString();
     }
 
+    // Time formatting doesn't depend on calendar system
     return format === 'short' 
       ? date.toFormat('HH:mm')
       : date.toFormat('HH:mm:ss');
@@ -217,8 +247,9 @@ export function formatDateTime(
  * @returns DateTime object with appropriate calendar
  */
 export function getNow(language: string = 'en'): DateTime {
-  const calendar = getCalendarForLanguage(language);
-  return DateTime.now().reconfigure({ calendar } as any);
+  // DateTime.now() always returns Gregorian internally
+  // Calendar is only used when formatting for display
+  return DateTime.now();
 }
 
 /**
@@ -232,10 +263,11 @@ export function parseDate(
   dateString: string | Date,
   language: string = 'en'
 ): DateTime {
-  const calendar = getCalendarForLanguage(language);
+  // DateTime objects are always Gregorian internally
+  // Calendar is only used when formatting for display
   return typeof dateString === 'string'
-    ? DateTime.fromISO(dateString, { calendar } as any)
-    : DateTime.fromJSDate(dateString, { calendar } as any);
+    ? DateTime.fromISO(dateString)
+    : DateTime.fromJSDate(dateString);
 }
 
 /**
@@ -348,6 +380,7 @@ export function useDateTime() {
       unit?: 'days' | 'hours' | 'minutes' | 'seconds'
     ) => getDateDifference(date1, date2, currentLanguage, unit),
     calendar: getCalendarForLanguage(currentLanguage),
+    locale: getLocaleForLanguage(currentLanguage),
   };
 }
 
