@@ -29,6 +29,7 @@ export default function UserProfileScreen() {
   const { user: currentUser } = useAppSelector(state => state.auth);
   const [selectedTab, setSelectedTab] = useState<'posts' | 'trips'>('posts');
   const [isFollowing, setIsFollowing] = useState(false);
+  const { formatDate } = useDateTime();
 
   // GraphQL queries
   const { data, loading, error } = useGetUserQuery({
@@ -107,7 +108,6 @@ export default function UserProfileScreen() {
   }
 
   const isOwnProfile = currentUser?.id === userId;
-  const { formatDate } = useDateTime();
   const joinedDate = user.createdAt ? formatDate(user.createdAt, 'long') : '';
 
   return (

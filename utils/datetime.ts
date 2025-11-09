@@ -36,29 +36,24 @@ export function getCalendarForLanguage(language: string): string {
 }
 
 /**
- * Get the appropriate locale for a given language with calendar extension
- * Returns locale identifier with Unicode calendar extension (u-ca-*)
- * This is the standard Intl API approach for calendar specification
+ * Base locale mapping for proper formatting
+ * Maps language codes to locale identifiers
+ */
+const BASE_LOCALE_MAP: Record<string, string> = {
+  'fa': 'fa-IR', // Persian/Farsi locale
+  'ar': 'ar-SA', // Arabic locale
+  'en': 'en-US', // English locale
+};
+
+/**
+ * Get the appropriate locale for a given language
+ * Returns base locale identifier (without calendar extension)
+ * Calendar is handled separately via reconfigure({ outputCalendar })
  * 
  * @see https://moment.github.io/luxon/#/calendars
- * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
  */
 export function getLocaleForLanguage(language: string): string {
-  const calendar = getCalendarForLanguage(language);
-  
-  // Base locale mapping
-  const baseLocaleMap: Record<string, string> = {
-    'fa': 'fa-IR', // Persian/Farsi locale
-    'ar': 'ar-SA', // Arabic locale
-    'en': 'en-US', // English locale
-  };
-  
-  const baseLocale = baseLocaleMap[language] || 'en-US';
-  
-  // Append calendar extension to locale string
-  // Format: locale-u-ca-calendar (Unicode locale extension for calendar)
-  // This is the standard Intl API approach and works with Luxon's setLocale()
-  return `${baseLocale}-u-ca-${calendar}`;
+  return BASE_LOCALE_MAP[language] || 'en-US';
 }
 
 /**
@@ -147,10 +142,14 @@ export function formatDate(
       return dateString.toString();
     }
 
-    // Get locale with calendar extension (e.g., 'fa-IR-u-ca-persian')
-    // The locale string includes the calendar via Unicode locale extension (-u-ca-*)
-    // This is the standard Intl API approach and works with Luxon's setLocale()
+    // Get locale and calendar for the language
     const locale = getLocaleForLanguage(language);
+    const calendar = getCalendarForLanguage(language);
+    
+    // According to Luxon docs: https://moment.github.io/luxon/#/calendars
+    // Use reconfigure({ outputCalendar }) to set the calendar system
+    // This is the recommended approach per Luxon documentation
+    const dateWithCalendar = date.reconfigure({ outputCalendar: calendar as any });
     
     // Define format presets matching Luxon's Intl.DateTimeFormatOptions
     const formatPresets: Record<string, Intl.DateTimeFormatOptions> = {
@@ -173,13 +172,13 @@ export function formatDate(
     };
 
     // Use preset or custom format
-    // setLocale() with locale string that includes calendar extension (e.g., 'fa-IR-u-ca-persian')
-    // automatically uses the correct calendar when formatting via toLocaleString()
+    // reconfigure({ outputCalendar }) sets the calendar, setLocale() sets the locale
+    // toLocaleString() will use the calendar set by reconfigure()
     if (formatPresets[format]) {
-      return date.setLocale(locale).toLocaleString(formatPresets[format]);
+      return dateWithCalendar.setLocale(locale).toLocaleString(formatPresets[format]);
     } else {
       // For custom format strings, use medium format
-      return date.setLocale(locale).toLocaleString(formatPresets.medium);
+      return dateWithCalendar.setLocale(locale).toLocaleString(formatPresets.medium);
     }
   } catch (error) {
     console.error('Error formatting date:', error);
