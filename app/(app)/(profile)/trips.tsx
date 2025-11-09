@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
+import { useDateTime } from '@utils/datetime';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
@@ -16,6 +17,7 @@ export default function MyTripsScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
+  const { formatDate } = useDateTime();
   const [selectedTab, setSelectedTab] = useState<'upcoming' | 'past'>('upcoming');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -168,8 +170,8 @@ export default function MyTripsScreen() {
                   />
                   <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
                     {trip.startDate && trip.endDate 
-                      ? `${trip.startDate} - ${trip.endDate}`
-                      : trip.startDate || trip.endDate}
+                      ? `${formatDate(trip.startDate, 'short')} - ${formatDate(trip.endDate, 'short')}`
+                      : trip.startDate ? formatDate(trip.startDate, 'short') : trip.endDate ? formatDate(trip.endDate, 'short') : '—'}
                   </CustomText>
                 </View>
               )}

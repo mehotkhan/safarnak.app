@@ -12,6 +12,7 @@ import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
 import { useNewAlertsSubscription, useGetAlertsQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
+import { useDateTime } from '@utils/datetime';
 import Colors from '@constants/Colors';
 
 // Mock data
@@ -134,6 +135,7 @@ export default function MessagesScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
+  const { formatRelativeTime } = useDateTime();
   const [selectedTab, setSelectedTab] = useState<'notifications' | 'chats'>('notifications');
   const [showArchived, setShowArchived] = useState(false);
   const [chats, setChats] = useState(mockChatsBase(t));
@@ -252,19 +254,6 @@ export default function MessagesScreen() {
     }
   };
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-
-    if (hours < 1) return t('messages.time.justNow');
-    if (hours < 24) return t('messages.time.hoursAgo', { count: hours });
-    if (days === 1) return t('messages.time.yesterday');
-    if (days < 7) return t('messages.time.daysAgo', { count: days });
-    return date.toLocaleDateString();
-  };
 
   const handleArchiveChat = (chatId: string) => {
     setChats(prevChats =>
@@ -485,7 +474,7 @@ export default function MessagesScreen() {
                         {chat.user.name}
                       </CustomText>
                       <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatTime(chat.lastMessage.timestamp)}
+                        {formatRelativeTime(chat.lastMessage.timestamp, t)}
                       </CustomText>
                     </View>
                     <View className="flex-row items-center">

@@ -28,16 +28,6 @@ const CALENDAR_MAP: Record<string, string> = {
 };
 
 /**
- * Locale mapping for proper formatting
- * Maps language codes to locale identifiers
- */
-const LOCALE_MAP: Record<string, string> = {
-  'fa': 'fa-IR', // Persian/Farsi locale
-  'ar': 'ar-SA', // Arabic locale
-  'en': 'en-US', // English locale
-};
-
-/**
  * Get the appropriate calendar system for a given language
  * Returns Intl calendar identifier for use in toLocaleString
  */
@@ -46,11 +36,29 @@ export function getCalendarForLanguage(language: string): string {
 }
 
 /**
- * Get the appropriate locale for a given language
- * Returns locale identifier for use in toLocaleString
+ * Get the appropriate locale for a given language with calendar extension
+ * Returns locale identifier with Unicode calendar extension (u-ca-*)
+ * This is the standard Intl API approach for calendar specification
+ * 
+ * @see https://moment.github.io/luxon/#/calendars
+ * @see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/Locale
  */
 export function getLocaleForLanguage(language: string): string {
-  return LOCALE_MAP[language] || 'en-US';
+  const calendar = getCalendarForLanguage(language);
+  
+  // Base locale mapping
+  const baseLocaleMap: Record<string, string> = {
+    'fa': 'fa-IR', // Persian/Farsi locale
+    'ar': 'ar-SA', // Arabic locale
+    'en': 'en-US', // English locale
+  };
+  
+  const baseLocale = baseLocaleMap[language] || 'en-US';
+  
+  // Append calendar extension to locale string
+  // Format: locale-u-ca-calendar (Unicode locale extension for calendar)
+  // This is the standard Intl API approach and works with Luxon's setLocale()
+  return `${baseLocale}-u-ca-${calendar}`;
 }
 
 /**
@@ -139,41 +147,38 @@ export function formatDate(
       return dateString.toString();
     }
 
-    const calendar = getCalendarForLanguage(language);
+    // Get locale with calendar extension (e.g., 'fa-IR-u-ca-persian')
+    // The locale string includes the calendar via Unicode locale extension (-u-ca-*)
+    // This is the standard Intl API approach and works with Luxon's setLocale()
     const locale = getLocaleForLanguage(language);
     
-    // Define format presets with calendar support
-    // Luxon uses Intl.DateTimeFormat with calendar option for calendar-aware formatting
-    // When language is Persian (fa), calendar will be 'persian' (Jalali)
+    // Define format presets matching Luxon's Intl.DateTimeFormatOptions
     const formatPresets: Record<string, Intl.DateTimeFormatOptions> = {
       short: { 
         year: 'numeric', 
         month: 'short', 
         day: 'numeric',
-        calendar: calendar,
       },
       medium: { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric',
-        calendar: calendar,
       },
       long: { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric',
         weekday: 'long',
-        calendar: calendar,
       },
     };
 
     // Use preset or custom format
+    // setLocale() with locale string that includes calendar extension (e.g., 'fa-IR-u-ca-persian')
+    // automatically uses the correct calendar when formatting via toLocaleString()
     if (formatPresets[format]) {
-      // Use toLocaleString with locale and calendar option for calendar-aware formatting
-      // This will display dates in Jalali calendar when language is Persian
       return date.setLocale(locale).toLocaleString(formatPresets[format]);
     } else {
-      // For custom format strings, use medium format with calendar
+      // For custom format strings, use medium format
       return date.setLocale(locale).toLocaleString(formatPresets.medium);
     }
   } catch (error) {

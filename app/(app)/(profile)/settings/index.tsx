@@ -65,7 +65,7 @@ export default function GeneralSettingsScreen() {
   } = useSystemStatus();
   const { stats, refetch: refetchStats } = useDatabaseStats();
 
- 
+
   const handleLogout = () => {
     Alert.alert(t('profile.logout'), t('profile.logoutConfirm'), [
       { text: t('common.cancel'), style: 'cancel' },

@@ -58,9 +58,9 @@ export default function ProfileScreen() {
     phone: '',
   });
 
-  // Update form data when user data changes
+  // Update form data when user data changes (only when not editing)
   useEffect(() => {
-    if (!typedUser) return;
+    if (!typedUser || isEditing) return;
     
     const shouldUpdate = 
       formData.name !== (typedUser.name || '') ||
@@ -77,11 +77,15 @@ export default function ProfileScreen() {
       });
     }
     
-    if (typedUser.avatar !== avatarUri) {
-      setAvatarUri(typedUser.avatar || null);
+    // Update avatar from server only when not editing (to avoid overwriting local selection)
+    if (typedUser.avatar && typedUser.avatar !== avatarUri && !avatarUri?.startsWith('data:')) {
+      setAvatarUri(typedUser.avatar);
+    } else if (!typedUser.avatar && avatarUri && !avatarUri.startsWith('data:')) {
+      // Clear avatar if server doesn't have one (but keep local base64 selection)
+      setAvatarUri(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typedUser?.id, typedUser?.name, typedUser?.username, typedUser?.email, typedUser?.phone, typedUser?.avatar]);
+  }, [typedUser?.id, typedUser?.name, typedUser?.username, typedUser?.email, typedUser?.phone, typedUser?.avatar, isEditing]);
   
   // Calculate stats
   const stats = useMemo(() => {
@@ -214,10 +218,25 @@ export default function ProfileScreen() {
 
       // Handle avatar if changed
       if (avatarUri && avatarUri.startsWith('data:')) {
-        const [mimeType, base64] = avatarUri.split(',');
-        const mimeMatch = mimeType.match(/data:([^;]+)/);
-        updateInput.avatarMimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
-        updateInput.avatarBase64 = base64;
+        // Extract MIME type and base64 from data URI
+        // Format: data:image/jpeg;base64,<base64-data>
+        const parts = avatarUri.split(',');
+        if (parts.length === 2) {
+          const [mimeTypePart, base64Data] = parts;
+          const mimeMatch = mimeTypePart.match(/data:([^;]+)/);
+          updateInput.avatarMimeType = mimeMatch ? mimeMatch[1] : 'image/jpeg';
+          updateInput.avatarBase64 = base64Data; // Send only the base64 part (no data URI prefix)
+          
+          if (__DEV__) {
+            console.log('[Profile] Preparing avatar upload:', {
+              mimeType: updateInput.avatarMimeType,
+              base64Length: base64Data.length,
+              hasBase64: !!base64Data,
+            });
+          }
+        } else {
+          console.warn('[Profile] Invalid avatar data URI format');
+        }
       }
 
       // Check if there's anything to update
@@ -227,15 +246,28 @@ export default function ProfileScreen() {
         return;
       }
 
-      // Call the mutation
+      // Call the mutation with cache update
       const result = await updateUser({
         variables: { input: updateInput },
         refetchQueries: ['Me'],
+        awaitRefetchQueries: true,
       });
 
       if (result.data?.updateUser) {
-        // Refetch user data
-        await refetchMe();
+        const updatedUser = result.data.updateUser;
+        
+        // Refetch user data to ensure everything is in sync
+        const refetchResult = await refetchMe();
+        
+        // Update avatarUri from server response (use refetched data as source of truth)
+        if (refetchResult.data?.me?.avatar) {
+          setAvatarUri(refetchResult.data.me.avatar);
+        } else if (updatedUser.avatar) {
+          setAvatarUri(updatedUser.avatar);
+        } else {
+          // Clear avatar if it was removed
+          setAvatarUri(null);
+        }
         
         setLoading(false);
         setIsEditing(false);
@@ -305,12 +337,14 @@ export default function ProfileScreen() {
                     >
                       {avatarUri ? (
                         <Image
+                          key={avatarUri}
                           source={{ uri: avatarUri }}
                           className="w-full h-full"
                           resizeMode="cover"
                         />
                       ) : typedUser?.avatar ? (
                         <Image
+                          key={typedUser.avatar}
                           source={{ uri: typedUser.avatar }}
                           className="w-full h-full"
                           resizeMode="cover"
@@ -365,6 +399,58 @@ export default function ProfileScreen() {
           <>
             {/* Edit Mode */}
             <View className="px-6 pt-4 pb-4">
+              {/* Avatar Edit Section */}
+              <View className="mb-6">
+                <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
+                  <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+                    {t('profile.edit.avatar', { defaultValue: 'Profile Photo' })}
+                  </CustomText>
+                  <View className="items-center">
+                    <View className="w-24 h-24 rounded-full overflow-hidden bg-white dark:bg-neutral-800 border-2 border-primary mb-3">
+                      {avatarUri ? (
+                        <Image
+                          key={avatarUri}
+                          source={{ uri: avatarUri }}
+                          className="w-full h-full"
+                          resizeMode="cover"
+                        />
+                      ) : typedUser?.avatar ? (
+                        <Image
+                          key={typedUser.avatar}
+                          source={{ uri: typedUser.avatar }}
+                          className="w-full h-full"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Image
+                          source={appIcon}
+                          className="w-full h-full"
+                          resizeMode="contain"
+                        />
+                      )}
+                    </View>
+                    <TouchableOpacity
+                      onPress={handleChangeAvatar}
+                      className="px-4 py-2 bg-primary/15 dark:bg-primary/25 rounded-full"
+                    >
+                      <CustomText className="text-primary text-sm" weight="medium">
+                        {avatarUri ? t('profile.edit.changePhoto', { defaultValue: 'Change Photo' }) : t('profile.edit.addPhoto', { defaultValue: 'Add Photo' })}
+                      </CustomText>
+                    </TouchableOpacity>
+                    {avatarUri && (
+                      <TouchableOpacity
+                        onPress={() => setAvatarUri(typedUser?.avatar || null)}
+                        className="mt-2 px-3 py-1"
+                      >
+                        <CustomText className="text-red-600 dark:text-red-400 text-xs">
+                          {t('profile.edit.removePhoto', { defaultValue: 'Remove' })}
+                        </CustomText>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              </View>
+
               {/* Name */}
               <InputField
                 label={t('profile.edit.nameLabel', { defaultValue: 'Name' })}

@@ -7,6 +7,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
+import { useDateTime } from '@utils/datetime';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import CustomButton from '@components/ui/CustomButton';
@@ -55,6 +56,7 @@ export default function NotificationDetailScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const { formatRelativeTime } = useDateTime();
   const notificationId = Array.isArray(id) ? id[0] : id;
   const [notification] = useState(mockNotifications[notificationId] || mockNotifications['1']);
 
@@ -77,24 +79,6 @@ export default function NotificationDetailScreen() {
     return isDark ? Colors.dark.primary : Colors.light.primary;
   };
 
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffHours < 1) {
-      const diffMins = Math.floor(diffMs / (1000 * 60));
-      return t('notifications.timeAgo.minutes', { count: diffMins });
-    } else if (diffHours < 24) {
-      return t('notifications.timeAgo.hours', { count: diffHours });
-    } else if (diffDays < 7) {
-      return t('notifications.timeAgo.days', { count: diffDays });
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
 
   const handleAction = () => {
     if (notification.actionUrl) {
@@ -153,7 +137,7 @@ export default function NotificationDetailScreen() {
             {notification.title}
           </CustomText>
           <CustomText className="text-sm text-gray-500 dark:text-gray-400">
-            {formatTime(notification.time)}
+            {formatRelativeTime(notification.time, t)}
           </CustomText>
         </View>
 

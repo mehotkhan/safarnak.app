@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { useDateTime } from '@utils/datetime';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
@@ -71,10 +72,7 @@ interface MessageBubbleProps {
 }
 
 const MessageBubble = ({ message, isOwnMessage, isDark }: MessageBubbleProps) => {
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  };
+  const { formatTime } = useDateTime();
 
   return (
     <View className={`mb-3 ${isOwnMessage ? 'items-end' : 'items-start'}`}>

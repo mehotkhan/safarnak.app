@@ -210,7 +210,7 @@ export default function RegisterScreen() {
             type="info"
             title={t('register.authInfo.title') || 'How Our Auth Works'}
             message={t('register.authInfo.description') || 
-              'We use cryptographic key pairs for secure authentication. Your identity is protected by RSA encryption, ensuring privacy and security across all devices.'}
+                    'We use cryptographic key pairs for secure authentication. Your identity is protected by RSA encryption, ensuring privacy and security across all devices.'}
             className="mb-4"
           />
 

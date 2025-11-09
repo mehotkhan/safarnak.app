@@ -138,12 +138,12 @@ export default function DevicesScreen() {
           <InfoBanner
             type="info"
             title={t('settings.devicesInfoTitle', {
-              defaultValue: 'Device Management',
-            })}
+                    defaultValue: 'Device Management',
+                  })}
             message={t('settings.devicesInfoDescription', {
-              defaultValue:
-                'Manage your connected devices. Each device has its own authentication key. Revoking a device will log it out immediately.',
-            })}
+                    defaultValue:
+                      'Manage your connected devices. Each device has its own authentication key. Revoking a device will log it out immediately.',
+                  })}
           />
         </View>
 

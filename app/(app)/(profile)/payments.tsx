@@ -6,6 +6,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
+import { useDateTime } from '@utils/datetime';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
@@ -62,6 +63,7 @@ interface PaymentCardProps {
 }
 
 const PaymentCard = ({ payment, isDark, t }: PaymentCardProps) => {
+  const { formatDate } = useDateTime();
   const statusColor =
     payment.status === 'completed'
       ? 'bg-green-100 dark:bg-green-900'
@@ -100,7 +102,7 @@ const PaymentCard = ({ payment, isDark, t }: PaymentCardProps) => {
                 {payment.title}
               </CustomText>
               <CustomText className="text-sm text-gray-500 dark:text-gray-400">
-                {payment.date}
+                {formatDate(payment.date, 'short')}
               </CustomText>
             </View>
           </View>

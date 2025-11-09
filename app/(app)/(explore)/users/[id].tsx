@@ -14,6 +14,7 @@ import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetUserQuery, useGetPostsQuery, useGetTripsQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
+import { useDateTime } from '@utils/datetime';
 import Colors from '@constants/Colors';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -106,7 +107,8 @@ export default function UserProfileScreen() {
   }
 
   const isOwnProfile = currentUser?.id === userId;
-  const joinedDate = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : '';
+  const { formatDate } = useDateTime();
+  const joinedDate = user.createdAt ? formatDate(user.createdAt, 'long') : '';
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
@@ -306,8 +308,8 @@ export default function UserProfileScreen() {
                   </CustomText>
                   {trip.startDate && (
                     <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-                      {new Date(trip.startDate).toLocaleDateString()}
-                      {trip.endDate && ` - ${new Date(trip.endDate).toLocaleDateString()}`}
+                      {formatDate(trip.startDate, 'short')}
+                      {trip.endDate && ` - ${formatDate(trip.endDate, 'short')}`}
                     </CustomText>
                   )}
                 </TouchableOpacity>

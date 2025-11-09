@@ -178,9 +178,9 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
     // Note: Authentication is JWT token-based only via Authorization Bearer header
     // No other authentication methods are supported (x-user-id header removed for security)
 
-    // Compose default publishable context and add userId
+    // Compose default publishable context and add userId and request
     const base = createDefaultPublishableContext({ env, executionCtx, ...settings });
-    return { ...base, userId };
+    return { ...base, userId, request }; // Include request for URL construction
   },
 });
 
@@ -319,6 +319,32 @@ const fetch = async (
         'cache-control': 'public, max-age=86400',
       },
     });
+  }
+  
+  // Serve R2 avatars
+  if (url.pathname.startsWith('/avatars/')) {
+    try {
+      const r2Key = url.pathname.substring(1); // Remove leading '/'
+      const object = await env.R2.get(r2Key);
+      
+      if (!object) {
+        return new Response('Avatar not found', { status: 404 });
+      }
+
+      const headers = new Headers();
+      if (object.httpMetadata?.contentType) {
+        headers.set('content-type', object.httpMetadata.contentType);
+      }
+      headers.set('cache-control', 'public, max-age=31536000, immutable'); // Cache for 1 year
+      
+      // Handle CORS if needed
+      headers.set('access-control-allow-origin', '*');
+      
+      return new Response(object.body, { headers });
+    } catch (error) {
+      console.error('[Worker] Error serving avatar:', error);
+      return new Response('Error serving avatar', { status: 500 });
+    }
   }
   
   // Landing page at root

@@ -104,9 +104,31 @@ export const updateUser = async (
     // Handle avatar upload to R2 if provided
     if (input.avatarBase64 && input.avatarMimeType) {
       try {
-        // Decode base64 image
-        const base64Data = input.avatarBase64.replace(/^data:image\/\w+;base64,/, '');
-        const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        // Clean base64 data (remove data URI prefix if present)
+        let base64Data = input.avatarBase64.trim();
+        if (base64Data.includes(',')) {
+          // If it contains a comma, it's a data URI - extract just the base64 part
+          base64Data = base64Data.split(',')[1];
+        }
+        
+        // Validate base64
+        if (!base64Data || base64Data.length === 0) {
+          throw new Error('Invalid base64 data: empty or missing');
+        }
+
+        // Decode base64 to binary
+        let imageBuffer: Uint8Array;
+        try {
+          imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        } catch (decodeError) {
+          console.error('[updateUser] Base64 decode error:', decodeError);
+          throw new Error('Invalid base64 data: failed to decode');
+        }
+
+        // Validate buffer size (max 10MB for avatars)
+        if (imageBuffer.length > 10 * 1024 * 1024) {
+          throw new Error('Avatar file too large: maximum 10MB allowed');
+        }
 
         // Determine file extension from MIME type
         const mimeToExt: Record<string, string> = {
@@ -120,8 +142,15 @@ export const updateUser = async (
         const ext = mimeToExt[input.avatarMimeType.toLowerCase()] || 'jpg';
         const r2Key = `avatars/user-${userId}.${ext}`;
 
+        console.log('[updateUser] Uploading avatar to R2:', {
+          r2Key,
+          mimeType: input.avatarMimeType,
+          size: imageBuffer.length,
+          userId,
+        });
+
         // Upload to R2
-        await context.env.R2.put(r2Key, imageBuffer, {
+        const uploadResult = await context.env.R2.put(r2Key, imageBuffer, {
           httpMetadata: {
             contentType: input.avatarMimeType,
           },
@@ -131,26 +160,56 @@ export const updateUser = async (
           },
         });
 
-        // Construct R2 URL
-        // For public R2 buckets, use the public URL pattern
-        // For custom domains, configure R2_CUSTOM_DOMAIN env var
-        // Default pattern: https://<account-id>.r2.cloudflarestorage.com/<bucket-name>/<key>
-        // Or use a custom domain if configured
-        const r2CustomDomain = (context.env as any).R2_CUSTOM_DOMAIN;
-        const avatarUrl = r2CustomDomain 
-          ? `https://${r2CustomDomain}/${r2Key}`
-          : `https://r2.safarnak.app/${r2Key}`; // Placeholder - configure your R2 public URL or custom domain
+        if (!uploadResult) {
+          throw new Error('R2 upload returned null');
+        }
+
+        // Construct avatar URL using worker route
+        // The worker serves avatars at /avatars/{key}
+        // Use the request URL from context if available
+        let baseUrl = 'https://safarnak.app';
+        try {
+          const request = (context as any).request;
+          if (request?.url) {
+            const requestUrl = new URL(request.url);
+            baseUrl = requestUrl.origin;
+          } else if ((context.env as any).WORKER_URL) {
+            baseUrl = (context.env as any).WORKER_URL;
+          }
+        } catch (error) {
+          console.warn('[updateUser] Could not determine base URL, using default:', error);
+        }
+        const avatarUrl = `${baseUrl}/avatars/${r2Key}`;
+
+        console.log('[updateUser] Avatar uploaded successfully:', {
+          r2Key,
+          avatarUrl,
+        });
         
         updateData.avatar = avatarUrl;
 
         // Delete old avatar if it exists and is different
         if (currentUser.avatar && currentUser.avatar !== avatarUrl) {
           try {
-            // Extract key from old URL
-            const oldUrlParts = currentUser.avatar.split('/');
-            const oldKey = oldUrlParts[oldUrlParts.length - 1];
-            if (oldKey.startsWith('user-') && oldKey !== `user-${userId}.${ext}`) {
-              await context.env.R2.delete(`avatars/${oldKey}`);
+            // Extract key from old URL (handle both worker route and direct R2 URLs)
+            let oldKey: string | null = null;
+            if (currentUser.avatar.includes('/avatars/')) {
+              const oldUrlParts = currentUser.avatar.split('/avatars/');
+              if (oldUrlParts.length > 1) {
+                oldKey = `avatars/${oldUrlParts[1]}`;
+              }
+            } else {
+              // Fallback: try to extract from any URL format
+              const oldUrlParts = currentUser.avatar.split('/');
+              const lastPart = oldUrlParts[oldUrlParts.length - 1];
+              if (lastPart && lastPart.startsWith('user-')) {
+                oldKey = `avatars/${lastPart}`;
+              }
+            }
+            
+            if (oldKey && oldKey !== r2Key) {
+              console.log('[updateUser] Deleting old avatar:', oldKey);
+              await context.env.R2.delete(oldKey);
             }
           } catch (error) {
             console.warn('[updateUser] Failed to delete old avatar:', error);

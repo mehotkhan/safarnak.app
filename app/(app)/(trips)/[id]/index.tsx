@@ -418,7 +418,7 @@ export default function TripDetailScreen() {
                         total={totalSteps}
                         showLabel
                         color={isDark ? '#fbbf24' : '#f59e0b'}
-                      />
+                        />
                     </View>
                   )}
                   
