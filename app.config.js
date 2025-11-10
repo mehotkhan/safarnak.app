@@ -137,6 +137,7 @@ const getAppConfig = () => {
           {
             // Download token is read from RNMAPBOX_MAPS_DOWNLOAD_TOKEN env variable
             // Set it in your .env file (it will be automatically picked up)
+            // Note: RNMapboxMapsDownloadToken is deprecated, use RNMAPBOX_MAPS_DOWNLOAD_TOKEN env var instead
             RNMapboxMapsVersion: '11.16.2',
           },
         ],

@@ -33,10 +33,23 @@ import { useColorScheme } from '@hooks/useColorScheme';
 
 // Initialize Mapbox with access token
 const MAPBOX_ACCESS_TOKEN = Constants.expoConfig?.extra?.mapboxAccessToken;
+console.log('🗺️ Mapbox Token Check:', {
+  hasToken: !!MAPBOX_ACCESS_TOKEN,
+  tokenLength: MAPBOX_ACCESS_TOKEN?.length || 0,
+  tokenPrefix: MAPBOX_ACCESS_TOKEN?.substring(0, 10) || 'none',
+  expoConfig: !!Constants.expoConfig,
+  extra: !!Constants.expoConfig?.extra,
+});
+
 if (MAPBOX_ACCESS_TOKEN) {
-  Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
+  try {
+    Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
+    console.log('✅ Mapbox token set successfully');
+  } catch (error) {
+    console.error('❌ Failed to set Mapbox token:', error);
+  }
 } else {
-  console.warn('⚠️ Mapbox access token not found in app config');
+  console.error('❌ Mapbox access token not found in app config - Map will not load!');
 }
 
 interface Waypoint {
@@ -117,11 +130,22 @@ export default function MapboxMapView({
   const [mapStyle, setMapStyle] = useState<MapStyle>('streets');
   const [isMapReady, setIsMapReady] = useState(false);
   const [userZoom, setUserZoom] = useState<number | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
   const cameraRef = useRef<Camera>(null);
   const mapRef = useRef<RNMapboxMapView>(null);
   
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  
+  // Debug: Log component mount
+  useEffect(() => {
+    console.log('🗺️ MapboxMapView mounted', {
+      hasLocation: !!location,
+      waypointsCount: waypoints.length,
+      showControls,
+      autoCenter,
+    });
+  }, []);
   
   // Safety timeout to avoid indefinite spinner if events don't fire
   useEffect(() => {
@@ -189,6 +213,17 @@ export default function MapboxMapView({
       bounds: { ne, sw },
     };
   }, [location, validWaypoints]);
+
+  // Debug: log computed bounds/center/zoom once they change
+  useEffect(() => {
+    console.log('🧭 Map bounds computed', {
+      center: mapBounds.center,
+      zoom: mapBounds.zoom,
+      hasBounds: !!mapBounds.bounds,
+      ne: mapBounds.bounds?.ne,
+      sw: mapBounds.bounds?.sw,
+    });
+  }, [mapBounds.center[0], mapBounds.center[1], mapBounds.zoom, mapBounds.bounds?.ne?.[0], mapBounds.bounds?.ne?.[1], mapBounds.bounds?.sw?.[0], mapBounds.bounds?.sw?.[1]]);
 
   // Generate route line GeoJSON
   const routeGeoJSON = useMemo(() => {
@@ -289,13 +324,73 @@ export default function MapboxMapView({
 
   const currentZoom = userZoom !== null ? userZoom : mapBounds.zoom;
 
+  // Set camera after map is ready
+  useEffect(() => {
+    if (isMapReady && cameraRef.current && !followUserLocation) {
+      try {
+        console.log('📷 Setting camera after map ready', { center: mapBounds.center, zoom: currentZoom });
+        if (autoCenter && mapBounds.bounds) {
+          cameraRef.current.fitBounds(mapBounds.bounds.ne, mapBounds.bounds.sw, [50, 50, 50, 50], 1000);
+        } else {
+          cameraRef.current.setCamera({
+            centerCoordinate: mapBounds.center,
+            zoomLevel: currentZoom,
+            animationDuration: 1000,
+          });
+        }
+      } catch (error) {
+        console.error('❌ Error setting camera:', error);
+      }
+    }
+  }, [isMapReady, mapBounds, currentZoom, autoCenter, followUserLocation]);
+
+  // Ensure token is set before rendering
+  useEffect(() => {
+    if (MAPBOX_ACCESS_TOKEN) {
+      try {
+        // setAccessToken is safe to call multiple times
+        console.log('🔑 Setting Mapbox token before render');
+        Mapbox.setAccessToken(MAPBOX_ACCESS_TOKEN);
+      } catch (error) {
+        console.error('❌ Error setting Mapbox token:', error);
+      }
+    }
+  }, []);
+
+  // Debug: Log render
+  console.log('🎨 MapboxMapView rendering', {
+    styleURL: MAPBOX_STYLES[mapStyle],
+    isMapReady,
+    mapError,
+  });
+
+  // Don't render map if token is missing
+  if (!MAPBOX_ACCESS_TOKEN) {
+    return (
+      <View style={[styles.container, styles.errorContainer]}>
+        <Text style={styles.errorText}>Mapbox access token not configured</Text>
+        <Text style={[styles.errorText, { marginTop: 8, fontSize: 12 }]}>
+          Check your .env file for EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
+      {/* Debug: Test if View renders */}
+      {__DEV__ && (
+        <View style={{ position: 'absolute', top: 0, left: 0, backgroundColor: 'red', padding: 4, zIndex: 9999 }}>
+          <Text style={{ color: 'white', fontSize: 10 }}>MAP DEBUG</Text>
+        </View>
+      )}
+      
       {/* Mapbox Map */}
       <RNMapboxMapView
         ref={mapRef}
         style={styles.map}
         styleURL={MAPBOX_STYLES[mapStyle]}
+        surfaceView={true}
         compassEnabled={showControls}
         compassPosition={{ top: 16, right: 16 }}
         scaleBarEnabled={false}
@@ -308,23 +403,38 @@ export default function MapboxMapView({
         scrollEnabled={true}
         zoomEnabled={true}
         // Mark map ready on multiple stable events
-        onDidFinishLoadingMap={() => setIsMapReady(true)}
-        onDidFinishLoadingStyle={() => setIsMapReady(true)}
-        onMapIdle={() => setIsMapReady(true)}
-        onRegionDidChange={(feature) => {
-          if (onRegionChange && feature?.geometry?.coordinates) {
-            const coords = feature.geometry.coordinates as [number, number];
-            onRegionChange(coords, currentZoom);
+        onDidFinishLoadingMap={() => {
+          console.log('✅ Map finished loading');
+          setIsMapReady(true);
+        }}
+        onDidFinishLoadingStyle={() => {
+          console.log('✅ Map style finished loading');
+          setIsMapReady(true);
+        }}
+        onMapIdle={() => {
+          console.log('✅ Map is idle');
+          setIsMapReady(true);
+        }}
+        onCameraChanged={(e: any) => {
+          try {
+            const center = e?.properties?.center || e?.geometry?.coordinates;
+            const zoom = e?.properties?.zoom ?? currentZoom;
+            if (onRegionChange && Array.isArray(center) && center.length === 2) {
+              onRegionChange(center as [number, number], typeof zoom === 'number' ? zoom : currentZoom);
+            }
+          } catch (_err) {
+            // noop
+            return;
           }
         }}
       >
-        {/* Camera Control */}
+        {/* Camera Control - Always render Camera, but update it after map is ready */}
         <Camera
           ref={cameraRef}
           centerCoordinate={mapBounds.center}
           zoomLevel={currentZoom}
-          animationMode="flyTo"
-          animationDuration={1000}
+          animationMode={isMapReady ? "flyTo" : "none"}
+          animationDuration={isMapReady ? 1000 : 0}
           followUserLocation={followUserLocation}
         />
 
@@ -385,12 +495,30 @@ export default function MapboxMapView({
       </RNMapboxMapView>
 
       {/* Loading Indicator */}
-      {!isMapReady && (
+      {!isMapReady && !mapError && (
         <View style={[styles.loadingOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.9)' }]}>
           <ActivityIndicator size="large" color="#8b5cf6" />
           <Text style={[styles.loadingText, { color: isDark ? '#fff' : '#000' }]}>
             Loading Map...
           </Text>
+        </View>
+      )}
+
+      {/* Error Display */}
+      {mapError && (
+        <View style={[styles.errorOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.95)' : 'rgba(255,255,255,0.95)' }]}>
+          <Ionicons name="alert-circle" size={48} color="#ef4444" />
+          <Text style={[styles.errorTitle, { color: isDark ? '#fff' : '#000' }]}>
+            Map Error
+          </Text>
+          <Text style={[styles.errorText, { color: isDark ? '#d1d5db' : '#6b7280' }]}>
+            {mapError}
+          </Text>
+          {!MAPBOX_ACCESS_TOKEN && (
+            <Text style={[styles.errorHint, { color: '#ef4444' }]}>
+              Missing Mapbox token. Check .env file.
+            </Text>
+          )}
         </View>
       )}
 
@@ -451,9 +579,19 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     position: 'relative',
+    backgroundColor: '#f0f0f0', // Fallback background
   },
   map: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  errorContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
   },
   loadingOverlay: {
     position: 'absolute',
@@ -469,6 +607,34 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 16,
     fontWeight: '500',
+  },
+  errorOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    zIndex: 1000,
+  },
+  errorTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  errorText: {
+    marginTop: 8,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  errorHint: {
+    marginTop: 12,
+    fontSize: 12,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   controls: {
     position: 'absolute',
