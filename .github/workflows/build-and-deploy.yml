@@ -63,16 +63,6 @@ jobs:
           yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
           echo "Dependencies installed successfully"
 
-      - name: Verify required API files exist
-        run: |
-          echo "Verifying required API files for Android build..."
-          if [ ! -f "api/types.ts" ] || [ ! -f "api/hooks.ts" ]; then
-            echo "❌ Error: Required API files (api/types.ts, api/hooks.ts) are missing!"
-            echo "Please run 'yarn codegen' locally and commit the generated files."
-            exit 1
-          fi
-          echo "✅ Required API files found"
-
       - name: Determine semantic version bump
         id: version_bump
         env:
@@ -100,7 +90,7 @@ jobs:
           // Get latest release tag (matching pattern vX.Y.Z)
           let lastTag = '';
           try {
-            const tags = cp.execSync('git tag --sort=-version:refname | grep -E "^v[0-9]+\\.[0-9]+\\.[0-9]+$" | head -n 1', { encoding: 'utf8' }).trim();
+            const tags = cp.execSync('git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n 1', { encoding: 'utf8' }).trim();
             if (tags) {
               lastTag = tags.split('\n')[0];
               console.log(`📋 Found last release tag: ${lastTag}`);
@@ -125,9 +115,9 @@ jobs:
           try {
             if (lastTag) {
               console.log(`\n📋 Collecting all commits between ${lastTag} and HEAD...`);
-              // Use --no-walk to ensure we get commits in order
-              const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges --reverse`, { encoding: 'utf8' }).trim();
-              commitMessages = commits.split('\n\n').filter(msg => msg.trim());
+              // Reliable split using a unique delimiter, include subject + body for BREAKING CHANGE detection
+              const raw = cp.execSync(`git log ${lastTag}..HEAD --no-merges --reverse --pretty=format:%s%n%b%n---END-COMMIT---`, { encoding: 'utf8' }).trim();
+              commitMessages = raw.split('\n---END-COMMIT---').map(s => s.trim()).filter(Boolean);
               console.log(`   Range: ${lastTag}..HEAD (exclusive of tag, inclusive of HEAD)`);
               console.log(`   Found ${commitMessages.length} commit(s) in range`);
               
@@ -144,8 +134,8 @@ jobs:
               }
             } else {
               console.log('\n📋 No previous release tag found, checking last 50 commits...');
-              const commits = cp.execSync('git log --pretty=%B --no-merges -50', { encoding: 'utf8' }).trim();
-              commitMessages = commits.split('\n\n').filter(msg => msg.trim());
+              const raw = cp.execSync('git log --no-merges -50 --pretty=format:%s%n%b%n---END-COMMIT---', { encoding: 'utf8' }).trim();
+              commitMessages = raw.split('\n---END-COMMIT---').map(s => s.trim()).filter(Boolean);
             }
           } catch (e) {
             console.log('ℹ️  Could not get commits, using latest commit only');
@@ -250,7 +240,7 @@ jobs:
               commitType = 'fix';
             }
             // Check for breaking changes
-            if (msg.includes('BREAKING CHANGE') || /^[^:]+!:/.test(firstLine)) {
+            if (/BREAKING CHANGE/i.test(msg) || /^[^:]+!:/.test(firstLine)) {
               hasBreaking = true;
               commitType = 'breaking';
             }
@@ -359,6 +349,7 @@ jobs:
           echo "📱 Version: $VERSION → Version Code: $VERSION_CODE"
 
       - name: Expo prebuild (propagate version to native)
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
           npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
@@ -387,35 +378,10 @@ jobs:
       - name: Setup Gradle (build cache & config cache)
         uses: gradle/actions/setup-gradle@v3
         with:
-          cache-disabled: true
+          cache-disabled: false
           cache-read-only: ${{ github.event_name == 'pull_request' }}
           add-job-summary: never
         continue-on-error: true
-
-      - name: Cache Metro bundler
-        uses: actions/cache@v4
-        continue-on-error: true
-        with:
-          path: |
-            android/app/build/generated/assets
-            android/app/build/intermediates/sourcemaps
-            /tmp/metro-*
-            node_modules/.cache
-          key: ${{ runner.os }}-metro-${{ hashFiles('package.json', 'yarn.lock', 'app/**', 'components/**') }}
-          restore-keys: |
-            ${{ runner.os }}-metro-
-            ${{ runner.os }}-node-
-
-      - name: Verify Android project structure
-        run: |
-          echo "Checking Android project structure..."
-          echo "Android directory:"
-          ls -la android/ || echo "android/ directory not found"
-          echo "Android gradlew:"
-          ls -la android/gradlew || echo "android/gradlew not found"
-          echo "Android app directory:"
-          ls -la android/app/ || echo "android/app/ directory not found"
-          echo "Android project structure check completed"
 
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
@@ -459,36 +425,6 @@ jobs:
           else
             echo "✅ APK files found successfully"
           fi
-
-      - name: Read version info
-        if: steps.version_changed.outputs.changed == 'true'
-        id: version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          # Calculate version code: maj*10000 + min*100 + pat
-          # Example: 0.8.1 → 0*10000 + 8*100 + 1 = 801
-          VERSION_CODE=$(node -e "
-            const v = '$VERSION'.split('.').map(n => parseInt(n, 10) || 0);
-            const code = v[0] * 10000 + v[1] * 100 + v[2];
-            console.log(code);
-          ")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-          echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
-          echo "minor=$(echo $VERSION | cut -d. -f2)" >> $GITHUB_OUTPUT
-          echo "patch=$(echo $VERSION | cut -d. -f3)" >> $GITHUB_OUTPUT
-          echo "bump_type=${{ steps.version_bump.outputs.bump_type }}" >> $GITHUB_OUTPUT
-          echo "stage=$(node -e "
-            const [major, minor] = '$VERSION'.split('.').map(Number);
-            if (major === 0) {
-              if (minor < 8) console.log('alpha');
-              else if (minor < 9) console.log('beta');
-              else console.log('beta');
-            } else {
-              console.log('stable');
-            }
-          ")" >> $GITHUB_OUTPUT
-          echo "📱 App Version: $VERSION ($(echo $VERSION | cut -d. -f1).$(echo $VERSION | cut -d. -f2).$(echo $VERSION | cut -d. -f3))"
 
       - name: Rename APK with descriptive name
         if: steps.version_changed.outputs.changed == 'true'
