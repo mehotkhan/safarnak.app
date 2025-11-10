@@ -51,7 +51,7 @@ const USERNAME_KEY = '@safarnak_username';
 
 export const useAuth = () => {
   const dispatch = useAppDispatch();
-  const { deviceKeyPair } = useAppSelector((state) => state.auth);
+  const { deviceKeyPair: _deviceKeyPair } = useAppSelector((state) => state.auth);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [storedUsername, setStoredUsername] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

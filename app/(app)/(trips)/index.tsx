@@ -132,18 +132,6 @@ export default function PlanScreen() {
     }
   }, [activeTab, refetchTrips, refetchTours, refetchPlaces, refetchLocations]);
 
-  // Navigation handlers
-  const handleCreate = useCallback(() => {
-    if (activeTab === 'trips') {
-    router.push('/(app)/(trips)/new' as any);
-    } else if (activeTab === 'tours') {
-      router.push('/(app)/(trips)/tours/new' as any);
-    } else if (activeTab === 'places') {
-      router.push('/(app)/(trips)/places/new' as any);
-    } else if (activeTab === 'locations') {
-      router.push('/(app)/(trips)/locations/new' as any);
-    }
-  }, [activeTab, router]);
 
   const handleTripPress = useCallback((tripId: string) => {
     router.push(`/(app)/(trips)/${tripId}` as any);

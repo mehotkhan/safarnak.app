@@ -19,7 +19,6 @@ import * as Location from 'expo-location';
 import { CustomText } from '@components/ui/CustomText';
 import InputField from '@components/ui/InputField';
 import CustomButton from '@components/ui/CustomButton';
-import { useTheme } from '@components/context/ThemeContext';
 import { z } from 'zod';
 import { useCreateTourMutation, GetToursDocument } from '@api';
 import TextArea from '@components/ui/TextArea';
@@ -37,7 +36,7 @@ export default function CreateTourScreen() {
   const keyboardHeight = useSharedValue(0);
 
   // Location state
-  const [currentLocation, setCurrentLocation] = useState<string>('');
+  const [_currentLocation, setCurrentLocation] = useState<string>('');
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);

@@ -17,7 +17,7 @@ export default function MyTripsScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const { formatDate } = useDateTime();
+  const { formatDate, isFuture, isPast } = useDateTime();
   const [selectedTab, setSelectedTab] = useState<'upcoming' | 'past'>('upcoming');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -42,15 +42,15 @@ export default function MyTripsScreen() {
     if (selectedTab === 'upcoming') {
       return trips.filter(trip => 
         trip.status === 'in_progress' || 
-        (trip.startDate && new Date(trip.startDate) > new Date())
+        (trip.startDate && isFuture(trip.startDate))
       );
     } else {
       return trips.filter(trip => 
         trip.status === 'completed' || 
-        (trip.endDate && new Date(trip.endDate) < new Date())
+        (trip.endDate && isPast(trip.endDate))
       );
     }
-  }, [trips, selectedTab]);
+  }, [trips, selectedTab, isFuture, isPast]);
 
   const handleTripPress = (tripId: string) => {
     router.push(`/(app)/(trips)/${tripId}` as any);

@@ -13,10 +13,10 @@ import { CustomText } from '@components/ui/CustomText';
 import InputField from '@components/ui/InputField';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
-import DatePicker from '@components/ui/DatePicker';
 import { useGetTourQuery, useBookTourMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
+import { useDateTime } from '@utils/datetime';
 
 export default function BookTourScreen() {
   const { t } = useTranslation();
@@ -25,6 +25,7 @@ export default function BookTourScreen() {
   const { id } = useLocalSearchParams();
   const tourId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const { user } = useAppSelector(state => state.auth);
+  const { getNow } = useDateTime();
 
   // GraphQL queries
   const { data, loading: loadingTour, error: tourError } = useGetTourQuery({
@@ -37,7 +38,7 @@ export default function BookTourScreen() {
   const tour = data?.getTour as any;
 
   const [bookTour, { loading: booking }] = useBookTourMutation({
-    onCompleted: (data) => {
+    onCompleted: (_data) => {
       Alert.alert(
         t('common.success'),
         t('tourBooking.successMessage'),
@@ -69,14 +70,13 @@ export default function BookTourScreen() {
   const availableDates = useMemo(() => {
     // TODO: Get from tour data when available
     const dates = [];
-    const today = new Date();
+    const today = getNow();
     for (let i = 0; i < 4; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + (i + 1) * 7);
-      dates.push(date.toISOString().split('T')[0]);
+      const date = today.plus({ weeks: i + 1 });
+      dates.push(date.toISODate() || '');
     }
     return dates;
-  }, []);
+  }, [getNow]);
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({ ...prev, [field]: value }));

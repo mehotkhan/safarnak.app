@@ -142,7 +142,7 @@ export default function MessagesScreen() {
   const { user } = useAppSelector(state => state.auth);
   
   // Fetch all alerts
-  const { data: alertsData, loading: alertsLoading, refetch: refetchAlerts } = useGetAlertsQuery({
+  const { data: alertsData, refetch: refetchAlerts } = useGetAlertsQuery({
     skip: !user?.id,
     fetchPolicy: 'cache-and-network',
   });
@@ -474,7 +474,7 @@ export default function MessagesScreen() {
                         {chat.user.name}
                       </CustomText>
                       <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatRelativeTime(chat.lastMessage.timestamp, t)}
+                        {formatRelativeTime(chat.lastMessage.timestamp)}
                       </CustomText>
                     </View>
                     <View className="flex-row items-center">

@@ -27,7 +27,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ edit?: string }>();
   const { user: reduxUser } = useAppSelector(state => state.auth);
-  const { formatDate } = useDateTime();
+  const { formatDate, isFuture, isPast } = useDateTime();
   const [isEditing, setIsEditing] = useState(params.edit === 'true');
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
@@ -91,11 +91,11 @@ export default function ProfileScreen() {
   const stats = useMemo(() => {
     const upcomingTrips = trips.filter(trip => 
       trip.status === 'in_progress' || 
-      (trip.startDate && new Date(trip.startDate) > new Date())
+      (trip.startDate && isFuture(trip.startDate))
     );
     const pastTrips = trips.filter(trip => 
       trip.status === 'completed' || 
-      (trip.endDate && new Date(trip.endDate) < new Date())
+      (trip.endDate && isPast(trip.endDate))
     );
     
     return {
@@ -106,7 +106,7 @@ export default function ProfileScreen() {
       posts: 0,
       followers: 0,
     };
-  }, [trips]);
+  }, [trips, isFuture, isPast]);
   
   const statsLoading = meLoading || tripsLoading;
 

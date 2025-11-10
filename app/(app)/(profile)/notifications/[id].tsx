@@ -137,7 +137,7 @@ export default function NotificationDetailScreen() {
             {notification.title}
           </CustomText>
           <CustomText className="text-sm text-gray-500 dark:text-gray-400">
-            {formatRelativeTime(notification.time, t)}
+            {formatRelativeTime(notification.time)}
           </CustomText>
         </View>
 

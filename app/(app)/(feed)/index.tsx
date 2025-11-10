@@ -4,7 +4,6 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
-  Dimensions,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
@@ -23,6 +22,7 @@ import { useRefresh } from '@hooks/useRefresh';
 import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
 import { TabBar } from '@components/ui/TabBar';
 import { Dropdown } from '@components/ui/Dropdown';
+import { useDateTime } from '@utils/datetime';
 
 const categories = [
   { id: 'trips', label: 'trips', icon: 'airplane-outline' },
@@ -60,6 +60,7 @@ export default function HomeScreen() {
   };
 
   const { isOnline, isBackendReachable } = useSystemStatus();
+  const { getNow } = useDateTime();
   
   // Show offline icon if offline OR backend unreachable
   const isOffline = !isOnline || !isBackendReachable;
@@ -70,13 +71,13 @@ export default function HomeScreen() {
     const filter = timeFilters.find(f => f.id === selectedTimeFilter);
     if (!filter || !filter.days) return { after: undefined, before: undefined };
     
-    const now = new Date();
-    const after = new Date(now.getTime() - filter.days * 24 * 60 * 60 * 1000);
+    const now = getNow();
+    const after = now.minus({ days: filter.days });
     return {
-      after: after.toISOString(),
+      after: after.toISO(),
       before: undefined,
     };
-  }, [selectedTimeFilter]);
+  }, [selectedTimeFilter, getNow]);
 
   // Determine post type based on selected tab
   const getPostType = useCallback(() => {

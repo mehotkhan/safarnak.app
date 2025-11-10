@@ -11,19 +11,20 @@ import { LoadingState } from '@components/ui/LoadingState';
 import { ErrorState } from '@components/ui/ErrorState';
 import { EmptyState } from '@components/ui/EmptyState';
 import { TourCard, PlaceCard, PostCard } from '@components/cards';
-import { useTheme } from '@components/context/ThemeContext';
 import { useGetToursQuery, useGetPlacesQuery, useGetPostsQuery } from '@api';
 import FilterModal, { TourFilters, PlaceFilters, PostFilters } from '@components/ui/FilterModal';
 import { useDebounce } from '@hooks/useDebounce';
 import { useRefresh } from '@hooks/useRefresh';
 import { TabBar } from '@components/ui/TabBar';
 import { SearchBar } from '@components/ui/SearchBar';
+import { useDateTime } from '@utils/datetime';
 
 type TabType = 'tours' | 'places' | 'posts';
 
 export default function ExploreScreen() {
   const { t } = useTranslation();
   const router = useRouter();
+  const { parseDate } = useDateTime();
   
   // State
   const [activeTab, setActiveTab] = useState<TabType>('tours');
@@ -106,8 +107,8 @@ export default function ExploreScreen() {
           case 'price':
             return (a.price || 0) - (b.price || 0);
           case 'newest': {
-            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            const aTime = a.createdAt ? parseDate(a.createdAt).toMillis() : 0;
+            const bTime = b.createdAt ? parseDate(b.createdAt).toMillis() : 0;
             return bTime - aTime;
           }
           case 'popular':
@@ -121,7 +122,7 @@ export default function ExploreScreen() {
     } catch {
       return [];
     }
-  }, [toursData, debouncedSearch, tourFilters]);
+  }, [toursData, debouncedSearch, tourFilters, parseDate]);
 
   const filteredPlaces = useMemo(() => {
     try {
@@ -156,8 +157,8 @@ export default function ExploreScreen() {
           case 'rating':
             return (b.rating || 0) - (a.rating || 0);
           case 'newest': {
-            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            const aTime = a.createdAt ? parseDate(a.createdAt).toMillis() : 0;
+            const bTime = b.createdAt ? parseDate(b.createdAt).toMillis() : 0;
             return bTime - aTime;
           }
           case 'popular':
@@ -171,7 +172,7 @@ export default function ExploreScreen() {
     } catch {
       return [];
     }
-  }, [placesData, debouncedSearch, placeFilters]);
+  }, [placesData, debouncedSearch, placeFilters, parseDate]);
 
   const filteredPosts = useMemo(() => {
     try {
@@ -194,8 +195,8 @@ export default function ExploreScreen() {
       posts = [...posts].sort((a: any, b: any) => {
         switch (postFilters.sortBy) {
           case 'newest': {
-            const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-            const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            const aTime = a.createdAt ? parseDate(a.createdAt).toMillis() : 0;
+            const bTime = b.createdAt ? parseDate(b.createdAt).toMillis() : 0;
             return bTime - aTime;
           }
           case 'popular':
@@ -209,7 +210,7 @@ export default function ExploreScreen() {
     } catch {
       return [];
     }
-  }, [postsData, debouncedSearch, postFilters]);
+  }, [postsData, debouncedSearch, postFilters, parseDate]);
 
   // Loading state
   const currentLoading = activeTab === 'tours' ? toursLoading : activeTab === 'places' ? placesLoading : postsLoading;

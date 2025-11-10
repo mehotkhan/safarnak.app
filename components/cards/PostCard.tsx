@@ -51,7 +51,7 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
               {post.user?.name || post.user?.username || 'User'}
             </CustomText>
             <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-              {formatRelativeTime(post.createdAt, t)}
+              {formatRelativeTime(post.createdAt)}
             </CustomText>
           </View>
         </TouchableOpacity>

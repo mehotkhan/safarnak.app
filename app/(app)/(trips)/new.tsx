@@ -25,6 +25,7 @@ import { useCreateTripMutation, GetTripsDocument } from '@api';
 import DatePicker from '@components/ui/DatePicker';
 import Divider from '@components/ui/Divider';
 import TextArea from '@components/ui/TextArea';
+import { parseDate } from '@utils/datetime';
 
 const accommodationTypes = ['hotel', 'hostel', 'apartment', 'camping'];
 
@@ -140,8 +141,9 @@ export default function CreateTripScreen() {
   }).refine(values => {
     // Only validate dates if both are provided
     if (values.startDate && values.endDate) {
-      const s = new Date(values.startDate).getTime();
-      const e = new Date(values.endDate).getTime();
+      const s = parseDate(values.startDate);
+      const e = parseDate(values.endDate);
+      if (!s.isValid || !e.isValid) return false;
       return e >= s;
     }
     return true;

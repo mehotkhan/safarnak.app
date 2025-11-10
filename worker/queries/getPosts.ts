@@ -1,4 +1,4 @@
-import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { eq, and, desc, gte, lte } from 'drizzle-orm';
 import { getServerDB, posts, users, comments, reactions, trips, tours, places, bookmarks } from '@database/server';
 import type { GraphQLContext } from '../types';
 

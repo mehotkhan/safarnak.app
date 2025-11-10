@@ -26,10 +26,6 @@ import Colors from '@constants/Colors';
 import { getCacheStats, clearCache, cleanupOldTiles } from '@/utils/mapTileCache';
 import { useEffect } from 'react';
 
-// Read version from package.json
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const packageJson = require('../../../../package.json');
-const APP_VERSION = packageJson.version;
 
 function formatBytes(bytes: number): string {
   if (bytes === 0) return '0 B';

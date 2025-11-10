@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { getDatabaseStats, getPendingMutationsDetails, type DatabaseStats } from '@database/client';
+import { getDatabaseStats, type DatabaseStats } from '@database/client';
 
 export function useDatabaseStats() {
   const [stats, setStats] = useState<DatabaseStats | null>(null);

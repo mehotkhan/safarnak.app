@@ -14,14 +14,12 @@ import { InfoBanner } from '@components/ui/InfoBanner';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetMyDevicesQuery, useRevokeDeviceMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
-import { useLanguage } from '@components/context/LanguageContext';
 import { useDateTime } from '@utils/datetime';
 import * as Device from 'expo-device';
 
 export default function DevicesScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const { currentLanguage } = useLanguage();
   const { deviceKeyPair } = useAppSelector((state) => state.auth);
   const [refreshing, setRefreshing] = useState(false);
 

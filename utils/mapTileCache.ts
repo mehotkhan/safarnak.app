@@ -8,7 +8,7 @@
 import * as FileSystem from 'expo-file-system';
 import { getLocalDB } from '@database/client';
 import { cachedMapTiles } from '@database/schema';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import NetInfo from '@react-native-community/netinfo';
 
 export type MapLayer = 'standard' | 'satellite' | 'terrain';
@@ -20,7 +20,7 @@ interface TileKey {
   y: number;
 }
 
-interface CachedTile {
+interface _CachedTile {
   id: string;
   layer: MapLayer;
   z: number;
@@ -67,7 +67,7 @@ function getTileFilePath({ layer, z, x, y }: TileKey): string {
 /**
  * Get tile key from file path
  */
-function getTileKeyFromPath(filePath: string): TileKey | null {
+function _getTileKeyFromPath(filePath: string): TileKey | null {
   const match = filePath.match(/tiles\/(standard|satellite|terrain)\/(\d+)\/(\d+)\/(\d+)\.png$/);
   if (!match) return null;
   return {
@@ -104,8 +104,6 @@ async function ensureCacheDirectory(): Promise<void> {
 export async function isTileCached(tileKey: TileKey): Promise<boolean> {
   try {
     const db = await getLocalDB();
-    const filePath = getTileFilePath(tileKey);
-    
     // Check database
     const cached = await db
       .select()
@@ -330,7 +328,7 @@ export async function clearCache(): Promise<boolean> {
     // Try to remove cache directory (may fail if not empty due to subdirectories)
     try {
       await FileSystem.deleteAsync(getCacheDir(), { idempotent: true });
-    } catch (error) {
+    } catch (_error) {
       // Ignore - directory may not be empty
     }
     

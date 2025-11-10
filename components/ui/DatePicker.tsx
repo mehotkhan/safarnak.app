@@ -3,6 +3,8 @@ import { Modal, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@components/context/LanguageContext';
+import { formatDate } from '@utils/datetime';
 
 interface Props {
   label?: string;
@@ -17,6 +19,8 @@ function clamp(num: number, min: number, max: number) {
 
 export default function DatePicker({ label, value, onChange, placeholder }: Props) {
   const { t } = useTranslation();
+  const { currentLanguage } = useLanguage();
+  
   const initial = useMemo(() => {
     const d = value ? new Date(value) : new Date();
     return {
@@ -31,11 +35,23 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
   const [month, setMonth] = useState(initial.month);
   const [day, setDay] = useState(initial.day);
 
+  // ISO format for form submission (YYYY-MM-DD)
   const formatted = useMemo(() => {
     const mm = String(month).padStart(2, '0');
     const dd = String(day).padStart(2, '0');
     return `${year}-${mm}-${dd}`;
   }, [year, month, day]);
+
+  // Localized display format for user-friendly display
+  const displayValue = useMemo(() => {
+    if (value) {
+      return formatDate(value, currentLanguage, 'short');
+    }
+    if (formatted) {
+      return formatDate(formatted, currentLanguage, 'short');
+    }
+    return null;
+  }, [value, formatted, currentLanguage]);
 
   const apply = () => {
     onChange?.(formatted);
@@ -63,7 +79,7 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
       >
         <Ionicons name="calendar-outline" size={18} color="#6b7280" />
         <CustomText className="ml-2 text-black dark:text-white">
-          {value || formatted || (placeholder || t('plan.form.datePlaceholder'))}
+          {displayValue || (placeholder || t('plan.form.datePlaceholder'))}
         </CustomText>
       </Pressable>
 

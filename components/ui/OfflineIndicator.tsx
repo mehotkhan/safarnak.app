@@ -1,12 +1,10 @@
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
-import { useTheme } from '@components/context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { useGraphBackendReachable } from '@hooks/useGraphBackendReachable';
 
 export default function OfflineIndicator() {
-  const { isDark } = useTheme();
   const { t } = useTranslation();
   const reachable = useGraphBackendReachable();
 

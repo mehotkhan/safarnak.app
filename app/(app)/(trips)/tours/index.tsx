@@ -4,7 +4,6 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
@@ -13,7 +12,6 @@ import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
 import { TourCard } from '@components/cards';
 import { useGetToursQuery } from '@api';
-import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
 
 export default function ToursManagementScreen() {

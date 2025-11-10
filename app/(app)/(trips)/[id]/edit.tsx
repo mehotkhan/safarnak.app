@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   ScrollView,
-  TouchableOpacity,
   Alert,
   ActivityIndicator,
 } from 'react-native';

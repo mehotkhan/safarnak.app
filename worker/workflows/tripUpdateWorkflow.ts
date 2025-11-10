@@ -21,7 +21,7 @@ interface TripUpdateParams {
 
 export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams> {
   override async run(event: WorkflowEvent<TripUpdateParams>, step: WorkflowStep): Promise<void> {
-    const { tripId, userId, userMessage, destination } = event.payload;
+    const { tripId, userId, userMessage, destination: _destination } = event.payload;
 
     // Step 1: Acknowledge user request
     await step.do('Step 1: Acknowledge user request', async () => {

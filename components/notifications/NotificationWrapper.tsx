@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View } from 'react-native';
 import { useNewAlertsSubscription } from '@api/hooks';
 import { useAppSelector } from '@store/hooks';
 import { Toast } from './Toast';
@@ -15,7 +14,7 @@ export function NotificationWrapper({ children }: { children: React.ReactNode })
   const { user } = useAppSelector(state => state.auth);
   const [currentToast, setCurrentToast] = useState<Notification | null>(null);
   const [toastQueue, setToastQueue] = useState<Notification[]>([]);
-  const [shownIds, setShownIds] = useState<Set<string>>(new Set());
+  const [_shownIds, setShownIds] = useState<Set<string>>(new Set());
 
   // Subscribe to new alerts
   const { data: subscriptionData, error: subscriptionError } = useNewAlertsSubscription({

@@ -289,7 +289,7 @@ export default function BookmarksScreen() {
                   
                   {item.createdAt && (
                     <CustomText className="text-xs text-gray-400 dark:text-gray-500">
-                      {formatRelativeTime(item.createdAt, t)}
+                      {formatRelativeTime(item.createdAt)}
                     </CustomText>
                   )}
                 </View>

@@ -1,12 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import { LeafletView, MapMarker, MapShape, MapLayer, LatLng, MapShapeType, MapLayerType, WebviewLeafletMessage } from 'react-native-leaflet-view';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { useAppSelector } from '@store/hooks';
-import { cacheTile, getCachedTilePath, isTileCached, type MapLayer as CacheMapLayer } from '@/utils/mapTileCache';
-import * as FileSystem from 'expo-file-system';
+import { cacheTile, type MapLayer as CacheMapLayer } from '@/utils/mapTileCache';
 
 interface Waypoint {
   latitude: number;
@@ -123,7 +122,7 @@ export default function MapView({
   location,
   waypoints,
   showControls = true,
-  autoCenter = false,
+  autoCenter: _autoCenter = false,
 }: MapViewProps) {
   const [isMapLoading, setIsMapLoading] = useState(true);
   const [mapLayer, setMapLayer] = useState<MapLayerName>('standard');
@@ -186,7 +185,7 @@ export default function MapView({
   }, [location, validWaypoints]);
 
   const [currentZoom, setCurrentZoom] = useState(initialZoom);
-  const [mapReady, setMapReady] = useState(false);
+  const [_mapReady, setMapReady] = useState(false);
   const [centerTrigger, setCenterTrigger] = useState(0); // Counter to trigger center action
   const [shouldCenter, setShouldCenter] = useState(false); // Flag to trigger center without remount
 
@@ -532,8 +531,8 @@ export default function MapView({
     setMapLayer(nextLayer);
   }, [mapLayer]);
 
-  const hasLocation = !!location;
-  const hasWaypoints = validWaypoints.length > 0;
+  const _hasLocation = !!location;
+  const _hasWaypoints = validWaypoints.length > 0;
 
   return (
     <View className="flex-1">

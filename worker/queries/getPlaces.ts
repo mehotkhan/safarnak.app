@@ -1,4 +1,4 @@
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { getServerDB, places } from '@database/server';
 import type { GraphQLContext } from '../types';
 

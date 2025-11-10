@@ -2,7 +2,6 @@ import { ApolloProvider } from '@apollo/client';
 import AuthWrapper from '@components/AuthWrapper';
 import { LanguageProvider } from '@components/context/LanguageContext';
 import { ThemeProvider as CustomThemeProvider } from '@components/context/ThemeContext';
-import { NotificationWrapper } from '@components/notifications/NotificationWrapper';
 import {
   DarkTheme,
   DefaultTheme,

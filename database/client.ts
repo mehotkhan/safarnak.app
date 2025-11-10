@@ -26,6 +26,7 @@ import {
   syncMetadata,
   apolloCacheEntries,
 } from './schema';
+import { formatRelativeTime } from '@utils/datetime';
 
 // ============================================================================
 // DATABASE INSTANCE
@@ -263,7 +264,7 @@ export async function syncApolloToDrizzle(cache: NormalizedCacheObject): Promise
       const match = key.match(/^([A-Z][a-zA-Z]*):(.+)$/);
       if (!match) continue;
 
-      const [, entityType, entityId] = match;
+      const [, entityType, _entityId] = match;
       if (!(entityType in ENTITY_TYPE_TO_TABLE)) continue;
 
       const table = ENTITY_TYPE_TO_TABLE[entityType as EntityType];
@@ -598,13 +599,21 @@ export async function getPendingMutationsDetails() {
 }
 
 /**
- * Format timestamp to human-readable format
+ * Format timestamp to human-readable relative time format
+ * Uses datetime helper for proper localization
+ * 
+ * @param timestamp - Unix timestamp in seconds (not milliseconds)
+ * @param language - Language code (e.g., 'en', 'fa') - defaults to 'en'
+ * @returns Formatted relative time string (e.g., "9 days ago" or "۹ روز پیش")
  */
-export function formatTimestamp(timestamp: number | null): string {
+export function formatTimestamp(timestamp: number | null, language: string = 'en'): string {
   if (!timestamp) return 'Never';
-  const diff = Math.floor(Date.now() / 1000) - timestamp;
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  return `${Math.floor(diff / 86400)}d ago`;
+  
+  // Convert Unix timestamp (seconds) to Date object for datetime helper
+  // Multiply by 1000 to convert seconds to milliseconds for Date
+  const date = new Date(timestamp * 1000);
+  
+  // Use formatRelativeTime directly (can't use hook in utility function)
+  // Language parameter allows callers to specify language for localization
+  return formatRelativeTime(date, language);
 }

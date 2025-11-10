@@ -12,7 +12,7 @@ export default function TripMapScreen() {
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
 
   // Fetch trip data to get coordinates and waypoints from GraphQL
-  const { data, loading } = useGetTripQuery({
+  const { data } = useGetTripQuery({
     variables: { id: tripId },
     skip: !tripId,
     fetchPolicy: 'cache-and-network',

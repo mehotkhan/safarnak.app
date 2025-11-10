@@ -11,13 +11,10 @@ import { CustomText } from '@components/ui/CustomText';
 import InputField from '@components/ui/InputField';
 import TextArea from '@components/ui/TextArea';
 import CustomButton from '@components/ui/CustomButton';
-import { useTheme } from '@components/context/ThemeContext';
 import { useCreateLocationMutation, GetLocationsDocument } from '@api';
-import Colors from '@constants/Colors';
 
 export default function CreateLocationScreen() {
   const { t } = useTranslation();
-  const { isDark } = useTheme();
   const router = useRouter();
 
   const [formData, setFormData] = useState({

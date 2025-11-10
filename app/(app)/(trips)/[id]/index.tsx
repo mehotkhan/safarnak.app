@@ -620,7 +620,7 @@ export default function TripDetailScreen() {
                   style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 
-                {(trip.itinerary as any[]).map((day: any, index: number) => (
+                {(trip.itinerary as any[]).map((day: any) => (
                   <View key={day.day} className="flex-row mb-6">
                     {/* Timeline Dot */}
                     <View className="relative mr-4">

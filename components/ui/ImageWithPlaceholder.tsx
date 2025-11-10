@@ -3,7 +3,6 @@ import { View, Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from './CustomText';
 import { useTheme } from '@components/context/ThemeContext';
-import { useTranslation } from 'react-i18next';
 
 export interface ImageWithPlaceholderProps {
   source: { uri: string } | number;
@@ -47,9 +46,8 @@ export const ImageWithPlaceholder = React.memo<ImageWithPlaceholderProps>(({
   onLoad,
 }) => {
   const { isDark } = useTheme();
-  const { t } = useTranslation();
   const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [_isLoading, setIsLoading] = useState(true);
 
   const handleError = (error: NativeSyntheticEvent<ImageErrorEventData>) => {
     setHasError(true);

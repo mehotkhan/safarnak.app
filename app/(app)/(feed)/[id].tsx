@@ -190,7 +190,7 @@ export default function PostDetailScreen() {
                 </>
               )}
               <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
-                • {formatRelativeTime(post.createdAt, t)}
+                • {formatRelativeTime(post.createdAt)}
               </CustomText>
             </View>
           </View>
@@ -314,7 +314,7 @@ export default function PostDetailScreen() {
                         {comment.user?.name || 'Unknown'}
                       </CustomText>
                       <CustomText className="text-xs text-gray-400 dark:text-gray-500">
-                        {formatRelativeTime(comment.createdAt, t)}
+                        {formatRelativeTime(comment.createdAt)}
                       </CustomText>
                     </View>
                     <CustomText className="text-sm text-gray-700 dark:text-gray-300">

@@ -42,7 +42,7 @@ export const Dropdown = React.memo<DropdownProps>(({
   value, 
   onChange, 
   trigger,
-  placeholder = 'Select...',
+  placeholder: _placeholder = 'Select...',
   icon,
   className = '',
   placement = 'bottom',
@@ -52,7 +52,7 @@ export const Dropdown = React.memo<DropdownProps>(({
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
-  const selectedOption = options.find(opt => opt.id === value);
+  const _selectedOption = options.find(opt => opt.id === value);
 
   const handleSelect = (optionId: string) => {
     onChange(optionId);

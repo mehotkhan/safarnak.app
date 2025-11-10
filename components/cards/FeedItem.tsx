@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { View, TouchableOpacity, Image, Modal } from 'react-native';
+import { View, TouchableOpacity, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/ui/CustomText';
@@ -114,7 +114,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
       setOptimisticBookmarked(newBookmarked);
       try {
         await onBookmark(item.id);
-      } catch (error) {
+      } catch (_error) {
         setOptimisticBookmarked(null);
       }
     }
@@ -177,7 +177,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
               </TouchableOpacity>
             ) : null}
             <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
-              • {formatRelativeTime(item.createdAt, t)}
+              • {formatRelativeTime(item.createdAt)}
             </CustomText>
           </View>
         </View>
@@ -274,7 +274,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
                       {comment.user?.name || 'Unknown'}
                     </CustomText>
                     <CustomText className="text-xs text-gray-400 dark:text-gray-500">
-                      {formatRelativeTime(comment.createdAt, t)}
+                      {formatRelativeTime(comment.createdAt)}
                     </CustomText>
                   </View>
                   <CustomText className="text-sm text-gray-700 dark:text-gray-300 leading-4">

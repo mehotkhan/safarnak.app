@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseDate } from './datetime';
 
 /**
  * Common validation schemas and utilities
@@ -74,8 +75,9 @@ export function createDateRangeSchema() {
       (values) => {
         // Only validate if both dates are provided
         if (values.startDate && values.endDate) {
-          const start = new Date(values.startDate).getTime();
-          const end = new Date(values.endDate).getTime();
+          const start = parseDate(values.startDate);
+          const end = parseDate(values.endDate);
+          if (!start.isValid || !end.isValid) return false;
           return end >= start;
         }
         return true;
@@ -118,8 +120,9 @@ export const tripFormSchema = z
     (values) => {
       // Only validate dates if both are provided
       if (values.startDate && values.endDate) {
-        const start = new Date(values.startDate).getTime();
-        const end = new Date(values.endDate).getTime();
+        const start = parseDate(values.startDate);
+        const end = parseDate(values.endDate);
+        if (!start.isValid || !end.isValid) return false;
         return end >= start;
       }
       return true;

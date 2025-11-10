@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import NetInfo from '@react-native-community/netinfo';
-import { useGraphBackendReachable } from './useGraphBackendReachable';
 import { drizzleCacheStorage } from '@api';
 
 export interface SystemStatus {

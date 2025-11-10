@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
 import { CustomText } from './CustomText';
 import { useTheme } from '@components/context/ThemeContext';
 
@@ -42,7 +41,6 @@ export const SearchBar = React.memo<SearchBarProps>(({
   onFilterPress,
 }) => {
   const { isDark } = useTheme();
-  const { t } = useTranslation();
 
   const handleClear = () => {
     onChangeText('');

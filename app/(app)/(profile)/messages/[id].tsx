@@ -71,7 +71,7 @@ interface MessageBubbleProps {
   isDark: boolean;
 }
 
-const MessageBubble = ({ message, isOwnMessage, isDark }: MessageBubbleProps) => {
+const MessageBubble = ({ message, isOwnMessage }: MessageBubbleProps) => {
   const { formatTime } = useDateTime();
 
   return (
@@ -101,7 +101,8 @@ const MessageBubble = ({ message, isOwnMessage, isDark }: MessageBubbleProps) =>
 export default function ConversationScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
-  const { id } = useLocalSearchParams();
+  const { id: _id } = useLocalSearchParams();
+  const { getNow } = useDateTime();
   const scrollViewRef = useRef<ScrollView>(null);
   const [conversation] = useState(mockConversation);
   const [messageText, setMessageText] = useState('');
@@ -120,7 +121,7 @@ export default function ConversationScreen() {
         id: String(messages.length + 1),
         senderId: '1',
         content: messageText.trim(),
-        timestamp: new Date().toISOString(),
+        timestamp: getNow().toISO() || '',
         read: false,
       };
       setMessages([...messages, newMessage]);
@@ -182,7 +183,7 @@ export default function ConversationScreen() {
         className="flex-1 px-4 py-4"
         contentContainerStyle={{ flexGrow: 1 }}
       >
-        {messages.map((message, index) => (
+        {messages.map((message) => (
           <MessageBubble
             key={message.id}
             message={message}
