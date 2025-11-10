@@ -364,6 +364,10 @@ jobs:
           echo "Expo prebuild completed"
         env:
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+          # Mapbox tokens from GitHub Secrets (do not hardcode)
+          EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN }}
+          RNMAPBOX_MAPS_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -413,6 +417,10 @@ jobs:
           GRAPHQL_URL: 'https://safarnak.app/graphql'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
+          # Mapbox tokens from GitHub Secrets (do not hardcode)
+          EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN }}
+          RNMAPBOX_MAPS_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
 
       - name: List APK files
         if: steps.version_changed.outputs.changed == 'true'

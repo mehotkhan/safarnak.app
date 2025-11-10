@@ -41,6 +41,7 @@
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "^11.4.1",
     "@reduxjs/toolkit": "^2.9.2",
+    "@rnmapbox/maps": "^10.2.7",
     "apollo3-cache-persist": "^0.15.0",
     "buffer": "^6.0.3",
     "dotenv": "^17.2.3",

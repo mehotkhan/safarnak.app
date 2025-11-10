@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
 import { LeafletView, MapMarker, MapShape, MapLayer, LatLng, MapShapeType, MapLayerType, WebviewLeafletMessage } from 'react-native-leaflet-view';
 import { useColorScheme } from '@hooks/useColorScheme';
@@ -126,9 +126,20 @@ export default function MapView({
 }: MapViewProps) {
   const [isMapLoading, setIsMapLoading] = useState(true);
   const [mapLayer, setMapLayer] = useState<MapLayerName>('standard');
+  const [userZoom, setUserZoom] = useState<number | null>(null); // User-controlled zoom
+  const [userCenter, setUserCenter] = useState<LatLng | null>(null); // User-controlled center
+  const [mapKey, setMapKey] = useState(0); // Key to force remount for auto-center
+  
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const mapCacheEnabled = useAppSelector((state) => state.mapCache.enabled);
+  
+  // Ref to track last cached viewport
+  const lastCachedViewport = useRef<{
+    center: LatLng;
+    zoom: number;
+    layer: MapLayerName;
+  } | null>(null);
 
   // Filter and validate waypoints
   const validWaypoints = useMemo(() => {
@@ -143,7 +154,7 @@ export default function MapView({
     );
   }, [waypoints]);
 
-  // Calculate bounds from waypoints or location for auto-zoom
+  // Calculate bounds from waypoints or location
   const mapBounds = useMemo(() => {
     const points: LatLng[] = [];
     
@@ -165,267 +176,123 @@ export default function MapView({
     const minLng = Math.min(...lngs);
     const maxLng = Math.max(...lngs);
     
-    return [[minLat, minLng], [maxLat, maxLng]] as [[number, number], [number, number]];
+    return {
+      bounds: [[minLat, minLng], [maxLat, maxLng]] as [[number, number], [number, number]],
+      center: { lat: (minLat + maxLat) / 2, lng: (minLng + maxLng) / 2 },
+      zoom: validWaypoints.length > 1 ? 10 : 13,
+    };
   }, [location, validWaypoints]);
 
-  // Calculate initial center and zoom
-  const mapCenter = useMemo((): LatLng => {
-    if (validWaypoints.length > 0) {
-      return { lat: validWaypoints[0].latitude, lng: validWaypoints[0].longitude };
-    } else if (location) {
-      return { lat: location.coords.latitude, lng: location.coords.longitude };
+  // Compute map center and zoom (prefer user values, fallback to bounds)
+  const mapCenter = useMemo(() => {
+    return userCenter || mapBounds?.center || DEFAULT_CENTER;
+  }, [userCenter, mapBounds]);
+
+  const currentZoom = useMemo(() => {
+    return userZoom || mapBounds?.zoom || 13;
+  }, [userZoom, mapBounds]);
+
+  // Calculate visible tiles based on current viewport for caching
+  const calculateVisibleTiles = useCallback((center: LatLng, zoom: number): Array<{ z: number; x: number; y: number }> => {
+    const tiles: Array<{ z: number; x: number; y: number }> = [];
+    const z = Math.floor(zoom);
+    
+    // Convert lat/lng to tile coordinates
+    const lat2tile = (lat: number, z: number) => {
+      return Math.floor(((1 - Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) / Math.PI) / 2) * Math.pow(2, z));
+    };
+    
+    const lon2tile = (lon: number, z: number) => {
+      return Math.floor(((lon + 180) / 360) * Math.pow(2, z));
+    };
+    
+    const centerX = lon2tile(center.lng, z);
+    const centerY = lat2tile(center.lat, z);
+    
+    // Get tiles in a 3x3 grid around center (visible area + buffer)
+    const radius = 2;
+    for (let dx = -radius; dx <= radius; dx++) {
+      for (let dy = -radius; dy <= radius; dy++) {
+        const x = centerX + dx;
+        const y = centerY + dy;
+        
+        // Validate tile coordinates
+        const maxTile = Math.pow(2, z);
+        if (x >= 0 && x < maxTile && y >= 0 && y < maxTile) {
+          tiles.push({ z, x, y });
+        }
+      }
     }
-    return DEFAULT_CENTER;
-  }, [location, validWaypoints]);
+    
+    return tiles;
+  }, []);
 
-  const initialZoom = useMemo(() => {
-    if (validWaypoints.length > 0) return 10;
-    if (location) return 13;
-    return 13;
-  }, [location, validWaypoints]);
-
-  const [currentZoom, setCurrentZoom] = useState(initialZoom);
-  const [_mapReady, setMapReady] = useState(false);
-  const [centerTrigger, setCenterTrigger] = useState(0); // Counter to trigger center action
-  const [shouldCenter, setShouldCenter] = useState(false); // Flag to trigger center without remount
-
-  // Update zoom when initialZoom changes
+  // Cache tiles when viewport changes
   useEffect(() => {
-    setCurrentZoom(initialZoom);
-  }, [initialZoom]);
+    if (!mapCacheEnabled) return;
+    
+    const currentViewport = { center: mapCenter, zoom: currentZoom, layer: mapLayer };
+    
+    // Check if viewport changed significantly
+    const last = lastCachedViewport.current;
+    if (last && 
+        Math.abs(last.center.lat - mapCenter.lat) < 0.01 &&
+        Math.abs(last.center.lng - mapCenter.lng) < 0.01 &&
+        last.zoom === currentZoom &&
+        last.layer === mapLayer) {
+      return; // No significant change
+    }
+    
+    lastCachedViewport.current = currentViewport;
+    
+    // Calculate and cache visible tiles
+    const visibleTiles = calculateVisibleTiles(mapCenter, currentZoom);
+    
+    if (__DEV__) {
+      console.log(`🗺️ Caching ${visibleTiles.length} tiles for viewport:`, {
+        center: mapCenter,
+        zoom: currentZoom,
+        layer: mapLayer,
+      });
+    }
+    
+    // Cache tiles in background (don't await)
+    visibleTiles.forEach((tile) => {
+      const tileKey = { layer: mapLayer as CacheMapLayer, ...tile };
+      cacheTile(tileKey).catch((error) => {
+        if (__DEV__) {
+          console.error('Error caching tile:', error, tileKey);
+        }
+      });
+    });
+  }, [mapCenter, currentZoom, mapLayer, mapCacheEnabled, calculateVisibleTiles]);
 
-  // Tile caching is handled via injectedJavaScript - tiles are cached after they load
-
-  // Auto-fit bounds when map is ready and bounds are available
-  // Always auto-zoom to show selected points (waypoints or location)
-  // Also triggered when centerTrigger changes (button click)
+  // Simple JavaScript injection for bounds fitting
   const injectedJavaScript = useMemo(() => {
-    const boundsStr = mapBounds ? JSON.stringify(mapBounds) : 'null';
-    const trigger = centerTrigger; // Capture current trigger value
-    const shouldCenterNow = shouldCenter; // Capture shouldCenter flag
-    const maxZoom = validWaypoints.length > 1 ? 18 : 19;
-    const cacheEnabled = mapCacheEnabled ? 'true' : 'false';
-    const currentLayer = mapLayer;
+    if (!mapBounds) return '';
+    
+    const boundsStr = JSON.stringify(mapBounds.bounds);
+    const maxZoom = mapBounds.zoom;
     
     return `
       (function() {
-        const bounds = ${boundsStr};
-        const maxZoomLevel = ${maxZoom};
-        const cacheEnabled = ${cacheEnabled};
-        const currentLayer = '${currentLayer}';
-        
-        // Set up tile caching - cache tiles after they load
-        if (cacheEnabled) {
-          function setupTileCaching() {
-            if (!window.leafletMap) {
-              console.log('Tile cache: Map not ready, retrying...');
-              setTimeout(setupTileCaching, 500);
-              return;
-            }
-            
-            console.log('Tile cache: Setting up tile caching...');
-            let tileLayerFound = false;
-            
-            // Try to find and attach to tile layers
-            window.leafletMap.eachLayer(function(layer) {
-              // Check if this is a tile layer (L.TileLayer)
-              if (layer._url && typeof layer.on === 'function') {
-                tileLayerFound = true;
-                console.log('Tile cache: Found tile layer:', layer._url);
-                
-                // Remove existing listener if any
-                if (typeof layer.off === 'function') {
-                  layer.off('tileload');
-                }
-                
-                // Listen for tile load events
-                layer.on('tileload', function(e) {
-                  try {
-                    const tile = e.tile;
-                    if (!tile) return;
-                    
-                    const url = tile.src || tile.currentSrc || tile.getAttribute('src') || '';
-                    
-                    if (!url) {
-                      console.warn('Tile cache: No URL found for tile');
-                      return;
-                    }
-                    
-                    console.log('Tile cache: Tile loaded:', url);
-                    
-                    // Extract tile coordinates from URL
-                    // Handle different URL formats:
-                    // OpenStreetMap: /{z}/{x}/{y}.png
-                    // ArcGIS: /tile/{z}/{y}/{x}
-                    let z, x, y;
-                    
-                    // Try standard format first: /{z}/{x}/{y}.png
-                    let match = url.match(/\\/(\\d+)\\/(\\d+)\\/(\\d+)\\.(png|jpg|jpeg)/);
-                    
-                    if (match) {
-                      z = parseInt(match[1]);
-                      x = parseInt(match[2]);
-                      y = parseInt(match[3]);
-                    } else {
-                      // Try ArcGIS format: /tile/{z}/{y}/{x}
-                      match = url.match(/tile\\/(\\d+)\\/(\\d+)\\/(\\d+)/);
-                      if (match) {
-                        z = parseInt(match[1]);
-                        y = parseInt(match[2]); // Note: ArcGIS uses y then x
-                        x = parseInt(match[3]);
-                      } else {
-                        // Try another format without extension
-                        match = url.match(/\\/(\\d+)\\/(\\d+)\\/(\\d+)(?:\\/|$)/);
-                        if (match) {
-                          z = parseInt(match[1]);
-                          x = parseInt(match[2]);
-                          y = parseInt(match[3]);
-                        }
-                      }
-                    }
-                    
-                    if (z !== undefined && x !== undefined && y !== undefined) {
-                      console.log('Tile cache: Parsed coordinates:', { z, x, y, layer: currentLayer });
-                      
-                      // Send to React Native to cache
-                      if (window.ReactNativeWebView) {
-                        const message = {
-                          type: 'cacheTile',
-                          tileKey: { 
-                            layer: currentLayer, 
-                            z: z, 
-                            x: x, 
-                            y: y 
-                          },
-                          url: url
-                        };
-                        window.ReactNativeWebView.postMessage(JSON.stringify(message));
-                        console.log('Tile cache: Sent cache request:', message);
-                      } else {
-                        console.warn('Tile cache: ReactNativeWebView not available');
-                      }
-                    } else {
-                      console.warn('Tile cache: Could not parse tile coordinates from URL:', url);
-                    }
-                  } catch (err) {
-                    console.error('Tile cache: Error in tile caching:', err);
-                  }
-                });
-                
-                // Also listen for tileloadstart to catch tiles earlier
-                layer.on('tileloadstart', function(e) {
-                  console.log('Tile cache: Tile load started');
-                });
-              }
+        if (window.leafletMap && window.leafletMap.fitBounds) {
+          try {
+            const bounds = ${boundsStr};
+            window.leafletMap.fitBounds(bounds, { 
+              padding: [50, 50],
+              maxZoom: ${maxZoom},
+              animate: true,
+              duration: 0.5
             });
-            
-            if (!tileLayerFound) {
-              console.warn('Tile cache: No tile layer found, retrying...');
-              setTimeout(setupTileCaching, 1000);
-            } else {
-              console.log('Tile cache: Setup complete');
-            }
+          } catch (e) {
+            console.error('Error fitting bounds:', e);
           }
-          
-          // Set up caching after map is ready
-          if (window.leafletMap) {
-            // Wait a bit for layers to be added
-            setTimeout(setupTileCaching, 500);
-          } else {
-            // Wait for map to be ready
-            setTimeout(setupTileCaching, 1000);
-          }
-          
-          // Re-setup when layers change
-          if (window.leafletMap && typeof window.leafletMap.on === 'function') {
-            window.leafletMap.on('layeradd', function() {
-              console.log('Tile cache: Layer added, re-setting up caching...');
-              setTimeout(setupTileCaching, 200);
-            });
-          }
-        } else {
-          console.log('Tile cache: Caching disabled');
-        }
-        
-        function fitMapBounds() {
-          if (window.leafletMap && bounds) {
-            try {
-              window.leafletMap.fitBounds(bounds, { 
-                padding: [50, 50],
-                maxZoom: maxZoomLevel
-              });
-            } catch (e) {
-              console.error('Error fitting bounds:', e);
-            }
-          }
-        }
-        
-        // Store function and bounds globally so they can be called later
-        window.fitMapToWaypoints = fitMapBounds;
-        window.mapBounds = bounds;
-        window.mapMaxZoom = maxZoomLevel;
-        
-        // Store current trigger value - this gets updated when injectedJavaScript re-runs
-        const currentTrigger = ${trigger};
-        const shouldCenterNow = ${shouldCenterNow};
-        const previousTrigger = window.centerTrigger || 0;
-        
-        // Update stored bounds when they change
-        window.mapBounds = bounds;
-        window.mapMaxZoom = maxZoomLevel;
-        window.centerTrigger = currentTrigger;
-        
-        // Try immediately if bounds exist (initial load)
-        if (bounds && previousTrigger === 0) {
-          fitMapBounds();
-          setTimeout(fitMapBounds, 300);
-          setTimeout(fitMapBounds, 800);
-        }
-        
-        // If shouldCenter flag is set or trigger changed (button clicked), call fitBounds immediately
-        if ((shouldCenterNow || currentTrigger > previousTrigger) && bounds) {
-          // Button was clicked - center the map immediately
-          setTimeout(function() {
-            if (window.leafletMap && window.mapBounds) {
-              try {
-                window.leafletMap.fitBounds(window.mapBounds, { 
-                  padding: [50, 50],
-                  maxZoom: window.mapMaxZoom
-                });
-              } catch (e) {
-                console.error('Error fitting bounds:', e);
-              }
-            }
-          }, 50);
-          setTimeout(function() {
-            if (window.leafletMap && window.mapBounds) {
-              try {
-                window.leafletMap.fitBounds(window.mapBounds, { 
-                  padding: [50, 50],
-                  maxZoom: window.mapMaxZoom
-                });
-              } catch (e) {
-                console.error('Error fitting bounds:', e);
-              }
-            }
-          }, 200);
-          setTimeout(function() {
-            if (window.leafletMap && window.mapBounds) {
-              try {
-                window.leafletMap.fitBounds(window.mapBounds, { 
-                  padding: [50, 50],
-                  maxZoom: window.mapMaxZoom
-                });
-              } catch (e) {
-                console.error('Error fitting bounds:', e);
-              }
-            }
-          }, 500);
         }
       })();
-      true; // Required for injected JavaScript
+      true;
     `;
-  }, [mapBounds, validWaypoints.length, centerTrigger, shouldCenter, mapCacheEnabled, mapLayer]);
+  }, [mapBounds]);
 
   // Generate curved polyline coordinates
   const polylineCoordinates = useMemo(() => {
@@ -505,22 +372,19 @@ export default function MapView({
 
   // Map control handlers
   const handleZoomIn = useCallback(() => {
-    setCurrentZoom((prev) => Math.min(prev + 1, 19));
-  }, []);
+    setUserZoom((prev) => Math.min((prev || currentZoom) + 1, 19));
+  }, [currentZoom]);
 
   const handleZoomOut = useCallback(() => {
-    setCurrentZoom((prev) => Math.max(prev - 1, 2));
-  }, []);
+    setUserZoom((prev) => Math.max((prev || currentZoom) - 1, 2));
+  }, [currentZoom]);
 
   const handleCenterLocation = useCallback(() => {
-    // Fit bounds to show all waypoints or center on location
+    // Reset user overrides and force re-center
     if (mapBounds) {
-      // Set flag to trigger center action
-      setShouldCenter(true);
-      // Also update trigger to ensure injectedJavaScript sees the change
-      setCenterTrigger((prev) => prev + 1);
-      // Reset flag after a short delay
-      setTimeout(() => setShouldCenter(false), 1000);
+      setUserCenter(null);
+      setUserZoom(null);
+      setMapKey((prev) => prev + 1); // Force re-injection of JavaScript
     }
   }, [mapBounds]);
 
@@ -530,9 +394,6 @@ export default function MapView({
     const nextLayer = layers[(currentIndex + 1) % layers.length] as MapLayerName;
     setMapLayer(nextLayer);
   }, [mapLayer]);
-
-  const _hasLocation = !!location;
-  const _hasWaypoints = validWaypoints.length > 0;
 
   return (
     <View className="flex-1">
@@ -546,6 +407,7 @@ export default function MapView({
 
       {/* Leaflet Map View */}
       <LeafletView
+        key={mapKey} // Force remount for auto-center
         mapCenterPosition={mapCenter}
         zoom={currentZoom}
         mapLayers={mapLayers}
@@ -556,93 +418,33 @@ export default function MapView({
         injectedJavaScript={injectedJavaScript}
         onLoadEnd={() => {
           setIsMapLoading(false);
-          setMapReady(true);
         }}
         onLoadStart={() => {
           setIsMapLoading(true);
-          setMapReady(false);
         }}
-        onMessageReceived={async (message: WebviewLeafletMessage) => {
-          // Handle zoom changes from map
-          if (message.payload?.zoom) {
-            setCurrentZoom(message.payload.zoom);
-          }
-          
-          // Handle map ready event - auto-fit bounds when map is ready
-          if (message.msg === 'MAP_READY' && mapBounds) {
-            // Bounds will be fitted via injectedJavaScript
-          }
-          
-          // Handle tile caching requests
-          // The library parses messages as WebviewLeafletMessage, but our custom messages
-          // might come through in different formats. Check all possible locations.
+        onMessageReceived={(message: WebviewLeafletMessage) => {
           try {
-            const msgAny = message as any;
-            
-            // Log all messages in dev mode to debug
-            if (__DEV__ && mapCacheEnabled) {
-              console.log('MapView received message:', JSON.stringify(msgAny));
+            // Update zoom when user interacts with map
+            if (message.payload?.zoom !== undefined) {
+              setUserZoom(message.payload.zoom);
             }
             
-            // Check if message has our custom type directly
-            let cacheData: any = null;
-            if (msgAny.type === 'cacheTile') {
-              cacheData = msgAny;
-            } 
-            // Check payload
-            else if (msgAny.payload && msgAny.payload.type === 'cacheTile') {
-              cacheData = msgAny.payload;
-            }
-            // Check if msg field contains our JSON
-            else if (msgAny.msg && typeof msgAny.msg === 'string') {
-              try {
-                const parsed = JSON.parse(msgAny.msg);
-                if (parsed && parsed.type === 'cacheTile') {
-                  cacheData = parsed;
-                }
-              } catch {
-                // Not JSON, ignore
+            // Update center when user moves map
+            const payload = message.payload as any;
+            if (payload?.mapCenter) {
+              const center = payload.mapCenter;
+              if (center.lat !== undefined && center.lng !== undefined) {
+                setUserCenter({ lat: center.lat, lng: center.lng });
               }
             }
-            // Check event data
-            else if (msgAny.event && msgAny.event.type === 'cacheTile') {
-              cacheData = msgAny.event;
-            }
             
-            if (cacheData && cacheData.type === 'cacheTile' && cacheData.tileKey && mapCacheEnabled) {
-              // Cache tile in background
-              const layer = cacheData.tileKey.layer as CacheMapLayer;
-              const key = { 
-                layer, 
-                z: cacheData.tileKey.z, 
-                x: cacheData.tileKey.x, 
-                y: cacheData.tileKey.y 
-              };
-              
-              if (__DEV__) {
-                console.log('✅ Caching tile:', key);
-              }
-              
-              // Cache tile asynchronously (don't await to avoid blocking)
-              cacheTile(key)
-                .then((success) => {
-                  if (__DEV__) {
-                    if (success) {
-                      console.log('✅ Tile cached successfully:', key);
-                    } else {
-                      console.log('⚠️ Tile cache failed (may already be cached):', key);
-                    }
-                  }
-                })
-                .catch((error) => {
-                  if (__DEV__) {
-                    console.error('❌ Error caching tile:', error, key);
-                  }
-                });
+            // Log other messages in dev mode for debugging
+            if (__DEV__ && message.msg !== 'onMove' && message.msg !== 'onZoom') {
+              console.log('MapView message:', message.msg, message.payload);
             }
           } catch (error) {
             if (__DEV__) {
-              console.error('❌ Error handling cache message:', error, message);
+              console.error('Error handling map message:', error);
             }
           }
         }}

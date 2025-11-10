@@ -1,4 +1,4 @@
-package ir.mohet.safarnak
+package ir.mohet.safarnak_debug
 
 import android.app.Application
 import android.content.res.Configuration
@@ -54,5 +54,3 @@ class MainApplication : Application(), ReactApplication {
     ApplicationLifecycleDispatcher.onConfigurationChanged(this, newConfig)
   }
 }
-
-

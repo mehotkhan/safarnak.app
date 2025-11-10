@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-import groovy.json.JsonSlurper
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
@@ -83,39 +82,26 @@ def enableMinifyInReleaseBuilds = (findProperty('android.enableMinifyInReleaseBu
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
+// @generated begin @rnmapbox/maps-libcpp - expo prebuild (DO NOT MODIFY) sync-e24830a5a3e854b398227dfe9630aabfaa1cadd1
+packagingOptions {
+        pickFirst 'lib/x86/libc++_shared.so'
+        pickFirst 'lib/x86_64/libc++_shared.so'
+        pickFirst 'lib/arm64-v8a/libc++_shared.so'
+        pickFirst 'lib/armeabi-v7a/libc++_shared.so'
+    }
+// @generated end @rnmapbox/maps-libcpp
     ndkVersion rootProject.ext.ndkVersion
 
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'ir.mohet.safarnak'
+    namespace 'ir.mohet.safarnak_debug'
     defaultConfig {
-        applicationId 'ir.mohet.safarnak'
+        applicationId 'ir.mohet.safarnak_debug'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // Resolve versionName and versionCode from environment/package.json (CI friendly)
-        // 1) ANDROID_VERSION_CODE (int) can override versionCode
-        // 2) APP_VERSION (semver) can override versionName
-        // 3) Fallback versionName to package.json version
-        def envVersionName = System.getenv('APP_VERSION')
-        def packageJson = new JsonSlurper().parseText(new File(projectRoot, 'package.json').text)
-        def resolvedVersionName = envVersionName ?: (packageJson.version ?: "0.0.0")
-
-        def envVersionCode = System.getenv('ANDROID_VERSION_CODE')
-        def computeCode = { String v ->
-            def m = (v =~ /(\d+)\.(\d+)\.(\d+)/)
-            if (m) {
-                return m[0][1].toInteger() * 10000 + m[0][2].toInteger() * 100 + m[0][3].toInteger()
-            }
-            return 1
-        }
-        def resolvedVersionCode = envVersionCode ? envVersionCode.toInteger() : computeCode(resolvedVersionName)
-
-        versionCode resolvedVersionCode
-        versionName resolvedVersionName
-        ndk {
-            abiFilters 'arm64-v8a'
-        }
+        versionCode 11200
+        versionName "1.12.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }
@@ -130,7 +116,6 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            applicationIdSuffix ".debug"
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -149,9 +134,6 @@ android {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
-        // Handle duplicate native libraries
-        pickFirst '**/libc++_shared.so'
-        pickFirst '**/libjsc.so'
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -177,9 +159,6 @@ android {
         }
     }
 }
-
-// react-native-worklets Android platform is disabled via react-native.config.js
-// We only need it for Babel plugin, react-native-reanimated provides native worklets
 
 dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
