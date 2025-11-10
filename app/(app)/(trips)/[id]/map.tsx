@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
-import MapView from '@components/MapView';
+import MapboxMapView from '@components/MapboxMapView';
 import { useGetTripQuery } from '@api';
 
 export default function TripMapScreen() {
@@ -45,7 +45,13 @@ export default function TripMapScreen() {
           headerShown: true,
         }}
       />
-      <MapView location={location} waypoints={waypoints && waypoints.length > 0 ? waypoints : undefined} />
+      <MapboxMapView
+        location={location}
+        waypoints={waypoints && waypoints.length > 0 ? waypoints : undefined}
+        showControls={true}
+        autoCenter={true}
+        showUserLocation={true}
+      />
     </View>
   );
 }

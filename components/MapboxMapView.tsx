@@ -122,6 +122,16 @@ export default function MapboxMapView({
   
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
+  
+  // Safety timeout to avoid indefinite spinner if events don't fire
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!isMapReady) {
+        setIsMapReady(true);
+      }
+    }, 4000);
+    return () => clearTimeout(timeout);
+  }, [isMapReady]);
 
   // Filter valid waypoints
   const validWaypoints = useMemo(() => {
@@ -297,7 +307,10 @@ export default function MapboxMapView({
         pitchEnabled={true}
         scrollEnabled={true}
         zoomEnabled={true}
+        // Mark map ready on multiple stable events
         onDidFinishLoadingMap={() => setIsMapReady(true)}
+        onDidFinishLoadingStyle={() => setIsMapReady(true)}
+        onMapIdle={() => setIsMapReady(true)}
         onRegionDidChange={(feature) => {
           if (onRegionChange && feature?.geometry?.coordinates) {
             const coords = feature.geometry.coordinates as [number, number];
