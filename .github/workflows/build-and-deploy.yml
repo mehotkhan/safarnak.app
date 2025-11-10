@@ -240,7 +240,7 @@ jobs:
               commitType = 'fix';
             }
             // Check for breaking changes
-            if (/BREAKING CHANGE/i.test(msg) || /^[^:]+!:/.test(firstLine)) {
+            if (/^BREAKING CHANGE:/mi.test(msg) || /^[^:]+!:/.test(firstLine)) {
               hasBreaking = true;
               commitType = 'breaking';
             }
@@ -267,12 +267,20 @@ jobs:
           const m = current.split('.').map(n => parseInt(n, 10) || 0);
           
           if (hasBreaking) {
-            // Breaking changes → major bump
-            m[0] += 1;
-            m[1] = 0;
-            m[2] = 0;
-            bump = 'major';
-            console.log('🚨 Breaking changes detected → major version bump');
+            // Conventional Commits: "BREAKING CHANGE:" trailer or "type!:" header
+            // Special handling for pre-1.0.0: treat breaking as minor
+            if (m[0] === 0) {
+              m[1] += 1;
+              m[2] = 0;
+              bump = 'minor';
+              console.log('🚨 Breaking changes detected on 0.x → minor version bump');
+            } else {
+              m[0] += 1;
+              m[1] = 0;
+              m[2] = 0;
+              bump = 'major';
+              console.log('🚨 Breaking changes detected → major version bump');
+            }
           } else if (hasFeat) {
             // Features → minor bump
             m[1] += 1;
