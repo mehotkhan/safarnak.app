@@ -26,7 +26,7 @@ import {
   syncMetadata,
   apolloCacheEntries,
 } from './schema';
-import { formatRelativeTime } from '@utils/datetime';
+import { formatRelativeTime } from '@hooks/useDateTime';
 
 // ============================================================================
 // DATABASE INSTANCE

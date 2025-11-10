@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 
 export interface TripCardProps {
   trip: any;

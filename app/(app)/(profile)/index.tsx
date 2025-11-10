@@ -14,7 +14,7 @@ import InputField from '@components/ui/InputField';
 import CustomButton from '@components/ui/CustomButton';
 import Colors from '@constants/Colors';
 import { useAppSelector } from '@store/hooks';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import { copyToClipboard } from '@utils/clipboard';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

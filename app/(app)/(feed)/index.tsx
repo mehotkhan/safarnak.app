@@ -22,7 +22,7 @@ import { useRefresh } from '@hooks/useRefresh';
 import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
 import { TabBar } from '@components/ui/TabBar';
 import { Dropdown } from '@components/ui/Dropdown';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 
 const categories = [
   { id: 'trips', label: 'trips', icon: 'airplane-outline' },

@@ -16,7 +16,7 @@ import { useTheme } from '@components/context/ThemeContext';
 import { useGetTourQuery, useBookTourMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 
 export default function BookTourScreen() {
   const { t } = useTranslation();

@@ -12,7 +12,7 @@ import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';
 import { useNewAlertsSubscription, useGetAlertsQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import Colors from '@constants/Colors';
 
 // Mock data

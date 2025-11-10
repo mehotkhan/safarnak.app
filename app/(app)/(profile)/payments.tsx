@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@components/ui/CustomText';
 import { useTheme } from '@components/context/ThemeContext';

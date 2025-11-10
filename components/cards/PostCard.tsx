@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { CustomText } from '@components/ui/CustomText';
 import { UserAvatar } from '@components/ui/UserAvatar';
 import { useTheme } from '@components/context/ThemeContext';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
 
 export interface PostCardProps {

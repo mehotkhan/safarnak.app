@@ -7,7 +7,7 @@ import { UserAvatar } from '@components/ui/UserAvatar';
 import { ImageWithPlaceholder } from '@components/ui/ImageWithPlaceholder';
 import { useTheme } from '@components/context/ThemeContext';
 import { useAppSelector } from '@store/hooks';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
 
 export interface FeedItemProps {

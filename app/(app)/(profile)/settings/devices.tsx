@@ -14,7 +14,7 @@ import { InfoBanner } from '@components/ui/InfoBanner';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetMyDevicesQuery, useRevokeDeviceMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import * as Device from 'expo-device';
 
 export default function DevicesScreen() {

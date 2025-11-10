@@ -15,7 +15,7 @@ import { useTheme } from '@components/context/ThemeContext';
 import Colors from '@constants/Colors';
 import { useGetBookmarksQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 
 
 export default function BookmarksScreen() {

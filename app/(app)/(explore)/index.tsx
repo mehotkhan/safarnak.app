@@ -17,7 +17,7 @@ import { useDebounce } from '@hooks/useDebounce';
 import { useRefresh } from '@hooks/useRefresh';
 import { TabBar } from '@components/ui/TabBar';
 import { SearchBar } from '@components/ui/SearchBar';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 
 type TabType = 'tours' | 'places' | 'posts';
 

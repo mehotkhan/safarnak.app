@@ -25,7 +25,7 @@ import { useCreateTripMutation, GetTripsDocument } from '@api';
 import DatePicker from '@components/ui/DatePicker';
 import Divider from '@components/ui/Divider';
 import TextArea from '@components/ui/TextArea';
-import { parseDate } from '@utils/datetime';
+import { parseDate } from '@hooks/useDateTime';
 
 const accommodationTypes = ['hotel', 'hostel', 'apartment', 'camping'];
 

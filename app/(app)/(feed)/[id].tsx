@@ -20,7 +20,7 @@ import Colors from '@constants/Colors';
 import { useTheme } from '@components/context/ThemeContext';
 import { useGetPostQuery, useCreateCommentMutation, useCreateReactionMutation, useDeleteReactionMutation, GetPostDocument, GetPostsDocument } from '@api';
 import { useAppSelector } from '@store/hooks';
-import { useDateTime } from '@utils/datetime';
+import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
 
 export default function PostDetailScreen() {
