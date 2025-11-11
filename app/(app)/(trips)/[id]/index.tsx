@@ -18,7 +18,7 @@ import { CustomText } from '@components/ui/CustomText';
 import { ProgressBar } from '@components/ui/ProgressBar';
 import CustomButton from '@components/ui/CustomButton';
 import { useTheme } from '@components/context/ThemeContext';
-import MapboxMapView from '@components/MapboxMapView';
+import MapView from '@components/MapView';
 import { useGetTripQuery, useTripUpdatesSubscription, useUpdateTripMutation } from '@api';
 import Colors from '@constants/Colors';
 import FloatingChatInput from '@components/ui/FloatingChatInput';
@@ -374,7 +374,7 @@ export default function TripDetailScreen() {
         {/* Map View */}
         {showMap && location && (
           <View className="h-64 bg-gray-100 dark:bg-neutral-900">
-            <MapboxMapView 
+            <MapView 
               location={location as any} 
               waypoints={waypoints && waypoints.length > 0 ? waypoints : undefined}
               showControls={false}
