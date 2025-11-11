@@ -1,16 +1,16 @@
-import { generateRandomName } from '@/utils/nameGenerator';
-import { useLanguage } from '@components/context';
-import { CustomButton } from '@components/forms';
-import { CustomText } from '@components/display';
-import { InfoBanner } from '@components/info';
-import { InputField } from '@components/forms';
+import { generateRandomName } from '@utils/nameGenerator';
+import { useLanguage } from '@ui/context';
+import { CustomButton } from '@ui/forms';
+import { CustomText } from '@ui/display';
+import { InfoBanner } from '@ui/info';
+import { InputField } from '@ui/forms';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
 import { Stack, router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, Image, KeyboardAvoidingView, Platform, TouchableOpacity, View } from 'react-native';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const authRegisterBg = require('@assets/images/auth-login.jpg');

@@ -9,12 +9,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { useTheme } from '@components/context';
-import { TripCard, TourCard, PlaceCard, LocationCard } from '@components/cards';
-import { TabBar } from '@components/layout';
+import { CustomText } from '@ui/display';
+import { useTheme } from '@ui/context';
+import { TripCard, TourCard, PlaceCard, LocationCard } from '@ui/cards';
+import { TabBar } from '@ui/layout';
 import { useGetTripsQuery, useGetToursQuery, useGetPlacesQuery, useGetLocationsQuery } from '@api';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 import Colors from '@constants/Colors';
 
 type TabType = 'trips' | 'tours' | 'places' | 'locations';

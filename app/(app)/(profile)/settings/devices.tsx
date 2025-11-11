@@ -9,11 +9,11 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { InfoBanner } from '@components/info';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { InfoBanner } from '@ui/info';
+import { useTheme } from '@ui/context';
 import { useGetMyDevicesQuery, useRevokeDeviceMutation } from '@api';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
 import * as Device from 'expo-device';
 

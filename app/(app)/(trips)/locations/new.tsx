@@ -7,10 +7,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { InputField } from '@components/forms';
-import { TextArea } from '@components/forms';
-import { CustomButton } from '@components/forms';
+import { CustomText } from '@ui/display';
+import { InputField } from '@ui/forms';
+import { TextArea } from '@ui/forms';
+import { CustomButton } from '@ui/forms';
 import { useCreateLocationMutation, GetLocationsDocument } from '@api';
 
 export default function CreateLocationScreen() {

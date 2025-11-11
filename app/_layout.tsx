@@ -1,7 +1,7 @@
 import { ApolloProvider } from '@apollo/client';
-import { AuthWrapper } from '@components/auth';
-import { LanguageProvider } from '@components/context';
-import { ThemeProvider as CustomThemeProvider } from '@components/context';
+import { AuthWrapper } from '@ui/auth';
+import { LanguageProvider } from '@ui/context';
+import { ThemeProvider as CustomThemeProvider } from '@ui/context';
 import {
   DarkTheme,
   DefaultTheme,
@@ -16,9 +16,9 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { client } from '@api';
-import { persistor, store } from '@store';
-import { useAppSelector } from '@store/hooks';
-import { processQueue } from '@store/middleware/offlineMiddleware';
+import { persistor, store } from '@state';
+import { useAppSelector } from '@state/hooks';
+import { processQueue } from '@state/middleware/offlineMiddleware';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import '../i18n';

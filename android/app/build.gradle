@@ -100,8 +100,8 @@ packagingOptions {
         applicationId 'ir.mohet.safarnak_debug'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 11200
-        versionName "1.12.0"
+        versionCode 11300
+        versionName "1.13.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
     }

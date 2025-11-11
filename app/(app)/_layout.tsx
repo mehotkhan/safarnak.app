@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { Platform } from 'react-native';
 import Colors from '@constants/Colors';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 
 export const unstable_settings = {
   initialRouteName: '(feed)',

@@ -1,4 +1,4 @@
-import { CustomText } from '@components/display';
+import { CustomText } from '@ui/display';
 import { Stack } from 'expo-router';
 import { View, Alert, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useState, useEffect } from 'react';
@@ -6,9 +6,9 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@hooks/useAuth';
-import { CustomButton } from '@components/forms';
-import { InputField } from '@components/forms';
-import { useAppSelector } from '@store/hooks';
+import { CustomButton } from '@ui/forms';
+import { InputField } from '@ui/forms';
+import { useAppSelector } from '@state/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const authLoginBg = require('@assets/images/auth-login.jpg');

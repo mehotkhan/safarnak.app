@@ -11,13 +11,13 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { CustomButton } from '@components/forms';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { CustomButton } from '@ui/forms';
+import { useTheme } from '@ui/context';
 import { useGetPlaceQuery } from '@api';
 import Colors from '@constants/Colors';
-import { ShareModal } from '@components/modals';
-import { MapView } from '@components/maps';
+import { ShareModal } from '@ui/modals';
+import { MapView } from '@ui/maps';
 
 export default function PlaceDetailScreen() {
   const { t } = useTranslation();

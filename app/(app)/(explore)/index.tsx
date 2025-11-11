@@ -6,17 +6,17 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
-import { CustomText } from '@components/display';
-import { LoadingState } from '@components/feedback';
-import { ErrorState } from '@components/feedback';
-import { EmptyState } from '@components/feedback';
-import { TourCard, PlaceCard, PostCard } from '@components/cards';
+import { CustomText } from '@ui/display';
+import { LoadingState } from '@ui/feedback';
+import { ErrorState } from '@ui/feedback';
+import { EmptyState } from '@ui/feedback';
+import { TourCard, PlaceCard, PostCard } from '@ui/cards';
 import { useGetToursQuery, useGetPlacesQuery, useGetPostsQuery } from '@api';
-import { FilterModal, type TourFilters, type PlaceFilters, type PostFilters } from '@components/modals';
+import { FilterModal, type TourFilters, type PlaceFilters, type PostFilters } from '@ui/modals';
 import { useDebounce } from '@hooks/useDebounce';
 import { useRefresh } from '@hooks/useRefresh';
-import { TabBar } from '@components/layout';
-import { SearchBar } from '@components/forms';
+import { TabBar } from '@ui/layout';
+import { SearchBar } from '@ui/forms';
 import { useDateTime } from '@hooks/useDateTime';
 
 type TabType = 'tours' | 'places' | 'posts';

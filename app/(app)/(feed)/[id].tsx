@@ -11,15 +11,15 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { LoadingState } from '@components/feedback';
-import { ErrorState } from '@components/feedback';
-import { UserAvatar } from '@components/display';
-import { KeyboardAwareView } from '@components/layout';
+import { CustomText } from '@ui/display';
+import { LoadingState } from '@ui/feedback';
+import { ErrorState } from '@ui/feedback';
+import { UserAvatar } from '@ui/display';
+import { KeyboardAwareView } from '@ui/layout';
 import Colors from '@constants/Colors';
-import { useTheme } from '@components/context';
+import { useTheme } from '@ui/context';
 import { useGetPostQuery, useCreateCommentMutation, useCreateReactionMutation, useDeleteReactionMutation, GetPostDocument, GetPostsDocument } from '@api';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
 

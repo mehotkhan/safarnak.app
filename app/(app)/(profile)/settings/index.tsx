@@ -9,21 +9,21 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { StatCard } from '@components/display';
-import { CustomButton } from '@components/forms';
-import { LanguageSwitcher } from '@components/context';
-import { ThemeToggle } from '@components/theme';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { StatCard } from '@ui/display';
+import { CustomButton } from '@ui/forms';
+import { LanguageSwitcher } from '@ui/context';
+import { ThemeToggle } from '@ui/theme';
+import { useTheme } from '@ui/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useDatabaseStats } from '@hooks/useDatabaseStats';
-import { useAppDispatch, useAppSelector } from '@store/hooks';
-import { logout } from '@store/slices/authSlice';
-import { setEnabled as setMapCacheEnabled, setAutoClearDays } from '@store/slices/mapCacheSlice';
+import { useAppDispatch, useAppSelector } from '@state/hooks';
+import { logout } from '@state/slices/authSlice';
+import { setEnabled as setMapCacheEnabled, setAutoClearDays } from '@state/slices/mapCacheSlice';
 import { clearAllUserData } from '@api';
-import { persistor } from '@store';
+import { persistor } from '@state';
 import Colors from '@constants/Colors';
-import { getCacheStats, clearCache, cleanupOldTiles } from '@/utils/mapTileCache';
+import { getCacheStats, clearCache, cleanupOldTiles } from '@utils/mapTileCache';
 import { useEffect } from 'react';
 
 

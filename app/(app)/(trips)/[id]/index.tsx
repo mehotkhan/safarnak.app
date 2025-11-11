@@ -14,15 +14,15 @@ import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { CustomText } from '@components/display';
-import { ProgressBar } from '@components/feedback';
-import { CustomButton } from '@components/forms';
-import { useTheme } from '@components/context';
-import { MapView } from '@components/maps';
+import { CustomText } from '@ui/display';
+import { ProgressBar } from '@ui/feedback';
+import { CustomButton } from '@ui/forms';
+import { useTheme } from '@ui/context';
+import { MapView } from '@ui/maps';
 import { useGetTripQuery, useTripUpdatesSubscription, useUpdateTripMutation } from '@api';
 import Colors from '@constants/Colors';
-import { FloatingChatInput } from '@components/chat';
-import { ShareModal } from '@components/modals';
+import { FloatingChatInput } from '@ui/chat';
+import { ShareModal } from '@ui/modals';
 
 export default function TripDetailScreen() {
   const { t } = useTranslation();

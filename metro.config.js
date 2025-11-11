@@ -9,13 +9,13 @@ let config = getDefaultConfig(__dirname);
 const path = require('path');
 config.resolver.extraNodeModules = {
   '@': path.resolve(__dirname),
-  '@components': path.resolve(__dirname, 'components'),
+  '@ui': path.resolve(__dirname, 'ui'),
   '@graphql': path.resolve(__dirname, 'graphql'),
   '@database': path.resolve(__dirname, 'database'),
   '@worker': path.resolve(__dirname, 'worker'),
   '@api': path.resolve(__dirname, 'api'),
-  '@store': path.resolve(__dirname, 'store'),
-  '@hooks': path.resolve(__dirname, 'hooks'),
+  '@state': path.resolve(__dirname, 'ui/state'),
+  '@hooks': path.resolve(__dirname, 'ui/hooks'),
   '@constants': path.resolve(__dirname, 'constants'),
   '@locales': path.resolve(__dirname, 'locales'),
   '@assets': path.resolve(__dirname, 'assets'),

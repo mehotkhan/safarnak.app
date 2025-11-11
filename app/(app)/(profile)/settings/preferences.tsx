@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { View, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { CustomButton } from '@components/forms';
+import { CustomText } from '@ui/display';
+import { CustomButton } from '@ui/forms';
 
 interface PreferenceOption {
   id: string;

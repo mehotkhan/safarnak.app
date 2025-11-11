@@ -12,8 +12,8 @@ import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { useDateTime } from '@hooks/useDateTime';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { useTheme } from '@ui/context';
 import Colors from '@constants/Colors';
 
 // Mock data

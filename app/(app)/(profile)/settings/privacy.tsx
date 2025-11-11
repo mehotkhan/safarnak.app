@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { View, ScrollView, Switch } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { useTheme } from '@ui/context';
 import Colors from '@constants/Colors';
 
 interface ToggleRowProps {

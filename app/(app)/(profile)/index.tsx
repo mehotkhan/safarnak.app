@@ -7,13 +7,13 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 
 import { useGetTripsQuery, useMeQuery, useUpdateUserMutation } from '@api';
-import { useTheme } from '@components/context';
-import { CustomText } from '@components/display';
-import { ListItem } from '@components/display';
-import { InputField } from '@components/forms';
-import { CustomButton } from '@components/forms';
+import { useTheme } from '@ui/context';
+import { CustomText } from '@ui/display';
+import { ListItem } from '@ui/display';
+import { InputField } from '@ui/forms';
+import { CustomButton } from '@ui/forms';
 import Colors from '@constants/Colors';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
 import { copyToClipboard } from '@utils/clipboard';
 

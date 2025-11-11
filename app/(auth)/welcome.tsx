@@ -3,11 +3,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
-import { CustomButton } from '@components/forms';
+import { CustomButton } from '@ui/forms';
 import { Stack } from 'expo-router';
-import { useLanguage } from '@components/context';
+import { useLanguage } from '@ui/context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppSelector } from '@store/hooks';
+import { useAppSelector } from '@state/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage1 = require('@assets/images/welcome-onboarding1.jpg');

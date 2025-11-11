@@ -8,20 +8,20 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { LoadingState } from '@components/feedback';
-import { ErrorState } from '@components/feedback';
-import { EmptyState } from '@components/feedback';
-import { FeedItem } from '@components/cards';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { LoadingState } from '@ui/feedback';
+import { ErrorState } from '@ui/feedback';
+import { EmptyState } from '@ui/feedback';
+import { FeedItem } from '@ui/cards';
+import { useTheme } from '@ui/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useGetPostsQuery, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation } from '@api';
-import { ShareModal } from '@components/modals';
-import { useAppSelector } from '@store/hooks';
+import { ShareModal } from '@ui/modals';
+import { useAppSelector } from '@state/hooks';
 import { useRefresh } from '@hooks/useRefresh';
 import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
-import { TabBar } from '@components/layout';
-import { Dropdown } from '@components/forms';
+import { TabBar } from '@ui/layout';
+import { Dropdown } from '@ui/forms';
 import { useDateTime } from '@hooks/useDateTime';
 
 const categories = [

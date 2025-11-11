@@ -15,8 +15,8 @@
       "@/*": [
         "./*"
       ],
-      "@components/*": [
-        "./components/*"
+      "@ui/*": [
+        "./ui/*"
       ],
       "@graphql/*": [
         "./graphql/*"
@@ -33,17 +33,17 @@
       "@api/*": [
         "./api/*"
       ],
-      "@store": [
-        "./store"
+      "@state": [
+        "./ui/state"
       ],
-      "@store/*": [
-        "./store/*"
+      "@state/*": [
+        "./ui/state/*"
       ],
       "@hooks": [
-        "./hooks"
+        "./ui/hooks"
       ],
       "@hooks/*": [
-        "./hooks/*"
+        "./ui/hooks/*"
       ],
       "@constants": [
         "./constants"
@@ -52,10 +52,10 @@
         "./constants/*"
       ],
       "@utils": [
-        "./utils"
+        "./ui/utils"
       ],
       "@utils/*": [
-        "./utils/*"
+        "./ui/utils/*"
       ],
       "@locales": [
         "./locales"

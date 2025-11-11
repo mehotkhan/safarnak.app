@@ -2,8 +2,8 @@ import { View, ScrollView, TouchableOpacity } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/display';
-import { useTheme } from '@components/context';
+import { CustomText } from '@ui/display';
+import { useTheme } from '@ui/context';
 
 export default function SettingsLayout() {
   const { t } = useTranslation();
