@@ -11,6 +11,8 @@
 - Quick smoke for obviously broken anchors and links in README.
 - Commit with a clear docs scope.
 
+Status: ✅ Completed
+
 ## Phase 2 – Section Deep Refresh (Content Accuracy)
 - Rewrite Quick Start to be concise and accurate; verify each command exists in `package.json`.
 - Refresh Configuration: GraphQL URL resolution order, env names, dev fallback, Android identity envs.
@@ -18,6 +20,8 @@
 - Refresh Tech Stack table (versions: RN, Expo, React, Router, NativeWind, Tailwind, Apollo, Yoga, Drizzle, ESLint, Prettier).
 - Update Codebase Structure trees (client, shared, worker) to match repo.
 - Ensure “Never edit generated files” is present for `api/hooks.ts`, `api/types.ts`.
+
+Status: 🔄 In progress (Configuration env priority updated; commands list corrected; api tree corrected)
 
 ## Phase 3 – Architecture and Storage Diagrams
 - Validate all mermaid diagrams render and reflect current components and flows.
@@ -41,9 +45,5 @@
 - Check for relative import examples in README and replace with path aliases.
 - Validate internal anchors (headings match TOC), and quick link sanity.
 - Final lints/format, and commit.
-
----
-
-Status: Phase 1 in progress.
 
 

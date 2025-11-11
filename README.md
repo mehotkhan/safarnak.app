@@ -1193,17 +1193,17 @@ tours: toursReducer,
 The client determines the GraphQL URL in this order:
 
 1. `app.config.js` → `expo.extra.graphqlUrl` (recommended)
-2. `process.env.GRAPHQL_URL` (development only)
-3. `process.env.GRAPHQL_URL_DEV` when `__DEV__` is true
+2. `process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV` or `process.env.EXPO_PUBLIC_GRAPHQL_URL`
+3. `process.env.GRAPHQL_URL_DEV` or `process.env.GRAPHQL_URL`
 4. Fallback in dev to `http://192.168.1.51:8787/graphql`
 
 Configure production and development endpoints via environment variables used by `app.config.js`:
 
 ```bash
 # .env
-GRAPHQL_URL=https://safarnak.app/graphql
-# Optionally for local dev
-GRAPHQL_URL_DEV=http://127.0.0.1:8787/graphql
+EXPO_PUBLIC_GRAPHQL_URL=https://safarnak.app/graphql
+# Optional dev override
+EXPO_PUBLIC_GRAPHQL_URL_DEV=http://127.0.0.1:8787/graphql
 ```
 
 Relevant sources:
