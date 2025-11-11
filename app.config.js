@@ -65,10 +65,7 @@ const getAppConfig = () => {
         'https://safarnak.app/graphql'
       );
 
-  // Mapbox Access Token - Read ONLY from environment variable (no fallback)
-  // Runtime token (for the app). Keep empty if not provided to avoid leaking tokens in code.
-  const mapboxAccessToken = process.env.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN || '';
-  // Build-time download token is read by Gradle from env (RNMAPBOX_MAPS_DOWNLOAD_TOKEN or MAPBOX_DOWNLOADS_TOKEN)
+  // Mapbox removed from the project
 
   return {
     expo: {
@@ -132,15 +129,6 @@ const getAppConfig = () => {
             isAndroidBackgroundLocationEnabled: true,
           },
         ],
-        [
-          '@rnmapbox/maps',
-          {
-            // Download token is read from RNMAPBOX_MAPS_DOWNLOAD_TOKEN env variable
-            // Set it in your .env file (it will be automatically picked up)
-            // Note: RNMapboxMapsDownloadToken is deprecated, use RNMAPBOX_MAPS_DOWNLOAD_TOKEN env var instead
-            RNMapboxMapsVersion: '11.16.2',
-          },
-        ],
       ],
       experiments: {
         typedRoutes: true,
@@ -152,8 +140,6 @@ const getAppConfig = () => {
         },
         // Single source of truth for client GraphQL URL (dev/prod decided above)
         graphqlUrl: graphUrl,
-        // Mapbox access token for runtime access
-        mapboxAccessToken: mapboxAccessToken,
         appName: process.env.APP_NAME || appName,
         appScheme: process.env.APP_SCHEME || scheme,
         bundleIdentifier: process.env.BUNDLE_IDENTIFIER || bundleIdentifier,

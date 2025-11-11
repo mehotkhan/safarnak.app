@@ -362,9 +362,6 @@ jobs:
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
           echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
-          # Ensure Mapbox token is available for prebuild
-          export MAPBOX_DOWNLOADS_TOKEN="${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}"
-          export RNMAPBOX_MAPS_DOWNLOAD_TOKEN="${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}"
           npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
           echo "Expo prebuild completed"
         env:
@@ -374,10 +371,7 @@ jobs:
           APP_SCHEME: 'safarnak'
           BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
-          # Mapbox tokens from GitHub Secrets (do not hardcode)
-          EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN }}
-          RNMAPBOX_MAPS_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
-          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+          # Mapbox removed
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -417,8 +411,7 @@ jobs:
             --stacktrace \
             -x lint \
             -x test \
-            -PreactNativeArchitectures=arm64-v8a \
-            -PMAPBOX_DOWNLOADS_TOKEN="${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}"
+            -PreactNativeArchitectures=arm64-v8a
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -431,10 +424,7 @@ jobs:
           GRAPHQL_URL: 'https://safarnak.app/graphql'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
-          # Mapbox tokens from GitHub Secrets (do not hardcode)
-          EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN }}
-          RNMAPBOX_MAPS_DOWNLOAD_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
-          MAPBOX_DOWNLOADS_TOKEN: ${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}
+          # Mapbox removed
 
       - name: List APK files
         if: steps.version_changed.outputs.changed == 'true'
