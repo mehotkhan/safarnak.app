@@ -2,7 +2,17 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
-import { LeafletView, MapMarker, MapShape, MapLayer, LatLng, MapShapeType, MapLayerType, WebviewLeafletMessage } from 'react-native-leaflet-view';
+import {
+  LeafletView,
+  MapMarker,
+  MapShape,
+  MapLayer,
+  LatLng,
+  MapShapeType,
+  MapLayerType,
+  WebviewLeafletMessage,
+  WebViewLeafletEvents,
+} from 'react-native-leaflet-view';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { useAppSelector } from '@state/hooks';
 import { cacheTile, type MapLayer as CacheMapLayer } from '@utils/mapTileCache';
@@ -140,6 +150,7 @@ export default function MapView({
     zoom: number;
     layer: MapLayerName;
   } | null>(null);
+  const cacheDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Filter and validate waypoints
   const validWaypoints = useMemo(() => {
@@ -229,42 +240,59 @@ export default function MapView({
 
   // Cache tiles when viewport changes
   useEffect(() => {
-    if (!mapCacheEnabled) return;
-    
-    const currentViewport = { center: mapCenter, zoom: currentZoom, layer: mapLayer };
-    
-    // Check if viewport changed significantly
-    const last = lastCachedViewport.current;
-    if (last && 
-        Math.abs(last.center.lat - mapCenter.lat) < 0.01 &&
-        Math.abs(last.center.lng - mapCenter.lng) < 0.01 &&
-        last.zoom === currentZoom &&
-        last.layer === mapLayer) {
-      return; // No significant change
+    if (!mapCacheEnabled) {
+      return;
     }
-    
-    lastCachedViewport.current = currentViewport;
-    
-    // Calculate and cache visible tiles
-    const visibleTiles = calculateVisibleTiles(mapCenter, currentZoom);
-    
-    if (__DEV__) {
-      console.log(`🗺️ Caching ${visibleTiles.length} tiles for viewport:`, {
-        center: mapCenter,
-        zoom: currentZoom,
-        layer: mapLayer,
-      });
+
+    if (cacheDebounceRef.current) {
+      clearTimeout(cacheDebounceRef.current);
     }
-    
-    // Cache tiles in background (don't await)
-    visibleTiles.forEach((tile) => {
-      const tileKey = { layer: mapLayer as CacheMapLayer, ...tile };
-      cacheTile(tileKey).catch((error) => {
-        if (__DEV__) {
-          console.error('Error caching tile:', error, tileKey);
-        }
+
+    const normalizedZoom = Math.round(currentZoom * 100) / 100;
+    const viewportSnapshot = {
+      center: mapCenter,
+      zoom: normalizedZoom,
+      layer: mapLayer,
+    };
+
+    cacheDebounceRef.current = setTimeout(() => {
+      const lastViewport = lastCachedViewport.current;
+      const roundedZoom = Math.round(viewportSnapshot.zoom);
+
+      if (
+        lastViewport &&
+        lastViewport.layer === viewportSnapshot.layer &&
+        lastViewport.zoom === roundedZoom &&
+        Math.abs(lastViewport.center.lat - viewportSnapshot.center.lat) < 0.01 &&
+        Math.abs(lastViewport.center.lng - viewportSnapshot.center.lng) < 0.01
+      ) {
+        return;
+      }
+
+      lastCachedViewport.current = {
+        center: viewportSnapshot.center,
+        zoom: roundedZoom,
+        layer: viewportSnapshot.layer,
+      };
+
+      const visibleTiles = calculateVisibleTiles(viewportSnapshot.center, roundedZoom);
+
+      visibleTiles.forEach((tile) => {
+        const tileKey = { layer: viewportSnapshot.layer as CacheMapLayer, ...tile };
+        cacheTile(tileKey).catch((error) => {
+          if (__DEV__) {
+            console.error('Error caching tile:', error, tileKey);
+          }
+        });
       });
-    });
+    }, 350);
+
+    return () => {
+      if (cacheDebounceRef.current) {
+        clearTimeout(cacheDebounceRef.current);
+        cacheDebounceRef.current = null;
+      }
+    };
   }, [mapCenter, currentZoom, mapLayer, mapCacheEnabled, calculateVisibleTiles]);
 
   // Simple JavaScript injection for bounds fitting
@@ -424,23 +452,34 @@ export default function MapView({
         }}
         onMessageReceived={(message: WebviewLeafletMessage) => {
           try {
-            // Update zoom when user interacts with map
-            if (message.payload?.zoom !== undefined) {
-              setUserZoom(message.payload.zoom);
+            const event = (message.event ?? message.msg) as WebViewLeafletEvents | undefined;
+            const payload = message.payload;
+
+            if (!payload) {
+              return;
             }
-            
-            // Update center when user moves map
-            const payload = message.payload as any;
-            if (payload?.mapCenter) {
-              const center = payload.mapCenter;
-              if (center.lat !== undefined && center.lng !== undefined) {
-                setUserCenter({ lat: center.lat, lng: center.lng });
-              }
-            }
-            
-            // Log other messages in dev mode for debugging
-            if (__DEV__ && message.msg !== 'onMove' && message.msg !== 'onZoom') {
-              console.log('MapView message:', message.msg, message.payload);
+
+            const nextZoom = payload.zoom;
+            const nextCenter = payload.mapCenterPosition ?? (payload as any)?.mapCenter;
+
+            switch (event) {
+              case WebViewLeafletEvents.ON_ZOOM_END:
+                if (typeof nextZoom === 'number') {
+                  setUserZoom((prev) => (prev === nextZoom ? prev : nextZoom));
+                }
+                break;
+              case WebViewLeafletEvents.ON_MOVE_END:
+                if (nextCenter?.lat !== undefined && nextCenter?.lng !== undefined) {
+                  setUserCenter((prev) => {
+                    if (prev && Math.abs(prev.lat - nextCenter.lat) < 0.0001 && Math.abs(prev.lng - nextCenter.lng) < 0.0001) {
+                      return prev;
+                    }
+                    return { lat: nextCenter.lat, lng: nextCenter.lng };
+                  });
+                }
+                break;
+              default:
+                break;
             }
           } catch (error) {
             if (__DEV__) {

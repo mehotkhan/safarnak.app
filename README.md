@@ -77,8 +77,8 @@ flowchart TB
       D["api/ - Apollo Client + DrizzleCacheStorage"]
     end
     subgraph Local["Local Storage"]
-      E["Apollo Cache<br/>(SQLite)"]
-      F["Drizzle Cache<br/>(SQLite)"]
+      E["Apollo Cache<br/>(raw)"]
+      F["Drizzle Cache<br/>(structured)"]
       G["AsyncStorage<br/>(Mutation Queue)"]
     end
   end
@@ -139,7 +139,7 @@ flowchart TB
 
   subgraph Storage["Storage Layer"]
     S1["Apollo Cache (raw)<br/>safarnak_local.db: apollo_cache_entries"]
-    S2["Drizzle Cache<br/>(SQLite)"]
+    S2["Drizzle Cache<br/>(structured)"]
     S3["AsyncStorage<br/>Mutation Queue"]
     S4["Redux Persist<br/>AsyncStorage"]
   end
@@ -168,9 +168,9 @@ flowchart LR
     Q4 --> Q5["D1 Database"]
     Q5 --> Q4
     Q4 --> Q3
-    Q3 --> Q6["Apollo Cache"]
+    Q3 --> Q6["Apollo Cache (raw)"]
     Q6 --> Q7["Auto Sync"]
-    Q7 --> Q8["Drizzle Cache"]
+    Q7 --> Q8["Drizzle Cache (structured)"]
     Q2 --> Q1
   end
 
@@ -1124,7 +1124,7 @@ export default function ToursScreen() {
 ```typescript
 // components/TourCard.tsx
 import { View, Text, TouchableOpacity } from 'react-native';
-import { CustomText } from '@components/ui/CustomText';
+import { CustomText } from '@ui/CustomText';
 
 interface TourCardProps {
   tour: { id: string; name: string };
@@ -1149,7 +1149,7 @@ export default function TourCard({ tour, onPress }: TourCardProps) {
 ```typescript
 import { useColorScheme } from '@hooks/useColorScheme';
 import { colors } from '@constants/Colors';
-import { useAppDispatch } from '@store/hooks';
+import { useAppDispatch } from '@/store/hooks';
 ```
 
 ### Adding to Redux Store
@@ -1225,8 +1225,8 @@ ANDROID_VERSION_CODE=800   # optional override
 
 ```typescript
 import { useLoginMutation } from '@api';
-import { useAppDispatch } from '@store/hooks';
-import { login } from '@store/slices/authSlice';
+import { useAppDispatch } from '@/store/hooks';
+import { login } from '@/store/slices/authSlice';
 import { useColorScheme } from '@hooks/useColorScheme';
 import Colors from '@constants/Colors';
 ```
@@ -1421,7 +1421,7 @@ const { t } = useTranslation();
 ### Path Aliases
 
 Always use aliases, never relative imports:
-- ✅ `@api`, `@store/hooks`, `@hooks/useColorScheme`
+- ✅ `@api`, `@ui/*`, `@hooks/useColorScheme`, `@/store/*`
 - ❌ `../../api`, `../store/hooks`
 
 ---
@@ -1504,11 +1504,11 @@ All GraphQL queries and mutations automatically sync to the local Drizzle databa
    ```
    Component → Generated Hook (useGetTripsQuery) → Apollo Client → GraphQL Server
                                                        ↓
-                                                  Apollo Cache
+                                                  Apollo Cache (raw)
                                                        ↓
                                               Automatic Sync
                                                        ↓
-                                                  Drizzle DB
+                                                  Drizzle DB (structured)
    ```
 
 2. **DrizzleCacheStorage** (`api/cache-storage.ts`):
@@ -1547,6 +1547,13 @@ The app uses three storage layers:
 - **Write**: Queue mutations when offline, sync when online
 - **Sync**: Automatic bidirectional sync when connection restored
 - **Statistics**: Real-time database statistics (entity counts, sync status, pending mutations)
+
+#### Reconnect & Queue Behavior
+
+- When offline, mutations are persisted to an AsyncStorage-backed queue.
+- On reconnect, the queue is processed in order; successful mutations are removed and corresponding cached entities are marked synced.
+- DrizzleCacheStorage continues to dual-write on every Apollo cache update; no wrapper hooks are required.
+- Network status is derived from NetInfo plus a lightweight backend reachability probe.
 
 ### Usage Examples
 

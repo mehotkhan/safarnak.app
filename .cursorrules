@@ -66,6 +66,27 @@ Path Aliases (TypeScript & Metro)
 "@constants/*"  → "./constants/*"
 ```
 
+Updated aliases (tsconfig + Metro):
+```
+"@/*"           → "./*"              # e.g., import from '@/store/...'
+"@ui/*"         → "./ui/*"
+"@graphql/*"    → "./graphql/*"
+"@database/*"   → "./database/*"
+"@worker/*"     → "./worker/*"
+"@api"          → "./api"
+"@api/*"        → "./api/*"
+"@state"        → "./ui/state"       # UI local state utilities
+"@state/*"      → "./ui/state/*"
+"@hooks"        → "./ui/hooks"
+"@hooks/*"      → "./ui/hooks/*"
+"@constants"    → "./constants"
+"@constants/*"  → "./constants/*"
+"@locales"      → "./locales"
+"@locales/*"    → "./locales/*"
+"@assets"       → "./assets"
+"@assets/*"     → "./assets/*"
+```
+
 GraphQL Endpoint Configuration (Client)
 - Preferred: set `expo.extra.graphqlUrl` via `app.config.js` (reads from env vars).
 - Environment variables (in priority order):
@@ -471,6 +492,12 @@ const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, u
 - Automatic sync when connection restored
 - Real-time database statistics available
 
+**Reconnect & Queue Behavior:**
+- Pending mutations are persisted in order and retried on reconnect.
+- Successful mutations are removed; corresponding cached entities are marked synced.
+- DrizzleCacheStorage continues dual-write on every Apollo cache update; no wrapper hooks are required.
+- Network status comes from NetInfo plus a lightweight backend reachability probe.
+
 **Network Detection:**
 - NetInfo - Detect connection status
 - Backend reachability check via HEAD probe
@@ -615,6 +642,16 @@ import { useColorScheme } from '@hooks/useColorScheme';
 import { colors } from '@constants/Colors';
 import { client } from '@api';
 import { persistor, store } from '@store';
+```
+
+Better (matches current aliases):
+```typescript
+import { useLoginMutation, useMeQuery, useAddMessageMutation } from '@api';
+import { useColorScheme } from '@hooks/useColorScheme';
+import { colors } from '@constants/Colors';
+import { client } from '@api';
+import { useAppDispatch } from '@/store/hooks';
+import { login } from '@/store/slices/authSlice';
 ```
 
 **Bad:**

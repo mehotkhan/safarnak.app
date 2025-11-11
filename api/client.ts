@@ -127,19 +127,13 @@ const wsClient = createClient({
     await new Promise(resolve => setTimeout(resolve, delay));
   },
   on: {
-    opened: () => {
-      if (__DEV__) {
-        console.log('📡 WebSocket connection opened');
-      }
-    },
+    opened: () => {},
     closed: (event: any) => {
       if (__DEV__) {
         // Only log unexpected closes (code 1000 is normal closure)
         const code = event?.code;
         if (code !== 1000 && code !== 1001) {
           console.warn('📡 WebSocket connection closed unexpectedly:', code, event?.reason || '');
-        } else {
-          console.log('📡 WebSocket connection closed');
         }
       }
     },
@@ -158,9 +152,6 @@ const wsClient = createClient({
           errorType !== 'error'
         ) {
           console.warn('📡 WebSocket error:', errorMessage);
-        } else {
-          // Log as debug for connection-related errors (expected during retries)
-          console.debug('📡 WebSocket connection error (will retry):', errorMessage);
         }
       }
     },

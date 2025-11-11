@@ -78,16 +78,8 @@ export default function TripDetailScreen() {
   const { data: tripUpdateData, loading: subscriptionLoading, error: subscriptionError } = useTripUpdatesSubscription({
     variables: { tripId },
     skip: !tripId,
-    onSubscriptionData: ({ subscriptionData }) => {
-      if (subscriptionData?.data?.tripUpdates) {
-        console.log('[TripDetails] Subscription connected and received update:', subscriptionData.data.tripUpdates);
-      }
-    },
     onError: (error) => {
       console.error('[TripDetails] Subscription error:', error);
-    },
-    onComplete: () => {
-      console.log('[TripDetails] Subscription completed');
     },
   });
 
@@ -103,7 +95,6 @@ export default function TripDetailScreen() {
     if (!tripUpdateData?.tripUpdates) return;
 
     const update = tripUpdateData.tripUpdates;
-    console.log('[TripDetails] Received trip update:', update);
     
     // Always update state with subscription data
     setCurrentStep(update.step);
@@ -128,16 +119,10 @@ export default function TripDetailScreen() {
     }
   }, [tripUpdateData?.tripUpdates, refetch]);
 
-  // Log subscription connection state for debugging
   useEffect(() => {
-    if (tripId) {
-      console.log('[TripDetails] Subscription state:', {
-        tripId,
-        subscriptionLoading,
-        subscriptionError: subscriptionError?.message,
-        hasData: !!tripUpdateData?.tripUpdates,
-      });
-    }
+    void subscriptionLoading;
+    void subscriptionError;
+    void tripUpdateData;
   }, [tripId, subscriptionLoading, subscriptionError, tripUpdateData]);
 
   // Auto-refresh if trip is pending (every 3 seconds) - backup in case subscription fails
@@ -159,7 +144,6 @@ export default function TripDetailScreen() {
     // Small delay to ensure subscription has time to connect
     const timer = setTimeout(() => {
       if (trip?.status === 'pending') {
-        console.log('[TripDetails] Page loaded with pending trip, refetching to catch missed updates');
         refetch();
       }
     }, 1000); // 1 second delay to allow subscription to connect
