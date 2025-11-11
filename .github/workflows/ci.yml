@@ -124,7 +124,7 @@ jobs:
         run: npx tsc --noEmit --skipLibCheck || echo "Client type check completed with warnings"
 
       - name: 🔍 Client linting
-        run: yarn lint app/ components/ api/ store/
+        run: yarn lint app/ ui/ api/
 
   # ============================================================================
   # Security Scanning
