@@ -130,7 +130,7 @@ export default function MapboxMapView({
   const [mapStyle, setMapStyle] = useState<MapStyle>('streets');
   const [isMapReady, setIsMapReady] = useState(false);
   const [userZoom, setUserZoom] = useState<number | null>(null);
-  const [mapError, setMapError] = useState<string | null>(null);
+  const [_mapError, _setMapError] = useState<string | null>(null);
   const cameraRef = useRef<Camera>(null);
   const mapRef = useRef<RNMapboxMapView>(null);
   
@@ -145,7 +145,7 @@ export default function MapboxMapView({
       showControls,
       autoCenter,
     });
-  }, []);
+  }, [location, waypoints.length, showControls, autoCenter]);
   
   // Safety timeout to avoid indefinite spinner if events don't fire
   useEffect(() => {
@@ -223,7 +223,7 @@ export default function MapboxMapView({
       ne: mapBounds.bounds?.ne,
       sw: mapBounds.bounds?.sw,
     });
-  }, [mapBounds.center[0], mapBounds.center[1], mapBounds.zoom, mapBounds.bounds?.ne?.[0], mapBounds.bounds?.ne?.[1], mapBounds.bounds?.sw?.[0], mapBounds.bounds?.sw?.[1]]);
+  }, [mapBounds]);
 
   // Generate route line GeoJSON
   const routeGeoJSON = useMemo(() => {
@@ -361,7 +361,6 @@ export default function MapboxMapView({
   console.log('🎨 MapboxMapView rendering', {
     styleURL: MAPBOX_STYLES[mapStyle],
     isMapReady,
-    mapError,
   });
 
   // Don't render map if token is missing
@@ -495,7 +494,7 @@ export default function MapboxMapView({
       </RNMapboxMapView>
 
       {/* Loading Indicator */}
-      {!isMapReady && !mapError && (
+      {!isMapReady && (
         <View style={[styles.loadingOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.9)' : 'rgba(255,255,255,0.9)' }]}>
           <ActivityIndicator size="large" color="#8b5cf6" />
           <Text style={[styles.loadingText, { color: isDark ? '#fff' : '#000' }]}>
@@ -504,23 +503,7 @@ export default function MapboxMapView({
         </View>
       )}
 
-      {/* Error Display */}
-      {mapError && (
-        <View style={[styles.errorOverlay, { backgroundColor: isDark ? 'rgba(0,0,0,0.95)' : 'rgba(255,255,255,0.95)' }]}>
-          <Ionicons name="alert-circle" size={48} color="#ef4444" />
-          <Text style={[styles.errorTitle, { color: isDark ? '#fff' : '#000' }]}>
-            Map Error
-          </Text>
-          <Text style={[styles.errorText, { color: isDark ? '#d1d5db' : '#6b7280' }]}>
-            {mapError}
-          </Text>
-          {!MAPBOX_ACCESS_TOKEN && (
-            <Text style={[styles.errorHint, { color: '#ef4444' }]}>
-              Missing Mapbox token. Check .env file.
-            </Text>
-          )}
-        </View>
-      )}
+      {/* Error Display - Reserved for future use */}
 
       {/* Map Controls */}
       {showControls && (

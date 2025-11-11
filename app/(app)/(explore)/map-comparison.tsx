@@ -8,7 +8,6 @@
 import { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Stack } from 'expo-router';
-import { useTranslation } from 'react-i18next';
 import * as Location from 'expo-location';
 import MapView from '@components/MapView'; // Leaflet WebView
 import MapboxMapView from '@components/MapboxMapView'; // Mapbox Native
@@ -17,7 +16,6 @@ import { Ionicons } from '@expo/vector-icons';
 type MapType = 'leaflet' | 'mapbox';
 
 export default function MapComparisonScreen() {
-  const { t } = useTranslation();
   const [activeMap, setActiveMap] = useState<MapType>('mapbox');
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
 

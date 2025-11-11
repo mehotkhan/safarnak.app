@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, View } from 'react-native';
 import { DateTime } from 'luxon';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,10 +12,6 @@ interface Props {
   value?: string; // YYYY-MM-DD (always Gregorian for storage)
   onChange?: (date: string) => void;
   placeholder?: string;
-}
-
-function clamp(num: number, min: number, max: number) {
-  return Math.max(min, Math.min(num, max));
 }
 
 export default function DatePicker({ label, value, onChange, placeholder }: Props) {
@@ -79,23 +75,6 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
   const apply = () => {
     onChange?.(formatted);
     setOpen(false);
-  };
-
-  // Calculate days in month for the current calendar
-  const daysInMonth = useMemo(() => {
-    try {
-      const dt = DateTime.fromObject(
-        { year, month, day: 1 },
-        { locale, outputCalendar: calendar as any }
-      );
-      return dt.daysInMonth || 31;
-    } catch {
-      return 31;
-    }
-  }, [year, month, locale, calendar]);
-
-  const adjustDayIfNeeded = () => {
-    setDay(prev => clamp(prev, 1, daysInMonth));
   };
 
   // Month name with Luxon only
