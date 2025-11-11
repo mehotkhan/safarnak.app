@@ -1416,7 +1416,7 @@ const { t } = useTranslation();
 1. Define schema in `graphql/schema.graphql`
 2. Define operations in `graphql/queries/*.graphql`
 3. Run `yarn codegen` to generate `api/hooks.ts` and `api/types.ts`
-4. Enhanced hooks automatically wrap generated hooks with Drizzle sync
+4. Use generated hooks directly; DrizzleCacheStorage handles sync automatically
 
 ### Path Aliases
 

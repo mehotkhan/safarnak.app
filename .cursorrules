@@ -446,7 +446,7 @@ const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, u
 ### 4. Offline-First Strategy
 
 **Client-Side Storage:**
-- **Apollo Cache (SQLite)**: Normalized GraphQL cache in `apollo_cache.db`
+- **Apollo Cache (SQLite)**: Normalized cache stored in `apollo_cache_entries` table (Drizzle SQLite)
 - **Drizzle Cache (SQLite)**: Structured relational cache in `safarnak_local.db`
 - **AsyncStorage**: Mutation queue for offline operations
 - **Redux Persist**: UI state survives app restarts
