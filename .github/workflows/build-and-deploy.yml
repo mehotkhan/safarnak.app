@@ -87,10 +87,11 @@ jobs:
             }
           }
           
-          // Get latest release tag (matching pattern vX.Y.Z)
+          // Get latest release tag (matching pattern vX.Y.Z, e.g., v1.13.0)
           let lastTag = '';
           try {
-            const tags = cp.execSync('git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n 1', { encoding: 'utf8' }).trim();
+            // Use more precise pattern: v followed by digits.digits.digits
+            const tags = cp.execSync('git tag --list "v[0-9]*\\.[0-9]*\\.[0-9]*" --sort=-v:refname | head -n 1', { encoding: 'utf8' }).trim();
             if (tags) {
               lastTag = tags.split('\n')[0];
               console.log(`📋 Found last release tag: ${lastTag}`);
@@ -411,7 +412,7 @@ jobs:
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-          APP_NAME: 'Safarnak'
+          APP_NAME: 'سفرناک'
           APP_SCHEME: 'safarnak'
           EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
           GRAPHQL_URL: 'https://safarnak.app/graphql'
@@ -510,8 +511,8 @@ jobs:
           # Fetch all tags to ensure we have the latest releases
           git fetch --tags --force 2>/dev/null || true
           
-          # Get the latest release tag (matching pattern vX.Y.Z)
-          LAST_TAG=$(git tag --sort=-version:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 1 || echo "")
+          # Get the latest release tag (matching pattern vX.Y.Z, e.g., v1.13.0)
+          LAST_TAG=$(git tag --list "v[0-9]*.[0-9]*.[0-9]*" --sort=-v:refname | head -n 1 || echo "")
           
           if [ -z "$LAST_TAG" ]; then
             # No previous release tag found, show last 20 commits
