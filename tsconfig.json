@@ -62,13 +62,15 @@
       ],
       "@locales/*": [
         "./locales/*"
-      ]
-      ,
+      ],
       "@assets": [
         "./assets"
       ],
       "@assets/*": [
         "./assets/*"
+      ],
+      "expo-file-system/next": [
+        "./types/expo-file-system-next"
       ]
     },
     "types": [

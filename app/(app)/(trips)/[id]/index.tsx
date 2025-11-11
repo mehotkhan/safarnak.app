@@ -75,7 +75,7 @@ export default function TripDetailScreen() {
   const [workflowStatus, setWorkflowStatus] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const { data: tripUpdateData, loading: subscriptionLoading, error: subscriptionError } = useTripUpdatesSubscription({
+  const { data: tripUpdateData } = useTripUpdatesSubscription({
     variables: { tripId },
     skip: !tripId,
     onError: (error) => {
@@ -118,12 +118,6 @@ export default function TripDetailScreen() {
       }, 500);
     }
   }, [tripUpdateData?.tripUpdates, refetch]);
-
-  useEffect(() => {
-    void subscriptionLoading;
-    void subscriptionError;
-    void tripUpdateData;
-  }, [tripId, subscriptionLoading, subscriptionError, tripUpdateData]);
 
   // Auto-refresh if trip is pending (every 3 seconds) - backup in case subscription fails
   useEffect(() => {

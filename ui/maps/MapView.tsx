@@ -443,6 +443,7 @@ export default function MapView({
         mapShapes={mapShapes}
         zoomControl={false}
         attributionControl={true}
+        doDebug={false}
         injectedJavaScript={injectedJavaScript}
         onLoadEnd={() => {
           setIsMapLoading(false);
@@ -465,12 +466,12 @@ export default function MapView({
             switch (event) {
               case WebViewLeafletEvents.ON_ZOOM_END:
                 if (typeof nextZoom === 'number') {
-                  setUserZoom((prev) => (prev === nextZoom ? prev : nextZoom));
+                  setUserZoom((prev: number | null) => (prev === nextZoom ? prev : nextZoom));
                 }
                 break;
               case WebViewLeafletEvents.ON_MOVE_END:
                 if (nextCenter?.lat !== undefined && nextCenter?.lng !== undefined) {
-                  setUserCenter((prev) => {
+                  setUserCenter((prev: LatLng | null) => {
                     if (prev && Math.abs(prev.lat - nextCenter.lat) < 0.0001 && Math.abs(prev.lng - nextCenter.lng) < 0.0001) {
                       return prev;
                     }
