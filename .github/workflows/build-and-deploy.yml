@@ -362,6 +362,9 @@ jobs:
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
           echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
+          # Ensure Mapbox token is available for prebuild
+          export MAPBOX_DOWNLOADS_TOKEN="${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}"
+          export RNMAPBOX_MAPS_DOWNLOAD_TOKEN="${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}"
           npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
           echo "Expo prebuild completed"
         env:
@@ -414,7 +417,8 @@ jobs:
             --stacktrace \
             -x lint \
             -x test \
-            -PreactNativeArchitectures=arm64-v8a
+            -PreactNativeArchitectures=arm64-v8a \
+            -PMAPBOX_DOWNLOADS_TOKEN="${{ secrets.MAPBOX_DOWNLOADS_TOKEN }}"
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
