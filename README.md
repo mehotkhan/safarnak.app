@@ -9,7 +9,7 @@
 [![GraphQL Codegen](https://img.shields.io/badge/GraphQL-Codegen-purple)](https://the-guild.dev/graphql/codegen)
 [![New Architecture](https://img.shields.io/badge/New%20Architecture-Enabled-green)](https://reactnative.dev/blog/2024/10/23/the-new-architecture-is-here)
 [![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-0.17.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
+[![Version](https://img.shields.io/badge/Version-1.13.0-blue)](https://github.com/mehotkhan/safarnak.app/releases)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-Passing-green)](https://github.com/mehotkhan/safarnak.app/actions)
 
 **Live Demo**: [safarnak.app](https://safarnak.app) | **Download APK**: [Latest Release](https://github.com/mehotkhan/safarnak.app/releases)
@@ -41,47 +41,23 @@
 
 ## 📚 What is This?
 
-**Safarnak** (سفرناک) is a full-stack **offline-first travel companion** that helps users discover destinations, plan trips, and share travel experiences. Built with **React Native** (Expo) and **Cloudflare Workers**, it uses a **single-root monorepo** architecture with clear separation between client and server code.
+**Safarnak** (سفرناک) is a full‑stack, offline‑first travel companion. It helps users discover destinations, plan trips, and share experiences. The project is a single‑root monorepo with a clean separation of concerns and shared types across client and server.
 
-### Key Concepts
+### Highlights
 
-- **Client** (React Native): Expo app with Redux state management, Apollo Client for GraphQL, NativeWind v4 for styling, and offline-first architecture with local SQLite database
-- **Server** (Cloudflare Workers): Serverless GraphQL API using GraphQL Yoga, with Cloudflare D1 (SQLite) database
-- **Shared** (GraphQL): Type-safe GraphQL schema and operations shared between client and worker
-- **Shared** (Drizzle ORM): Unified database schema shared between client and worker - same table definitions with UUID IDs, used by both server (D1) and client (expo-sqlite) adapters
-- **Offline-First**: Automatic Apollo cache → Drizzle sync enables offline queries with full SQL capabilities
-- **Styling**: NativeWind v4 (Tailwind CSS) for utility-first React Native styling
-- **Codegen**: Auto-generates TypeScript types and React Apollo hooks from GraphQL schema
+- **Offline‑first by design**: Automatic Apollo → Drizzle sync via `DrizzleCacheStorage` on every cache write. Works seamlessly offline with SQL queries over cached data.
+- **Shared GraphQL + Codegen**: One schema in `graphql/` powers both the Worker and the client. Codegen produces strongly‑typed hooks in `api/`.
+- **Unified Drizzle schema**: A single `database/schema.ts` defines both server tables (Cloudflare D1) and client cached tables (Expo SQLite), all with UUID IDs. Separate adapters (`server.ts`, `client.ts`) consume the same schema.
+- **Edge backend**: Cloudflare Workers with GraphQL Yoga, Cloudflare D1 (SQLite), KV, R2, and Durable Objects for real‑time subscriptions.
+- **Modern RN stack**: React 19, Expo Router 6, NativeWind 4 (Tailwind), New Architecture enabled.
+- **Great DX**: Path aliases, one‑command dev, `yarn codegen`, `yarn db:migrate`, friendly linting.
 
-### 📖 Learning Path for New Developers
+### Onboarding roadmap
 
-If you're new to this project, follow this path to get up to speed:
-
-#### Day 1: Setup & Understanding
-1. **Quick Start** (15 min) → Clone, install, and run the app locally
-2. **Architecture Overview** (10 min) → Understand the system architecture and data flow
-3. **Codebase Structure** (15 min) → Explore folder organization and key files
-
-#### Day 2: Core Concepts
-4. **GraphQL Workflow** (20 min) → Learn how schema → codegen → hooks works
-5. **Key Concepts** (10 min) → Understand perfect separation (client/worker/shared)
-6. **Routing & URLs** (10 min) → Learn Expo Router file-based routing
-
-#### Day 3: Hands-On Practice
-7. **How to Add Features** (30 min) → Follow the complete workflow example
-8. **Styling with NativeWind** (15 min) → Learn Tailwind CSS for React Native
-9. **Authentication Flow** (10 min) → Understand how auth works
-
-#### Day 4: Advanced Topics
-10. **Offline-First Architecture** (15 min) → Understand the shared schema and automatic sync system
-11. **Technical Review** (20 min) → Be aware of current limitations and priorities
-12. **Contributing Guide** → Read `CONTRIBUTING.md` for PR guidelines
-
-#### Quick Reference
-- **Need to add a feature?** → See "How to Add New Features"
-- **Having issues?** → Check "Development Tips"
-- **Want to understand architecture?** → Read "Architecture Overview"
-- **Looking for what's next?** → Check "Suggested Improvements & Roadmap"
+- Start with [Quick Start](#-quick-start) (install, migrate DB, codegen, run dev)
+- Skim [Architecture Overview](#-architecture-overview) (keep charts; refer often)
+- Learn the [Schema → Codegen → Hooks](#-how-to-add-new-features) workflow
+- Review [Offline‑First Architecture](#-offline-first-architecture) and local DB usage
 
 ---
 
@@ -150,7 +126,7 @@ flowchart TB
   end
 
   subgraph Hooks["Hook Layer"]
-    H1["Enhanced Hooks<br/>api/enhanced-hooks.ts"]
+    H1["DrizzleCacheStorage<br/>api/cache-storage.ts"]
     H2["Custom Hooks<br/>hooks/*.ts"]
     H3["Redux Hooks<br/>store/hooks.ts"]
   end
@@ -234,7 +210,7 @@ sequenceDiagram
   API-->>AC: Response Data
   AC->>ACache: Persist to SQLite
   AC-->>EH: onCompleted callback
-  EH->>DCache: syncApolloToDrizzle()
+    AC->>DCache: DrizzleCacheStorage.setItem() (automatic)
   DCache-->>EH: Sync complete
   EH-->>UI: Return data
 
@@ -458,10 +434,10 @@ flowchart TB
   end
 
   subgraph Enhancement["Hook Enhancement"]
-    O2 --> E1["api/enhanced-hooks.ts"]
-    E1 --> E2["Wrap with Drizzle Sync"]
-    E2 --> E3["Add Error Handling"]
-    E3 --> E4["Set Default Policies"]
+    O2 --> E1["api/cache-storage.ts"]
+    E1 --> E2["DrizzleCacheStorage"]
+    E2 --> E3["Automatic Sync on Write"]
+    E3 --> E4["Dual-Write: Raw + Structured"]
   end
 
   subgraph Usage["App Usage"]
@@ -500,7 +476,7 @@ sequenceDiagram
   alt Success
     AC->>Cache: Update cache
     Cache->>EH: onCompleted callback
-    EH->>Drizzle: syncApolloToDrizzle()
+    AC->>Drizzle: DrizzleCacheStorage.setItem() (automatic)
     Drizzle-->>EH: Sync complete
     EH->>AC: Update with network data
     AC-->>C: Re-render with fresh data
@@ -522,9 +498,9 @@ sequenceDiagram
 1. **Define GraphQL Schema** (`graphql/schema.graphql`) - Shared between client and worker
 2. **Define Operations** (`graphql/queries/*.graphql`) - Queries and mutations
 3. **Run Codegen** - Auto-generates TypeScript types and React hooks in `api/`
-4. **Enhanced Hooks** (`api/enhanced-hooks.ts`) - Automatically wraps generated hooks with Drizzle sync and offline support
+4. **DrizzleCacheStorage** (`api/cache-storage.ts`) - Automatically syncs Apollo cache to Drizzle on every cache write
 5. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic using `getServerDB()` from `@database/server`
-6. **Use in App** (`app/`, `components/`) - Import enhanced hooks from `@api` (they auto-sync to Drizzle)
+6. **Use in App** (`app/`, `components/`) - Import hooks from `@api` (automatic sync via DrizzleCacheStorage)
 
 ---
 
@@ -655,11 +631,11 @@ components/                   # 🎨 Reusable UI components
 api/                          # 🌐 GraphQL client layer
 ├── hooks.ts                 # ✨ Auto-generated React Apollo hooks (never edit manually)
 ├── types.ts                 # ✨ Auto-generated TypeScript types (never edit manually)
-├── enhanced-hooks.ts        # Enhanced hooks with automatic Drizzle sync (wraps hooks.ts)
-├── client.ts                # Apollo Client setup (auth, cache, links, SQLite persistence)
+├── cache-storage.ts         # DrizzleCacheStorage - automatic Apollo → Drizzle sync on every cache write
+├── client.ts                # Apollo Client setup (auth, cache, links, DrizzleCacheStorage persistence)
 ├── utils.ts                 # API utilities (storage, error handling, logout)
-├── api-types.ts             # API-specific types (ApiError, ApiResponse)
-└── index.ts                 # Main exports (re-exports enhanced hooks + all utilities)
+├── globals.d.ts             # TypeScript global declarations
+└── index.ts                 # Main exports (re-exports hooks + all utilities)
 
 store/                        # 📦 Redux Toolkit state management
 ├── index.ts                 # Store configuration with Redux Persist
@@ -1117,11 +1093,11 @@ export * from './getTours';
 #### Step 5: Use in Component
 ```typescript
 // app/(app)/(explore)/tours/index.tsx
-import { useGetToursQuery } from '@api'; // Enhanced hook with automatic Drizzle sync
+import { useGetToursQuery } from '@api'; // Auto-generated hook with automatic Drizzle sync
 import { ActivityIndicator, View, Text } from 'react-native';
 
 export default function ToursScreen() {
-  // This hook automatically syncs to Drizzle after query completes
+  // DrizzleCacheStorage automatically syncs to Drizzle on every cache write
   const { data, loading, error } = useGetToursQuery({
     variables: { category: 'adventure', limit: 10 }
     // fetchPolicy defaults to 'cache-and-network' for offline support
@@ -1433,8 +1409,8 @@ const { t } = useTranslation();
 - `api/types.ts` - Auto-generated TypeScript types (from GraphQL schema)
 
 **Use these instead**:
-- `api/enhanced-hooks.ts` - Enhanced wrappers that auto-sync to Drizzle (exports from `@api`)
-- `api/index.ts` - Main exports (re-exports enhanced hooks + utilities)
+- `api/cache-storage.ts` - DrizzleCacheStorage automatically syncs on every Apollo cache write
+- `api/index.ts` - Main exports (re-exports hooks + utilities)
 
 **Generation Process**:
 1. Define schema in `graphql/schema.graphql`
@@ -1535,23 +1511,24 @@ All GraphQL queries and mutations automatically sync to the local Drizzle databa
                                                   Drizzle DB
    ```
 
-2. **Enhanced Hooks** (`api/enhanced-hooks.ts`):
-   - Wraps all auto-generated Apollo hooks
-   - Automatically calls `syncApolloToDrizzle()` after every query/mutation
-   - Uses `cache-and-network` fetch policy for optimal offline support
-   - Handles errors gracefully with `errorPolicy: 'all'`
+2. **DrizzleCacheStorage** (`api/cache-storage.ts`):
+   - Implements Apollo's PersistentStorage interface
+   - Automatically syncs on every Apollo cache write (via `setItem()`)
+   - Dual-write: raw cache (`apollo_cache_entries`) + structured tables (cachedUsers, cachedTrips, etc.)
+   - No wrapper hooks needed - all Apollo hooks automatically benefit
 
 3. **Sync Mechanism**:
-   - **Event-driven**: Triggers on query/mutation completion (no timers/polling)
-   - **Automatic**: No manual sync calls needed
-   - **Background**: Sync happens in background, doesn't block UI
+   - **Event-driven**: Triggers on every Apollo cache write (via `DrizzleCacheStorage.setItem()`)
+   - **Automatic**: No manual sync calls needed - happens transparently
+   - **Background**: Sync runs in background, doesn't block UI
+   - **Dual-write**: Single transaction writes to both raw cache and structured tables
 
 ### Data Storage
 
 The app uses three storage layers:
 
 1. **Apollo Cache (SQLite)**: Normalized GraphQL cache
-   - Single table: `apollo_cache` with key-value pairs
+   - Stored in `apollo_cache_entries` table via DrizzleCacheStorage
    - Stored as JSON string in SQLite
    - Handles GraphQL query responses automatically
 
@@ -1579,12 +1556,12 @@ The app uses three storage layers:
 import { useGetTripsQuery } from '@api';
 
 function TripsScreen() {
-  // Automatically syncs to Drizzle after query completes
+  // DrizzleCacheStorage automatically syncs to Drizzle on every cache write
   const { data, loading, error } = useGetTripsQuery({
-    fetchPolicy: 'cache-and-network', // Default in enhanced hooks
+    fetchPolicy: 'cache-and-network', // Recommended for offline support
   });
   
-  // Data is now in both Apollo cache and Drizzle database
+  // Data is automatically synced to both Apollo cache and Drizzle database
 }
 ```
 
@@ -1728,7 +1705,7 @@ This section outlines potential features and improvements. These are suggestions
 
 ### 💡 Where We're Going
 
-The project is currently at **v0.17.0** (alpha stage). Our focus is on:
+The project is currently at **v1.13.0**. Our focus is on:
 
 1. **Stability**: Fixing authentication security issues, adding input validation
 2. **Core Features**: Completing trip planning, explore, and social features

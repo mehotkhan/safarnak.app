@@ -8,7 +8,7 @@ Project Overview
 - Shared: Database schema (`database/schema.ts`) shared between client and worker - unified schema with UUID IDs, separate adapters for server (D1) and client (expo-sqlite).
 - Database: `database/` folder contains unified schema with separate adapters - same table definitions, different database backends.
 
-Current Stack (as of v0.17.0)
+Current Stack (as of v1.13.0)
 - TypeScript ~5.9.3
 - React 19.1.0, React Native 0.81.5, Expo ~54.0.20
 - Expo Router ~6.0.13, NativeWind ^4.1.21, Tailwind ^3.4.17
@@ -237,12 +237,12 @@ safarnak.app/                           # Single root directory
 │   ├── schema-loader.ts                # Worker schema loader
 │   └── index.ts                         # Shared exports only
 ├── api/                                # Client API layer (CLIENT-SIDE ONLY)
-│   ├── client.ts                       # Apollo Client setup with auth link
-│   ├── enhanced-hooks.ts               # Wraps auto-generated hooks with automatic Drizzle sync
+│   ├── client.ts                       # Apollo Client setup with auth link and DrizzleCacheStorage
+│   ├── cache-storage.ts                # DrizzleCacheStorage - automatic Apollo → Drizzle sync on every cache write
 │   ├── hooks.ts                        # 🤖 Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 │   ├── types.ts                        # 🤖 Auto-generated GraphQL types
 │   ├── utils.ts                        # Client utility functions (storage, error handling, network checks, logout, API types)
-│   └── index.ts                        # Main API exports (re-exports enhanced hooks + all utilities)
+│   └── index.ts                        # Main API exports (re-exports hooks + all utilities)
 ├── database/                           # Shared database schema and adapters
 │   ├── schema.ts                       # Unified schema with UUIDs (server + client tables in one file)
 │   ├── server.ts                       # Server adapter (Cloudflare D1) - exports getServerDB()
@@ -337,12 +337,12 @@ safarnak.app/                           # Single root directory
 - `generated/schema.d.ts` - Worker schema declarations
 
 **Client-Side (api/):**
-- `client.ts` - Apollo Client setup with auth link and SQLite cache persistence
-- `enhanced-hooks.ts` - Wraps auto-generated hooks with automatic Drizzle sync
+- `client.ts` - Apollo Client setup with auth link and DrizzleCacheStorage persistence
+- `cache-storage.ts` - DrizzleCacheStorage implements Apollo's PersistentStorage interface, automatically syncs to structured tables on every cache write
 - `hooks.ts` - Auto-generated React Apollo hooks (queries, mutations, subscriptions)
 - `types.ts` - Auto-generated GraphQL types
 - `utils.ts` - Utility functions (storage, error handling, network checks, logout)
-- `index.ts` - Main exports (re-exports enhanced hooks + all utilities)
+- `index.ts` - Main exports (re-exports hooks + all utilities)
 
 **Server-Side (worker/):**
 - `queries/` - Query resolver functions (getMessages, me, getTrips, getTrip)
@@ -384,8 +384,8 @@ import { Subscription } from './subscriptions';
 - Client uses `database/client.ts` → `getLocalDB()` for Expo SQLite database
 - Imports client cached tables from `database/schema.ts` (e.g., `cachedUsers`, `cachedTrips`)
 - Same UUID format as server tables - perfect consistency
-- Automatic Apollo cache sync via `syncApolloToDrizzle()`
-- Enhanced hooks automatically sync to Drizzle after every query/mutation
+- Automatic Apollo cache sync via `DrizzleCacheStorage` - syncs on every cache write (no manual sync needed)
+- All Apollo hooks automatically benefit from automatic sync - no wrapper hooks needed
 
 **Worker Resolvers:**
 ```typescript
@@ -452,14 +452,16 @@ const trips = await db.select().from(cachedTrips).where(eq(cachedTrips.userId, u
 - **Redux Persist**: UI state survives app restarts
 
 **Automatic Sync:**
-- **Enhanced Hooks** (`api/enhanced-hooks.ts`): Wraps all auto-generated Apollo hooks
-- Automatically calls `syncApolloToDrizzle()` after every query/mutation
-- Event-driven sync (no timers/polling) - triggers on completion
-- Uses `cache-and-network` fetch policy for optimal offline support
+- **DrizzleCacheStorage** (`api/cache-storage.ts`): Implements Apollo's PersistentStorage interface
+- Automatically syncs on every Apollo cache write (via `setItem()`)
+- Dual-write in single transaction: raw cache + structured tables
+- Event-driven sync (no timers/polling) - triggers on every cache write
+- No wrapper hooks needed - all Apollo hooks automatically benefit
 
 **Sync Mechanism:**
-- Apollo cache → Drizzle sync happens automatically via `syncApolloToDrizzle()`
-- Extracts normalized data from Apollo cache
+- Apollo cache → Drizzle sync happens automatically via `DrizzleCacheStorage.setItem()`
+- Writes to `apollo_cache_entries` (raw cache) + structured tables (cachedUsers, cachedTrips, etc.)
+- Extracts entity type and ID from cache keys (e.g., "User:123" → User entity)
 - Upserts into Drizzle cached tables with sync metadata
 - Background sync doesn't block UI
 
@@ -863,7 +865,7 @@ const { t } = useTranslation();
    - Add sync metadata: `cachedAt`, `lastSyncAt`, `pending`, `deletedAt`
    - Add to `clientSchema` export
 2. **Client auto-migration**: Tables created automatically on app initialization (see `database/client.ts`)
-3. **Automatic Sync**: Apollo cache automatically syncs to new cached tables via `syncApolloToDrizzle()`
+3. **Automatic Sync**: Apollo cache automatically syncs to new cached tables via `DrizzleCacheStorage` (no manual sync needed)
 
 **Key Points:**
 - All tables use UUID (text) IDs for consistency

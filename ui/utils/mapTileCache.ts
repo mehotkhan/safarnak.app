@@ -2,10 +2,10 @@
  * Map Tile Cache Manager
  * 
  * Handles downloading, caching, and managing map tiles for offline use.
- * Uses Expo FileSystem for file storage and Drizzle ORM for metadata.
+ * Uses Expo FileSystem (new API) for file storage and Drizzle ORM for metadata.
  */
 
-import * as FileSystem from 'expo-file-system';
+import { Directory, File, Paths } from 'expo-file-system/next';
 import { getLocalDB } from '@database/client';
 import { cachedMapTiles } from '@database/schema';
 import { eq, and, sql } from 'drizzle-orm';
@@ -39,15 +39,12 @@ const TILE_URL_TEMPLATES: Record<MapLayer, string> = {
   terrain: 'https://a.tile.opentopomap.org/{z}/{x}/{y}.png',
 };
 
-// Cache directory - use FileSystem.Paths.document which returns a Directory object
-// We need to get the URI string from it
-const getCacheDir = () => {
-  const docDir = FileSystem.Paths.document.uri;
-  if (!docDir) {
-    throw new Error('Document directory not available');
-  }
-  return `${docDir}tiles/`;
-};
+/**
+ * Get base cache directory
+ */
+function getCacheDirectory(): Directory {
+  return new Directory(Paths.cache, 'tiles');
+}
 
 /**
  * Get tile URL for a given tile key
@@ -58,10 +55,11 @@ function getTileUrl({ layer, z, x, y }: TileKey): string {
 }
 
 /**
- * Get file path for a cached tile
+ * Get file object for a cached tile
  */
-function getTileFilePath({ layer, z, x, y }: TileKey): string {
-  return `${getCacheDir()}${layer}/${z}/${x}/${y}.png`;
+function getTileFile({ layer, z, x, y }: TileKey): File {
+  const cacheDir = getCacheDirectory();
+  return new File(cacheDir, `${layer}/${z}/${x}/${y}.png`);
 }
 
 /**
@@ -82,19 +80,24 @@ function _getTileKeyFromPath(filePath: string): TileKey | null {
  * Ensure cache directory exists
  */
 async function ensureCacheDirectory(): Promise<void> {
-  const cacheDir = getCacheDir();
-  const dirInfo = await FileSystem.getInfoAsync(cacheDir);
-  if (!dirInfo.exists) {
-    await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
-  }
-  
-  // Ensure layer directories exist
-  for (const layer of ['standard', 'satellite', 'terrain'] as MapLayer[]) {
-    const layerDir = `${cacheDir}${layer}/`;
-    const layerInfo = await FileSystem.getInfoAsync(layerDir);
-    if (!layerInfo.exists) {
-      await FileSystem.makeDirectoryAsync(layerDir, { intermediates: true });
+  try {
+    const cacheDir = getCacheDirectory();
+    
+    // Create main cache directory if it doesn't exist
+    if (!cacheDir.exists) {
+      await cacheDir.create();
     }
+    
+    // Ensure layer directories exist
+    for (const layer of ['standard', 'satellite', 'terrain'] as MapLayer[]) {
+      const layerDir = new Directory(cacheDir, layer);
+      if (!layerDir.exists) {
+        await layerDir.create();
+      }
+    }
+  } catch (error) {
+    console.error('Error ensuring cache directory:', error);
+    throw error;
   }
 }
 
@@ -120,9 +123,9 @@ export async function isTileCached(tileKey: TileKey): Promise<boolean> {
     
     if (!cached) return false;
     
-    // Verify file exists
-    const fileInfo = await FileSystem.getInfoAsync(cached.filePath);
-    return fileInfo.exists;
+    // Verify file exists using new API
+    const file = getTileFile(tileKey);
+    return file.exists;
   } catch (error) {
     console.error('Error checking tile cache:', error);
     return false;
@@ -151,9 +154,9 @@ export async function getCachedTilePath(tileKey: TileKey): Promise<string | null
     
     if (!cached) return null;
     
-    // Verify file exists
-    const fileInfo = await FileSystem.getInfoAsync(cached.filePath);
-    if (!fileInfo.exists) {
+    // Verify file exists using new API
+    const file = getTileFile(tileKey);
+    if (!file.exists) {
       // File missing, remove from database
       await db.delete(cachedMapTiles).where(eq(cachedMapTiles.id, cached.id));
       return null;
@@ -165,7 +168,7 @@ export async function getCachedTilePath(tileKey: TileKey): Promise<string | null
       .set({ lastAccessed: Math.floor(Date.now() / 1000) })
       .where(eq(cachedMapTiles.id, cached.id));
     
-    return cached.filePath;
+    return file.uri;
   } catch (error) {
     console.error('Error getting cached tile path:', error);
     return null;
@@ -191,34 +194,36 @@ export async function cacheTile(tileKey: TileKey): Promise<boolean> {
     await ensureCacheDirectory();
     
     const tileUrl = getTileUrl(tileKey);
-    const filePath = getTileFilePath(tileKey);
+    const file = getTileFile(tileKey);
     
-    // Ensure directory exists for this tile
-    const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
-    const dirInfo = await FileSystem.getInfoAsync(dirPath);
-    if (!dirInfo.exists) {
-      await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
+    // Ensure parent directory exists for this tile
+    const parentDir = new Directory(getCacheDirectory(), `${tileKey.layer}/${tileKey.z}/${tileKey.x}`);
+    if (!parentDir.exists) {
+      await parentDir.create();
     }
     
-    // Download tile
-    const downloadResult = await FileSystem.downloadAsync(tileUrl, filePath);
+    // Download tile using new API
+    const downloadResult = await file.downloadAsync(tileUrl);
     
-    if (downloadResult.status !== 200) {
+    if (!downloadResult.ok) {
       // Clean up failed download
-      const fileInfo = await FileSystem.getInfoAsync(filePath);
-      if (fileInfo.exists) {
-        await FileSystem.deleteAsync(filePath, { idempotent: true });
+      if (file.exists) {
+        await file.delete();
       }
+      console.error('Download failed:', downloadResult.status);
       return false;
     }
     
-    // Get file size
-    const fileInfo = await FileSystem.getInfoAsync(filePath);
-    if (!fileInfo.exists) {
-      return false;
+    // Get file size from downloaded file
+    let fileSize = 0;
+    try {
+      const fileInfo = await file.stat();
+      fileSize = fileInfo.size;
+    } catch (error) {
+      console.warn('Could not get file size:', error);
+      // Continue anyway, just use 0 as size
     }
     
-    const fileSize = fileInfo.size || 0;
     const now = Math.floor(Date.now() / 1000);
     
     // Save to database
@@ -228,7 +233,7 @@ export async function cacheTile(tileKey: TileKey): Promise<boolean> {
       z: tileKey.z,
       x: tileKey.x,
       y: tileKey.y,
-      filePath,
+      filePath: file.uri,
       fileSize,
       cachedAt: now,
       lastAccessed: now,
@@ -310,12 +315,20 @@ export async function clearCache(): Promise<boolean> {
     // Get all cached tiles
     const allTiles = await db.select().from(cachedMapTiles).all();
     
-    // Delete files
+    // Delete files using new API
     for (const tile of allTiles) {
       try {
-        const fileInfo = await FileSystem.getInfoAsync(tile.filePath);
-        if (fileInfo.exists) {
-          await FileSystem.deleteAsync(tile.filePath, { idempotent: true });
+        // Reconstruct file path from tile data
+        const tileKey: TileKey = {
+          layer: tile.layer as MapLayer,
+          z: tile.z,
+          x: tile.x,
+          y: tile.y,
+        };
+        const file = getTileFile(tileKey);
+        
+        if (file.exists) {
+          await file.delete();
         }
       } catch (error) {
         console.error(`Error deleting tile file ${tile.filePath}:`, error);
@@ -325,11 +338,15 @@ export async function clearCache(): Promise<boolean> {
     // Clear database
     await db.delete(cachedMapTiles);
     
-    // Try to remove cache directory (may fail if not empty due to subdirectories)
+    // Try to remove cache directory (with recursive delete)
     try {
-      await FileSystem.deleteAsync(getCacheDir(), { idempotent: true });
-    } catch (_error) {
-      // Ignore - directory may not be empty
+      const cacheDir = getCacheDirectory();
+      if (cacheDir.exists) {
+        await cacheDir.delete();
+      }
+    } catch (error) {
+      console.warn('Could not delete cache directory:', error);
+      // Ignore - some files may be locked or in use
     }
     
     return true;
@@ -356,12 +373,20 @@ export async function cleanupOldTiles(daysOld: number): Promise<number> {
     
     let deletedCount = 0;
     
-    // Delete files and database entries
+    // Delete files and database entries using new API
     for (const tile of oldTiles) {
       try {
-        const fileInfo = await FileSystem.getInfoAsync(tile.filePath);
-        if (fileInfo.exists) {
-          await FileSystem.deleteAsync(tile.filePath, { idempotent: true });
+        // Reconstruct tile key
+        const tileKey: TileKey = {
+          layer: tile.layer as MapLayer,
+          z: tile.z,
+          x: tile.x,
+          y: tile.y,
+        };
+        const file = getTileFile(tileKey);
+        
+        if (file.exists) {
+          await file.delete();
         }
         await db.delete(cachedMapTiles).where(eq(cachedMapTiles.id, tile.id));
         deletedCount++;
@@ -400,16 +425,24 @@ export async function cleanupCacheBySize(maxSizeBytes: number): Promise<number> 
     let currentSize = stats.totalSize;
     let deletedCount = 0;
     
-    // Delete oldest tiles until under limit
+    // Delete oldest tiles until under limit using new API
     for (const tile of tiles) {
       if (currentSize <= maxSizeBytes) {
         break;
       }
       
       try {
-        const fileInfo = await FileSystem.getInfoAsync(tile.filePath);
-        if (fileInfo.exists) {
-          await FileSystem.deleteAsync(tile.filePath, { idempotent: true });
+        // Reconstruct tile key
+        const tileKey: TileKey = {
+          layer: tile.layer as MapLayer,
+          z: tile.z,
+          x: tile.x,
+          y: tile.y,
+        };
+        const file = getTileFile(tileKey);
+        
+        if (file.exists) {
+          await file.delete();
         }
         await db.delete(cachedMapTiles).where(eq(cachedMapTiles.id, tile.id));
         currentSize -= tile.fileSize;
