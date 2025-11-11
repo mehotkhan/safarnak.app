@@ -70,10 +70,10 @@ flowchart TB
   subgraph Client["📱 Client Layer (React Native + Expo)"]
     subgraph UI["UI Layer"]
       A["app/ - Expo Router Pages"]
-      B["components/ - UI Components"]
+      B["ui/ - UI Components, Hooks, State, Utils"]
     end
     subgraph State["State Management"]
-      C["store/ - Redux + Persist"]
+      C["ui/state/ - Redux + Persist"]
       D["api/ - Apollo Client + DrizzleCacheStorage"]
     end
     subgraph Local["Local Storage"]
@@ -122,18 +122,18 @@ flowchart TB
 flowchart TB
   subgraph Component["React Components"]
     C1["app/*.tsx<br/>Pages"]
-    C2["components/*.tsx<br/>UI Components"]
+    C2["ui/*.tsx<br/>UI Components"]
   end
 
   subgraph Hooks["Hook Layer"]
     H1["DrizzleCacheStorage<br/>api/cache-storage.ts"]
-    H2["Custom Hooks<br/>hooks/*.ts"]
-    H3["Redux Hooks<br/>store/hooks.ts"]
+    H2["Custom Hooks<br/>ui/hooks/*.ts"]
+    H3["Redux Hooks<br/>ui/state/hooks.ts"]
   end
 
   subgraph Data["Data Layer"]
     D1["Apollo Client<br/>api/client.ts"]
-    D2["Redux Store<br/>store/index.ts"]
+    D2["Redux Store<br/>ui/state/index.ts"]
       D3["Local DB<br/>database/client.ts"]
   end
 
@@ -500,7 +500,7 @@ sequenceDiagram
 3. **Run Codegen** - Auto-generates TypeScript types and React hooks in `api/`
 4. **DrizzleCacheStorage** (`api/cache-storage.ts`) - Automatically syncs Apollo cache to Drizzle on every cache write
 5. **Implement Resolvers** (`worker/queries/`, `worker/mutations/`) - Server-side logic using `getServerDB()` from `@database/server`
-6. **Use in App** (`app/`, `components/`) - Import hooks from `@api` (automatic sync via DrizzleCacheStorage)
+6. **Use in App** (`app/`, `ui/`) - Import hooks from `@api` (automatic sync via DrizzleCacheStorage)
 
 ---
 
@@ -610,52 +610,59 @@ app/                          # 📱 Expo Router pages (file-based routing)
         ├── subscription.tsx # /profile/subscription
         └── settings.tsx    # /profile/settings
 
-components/                   # 🎨 Reusable UI components
-├── AuthWrapper.tsx          # Authentication guard (redirects unauthenticated)
-├── MapView.tsx              # Interactive map component (Leaflet-based)
+ui/                           # 🎨 All client UI code
+├── auth/                    # Authentication components
+│   └── AuthWrapper.tsx      # Authentication guard
+├── maps/                    # Map components
+│   ├── MapView.tsx          # Leaflet-based map
+│   └── MapboxMapView.tsx    # Mapbox native map
+├── forms/                   # Form components
+│   ├── CustomButton.tsx
+│   ├── InputField.tsx
+│   ├── TextArea.tsx
+│   └── ...
+├── display/                 # Display components
+│   ├── CustomText.tsx
+│   ├── UserAvatar.tsx
+│   └── ...
+├── feedback/                # Loading/error states
+│   ├── LoadingState.tsx
+│   ├── ErrorState.tsx
+│   └── ...
 ├── context/                 # React contexts
-│   ├── LanguageContext.tsx  # Language switching (EN/FA)
-│   ├── LanguageSwitcher.tsx # Language selector UI
-│   └── ThemeContext.tsx     # Dark/light theme management
-└── ui/                      # Themed UI components
-    ├── Themed.tsx           # Theme-aware View/Text
-    ├── CustomText.tsx       # i18n-aware text with font weights
-    ├── CustomButton.tsx     # Styled button component
-    ├── InputField.tsx       # Form input with icons
-    ├── TextArea.tsx         # Multi-line text input
-    ├── DatePicker.tsx       # Date selection component
-    ├── Divider.tsx          # Section divider
-    ├── ThemeToggle.tsx      # Dark mode toggle
-    └── OfflineIndicator.tsx # Network status indicator
+│   ├── LanguageContext.tsx
+│   ├── LanguageSwitcher.tsx
+│   └── ThemeContext.tsx
+├── hooks/                   # 🪝 Custom React hooks
+│   ├── useColorScheme.ts
+│   ├── useAuth.ts
+│   └── ...
+├── state/                   # 📦 Redux Toolkit state management
+│   ├── index.ts             # Store configuration
+│   ├── hooks.ts             # Typed hooks (useAppDispatch, useAppSelector)
+│   ├── slices/              # Redux slices
+│   │   ├── authSlice.ts
+│   │   └── themeSlice.ts
+│   └── middleware/          # Redux middleware
+│       └── offlineMiddleware.ts
+└── utils/                   # Client utilities
+    ├── clipboard.ts
+    ├── validation.ts
+    └── ...
 
 api/                          # 🌐 GraphQL client layer
 ├── hooks.ts                 # ✨ Auto-generated React Apollo hooks (never edit manually)
 ├── types.ts                 # ✨ Auto-generated TypeScript types (never edit manually)
-├── cache-storage.ts         # DrizzleCacheStorage - automatic Apollo → Drizzle sync on every cache write
-├── client.ts                # Apollo Client setup (auth, cache, links, DrizzleCacheStorage persistence)
-├── utils.ts                 # API utilities (storage, error handling, logout)
+├── cache-storage.ts         # DrizzleCacheStorage - automatic Apollo → Drizzle sync
+├── client.ts                # Apollo Client setup
+├── utils.ts                 # API utilities
 ├── globals.d.ts             # TypeScript global declarations
-└── index.ts                 # Main exports (re-exports hooks + all utilities)
-
-store/                        # 📦 Redux Toolkit state management
-├── index.ts                 # Store configuration with Redux Persist
-├── hooks.ts                 # Typed hooks (useAppDispatch, useAppSelector)
-├── slices/                  # Redux slices
-│   ├── authSlice.ts         # Authentication state (user, token, isAuthenticated)
-│   └── themeSlice.ts        # Theme state (isDark)
-└── middleware/              # Redux middleware
-    └── offlineMiddleware.ts # Offline mutation queue
+└── index.ts                 # Main exports
 
 constants/                    # 📋 App constants
 ├── app.ts                   # App-wide constants
 ├── Colors.ts                # Color palette (light/dark themes)
 └── index.ts                 # Exports
-
-hooks/                        # 🪝 Custom React hooks
-├── useColorScheme.ts        # System color scheme hook
-├── useClientOnlyValue.ts    # Platform-specific value hook
-├── useFontFamily.ts         # Font family hook
-└── useGraphBackendReachable.ts # Network connectivity hook
 
 locales/                      # 🌍 i18n translation files
 ├── en/translation.json      # English translations
@@ -1122,7 +1129,7 @@ export default function ToursScreen() {
 
 1. **Create Component** (using NativeWind/Tailwind):
 ```typescript
-// components/TourCard.tsx
+// ui/cards/TourCard.tsx
 import { View, Text, TouchableOpacity } from 'react-native';
 import { CustomText } from '@ui/CustomText';
 
@@ -1156,7 +1163,7 @@ import { useAppDispatch } from '@/store/hooks';
 
 1. **Create Slice**:
 ```typescript
-// store/slices/toursSlice.ts
+// ui/state/slices/toursSlice.ts
 import { createSlice } from '@reduxjs/toolkit';
 
 const toursSlice = createSlice({
@@ -1175,7 +1182,7 @@ export default toursSlice.reducer;
 
 2. **Add to Store**:
 ```typescript
-// store/index.ts
+// ui/state/index.ts
 import toursReducer from './slices/toursSlice';
 
 // Add to combineReducers
@@ -1225,8 +1232,8 @@ ANDROID_VERSION_CODE=800   # optional override
 
 ```typescript
 import { useLoginMutation } from '@api';
-import { useAppDispatch } from '@/store/hooks';
-import { login } from '@/store/slices/authSlice';
+import { useAppDispatch } from '@state/hooks';
+import { login } from '@state/slices/authSlice';
 import { useColorScheme } from '@hooks/useColorScheme';
 import Colors from '@constants/Colors';
 ```
@@ -1322,7 +1329,7 @@ yarn version:minor    # Release-it minor bump (CI)
 5. Auto-redirect → Logged-in users can't access auth pages
 
 **Auth Pages**: `app/(auth)/login.tsx`, `app/(auth)/register.tsx`, `app/(auth)/welcome.tsx`  
-**Auth Guard**: `components/AuthWrapper.tsx`
+**Auth Guard**: `ui/auth/AuthWrapper.tsx`
 
 ---
 
@@ -1421,8 +1428,8 @@ const { t } = useTranslation();
 ### Path Aliases
 
 Always use aliases, never relative imports:
-- ✅ `@api`, `@ui/*`, `@hooks/useColorScheme`, `@/store/*`
-- ❌ `../../api`, `../store/hooks`
+- ✅ `@api`, `@ui/*`, `@hooks/useColorScheme`, `@state/*`, `@utils/*`
+- ❌ `../../api`, `../store/hooks`, `@components/*`, `@store/*`
 
 ---
 

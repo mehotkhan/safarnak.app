@@ -204,11 +204,9 @@ export default [
   {
     files: [
       'app/**/*.tsx',
-      'components/**/*.tsx',
+      'ui/**/*.tsx',
+      'ui/**/*.ts',
       'api/**/*.ts',
-      'hooks/**/*.ts',
-      'store/**/*.ts',
-      'redux/**/*.ts',
     ],
     languageOptions: {
       globals: {

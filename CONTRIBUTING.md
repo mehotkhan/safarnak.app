@@ -69,9 +69,12 @@ safarnak.app/
 ├── graphql/         # Shared GraphQL schema and operations
 ├── api/             # Client-side API layer with auto-generated hooks
 ├── database/        # Database schemas and migrations
-├── store/           # Redux state management
+├── ui/              # All client UI code
+│   ├── hooks/       # React hooks
+│   ├── state/       # Redux state management
+│   ├── utils/       # Client utilities
+│   └── ...          # UI components (auth, forms, display, etc.)
 ├── app/             # Expo Router pages
-├── components/      # React components
 └── constants/       # App constants
 ```
 
@@ -118,7 +121,7 @@ yarn codegen
 
 ```bash
 # 1. Create component
-# Add to components/ui/ or components/
+# Add to ui/ (organized by category: forms/, display/, feedback/, etc.)
 
 # 2. Add TypeScript interfaces
 # Define proper types
@@ -135,7 +138,7 @@ yarn codegen
 ### TypeScript
 
 - **Developer-friendly typing**: Prefer strong types but `any`/`@ts-expect-error` are acceptable during development
-- **Path Aliases**: Use `@/`, `@components/`, `@graphql/`, `@api`, `@store`
+- **Path Aliases**: Use `@/`, `@ui/`, `@graphql/`, `@api`, `@state`, `@hooks`, `@utils`
 - **Type important surfaces**: Function parameters, return values, component props
 
 ### GraphQL
