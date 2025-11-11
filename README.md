@@ -1156,7 +1156,7 @@ export default function TourCard({ tour, onPress }: TourCardProps) {
 ```typescript
 import { useColorScheme } from '@hooks/useColorScheme';
 import { colors } from '@constants/Colors';
-import { useAppDispatch } from '@/store/hooks';
+import { useAppDispatch } from '@state/hooks';
 ```
 
 ### Adding to Redux Store
