@@ -74,7 +74,7 @@ flowchart TB
     end
     subgraph State["State Management"]
       C["store/ - Redux + Persist"]
-      D["api/ - Apollo Client + Enhanced Hooks"]
+      D["api/ - Apollo Client + DrizzleCacheStorage"]
     end
     subgraph Local["Local Storage"]
       E["Apollo Cache<br/>(SQLite)"]
@@ -138,8 +138,8 @@ flowchart TB
   end
 
   subgraph Storage["Storage Layer"]
-    S1["Apollo Cache<br/>apollo_cache.db"]
-    S2["Drizzle Cache<br/>safarnak_local.db"]
+    S1["Apollo Cache (raw)<br/>safarnak_local.db: apollo_cache_entries"]
+    S2["Drizzle Cache<br/>(SQLite)"]
     S3["AsyncStorage<br/>Mutation Queue"]
     S4["Redux Persist<br/>AsyncStorage"]
   end
@@ -162,7 +162,7 @@ flowchart TB
 ```mermaid
 flowchart LR
   subgraph Query["Query Flow"]
-    Q1["Component"] --> Q2["Enhanced Hook"]
+    Q1["Component"] --> Q2["Generated Hook"]
     Q2 --> Q3["Apollo Client"]
     Q3 --> Q4["GraphQL Server"]
     Q4 --> Q5["D1 Database"]
@@ -175,7 +175,7 @@ flowchart LR
   end
 
   subgraph Mutation["Mutation Flow"]
-    M1["Component"] --> M2["Enhanced Hook"]
+    M1["Component"] --> M2["Generated Hook"]
     M2 --> M3{"Online?"}
     M3 -->|Yes| M4["Apollo Client"]
     M3 -->|No| M5["Queue in<br/>AsyncStorage"]
@@ -196,7 +196,7 @@ flowchart LR
 ```mermaid
 sequenceDiagram
   participant UI as UI Component
-  participant EH as Enhanced Hook
+  participant AH as Generated Hook
   participant AC as Apollo Client
   participant API as GraphQL API
   participant ACache as Apollo Cache<br/>(SQLite)
@@ -204,26 +204,26 @@ sequenceDiagram
   participant Queue as Mutation Queue<br/>(AsyncStorage)
 
   Note over UI,Queue: Online Scenario
-  UI->>EH: useGetTripsQuery()
-  EH->>AC: Query with cache-and-network
+  UI->>AH: useGetTripsQuery()
+  AH->>AC: Query with cache-and-network
   AC->>API: GraphQL Request
   API-->>AC: Response Data
   AC->>ACache: Persist to SQLite
-  AC-->>EH: onCompleted callback
+  AC-->>AH: onCompleted callback
     AC->>DCache: DrizzleCacheStorage.setItem() (automatic)
-  DCache-->>EH: Sync complete
-  EH-->>UI: Return data
+  DCache-->>AH: Sync complete
+  AH-->>UI: Return data
 
   Note over UI,Queue: Offline Mutation
-  UI->>EH: useCreateTripMutation()
-  EH->>AC: Mutation request
+  UI->>AH: useCreateTripMutation()
+  AH->>AC: Mutation request
   AC->>API: GraphQL Request
   API-->>AC: Network Error
   AC->>Queue: Queue mutation
-  AC-->>EH: Error (handled)
-  EH->>DCache: Optimistic update
-  DCache-->>EH: Update complete
-  EH-->>UI: Optimistic UI update
+  AC-->>AH: Error (handled)
+  AH->>DCache: Optimistic update
+  DCache-->>AH: Update complete
+  AH-->>UI: Optimistic UI update
 
   Note over UI,Queue: Online Sync
   AC->>Queue: Check pending mutations
@@ -240,7 +240,7 @@ sequenceDiagram
 flowchart TB
   subgraph ClientStorage["Client Storage"]
     subgraph Apollo["Apollo Cache"]
-      A1["apollo_cache.db<br/>(SQLite)"]
+      A1["safarnak_local.db<br/>(apollo_cache_entries table)"]
       A2["Normalized Cache<br/>Key-Value Pairs"]
     end
     subgraph Drizzle["Drizzle Cache"]
@@ -359,7 +359,7 @@ flowchart TB
   end
 
   subgraph Component["Component Error Handling"]
-    C1["Enhanced Hook"] --> C2{"Error<br/>Present?"}
+    C1["Generated Hook"] --> C2{"Error<br/>Present?"}
     C2 -->|Yes| C3["onError Callback"]
     C3 --> C4["Display Error UI"]
     C4 --> C5["Show Retry Button"]
@@ -443,7 +443,7 @@ flowchart TB
   subgraph Usage["App Usage"]
     E4 --> U1["Export from @api"]
     U1 --> U2["Import in Components"]
-    U2 --> U3["Use Enhanced Hooks"]
+    U2 --> U3["Use Generated Hooks"]
   end
 
   I1 --> C1
@@ -456,7 +456,7 @@ flowchart TB
 ```mermaid
 sequenceDiagram
   participant C as Component
-  participant EH as Enhanced Hook
+  participant AH as Generated Hook
   participant AC as Apollo Client
   participant EL as Error Link
   participant AL as Auth Link
@@ -465,8 +465,8 @@ sequenceDiagram
   participant Cache as Apollo Cache
   participant Drizzle as Drizzle Cache
 
-  C->>EH: useGetTripsQuery()
-  EH->>AC: Query with cache-and-network
+  C->>AH: useGetTripsQuery()
+  AH->>AC: Query with cache-and-network
   AC->>Cache: Check cache first
   Cache-->>AC: Return cached data (if available)
   AC-->>C: Render with cached data (optimistic)
@@ -475,10 +475,10 @@ sequenceDiagram
   API-->>AC: Response or Error
   alt Success
     AC->>Cache: Update cache
-    Cache->>EH: onCompleted callback
+    Cache->>AH: onCompleted callback
     AC->>Drizzle: DrizzleCacheStorage.setItem() (automatic)
-    Drizzle-->>EH: Sync complete
-    EH->>AC: Update with network data
+    Drizzle-->>AH: Sync complete
+    AH->>AC: Update with network data
     AC-->>C: Re-render with fresh data
   else Network Error
     AC->>EL: Network error detected
@@ -1502,7 +1502,7 @@ All GraphQL queries and mutations automatically sync to the local Drizzle databa
 
 1. **Query Flow**:
    ```
-   Component → Enhanced Hook (useGetTripsQuery) → Apollo Client → GraphQL Server
+   Component → Generated Hook (useGetTripsQuery) → Apollo Client → GraphQL Server
                                                        ↓
                                                   Apollo Cache
                                                        ↓
@@ -1620,7 +1620,7 @@ The app includes a comprehensive system status page (`app/(app)/(profile)/system
 - **Sync Triggers**: On query/mutation completion (event-driven, no polling)
 - **Performance**: Sync runs in background, doesn't block UI
 - **Storage**: 
-  - Apollo Cache: `apollo_cache.db` (normalized GraphQL cache)
+  - Apollo Cache: stored in `apollo_cache_entries` table (normalized GraphQL cache)
   - Drizzle Cache: `safarnak_local.db` (structured relational cache)
   - Server: Cloudflare D1 (SQLite via Drizzle)
 - **ID Types**: All tables use UUID (text) IDs - consistent across server, client, and GraphQL
