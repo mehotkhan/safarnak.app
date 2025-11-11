@@ -27,7 +27,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { DateTime } from 'luxon';
-import { useLanguage } from '@components/context/LanguageContext';
+import { useLanguage } from '@components/context';
 
 // Calendar mapping for each language
 const CALENDARS: Record<string, string> = {

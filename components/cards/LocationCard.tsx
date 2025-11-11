@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { CustomText } from '@components/ui/CustomText';
+import { CustomText } from '@components/display';
 
 export interface LocationCardProps {
   location: any;

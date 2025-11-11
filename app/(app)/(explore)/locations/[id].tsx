@@ -8,12 +8,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import { useTheme } from '@components/context/ThemeContext';
-import MapView from '@components/MapView';
+import { CustomText } from '@components/display';
+import { useTheme } from '@components/context';
+import { MapView } from '@components/maps';
 import { useGetLocationQuery, useGetPlacesQuery, useGetToursQuery } from '@api';
 import Colors from '@constants/Colors';
-import ShareModal from '@components/ui/ShareModal';
+import { ShareModal } from '@components/modals';
 
 export default function LocationDetailScreen() {
   const { t } = useTranslation();

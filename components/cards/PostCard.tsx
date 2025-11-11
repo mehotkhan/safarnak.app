@@ -2,9 +2,9 @@ import React from 'react';
 import { View, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { CustomText } from '@components/ui/CustomText';
-import { UserAvatar } from '@components/ui/UserAvatar';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { UserAvatar } from '@components/display';
+import { useTheme } from '@components/context';
 import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
 

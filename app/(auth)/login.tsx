@@ -1,4 +1,4 @@
-import { CustomText } from '@components/ui/CustomText';
+import { CustomText } from '@components/display';
 import { Stack } from 'expo-router';
 import { View, Alert, TouchableOpacity, KeyboardAvoidingView, Platform, Image } from 'react-native';
 import { useState, useEffect } from 'react';
@@ -6,8 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '@hooks/useAuth';
-import CustomButton from '@components/ui/CustomButton';
-import InputField from '@components/ui/InputField';
+import { CustomButton } from '@components/forms';
+import { InputField } from '@components/forms';
 import { useAppSelector } from '@store/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports

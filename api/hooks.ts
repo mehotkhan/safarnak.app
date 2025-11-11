@@ -1,4 +1,4 @@
-import { Exact, Scalars, BookTourInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTourInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTourInput, UpdateTripInput, UpdateUserInput } from './types';
+import { Exact, Scalars, BookTourInput, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTourInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTourInput, UpdateTripInput, UpdateUserInput } from './types';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';

@@ -7,9 +7,9 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import CustomButton from '@components/ui/CustomButton';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { CustomButton } from '@components/forms';
+import { useTheme } from '@components/context';
 
 // Note: plans are now defined inside the component to access t()
 

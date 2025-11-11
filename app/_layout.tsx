@@ -1,7 +1,7 @@
 import { ApolloProvider } from '@apollo/client';
-import AuthWrapper from '@components/AuthWrapper';
-import { LanguageProvider } from '@components/context/LanguageContext';
-import { ThemeProvider as CustomThemeProvider } from '@components/context/ThemeContext';
+import { AuthWrapper } from '@components/auth';
+import { LanguageProvider } from '@components/context';
+import { ThemeProvider as CustomThemeProvider } from '@components/context';
 import {
   DarkTheme,
   DefaultTheme,

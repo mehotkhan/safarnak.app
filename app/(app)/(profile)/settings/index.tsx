@@ -9,12 +9,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import { StatCard } from '@components/ui/StatCard';
-import CustomButton from '@components/ui/CustomButton';
-import { LanguageSwitcher } from '@components/context/LanguageSwitcher';
-import { ThemeToggle } from '@components/ui/ThemeToggle';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { StatCard } from '@components/display';
+import { CustomButton } from '@components/forms';
+import { LanguageSwitcher } from '@components/context';
+import { ThemeToggle } from '@components/theme';
+import { useTheme } from '@components/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useDatabaseStats } from '@hooks/useDatabaseStats';
 import { useAppDispatch, useAppSelector } from '@store/hooks';

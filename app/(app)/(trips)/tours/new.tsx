@@ -16,12 +16,12 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import * as Location from 'expo-location';
-import { CustomText } from '@components/ui/CustomText';
-import InputField from '@components/ui/InputField';
-import CustomButton from '@components/ui/CustomButton';
+import { CustomText } from '@components/display';
+import { InputField } from '@components/forms';
+import { CustomButton } from '@components/forms';
 import { z } from 'zod';
 import { useCreateTourMutation, GetToursDocument } from '@api';
-import TextArea from '@components/ui/TextArea';
+import { TextArea } from '@components/forms';
 
 const categories = ['adventure', 'cultural', 'nature', 'food', 'relaxation', 'sports'];
 const difficultyLevels = ['easy', 'medium', 'hard', 'expert'];

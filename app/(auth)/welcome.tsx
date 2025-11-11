@@ -3,9 +3,9 @@ import React, { useRef, useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
-import CustomButton from '@components/ui/CustomButton';
+import { CustomButton } from '@components/forms';
 import { Stack } from 'expo-router';
-import { useLanguage } from '@components/context/LanguageContext';
+import { useLanguage } from '@components/context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppSelector } from '@store/hooks';
 

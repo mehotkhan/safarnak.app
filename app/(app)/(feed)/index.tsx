@@ -8,20 +8,20 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import { LoadingState } from '@components/ui/LoadingState';
-import { ErrorState } from '@components/ui/ErrorState';
-import { EmptyState } from '@components/ui/EmptyState';
+import { CustomText } from '@components/display';
+import { LoadingState } from '@components/feedback';
+import { ErrorState } from '@components/feedback';
+import { EmptyState } from '@components/feedback';
 import { FeedItem } from '@components/cards';
-import { useTheme } from '@components/context/ThemeContext';
+import { useTheme } from '@components/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useGetPostsQuery, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation } from '@api';
-import ShareModal from '@components/ui/ShareModal';
+import { ShareModal } from '@components/modals';
 import { useAppSelector } from '@store/hooks';
 import { useRefresh } from '@hooks/useRefresh';
 import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
-import { TabBar } from '@components/ui/TabBar';
-import { Dropdown } from '@components/ui/Dropdown';
+import { TabBar } from '@components/layout';
+import { Dropdown } from '@components/forms';
 import { useDateTime } from '@hooks/useDateTime';
 
 const categories = [

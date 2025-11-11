@@ -1,0 +1,2 @@
+export { InfoBanner } from './InfoBanner';
+

@@ -8,12 +8,12 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import InputField from '@components/ui/InputField';
-import TextArea from '@components/ui/TextArea';
-import DatePicker from '@components/ui/DatePicker';
-import CustomButton from '@components/ui/CustomButton';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { InputField } from '@components/forms';
+import { TextArea } from '@components/forms';
+import { DatePicker } from '@components/forms';
+import { CustomButton } from '@components/forms';
+import { useTheme } from '@components/context';
 import { useGetTripQuery, useUpdateTripMutation, GetTripDocument, GetTripsDocument } from '@api';
 import Colors from '@constants/Colors';
 

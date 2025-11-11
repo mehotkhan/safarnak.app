@@ -2,8 +2,8 @@ import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { CustomText } from '@components/ui/CustomText';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { useTheme } from '@components/context';
 import { useDateTime } from '@hooks/useDateTime';
 
 export interface TripCardProps {

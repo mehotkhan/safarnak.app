@@ -9,10 +9,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { useTheme } from '@components/context';
 import { TripCard, TourCard, PlaceCard, LocationCard } from '@components/cards';
-import { TabBar } from '@components/ui/TabBar';
+import { TabBar } from '@components/layout';
 import { useGetTripsQuery, useGetToursQuery, useGetPlacesQuery, useGetLocationsQuery } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';

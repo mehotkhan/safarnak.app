@@ -9,10 +9,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import InputField from '@components/ui/InputField';
-import CustomButton from '@components/ui/CustomButton';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { InputField } from '@components/forms';
+import { CustomButton } from '@components/forms';
+import { useTheme } from '@components/context';
 import { useGetTourQuery, useBookTourMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
 import Colors from '@constants/Colors';

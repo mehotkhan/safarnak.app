@@ -2,9 +2,9 @@ import React from 'react';
 import { View, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
-import { CustomText } from '@components/ui/CustomText';
-import { RatingDisplay } from '@components/ui/RatingDisplay';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { RatingDisplay } from '@components/display';
+import { useTheme } from '@components/context';
 
 export interface PlaceCardProps {
   place: any;

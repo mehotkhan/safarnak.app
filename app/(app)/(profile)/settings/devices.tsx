@@ -9,9 +9,9 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import { InfoBanner } from '@components/ui/InfoBanner';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { InfoBanner } from '@components/info';
+import { useTheme } from '@components/context';
 import { useGetMyDevicesQuery, useRevokeDeviceMutation } from '@api';
 import { useAppSelector } from '@store/hooks';
 import { useDateTime } from '@hooks/useDateTime';

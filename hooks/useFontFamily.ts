@@ -1,4 +1,4 @@
-import { useLanguage } from '@components/context/LanguageContext';
+import { useLanguage } from '@components/context';
 
 export function useFontFamily() {
   const { currentLanguage } = useLanguage();

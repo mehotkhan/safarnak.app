@@ -1,9 +1,9 @@
 import { generateRandomName } from '@/utils/nameGenerator';
-import { useLanguage } from '@components/context/LanguageContext';
-import CustomButton from '@components/ui/CustomButton';
-import { CustomText } from '@components/ui/CustomText';
-import { InfoBanner } from '@components/ui/InfoBanner';
-import InputField from '@components/ui/InputField';
+import { useLanguage } from '@components/context';
+import { CustomButton } from '@components/forms';
+import { CustomText } from '@components/display';
+import { InfoBanner } from '@components/info';
+import { InputField } from '@components/forms';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '@hooks/useAuth';
 import { Stack, router } from 'expo-router';

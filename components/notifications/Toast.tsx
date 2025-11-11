@@ -5,8 +5,8 @@ import React, { useEffect } from 'react';
 import { View, Animated, TouchableOpacity, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { CustomText } from '@components/ui/CustomText';
-import { useTheme } from '@components/context/ThemeContext';
+import { CustomText } from '@components/display';
+import { useTheme } from '@components/context';
 
 interface ToastProps {
   visible: boolean;
