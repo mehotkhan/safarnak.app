@@ -276,11 +276,11 @@ jobs:
               bump = 'minor';
               console.log('🚨 Breaking changes detected on 0.x → minor version bump');
             } else {
-              m[0] += 1;
-              m[1] = 0;
-              m[2] = 0;
-              bump = 'major';
-              console.log('🚨 Breaking changes detected → major version bump');
+            m[0] += 1;
+            m[1] = 0;
+            m[2] = 0;
+            bump = 'major';
+            console.log('🚨 Breaking changes detected → major version bump');
             }
           } else if (hasFeat) {
             // Features → minor bump
@@ -361,9 +361,15 @@ jobs:
         if: steps.version_changed.outputs.changed == 'true'
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
+          echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
           npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
           echo "Expo prebuild completed"
         env:
+          # Production build configuration (GitHub Actions only builds release)
+          EAS_BUILD_PROFILE: 'release'
+          APP_NAME: 'سفرناک'
+          APP_SCHEME: 'safarnak'
+          BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           # Mapbox tokens from GitHub Secrets (do not hardcode)
           EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN: ${{ secrets.EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN }}
@@ -412,8 +418,11 @@ jobs:
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          # Production build configuration (GitHub Actions only builds release)
+          EAS_BUILD_PROFILE: 'release'
           APP_NAME: 'سفرناک'
           APP_SCHEME: 'safarnak'
+          BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
           EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
           GRAPHQL_URL: 'https://safarnak.app/graphql'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
