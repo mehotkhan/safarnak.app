@@ -398,27 +398,41 @@ jobs:
           add-job-summary: never
         continue-on-error: true
 
-      - name: Prepare release keystore (optional)
-        id: prepare_keystore
-        shell: bash
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
-            echo "🔐 Preparing release keystore from secrets..."
-            # Robust decode: avoid echo pitfalls and strip accidental newlines
-            printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r' | base64 --decode > "$RUNNER_TEMP/release-keystore.jks"
-            echo "GRADLE_SIGNING_ARGS=-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release-keystore.jks -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD" >> $GITHUB_ENV
-            echo "keystore_ready=true" >> $GITHUB_OUTPUT
-            ls -lh $RUNNER_TEMP/release-keystore.jks || true
-          else
-            echo "ℹ️  No keystore secrets found; build will use debug signing for release artifact."
-            echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
-            echo "keystore_ready=false" >> $GITHUB_OUTPUT
+    - name: Prepare release keystore (optional)
+      id: prepare_keystore
+      shell: bash
+      env:
+        ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      run: |
+        if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
+          echo "🔐 Preparing release keystore from secrets..."
+          # Write to temp file first, then decode (handles multiline and special chars)
+          echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r\t ' | base64 -d > "$RUNNER_TEMP/release-keystore.jks" 2>&1 || {
+            echo "❌ Failed to decode keystore. Checking secret format..."
+            echo "Secret length: ${#ANDROID_KEYSTORE_BASE64}"
+            echo "First 50 chars: ${ANDROID_KEYSTORE_BASE64:0:50}"
+            exit 1
+          }
+          
+          # Verify keystore file was created and has content
+          if [ ! -s "$RUNNER_TEMP/release-keystore.jks" ]; then
+            echo "❌ Keystore file is empty or not created"
+            exit 1
           fi
+          
+          echo "✅ Keystore decoded successfully"
+          ls -lh "$RUNNER_TEMP/release-keystore.jks"
+          
+          echo "GRADLE_SIGNING_ARGS=-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release-keystore.jks -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD" >> $GITHUB_ENV
+          echo "keystore_ready=true" >> $GITHUB_OUTPUT
+        else
+          echo "ℹ️  No keystore secrets found; build will use debug signing for release artifact."
+          echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
+          echo "keystore_ready=false" >> $GITHUB_OUTPUT
+        fi
 
       - name: Make Gradle wrapper executable
         if: hashFiles('android/gradlew') != ''
