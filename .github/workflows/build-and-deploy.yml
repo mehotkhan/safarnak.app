@@ -31,8 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     concurrency:
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false  # Don't cancel running builds, let them complete
+      group: "${{ github.workflow }}-${{ github.ref }}"
+      cancel-in-progress: false
     permissions:
       contents: write
       packages: write
