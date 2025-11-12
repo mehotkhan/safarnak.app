@@ -143,6 +143,8 @@ const getAppConfig = () => {
                 'reactNativeArchitectures': 'arm64-v8a',
                 // Smaller JS asset inside APK
                 'android.enableBundleCompression': 'true',
+                // Disable New Architecture for release (saves APK size)
+                'newArchEnabled': 'false',
                 // Drop heavy Fresco extras if not required (saves several MB)
                 'expo.gif.enabled': 'false',
                 'expo.webp.enabled': 'false',
