@@ -141,6 +141,12 @@ const getAppConfig = () => {
               gradleProperties: {
                 'android.enableMinifyInReleaseBuilds': 'true',
                 'reactNativeArchitectures': 'arm64-v8a',
+                // Smaller JS asset inside APK
+                'android.enableBundleCompression': 'true',
+                // Drop heavy Fresco extras if not required (saves several MB)
+                'expo.gif.enabled': 'false',
+                'expo.webp.enabled': 'false',
+                'expo.webp.animated': 'false',
               },
             },
           },

@@ -17,7 +17,8 @@ SRC_LOGO="${ROOT_DIR}/design/logo-beta.png"
 OUT_DIR="${ROOT_DIR}/assets/images"
 ICON_PX=1024
 ADAPTIVE_PX=1024
-SPLASH_PX=3000
+# Reduce splash canvas to lower APK size; still high-quality and best fit
+SPLASH_PX=1600
 PADDING_PERCENT=15
 
 if ! command -v convert >/dev/null 2>&1; then
@@ -49,6 +50,10 @@ pad() {
     -gravity center \
     -background "${bg}" \
     -extent "${size_px}x${size_px}" \
+    -strip \
+    -define png:compression-level=9 \
+    -define png:compression-strategy=1 \
+    -define png:compression-filter=5 \
     "${output}"
 }
 
@@ -58,8 +63,8 @@ pad "${SRC_LOGO}" "${OUT_DIR}/icon.png" "${ICON_PX}" "none"
 echo "Generating adaptive icon foreground (${ADAPTIVE_PX}x${ADAPTIVE_PX}) with transparent background..."
 pad "${SRC_LOGO}" "${OUT_DIR}/adaptive-icon.png" "${ADAPTIVE_PX}" "none"
 
-echo "Generating splash (${SPLASH_PX}x${SPLASH_PX}) with white background..."
-pad "${SRC_LOGO}" "${OUT_DIR}/splash-icon.png" "${SPLASH_PX}" "white"
+echo "Generating splash (${SPLASH_PX}x${SPLASH_PX}) with transparent background..."
+pad "${SRC_LOGO}" "${OUT_DIR}/splash-icon.png" "${SPLASH_PX}" "none"
 
 echo "Done. Outputs:"
 ls -lh "${OUT_DIR}/icon.png" "${OUT_DIR}/adaptive-icon.png" "${OUT_DIR}/splash-icon.png"
