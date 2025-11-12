@@ -399,106 +399,106 @@ jobs:
         continue-on-error: true
 
       - name: Prepare release keystore (optional)
-      id: prepare_keystore
-      shell: bash
-      env:
-        ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-        ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-        ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-        ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-      run: |
-        if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
-          echo "🔐 Preparing release keystore from secrets..."
-          # Write to temp file first, then decode (handles multiline and special chars)
-          echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r\t ' | base64 -d > "$RUNNER_TEMP/release-keystore.jks" || {
-            echo "❌ Failed to decode keystore. Checking secret format..."
-            echo "Secret length: ${#ANDROID_KEYSTORE_BASE64}"
-            echo "First 50 chars: ${ANDROID_KEYSTORE_BASE64:0:50}"
-            exit 1
-          }
-          
-          # Verify keystore file was created and has content
-          if [ ! -s "$RUNNER_TEMP/release-keystore.jks" ]; then
-            echo "❌ Keystore file is empty or not created"
-            exit 1
+        id: prepare_keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
+            echo "🔐 Preparing release keystore from secrets..."
+            # Write to temp file first, then decode (handles multiline and special chars)
+            echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r\t ' | base64 -d > "$RUNNER_TEMP/release-keystore.jks" || {
+              echo "❌ Failed to decode keystore. Checking secret format..."
+              echo "Secret length: ${#ANDROID_KEYSTORE_BASE64}"
+              echo "First 50 chars: ${ANDROID_KEYSTORE_BASE64:0:50}"
+              exit 1
+            }
+            
+            # Verify keystore file was created and has content
+            if [ ! -s "$RUNNER_TEMP/release-keystore.jks" ]; then
+              echo "❌ Keystore file is empty or not created"
+              exit 1
+            fi
+            
+            echo "✅ Keystore decoded successfully"
+            ls -lh "$RUNNER_TEMP/release-keystore.jks"
+            # Validate keystore integrity and alias
+            if ! keytool -list -keystore "$RUNNER_TEMP/release-keystore.jks" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
+              echo "❌ Keystore validation failed (bad password or alias)"
+              exit 1
+            fi
+            
+            echo "GRADLE_SIGNING_ARGS=-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release-keystore.jks -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD" >> $GITHUB_ENV
+            echo "keystore_ready=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️  No keystore secrets found; build will use debug signing for release artifact."
+            echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
+            echo "keystore_ready=false" >> $GITHUB_OUTPUT
           fi
-          
-          echo "✅ Keystore decoded successfully"
-          ls -lh "$RUNNER_TEMP/release-keystore.jks"
-          # Validate keystore integrity and alias
-          if ! keytool -list -keystore "$RUNNER_TEMP/release-keystore.jks" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
-            echo "❌ Keystore validation failed (bad password or alias)"
-            exit 1
-          fi
-          
-          echo "GRADLE_SIGNING_ARGS=-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release-keystore.jks -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD" >> $GITHUB_ENV
-          echo "keystore_ready=true" >> $GITHUB_OUTPUT
-        else
-          echo "ℹ️  No keystore secrets found; build will use debug signing for release artifact."
-          echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
-          echo "keystore_ready=false" >> $GITHUB_OUTPUT
-        fi
 
       - name: Make Gradle wrapper executable
-      if: hashFiles('android/gradlew') != ''
-      run: chmod +x android/gradlew
+        if: hashFiles('android/gradlew') != ''
+        run: chmod +x android/gradlew
 
       - name: Build Android APK (with versioned code)
-      if: hashFiles('android/gradlew') != ''
-      run: |
-        cd android
-        ./gradlew assembleRelease \
-          --no-daemon \
-          --stacktrace \
-          -x lint \
-          -x test \
-          -PreactNativeArchitectures=arm64-v8a $GRADLE_SIGNING_ARGS
-      env:
-        ANDROID_HOME: ${{ env.ANDROID_HOME }}
-        ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-        # Production build configuration (GitHub Actions only builds release)
-        EAS_BUILD_PROFILE: 'release'
-        APP_NAME: 'سفرناک'
-        APP_SCHEME: 'safarnak'
-        BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
-        EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
-        GRAPHQL_URL: 'https://safarnak.app/graphql'
-        ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
-        REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
-        # Mapbox removed
+        if: hashFiles('android/gradlew') != ''
+        run: |
+          cd android
+          ./gradlew assembleRelease \
+            --no-daemon \
+            --stacktrace \
+            -x lint \
+            -x test \
+            -PreactNativeArchitectures=arm64-v8a $GRADLE_SIGNING_ARGS
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          # Production build configuration (GitHub Actions only builds release)
+          EAS_BUILD_PROFILE: 'release'
+          APP_NAME: 'سفرناک'
+          APP_SCHEME: 'safarnak'
+          BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
+          EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
+          GRAPHQL_URL: 'https://safarnak.app/graphql'
+          ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+          REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
+          # Mapbox removed
 
       - name: Upload R8 mapping.txt (for deobfuscation)
-      if: hashFiles('android/app/build/outputs/mapping/release/mapping.txt') != ''
-      uses: actions/upload-artifact@v4
-      with:
-        name: mapping-v${{ steps.version_code.outputs.version }}
-        path: android/app/build/outputs/mapping/release/mapping.txt
-        retention-days: 30
-        compression-level: 0
+        if: hashFiles('android/app/build/outputs/mapping/release/mapping.txt') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-v${{ steps.version_code.outputs.version }}
+          path: android/app/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+          compression-level: 0
 
       - name: List APK files
-      if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
-      working-directory: android/app/build/outputs/apk/release
-      run: |
-        echo "=== Generated APK files ==="
-        ls -lh *.apk || echo "No APK files found"
-        echo ""
-        echo "=== APK sizes ==="
-        du -h *.apk 2>/dev/null || echo "No APK files to measure"
-        echo ""
-        echo "=== Checking APK existence ==="
-        if [ ! -f *.apk ]; then
-          echo "❌ No APK files found in release directory!"
-          echo "Contents of release directory:"
-          ls -la
-          exit 1
-        else
-          echo "✅ APK files found successfully"
-        fi
+        if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
+        working-directory: android/app/build/outputs/apk/release
+        run: |
+          echo "=== Generated APK files ==="
+          ls -lh *.apk || echo "No APK files found"
+          echo ""
+          echo "=== APK sizes ==="
+          du -h *.apk 2>/dev/null || echo "No APK files to measure"
+          echo ""
+          echo "=== Checking APK existence ==="
+          if [ ! -f *.apk ]; then
+            echo "❌ No APK files found in release directory!"
+            echo "Contents of release directory:"
+            ls -la
+            exit 1
+          else
+            echo "✅ APK files found successfully"
+          fi
 
       - name: Rename APK with descriptive name
-      if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
-      run: |
+        if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
+        run: |
           cd android/app/build/outputs/apk/release
           echo "=== Renaming APK file ==="
           echo "Current directory contents:"
@@ -532,8 +532,8 @@ jobs:
           fi
 
       - name: Verify APK file before upload
-      if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
-      run: |
+        if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
+        run: |
           APK_PATH="android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk"
           echo "Checking APK file: $APK_PATH"
           
@@ -549,18 +549,18 @@ jobs:
           fi
 
       - name: Upload APK artifact
-      if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
-      uses: actions/upload-artifact@v4
-      with:
-        name: safarnak-android-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
-        path: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
-        retention-days: 30
-        compression-level: 0
+        if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: safarnak-android-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
+          path: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
+          retention-days: 30
+          compression-level: 0
         
       - name: Generate commit list for release notes
-      if: steps.version_changed.outputs.changed == 'true'
-      id: commits
-      run: |
+        if: steps.version_changed.outputs.changed == 'true'
+        id: commits
+        run: |
           # Fetch all tags to ensure we have the latest releases
           git fetch --tags --force 2>/dev/null || true
           
@@ -592,8 +592,8 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Commit version bump if changed
-      if: steps.version_changed.outputs.changed == 'true'
-      run: |
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add package.json
@@ -601,12 +601,12 @@ jobs:
           git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
-      if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: v${{ steps.version_code.outputs.version }}
-        name: Safarnak v${{ steps.version_code.outputs.version }}
-        body: |
+        if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version_code.outputs.version }}
+          name: Safarnak v${{ steps.version_code.outputs.version }}
+          body: |
             ## 🚀 Safarnak v${{ steps.version_code.outputs.version }}
 
             ### 📋 Build Info
@@ -629,17 +629,17 @@ jobs:
 
             ---
             See [README](https://github.com/mehotkhan/safarnak.app/blob/master/README.md) for full documentation.
-        files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
-        draft: false
-        prerelease: false
-        fail_on_unmatched_files: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup Gradle cache
-      if: always() && hashFiles('android/gradlew') != ''
-      working-directory: android
-      run: |
+        if: always() && hashFiles('android/gradlew') != ''
+        working-directory: android
+        run: |
           ./gradlew --stop || true
           rm -rf ~/.gradle/caches/transforms-* || true
           rm -rf ~/.gradle/caches/*/generated-gradle-jars || true
