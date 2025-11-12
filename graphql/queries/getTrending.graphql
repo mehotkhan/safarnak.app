@@ -1,0 +1,13 @@
+query GetTrending($type: TrendingType!, $window: TimeWindow!, $entityTypes: [EntityType!], $limit: Int = 10) {
+  getTrending(type: $type, window: $window, entityTypes: $entityTypes, limit: $limit) {
+    window
+    items {
+      key
+      label
+      score
+      delta
+    }
+  }
+}
+
+

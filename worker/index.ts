@@ -59,8 +59,67 @@ export const resolvers = {
       return obj.__typename || 'Trip';
     },
   },
+  FeedEntity: {
+    __resolveType(obj: any) {
+      if (obj.__typename) return obj.__typename;
+      if (obj.content !== undefined && obj.userId !== undefined) return 'Post';
+      if (obj.destination !== undefined || obj.status !== undefined) return 'Trip';
+      if (obj.title !== undefined && obj.category !== undefined) return 'Tour';
+      if (obj.name !== undefined && obj.type !== undefined) return 'Place';
+      if (obj.country !== undefined && obj.coordinates !== undefined) return 'Location';
+      return null;
+    },
+  },
 };
 
+// Durable Objects exports (must be exported from entry)
+export { TrendingRollup } from './durable/TrendingRollup';
+
+// Queue consumer: EMBED_QUEUE -> generate embeddings and upsert to Vectorize
+async function workerQueue(batch: MessageBatch<any>, env: Env): Promise<void> {
+    for (const msg of batch.messages) {
+      try {
+        const payload: any = msg.body;
+        const { id, entityType, entityId, text, lang, model = '@cf/baai/bge-m3' } = payload;
+        if (!text || !entityType || !entityId) {
+          msg.ack();
+          continue;
+        }
+        const res: any = await env.AI.run(model, { text });
+        const embedding: number[] = res?.data?.[0]?.embedding || res?.embedding || [];
+        if (!embedding || embedding.length === 0) {
+          msg.ack();
+          continue;
+        }
+        const vectorId = id || `${entityType}:${entityId}`;
+        // Upsert to Vectorize with metadata
+        await (env.VECTORIZE as any).upsert([
+          {
+            id: vectorId,
+            values: embedding,
+            metadata: {
+              entityType,
+              entityId,
+              lang: lang || 'auto',
+            },
+          },
+        ]);
+        msg.ack();
+      } catch (e) {
+        console.error('Embedding job failed', e);
+        // do not ack to retry
+      }
+    }
+}
+async function workerScheduled(event: ScheduledEvent, env: Env): Promise<void> {
+  try {
+    const id = env.TRENDING_ROLLUP.idFromName('global');
+    const stub = env.TRENDING_ROLLUP.get(id);
+    await stub.fetch('https://rollup/compact', { method: 'POST' });
+  } catch (e) {
+    console.error('TrendingRollup scheduled compact failed', e);
+  }
+}
 // Re-export types for external use (if needed)
 export type { Env, ResolverContext } from './types';
 
@@ -373,7 +432,7 @@ const fetch = async (
 // Cloudflare Worker Exports
 // ============================================================================
 
-export default { fetch };
+export default { fetch, queue: workerQueue, scheduled: workerScheduled };
 
 export const SubscriptionPool = createWsConnectionPoolClass(settings);
 

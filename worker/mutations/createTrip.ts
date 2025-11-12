@@ -1,7 +1,11 @@
 import { getServerDB } from '@database/server';
-import { trips } from '@database/server';
+import { trips, feedEvents, users, searchIndex } from '@database/server';
 import type { GraphQLContext } from '../types';
 import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
+import { eq } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
+import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
+import { enqueueEmbeddingJob } from '../utilities/embeddings';
 
 interface CreateTripInput {
   destination?: string;
@@ -104,6 +108,144 @@ export const createTrip = async (
     } catch (workflowError: any) {
       // Log workflow error but don't fail the mutation
       console.error('Failed to start trip creation workflow:', workflowError);
+    }
+
+    // Publish feed event for trip creation (PUBLIC in Phase 1)
+    try {
+      // Ensure we can resolve actor
+      const actor = await db.select().from(users).where(eq(users.id, userId)).get();
+      await db
+        .insert(feedEvents)
+        .values({
+          entityType: 'TRIP',
+          entityId: result.id,
+          actorId: userId,
+          verb: 'CREATED',
+          topics: JSON.stringify([]),
+          visibility: 'PUBLIC',
+        })
+        .run();
+      // Upsert search index (lexical MVP) and trending increments
+      try {
+        const title = result.destination || 'Trip';
+        const tokens = [result.destination || '', result.preferences || ''].join(' ').toLowerCase();
+        const existing = await db
+          .select()
+          .from(searchIndex)
+          .where(sql`${searchIndex.entityType} = 'TRIP' AND ${searchIndex.entityId} = ${result.id}`)
+          .get();
+        if (existing) {
+          await db
+            .update(searchIndex)
+            .set({
+              title,
+              text: result.preferences || null,
+              tags: JSON.stringify([]),
+              tokens,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(sql`${searchIndex.id} = ${existing.id}`)
+            .run();
+        } else {
+          await db
+            .insert(searchIndex)
+            .values({
+              entityType: 'TRIP',
+              entityId: result.id,
+              title,
+              text: result.preferences || null,
+              tags: JSON.stringify([]),
+              tokens,
+            })
+            .run();
+        }
+        await incrementTrendingEntity(context.env, 'TRIP');
+        if (result.destination) {
+          await incrementTrendingTopic(context.env, result.destination.toLowerCase());
+        }
+      } catch (_) {
+        // ignore errors
+      }
+      // Upsert search index (lexical MVP)
+      try {
+        const title = result.destination || 'Trip';
+        const tokens = [result.destination || '', result.preferences || ''].join(' ').toLowerCase();
+        const existing = await db
+          .select()
+          .from(searchIndex)
+          .where(sql`${searchIndex.entityType} = 'TRIP' AND ${searchIndex.entityId} = ${result.id}`)
+          .get();
+        if (existing) {
+          await db
+            .update(searchIndex)
+            .set({
+              title,
+              text: result.preferences || null,
+              tags: JSON.stringify([]),
+              tokens,
+              updatedAt: new Date().toISOString(),
+            })
+            .where(sql`${searchIndex.id} = ${existing.id}`)
+            .run();
+        } else {
+          await db
+            .insert(searchIndex)
+            .values({
+              entityType: 'TRIP',
+              entityId: result.id,
+              title,
+              text: result.preferences || null,
+              tags: JSON.stringify([]),
+              tokens,
+            })
+            .run();
+        }
+      } catch (e) {
+        console.error('searchIndex upsert failed for TRIP', e);
+      }
+      context.publish('FEED_NEW_EVENTS', {
+        feedNewEvents: [
+          {
+            id: result.id,
+            entityType: 'TRIP',
+            entityId: result.id,
+            verb: 'CREATED',
+            actor: actor
+              ? {
+                  id: actor.id,
+                  name: actor.name,
+                  username: actor.username,
+                  email: actor.email,
+                  phone: actor.phone,
+                  avatar: actor.avatar,
+                  createdAt: actor.createdAt,
+                }
+              : { id: userId, name: '', username: '', createdAt: new Date().toISOString() },
+            entity: { __typename: 'Trip', ...result },
+            topics: [],
+            visibility: 'PUBLIC',
+            createdAt: result.createdAt,
+          },
+        ],
+      });
+    } catch (e) {
+      console.error('Failed to publish feed event for createTrip', e);
+    }
+
+    // Enqueue embedding job
+    try {
+      const text = [result.destination || '', result.preferences || ''].join(' ').trim();
+      if (text) {
+        await enqueueEmbeddingJob(context.env, {
+          entityType: 'TRIP',
+          entityId: result.id,
+          text,
+          lang: 'auto',
+          model: '@cf/baai/bge-m3',
+        });
+      }
+    } catch (e) {
+      console.warn('enqueueEmbeddingJob failed for TRIP', e);
     }
 
     return {

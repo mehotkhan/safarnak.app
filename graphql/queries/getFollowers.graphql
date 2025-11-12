@@ -1,0 +1,10 @@
+query GetFollowers($userId: ID!) {
+  getFollowers(userId: $userId) {
+    id
+    name
+    username
+    avatar
+  }
+}
+
+

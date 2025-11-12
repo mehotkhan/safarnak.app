@@ -23,6 +23,11 @@ import { createReaction } from './createReaction';
 import { deleteReaction } from './deleteReaction';
 import { bookmarkPost } from './bookmarkPost';
 import { revokeDevice } from './revokeDevice';
+import { updateFeedPreferences } from './updateFeedPreferences';
+import { followUser } from './followUser';
+import { unfollowUser } from './unfollowUser';
+import { addToCloseFriends } from './addToCloseFriends';
+import { removeFromCloseFriends } from './removeFromCloseFriends';
 
 // Placeholder resolvers for bookmarks
 const bookmarkTour = async () => true;
@@ -55,7 +60,12 @@ export const Mutation = {
   bookmarkTour,
   bookmarkPlace,
   revokeDevice,
+  updateFeedPreferences,
+  followUser,
+  unfollowUser,
+  addToCloseFriends,
+  removeFromCloseFriends,
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, updateUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, deleteTour, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, bookTour, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice };
+export { addMessage, requestChallenge, registerUser, loginUser, updateUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, deleteTour, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, bookTour, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice, updateFeedPreferences, followUser, unfollowUser, addToCloseFriends, removeFromCloseFriends };

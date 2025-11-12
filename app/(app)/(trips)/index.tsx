@@ -13,11 +13,11 @@ import { CustomText } from '@ui/display';
 import { useTheme } from '@ui/context';
 import { TripCard, TourCard, PlaceCard, LocationCard } from '@ui/cards';
 import { TabBar } from '@ui/layout';
-import { useGetTripsQuery, useGetToursQuery, useGetPlacesQuery, useGetLocationsQuery } from '@api';
+import { useGetTripsQuery, useGetToursQuery, useGetPlacesQuery, useGetLocationsQuery, useGetPostsQuery } from '@api';
 import { useAppSelector } from '@state/hooks';
 import Colors from '@constants/Colors';
 
-type TabType = 'trips' | 'tours' | 'places' | 'locations';
+type TabType = 'trips' | 'tours' | 'places' | 'locations' | 'posts';
 
 export default function PlanScreen() {
   const { t } = useTranslation();
@@ -80,6 +80,12 @@ export default function PlanScreen() {
     errorPolicy: 'all',
   });
 
+  const { data: postsData, loading: postsLoading, error: postsError, refetch: refetchPosts } = useGetPostsQuery({
+    variables: { limit: 60, offset: 0 },
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+  });
+
   // Filter data by current user
   const trips = useMemo(() => {
     const data = tripsData?.getTrips;
@@ -110,9 +116,15 @@ export default function PlanScreen() {
     return allPlaces.filter((place: any) => place.ownerId === user.id);
   }, [allPlaces, user?.id]); 
 
+  const myPosts = useMemo(() => {
+    const posts = postsData?.getPosts?.posts || [];
+    if (!user?.id) return [];
+    return posts.filter((p: any) => p.userId === user.id);
+  }, [postsData, user?.id]);
+
   // Loading and error states
-  const currentLoading = activeTab === 'trips' ? tripsLoading : activeTab === 'tours' ? toursLoading : activeTab === 'places' ? placesLoading : activeTab === 'locations' ? locationsLoading : false;
-  const currentError = activeTab === 'trips' ? tripsError : activeTab === 'tours' ? toursError : activeTab === 'places' ? placesError : activeTab === 'locations' ? locationsError : null;
+  const currentLoading = activeTab === 'trips' ? tripsLoading : activeTab === 'tours' ? toursLoading : activeTab === 'places' ? placesLoading : activeTab === 'locations' ? locationsLoading : activeTab === 'posts' ? postsLoading : false;
+  const currentError = activeTab === 'trips' ? tripsError : activeTab === 'tours' ? toursError : activeTab === 'places' ? placesError : activeTab === 'locations' ? locationsError : activeTab === 'posts' ? postsError : null;
 
   // Refresh handler
   const onRefresh = useCallback(async () => {
@@ -126,11 +138,13 @@ export default function PlanScreen() {
         await refetchPlaces();
       } else if (activeTab === 'locations') {
         await refetchLocations();
+      } else if (activeTab === 'posts') {
+        await refetchPosts();
       }
     } finally {
       setRefreshing(false);
     }
-  }, [activeTab, refetchTrips, refetchTours, refetchPlaces, refetchLocations]);
+  }, [activeTab, refetchTrips, refetchTours, refetchPlaces, refetchLocations, refetchPosts]);
 
 
   const handleTripPress = useCallback((tripId: string) => {
@@ -160,10 +174,12 @@ export default function PlanScreen() {
         return myPlaces;
       case 'locations':
         return locations;
+      case 'posts':
+        return myPosts;
       default:
         return [];
     }
-  }, [activeTab, trips, myTours, myPlaces, locations]);
+  }, [activeTab, trips, myTours, myPlaces, locations, myPosts]);
 
   // Render content based on active tab
   const renderContent = () => {
@@ -198,18 +214,21 @@ export default function PlanScreen() {
         tours: 'map-outline',
         places: 'location-outline',
         locations: 'globe-outline',
+        posts: 'image-outline',
       };
       const emptyMessages: Record<TabType, string> = {
         trips: t('plan.emptyState') || 'No trips yet',
         tours: t('trips.tabs.toursEmpty') || 'No tours yet',
         places: t('trips.tabs.placesEmpty') || 'No places yet',
         locations: t('trips.tabs.locationsEmpty') || 'No locations yet',
+        posts: t('feed.emptyState') || 'No posts yet',
       };
       const emptyDescriptions: Record<TabType, string> = {
         trips: t('plan.description') || 'Create your first trip',
         tours: t('trips.tabs.toursEmptyDescription') || 'Create your first tour',
         places: t('trips.tabs.placesEmptyDescription') || 'Create your first place',
         locations: t('trips.tabs.locationsEmptyDescription') || 'Create your first location',
+        posts: t('feed.emptyDescription') || 'Share your first post',
   };
 
   return (
@@ -265,6 +284,21 @@ export default function PlanScreen() {
                 onPress={() => handleLocationPress(item.id)}
               />
             );
+          } else if (activeTab === 'posts') {
+            // Simple grid-like tile; open post detail
+            return (
+              <TouchableOpacity
+                onPress={() => router.push(`/(app)/(feed)/${item.id}` as any)}
+                className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
+              >
+                <CustomText weight="bold" className="text-base text-black dark:text-white mb-1">
+                  {item.content?.slice(0, 80) || t('feed.noImage')}
+                </CustomText>
+                <CustomText className="text-xs text-gray-500 dark:text-gray-400">
+                  {item.createdAt}
+                </CustomText>
+              </TouchableOpacity>
+            );
           }
           return null;
         }}
@@ -290,10 +324,15 @@ export default function PlanScreen() {
 
         {/* Tabs */}
         <TabBar
-          tabs={(['trips', 'tours', 'places', 'locations'] as TabType[]).map(tab => ({
-            id: tab,
-            label: tab,
-          }))}
+          tabs={(['trips', 'tours', 'places', 'locations', 'posts'] as TabType[]).map(tab => {
+            let label = tab as string;
+            if (tab === 'trips') label = t('trips.title') || t('plan.title') || 'Trips';
+            else if (tab === 'tours') label = t('trips.tabs.tours') || 'Tours';
+            else if (tab === 'places') label = t('trips.tabs.places') || 'Places';
+            else if (tab === 'locations') label = t('trips.tabs.locations') || 'Locations';
+            else if (tab === 'posts') label = t('trips.tabs.posts') || t('feed.nav.archive') || 'Posts';
+            return { id: tab, label };
+          })}
           activeTab={activeTab}
           onTabChange={(tabId) => setActiveTab(tabId as TabType)}
           variant="segmented"
@@ -413,6 +452,32 @@ export default function PlanScreen() {
                 <CustomText weight="medium" className="text-base text-black dark:text-white">
                   {t('plan.createPlan') || 'Trip'}
               </CustomText>
+              </TouchableOpacity>
+            </Animated.View>
+
+            {/* Create Post Option */}
+            <Animated.View
+              style={{
+                transform: [{ scale: fabScale }],
+                opacity: fabScale,
+              }}
+              className="mt-2"
+            >
+              <TouchableOpacity
+                onPress={() => {
+                  setFabExpanded(false);
+                  // Ensure feed tab is active before opening composer
+                  router.push('/(app)/(feed)/new' as any);
+                }}
+                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
+                activeOpacity={0.8}
+              >
+                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
+                  <Ionicons name="create-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
+                </View>
+                <CustomText weight="medium" className="text-base text-black dark:text-white">
+                  {t('feed.newPost.title') || 'Create Post'}
+                </CustomText>
               </TouchableOpacity>
             </Animated.View>
             </View>

@@ -21,6 +21,11 @@
     "host": "0.0.0.0",
   },
 
+  // Cron Triggers (run DO trending compaction periodically)
+  "triggers": {
+    "crons": ["*/10 * * * *"]
+  },
+
   // D1 Database
   "d1_databases": [
     {
@@ -38,6 +43,10 @@
         "name": "SUBSCRIPTION_POOL",
         "class_name": "SubscriptionPool",
       },
+      {
+        "name": "TRENDING_ROLLUP",
+        "class_name": "TrendingRollup",
+      },
     ],
   },
 
@@ -45,6 +54,10 @@
     {
       "tag": "v1",
       "new_sqlite_classes": ["SubscriptionPool"],
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["TrendingRollup"],
     },
   ],
 
@@ -80,13 +93,34 @@
   ],
 
   // Vectorize Index (commented out)
-  // "vectorize": [
-  //   {
-  //     "binding": "VECTORIZE",
-  //     "index_name": "safarnak-embeddings",
-  //     "remote": true,
-  //   },
-  // ],
+  "vectorize": [
+    {
+      "binding": "VECTORIZE",
+      "index_name": "safarnak-embeddings",
+      "remote": true,
+    },
+  ],
+
+  // Workers AI
+  "ai": {
+    "binding": "AI",
+  },
+
+  // Queues
+  "queues": {
+    "producers": [
+      {
+        "binding": "EMBED_QUEUE",
+        "queue": "embed-queue",
+      },
+    ],
+    "consumers": [
+      {
+        "queue": "embed-queue",
+        "max_batch_size": 32,
+      },
+    ],
+  },
 
   // Build Rules
   "rules": [

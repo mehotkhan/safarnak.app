@@ -115,6 +115,26 @@ export type DeleteTourMutationVariables = Exact<{
 
 export type DeleteTourMutation = { __typename?: 'Mutation', deleteTour: boolean };
 
+export type FeedNewEventsSubscriptionVariables = Exact<{
+  filter?: InputMaybe<FeedFilter>;
+}>;
+
+
+export type FeedNewEventsSubscription = { __typename?: 'Subscription', feedNewEvents: Array<{ __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, visibility: Visibility, topics: Array<string>, createdAt: string, actor: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string }, entity:
+      | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
+      | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
+      | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ __typename?: 'Comment', id: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, userId: string, createdAt: string, user: { __typename?: 'User', id: string, name: string } }> }
+      | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
+      | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+     }> };
+
+export type FollowUserMutationVariables = Exact<{
+  followeeId: Scalars['ID']['input'];
+}>;
+
+
+export type FollowUserMutation = { __typename?: 'Mutation', followUser: boolean };
+
 export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -130,6 +150,40 @@ export type GetBookmarksQuery = { __typename?: 'Query', getBookmarks: Array<{ __
         | { __typename?: 'Tour', id: string, title: string, location: string, imageUrl?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
         | { __typename?: 'Trip', id: string, destination?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
        | null } | null, tour?: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, category: string, createdAt: string } | null, place?: { __typename?: 'Place', id: string, name: string, location: string, rating: number, type: string, imageUrl?: string | null, createdAt: string } | null }> };
+
+export type GetFeedQueryVariables = Exact<{
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<FeedFilter>;
+}>;
+
+
+export type GetFeedQuery = { __typename?: 'Query', getFeed: { __typename?: 'FeedConnection', edges: Array<{ __typename?: 'FeedEdge', cursor: string, node: { __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, visibility: Visibility, topics: Array<string>, createdAt: string, actor: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string }, entity:
+          | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
+          | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
+          | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ __typename?: 'Comment', id: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, userId: string, createdAt: string, user: { __typename?: 'User', id: string, name: string } }> }
+          | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
+          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+         } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type GetFeedPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type GetFeedPreferencesQuery = { __typename?: 'Query', getFeedPreferences: { __typename?: 'FeedPreferences', entityTypes: Array<EntityType>, topics: Array<string>, followingOnly: boolean, circleOnly: boolean, mutedUserIds: Array<string> } };
+
+export type GetFollowersQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type GetFollowersQuery = { __typename?: 'Query', getFollowers: Array<{ __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }> };
+
+export type GetFollowingQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type GetFollowingQuery = { __typename?: 'Query', getFollowing: Array<{ __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }> };
 
 export type GetLocationQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -211,6 +265,16 @@ export type GetToursQueryVariables = Exact<{
 
 export type GetToursQuery = { __typename?: 'Query', getTours: Array<{ __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }> };
 
+export type GetTrendingQueryVariables = Exact<{
+  type: TrendingType;
+  window: TimeWindow;
+  entityTypes?: InputMaybe<Array<EntityType> | EntityType>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type GetTrendingQuery = { __typename?: 'Query', getTrending: { __typename?: 'TrendingList', window: TimeWindow, items: Array<{ __typename?: 'TrendingItem', key: string, label: string, score: number, delta?: number | null }> } };
+
 export type GetTripQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
@@ -231,6 +295,13 @@ export type GetUserQueryVariables = Exact<{
 
 
 export type GetUserQuery = { __typename?: 'Query', getUser?: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string } | null };
+
+export type IsFollowingQueryVariables = Exact<{
+  userId: Scalars['ID']['input'];
+}>;
+
+
+export type IsFollowingQuery = { __typename?: 'Query', isFollowing: boolean };
 
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -297,12 +368,67 @@ export type RevokeDeviceMutationVariables = Exact<{
 
 export type RevokeDeviceMutation = { __typename?: 'Mutation', revokeDevice: boolean };
 
+export type SearchQueryVariables = Exact<{
+  query: Scalars['String']['input'];
+  entityTypes?: InputMaybe<Array<EntityType> | EntityType>;
+  topics?: InputMaybe<Array<Scalars['String']['input']> | Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type SearchQuery = { __typename?: 'Query', search: { __typename?: 'FeedConnection', edges: Array<{ __typename?: 'FeedEdge', cursor: string, node: { __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, createdAt: string, visibility: Visibility, topics: Array<string>, actor: { __typename?: 'User', id: string, username: string, name: string, avatar?: string | null }, entity:
+          | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
+          | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
+          | { __typename: 'Post', id: string, userId: string, content?: string | null, createdAt: string }
+          | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
+          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+         } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type SearchSemanticQueryVariables = Exact<{
+  query: Scalars['String']['input'];
+  entityTypes?: InputMaybe<Array<EntityType> | EntityType>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type SearchSemanticQuery = { __typename?: 'Query', searchSemantic: { __typename?: 'FeedConnection', edges: Array<{ __typename?: 'FeedEdge', cursor: string, node: { __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, createdAt: string, visibility: Visibility, topics: Array<string>, actor: { __typename?: 'User', id: string, username: string, name: string, avatar?: string | null }, entity:
+          | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
+          | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
+          | { __typename: 'Post', id: string, userId: string, content?: string | null, createdAt: string }
+          | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
+          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+         } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+
+export type SearchSuggestQueryVariables = Exact<{
+  prefix: Scalars['String']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type SearchSuggestQuery = { __typename?: 'Query', searchSuggest: Array<string> };
+
 export type TripUpdatesSubscriptionVariables = Exact<{
   tripId: Scalars['ID']['input'];
 }>;
 
 
 export type TripUpdatesSubscription = { __typename?: 'Subscription', tripUpdates: { __typename?: 'TripUpdate', id: string, tripId: string, type: string, title: string, message: string, step: number, totalSteps: number, status: string, data?: string | null, createdAt: string } };
+
+export type UnfollowUserMutationVariables = Exact<{
+  followeeId: Scalars['ID']['input'];
+}>;
+
+
+export type UnfollowUserMutation = { __typename?: 'Mutation', unfollowUser: boolean };
+
+export type UpdateFeedPreferencesMutationVariables = Exact<{
+  input: FeedFilter;
+}>;
+
+
+export type UpdateFeedPreferencesMutation = { __typename?: 'Mutation', updateFeedPreferences: { __typename?: 'FeedPreferences', entityTypes: Array<EntityType>, topics: Array<string>, followingOnly: boolean, circleOnly: boolean, mutedUserIds: Array<string> } };
 
 export type UpdateLocationMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -999,6 +1125,138 @@ export function useDeleteTourMutation(baseOptions?: Apollo.MutationHookOptions<D
 export type DeleteTourMutationHookResult = ReturnType<typeof useDeleteTourMutation>;
 export type DeleteTourMutationResult = Apollo.MutationResult<DeleteTourMutation>;
 export type DeleteTourMutationOptions = Apollo.BaseMutationOptions<DeleteTourMutation, DeleteTourMutationVariables>;
+export const FeedNewEventsDocument = gql`
+    subscription FeedNewEvents($filter: FeedFilter) {
+  feedNewEvents(filter: $filter) {
+    id
+    entityType
+    entityId
+    verb
+    visibility
+    topics
+    createdAt
+    actor {
+      id
+      name
+      username
+      avatar
+      createdAt
+    }
+    entity {
+      __typename
+      ... on Post {
+        id
+        userId
+        content
+        comments {
+          id
+          content
+          createdAt
+          user {
+            id
+            name
+            avatar
+          }
+        }
+        commentsCount
+        reactions {
+          id
+          emoji
+          userId
+          createdAt
+          user {
+            id
+            name
+          }
+        }
+        reactionsCount
+        createdAt
+      }
+      ... on Trip {
+        id
+        userId
+        destination
+        status
+        createdAt
+      }
+      ... on Tour {
+        id
+        title
+        category
+        price
+        createdAt
+      }
+      ... on Place {
+        id
+        name
+        type
+        location
+        createdAt
+      }
+      ... on Location {
+        id
+        name
+        country
+        createdAt
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useFeedNewEventsSubscription__
+ *
+ * To run a query within a React component, call `useFeedNewEventsSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useFeedNewEventsSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useFeedNewEventsSubscription({
+ *   variables: {
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useFeedNewEventsSubscription(baseOptions?: Apollo.SubscriptionHookOptions<FeedNewEventsSubscription, FeedNewEventsSubscriptionVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<FeedNewEventsSubscription, FeedNewEventsSubscriptionVariables>(FeedNewEventsDocument, options);
+      }
+export type FeedNewEventsSubscriptionHookResult = ReturnType<typeof useFeedNewEventsSubscription>;
+export type FeedNewEventsSubscriptionResult = Apollo.SubscriptionResult<FeedNewEventsSubscription>;
+export const FollowUserDocument = gql`
+    mutation FollowUser($followeeId: ID!) {
+  followUser(followeeId: $followeeId)
+}
+    `;
+export type FollowUserMutationFn = Apollo.MutationFunction<FollowUserMutation, FollowUserMutationVariables>;
+
+/**
+ * __useFollowUserMutation__
+ *
+ * To run a mutation, you first call `useFollowUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useFollowUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [followUserMutation, { data, loading, error }] = useFollowUserMutation({
+ *   variables: {
+ *      followeeId: // value for 'followeeId'
+ *   },
+ * });
+ */
+export function useFollowUserMutation(baseOptions?: Apollo.MutationHookOptions<FollowUserMutation, FollowUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<FollowUserMutation, FollowUserMutationVariables>(FollowUserDocument, options);
+      }
+export type FollowUserMutationHookResult = ReturnType<typeof useFollowUserMutation>;
+export type FollowUserMutationResult = Apollo.MutationResult<FollowUserMutation>;
+export type FollowUserMutationOptions = Apollo.BaseMutationOptions<FollowUserMutation, FollowUserMutationVariables>;
 export const GetAlertsDocument = gql`
     query GetAlerts {
   getAlerts {
@@ -1158,6 +1416,257 @@ export type GetBookmarksQueryHookResult = ReturnType<typeof useGetBookmarksQuery
 export type GetBookmarksLazyQueryHookResult = ReturnType<typeof useGetBookmarksLazyQuery>;
 export type GetBookmarksSuspenseQueryHookResult = ReturnType<typeof useGetBookmarksSuspenseQuery>;
 export type GetBookmarksQueryResult = Apollo.QueryResult<GetBookmarksQuery, GetBookmarksQueryVariables>;
+export const GetFeedDocument = gql`
+    query GetFeed($first: Int = 20, $after: String, $filter: FeedFilter) {
+  getFeed(first: $first, after: $after, filter: $filter) {
+    edges {
+      cursor
+      node {
+        id
+        entityType
+        entityId
+        verb
+        visibility
+        topics
+        createdAt
+        actor {
+          id
+          name
+          username
+          avatar
+          createdAt
+        }
+        entity {
+          __typename
+          ... on Post {
+            id
+            userId
+            content
+            comments {
+              id
+              content
+              createdAt
+              user {
+                id
+                name
+                avatar
+              }
+            }
+            commentsCount
+            reactions {
+              id
+              emoji
+              userId
+              createdAt
+              user {
+                id
+                name
+              }
+            }
+            reactionsCount
+            createdAt
+          }
+          ... on Trip {
+            id
+            userId
+            destination
+            status
+            createdAt
+          }
+          ... on Tour {
+            id
+            title
+            category
+            price
+            createdAt
+          }
+          ... on Place {
+            id
+            name
+            type
+            location
+            createdAt
+          }
+          ... on Location {
+            id
+            name
+            country
+            createdAt
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetFeedQuery__
+ *
+ * To run a query within a React component, call `useGetFeedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFeedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFeedQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *      filter: // value for 'filter'
+ *   },
+ * });
+ */
+export function useGetFeedQuery(baseOptions?: Apollo.QueryHookOptions<GetFeedQuery, GetFeedQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFeedQuery, GetFeedQueryVariables>(GetFeedDocument, options);
+      }
+export function useGetFeedLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFeedQuery, GetFeedQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFeedQuery, GetFeedQueryVariables>(GetFeedDocument, options);
+        }
+export function useGetFeedSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFeedQuery, GetFeedQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFeedQuery, GetFeedQueryVariables>(GetFeedDocument, options);
+        }
+export type GetFeedQueryHookResult = ReturnType<typeof useGetFeedQuery>;
+export type GetFeedLazyQueryHookResult = ReturnType<typeof useGetFeedLazyQuery>;
+export type GetFeedSuspenseQueryHookResult = ReturnType<typeof useGetFeedSuspenseQuery>;
+export type GetFeedQueryResult = Apollo.QueryResult<GetFeedQuery, GetFeedQueryVariables>;
+export const GetFeedPreferencesDocument = gql`
+    query GetFeedPreferences {
+  getFeedPreferences {
+    entityTypes
+    topics
+    followingOnly
+    circleOnly
+    mutedUserIds
+  }
+}
+    `;
+
+/**
+ * __useGetFeedPreferencesQuery__
+ *
+ * To run a query within a React component, call `useGetFeedPreferencesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFeedPreferencesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFeedPreferencesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetFeedPreferencesQuery(baseOptions?: Apollo.QueryHookOptions<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>(GetFeedPreferencesDocument, options);
+      }
+export function useGetFeedPreferencesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>(GetFeedPreferencesDocument, options);
+        }
+export function useGetFeedPreferencesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>(GetFeedPreferencesDocument, options);
+        }
+export type GetFeedPreferencesQueryHookResult = ReturnType<typeof useGetFeedPreferencesQuery>;
+export type GetFeedPreferencesLazyQueryHookResult = ReturnType<typeof useGetFeedPreferencesLazyQuery>;
+export type GetFeedPreferencesSuspenseQueryHookResult = ReturnType<typeof useGetFeedPreferencesSuspenseQuery>;
+export type GetFeedPreferencesQueryResult = Apollo.QueryResult<GetFeedPreferencesQuery, GetFeedPreferencesQueryVariables>;
+export const GetFollowersDocument = gql`
+    query GetFollowers($userId: ID!) {
+  getFollowers(userId: $userId) {
+    id
+    name
+    username
+    avatar
+  }
+}
+    `;
+
+/**
+ * __useGetFollowersQuery__
+ *
+ * To run a query within a React component, call `useGetFollowersQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFollowersQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFollowersQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetFollowersQuery(baseOptions: Apollo.QueryHookOptions<GetFollowersQuery, GetFollowersQueryVariables> & ({ variables: GetFollowersQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFollowersQuery, GetFollowersQueryVariables>(GetFollowersDocument, options);
+      }
+export function useGetFollowersLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFollowersQuery, GetFollowersQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFollowersQuery, GetFollowersQueryVariables>(GetFollowersDocument, options);
+        }
+export function useGetFollowersSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFollowersQuery, GetFollowersQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFollowersQuery, GetFollowersQueryVariables>(GetFollowersDocument, options);
+        }
+export type GetFollowersQueryHookResult = ReturnType<typeof useGetFollowersQuery>;
+export type GetFollowersLazyQueryHookResult = ReturnType<typeof useGetFollowersLazyQuery>;
+export type GetFollowersSuspenseQueryHookResult = ReturnType<typeof useGetFollowersSuspenseQuery>;
+export type GetFollowersQueryResult = Apollo.QueryResult<GetFollowersQuery, GetFollowersQueryVariables>;
+export const GetFollowingDocument = gql`
+    query GetFollowing($userId: ID!) {
+  getFollowing(userId: $userId) {
+    id
+    name
+    username
+    avatar
+  }
+}
+    `;
+
+/**
+ * __useGetFollowingQuery__
+ *
+ * To run a query within a React component, call `useGetFollowingQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFollowingQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFollowingQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useGetFollowingQuery(baseOptions: Apollo.QueryHookOptions<GetFollowingQuery, GetFollowingQueryVariables> & ({ variables: GetFollowingQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetFollowingQuery, GetFollowingQueryVariables>(GetFollowingDocument, options);
+      }
+export function useGetFollowingLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetFollowingQuery, GetFollowingQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetFollowingQuery, GetFollowingQueryVariables>(GetFollowingDocument, options);
+        }
+export function useGetFollowingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetFollowingQuery, GetFollowingQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetFollowingQuery, GetFollowingQueryVariables>(GetFollowingDocument, options);
+        }
+export type GetFollowingQueryHookResult = ReturnType<typeof useGetFollowingQuery>;
+export type GetFollowingLazyQueryHookResult = ReturnType<typeof useGetFollowingLazyQuery>;
+export type GetFollowingSuspenseQueryHookResult = ReturnType<typeof useGetFollowingSuspenseQuery>;
+export type GetFollowingQueryResult = Apollo.QueryResult<GetFollowingQuery, GetFollowingQueryVariables>;
 export const GetLocationDocument = gql`
     query GetLocation($id: ID!) {
   getLocation(id: $id) {
@@ -1855,6 +2364,60 @@ export type GetToursQueryHookResult = ReturnType<typeof useGetToursQuery>;
 export type GetToursLazyQueryHookResult = ReturnType<typeof useGetToursLazyQuery>;
 export type GetToursSuspenseQueryHookResult = ReturnType<typeof useGetToursSuspenseQuery>;
 export type GetToursQueryResult = Apollo.QueryResult<GetToursQuery, GetToursQueryVariables>;
+export const GetTrendingDocument = gql`
+    query GetTrending($type: TrendingType!, $window: TimeWindow!, $entityTypes: [EntityType!], $limit: Int = 10) {
+  getTrending(
+    type: $type
+    window: $window
+    entityTypes: $entityTypes
+    limit: $limit
+  ) {
+    window
+    items {
+      key
+      label
+      score
+      delta
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetTrendingQuery__
+ *
+ * To run a query within a React component, call `useGetTrendingQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetTrendingQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetTrendingQuery({
+ *   variables: {
+ *      type: // value for 'type'
+ *      window: // value for 'window'
+ *      entityTypes: // value for 'entityTypes'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetTrendingQuery(baseOptions: Apollo.QueryHookOptions<GetTrendingQuery, GetTrendingQueryVariables> & ({ variables: GetTrendingQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetTrendingQuery, GetTrendingQueryVariables>(GetTrendingDocument, options);
+      }
+export function useGetTrendingLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTrendingQuery, GetTrendingQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetTrendingQuery, GetTrendingQueryVariables>(GetTrendingDocument, options);
+        }
+export function useGetTrendingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTrendingQuery, GetTrendingQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetTrendingQuery, GetTrendingQueryVariables>(GetTrendingDocument, options);
+        }
+export type GetTrendingQueryHookResult = ReturnType<typeof useGetTrendingQuery>;
+export type GetTrendingLazyQueryHookResult = ReturnType<typeof useGetTrendingLazyQuery>;
+export type GetTrendingSuspenseQueryHookResult = ReturnType<typeof useGetTrendingSuspenseQuery>;
+export type GetTrendingQueryResult = Apollo.QueryResult<GetTrendingQuery, GetTrendingQueryVariables>;
 export const GetTripDocument = gql`
     query GetTrip($id: ID!) {
   getTrip(id: $id) {
@@ -2013,6 +2576,44 @@ export type GetUserQueryHookResult = ReturnType<typeof useGetUserQuery>;
 export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
 export type GetUserSuspenseQueryHookResult = ReturnType<typeof useGetUserSuspenseQuery>;
 export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
+export const IsFollowingDocument = gql`
+    query IsFollowing($userId: ID!) {
+  isFollowing(userId: $userId)
+}
+    `;
+
+/**
+ * __useIsFollowingQuery__
+ *
+ * To run a query within a React component, call `useIsFollowingQuery` and pass it any options that fit your needs.
+ * When your component renders, `useIsFollowingQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useIsFollowingQuery({
+ *   variables: {
+ *      userId: // value for 'userId'
+ *   },
+ * });
+ */
+export function useIsFollowingQuery(baseOptions: Apollo.QueryHookOptions<IsFollowingQuery, IsFollowingQueryVariables> & ({ variables: IsFollowingQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<IsFollowingQuery, IsFollowingQueryVariables>(IsFollowingDocument, options);
+      }
+export function useIsFollowingLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<IsFollowingQuery, IsFollowingQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<IsFollowingQuery, IsFollowingQueryVariables>(IsFollowingDocument, options);
+        }
+export function useIsFollowingSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<IsFollowingQuery, IsFollowingQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<IsFollowingQuery, IsFollowingQueryVariables>(IsFollowingDocument, options);
+        }
+export type IsFollowingQueryHookResult = ReturnType<typeof useIsFollowingQuery>;
+export type IsFollowingLazyQueryHookResult = ReturnType<typeof useIsFollowingLazyQuery>;
+export type IsFollowingSuspenseQueryHookResult = ReturnType<typeof useIsFollowingSuspenseQuery>;
+export type IsFollowingQueryResult = Apollo.QueryResult<IsFollowingQuery, IsFollowingQueryVariables>;
 export const LoginDocument = gql`
     mutation Login($username: String!, $signature: String!, $deviceId: String!, $publicKey: String) {
   loginUser(
@@ -2348,6 +2949,257 @@ export function useRevokeDeviceMutation(baseOptions?: Apollo.MutationHookOptions
 export type RevokeDeviceMutationHookResult = ReturnType<typeof useRevokeDeviceMutation>;
 export type RevokeDeviceMutationResult = Apollo.MutationResult<RevokeDeviceMutation>;
 export type RevokeDeviceMutationOptions = Apollo.BaseMutationOptions<RevokeDeviceMutation, RevokeDeviceMutationVariables>;
+export const SearchDocument = gql`
+    query Search($query: String!, $entityTypes: [EntityType!], $topics: [String!], $first: Int = 20, $after: String) {
+  search(
+    query: $query
+    entityTypes: $entityTypes
+    topics: $topics
+    first: $first
+    after: $after
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        entityType
+        entityId
+        verb
+        createdAt
+        visibility
+        topics
+        actor {
+          id
+          username
+          name
+          avatar
+        }
+        entity {
+          __typename
+          ... on Post {
+            id
+            userId
+            content
+            createdAt
+          }
+          ... on Trip {
+            id
+            userId
+            destination
+            status
+            createdAt
+          }
+          ... on Tour {
+            id
+            title
+            category
+            price
+            createdAt
+          }
+          ... on Place {
+            id
+            name
+            type
+            location
+            createdAt
+          }
+          ... on Location {
+            id
+            name
+            country
+            createdAt
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchQuery__
+ *
+ * To run a query within a React component, call `useSearchQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      entityTypes: // value for 'entityTypes'
+ *      topics: // value for 'topics'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useSearchQuery(baseOptions: Apollo.QueryHookOptions<SearchQuery, SearchQueryVariables> & ({ variables: SearchQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+      }
+export function useSearchLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchQuery, SearchQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+        }
+export function useSearchSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchQuery, SearchQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchQuery, SearchQueryVariables>(SearchDocument, options);
+        }
+export type SearchQueryHookResult = ReturnType<typeof useSearchQuery>;
+export type SearchLazyQueryHookResult = ReturnType<typeof useSearchLazyQuery>;
+export type SearchSuspenseQueryHookResult = ReturnType<typeof useSearchSuspenseQuery>;
+export type SearchQueryResult = Apollo.QueryResult<SearchQuery, SearchQueryVariables>;
+export const SearchSemanticDocument = gql`
+    query SearchSemantic($query: String!, $entityTypes: [EntityType!], $first: Int = 20, $after: String) {
+  searchSemantic(
+    query: $query
+    entityTypes: $entityTypes
+    first: $first
+    after: $after
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        entityType
+        entityId
+        verb
+        createdAt
+        visibility
+        topics
+        actor {
+          id
+          username
+          name
+          avatar
+        }
+        entity {
+          __typename
+          ... on Post {
+            id
+            userId
+            content
+            createdAt
+          }
+          ... on Trip {
+            id
+            userId
+            destination
+            status
+            createdAt
+          }
+          ... on Tour {
+            id
+            title
+            category
+            price
+            createdAt
+          }
+          ... on Place {
+            id
+            name
+            type
+            location
+            createdAt
+          }
+          ... on Location {
+            id
+            name
+            country
+            createdAt
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchSemanticQuery__
+ *
+ * To run a query within a React component, call `useSearchSemanticQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchSemanticQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchSemanticQuery({
+ *   variables: {
+ *      query: // value for 'query'
+ *      entityTypes: // value for 'entityTypes'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useSearchSemanticQuery(baseOptions: Apollo.QueryHookOptions<SearchSemanticQuery, SearchSemanticQueryVariables> & ({ variables: SearchSemanticQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchSemanticQuery, SearchSemanticQueryVariables>(SearchSemanticDocument, options);
+      }
+export function useSearchSemanticLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchSemanticQuery, SearchSemanticQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchSemanticQuery, SearchSemanticQueryVariables>(SearchSemanticDocument, options);
+        }
+export function useSearchSemanticSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchSemanticQuery, SearchSemanticQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchSemanticQuery, SearchSemanticQueryVariables>(SearchSemanticDocument, options);
+        }
+export type SearchSemanticQueryHookResult = ReturnType<typeof useSearchSemanticQuery>;
+export type SearchSemanticLazyQueryHookResult = ReturnType<typeof useSearchSemanticLazyQuery>;
+export type SearchSemanticSuspenseQueryHookResult = ReturnType<typeof useSearchSemanticSuspenseQuery>;
+export type SearchSemanticQueryResult = Apollo.QueryResult<SearchSemanticQuery, SearchSemanticQueryVariables>;
+export const SearchSuggestDocument = gql`
+    query SearchSuggest($prefix: String!, $limit: Int = 10) {
+  searchSuggest(prefix: $prefix, limit: $limit)
+}
+    `;
+
+/**
+ * __useSearchSuggestQuery__
+ *
+ * To run a query within a React component, call `useSearchSuggestQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchSuggestQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchSuggestQuery({
+ *   variables: {
+ *      prefix: // value for 'prefix'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useSearchSuggestQuery(baseOptions: Apollo.QueryHookOptions<SearchSuggestQuery, SearchSuggestQueryVariables> & ({ variables: SearchSuggestQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchSuggestQuery, SearchSuggestQueryVariables>(SearchSuggestDocument, options);
+      }
+export function useSearchSuggestLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchSuggestQuery, SearchSuggestQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchSuggestQuery, SearchSuggestQueryVariables>(SearchSuggestDocument, options);
+        }
+export function useSearchSuggestSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchSuggestQuery, SearchSuggestQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchSuggestQuery, SearchSuggestQueryVariables>(SearchSuggestDocument, options);
+        }
+export type SearchSuggestQueryHookResult = ReturnType<typeof useSearchSuggestQuery>;
+export type SearchSuggestLazyQueryHookResult = ReturnType<typeof useSearchSuggestLazyQuery>;
+export type SearchSuggestSuspenseQueryHookResult = ReturnType<typeof useSearchSuggestSuspenseQuery>;
+export type SearchSuggestQueryResult = Apollo.QueryResult<SearchSuggestQuery, SearchSuggestQueryVariables>;
 export const TripUpdatesDocument = gql`
     subscription TripUpdates($tripId: ID!) {
   tripUpdates(tripId: $tripId) {
@@ -2387,6 +3239,74 @@ export function useTripUpdatesSubscription(baseOptions: Apollo.SubscriptionHookO
       }
 export type TripUpdatesSubscriptionHookResult = ReturnType<typeof useTripUpdatesSubscription>;
 export type TripUpdatesSubscriptionResult = Apollo.SubscriptionResult<TripUpdatesSubscription>;
+export const UnfollowUserDocument = gql`
+    mutation UnfollowUser($followeeId: ID!) {
+  unfollowUser(followeeId: $followeeId)
+}
+    `;
+export type UnfollowUserMutationFn = Apollo.MutationFunction<UnfollowUserMutation, UnfollowUserMutationVariables>;
+
+/**
+ * __useUnfollowUserMutation__
+ *
+ * To run a mutation, you first call `useUnfollowUserMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUnfollowUserMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [unfollowUserMutation, { data, loading, error }] = useUnfollowUserMutation({
+ *   variables: {
+ *      followeeId: // value for 'followeeId'
+ *   },
+ * });
+ */
+export function useUnfollowUserMutation(baseOptions?: Apollo.MutationHookOptions<UnfollowUserMutation, UnfollowUserMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UnfollowUserMutation, UnfollowUserMutationVariables>(UnfollowUserDocument, options);
+      }
+export type UnfollowUserMutationHookResult = ReturnType<typeof useUnfollowUserMutation>;
+export type UnfollowUserMutationResult = Apollo.MutationResult<UnfollowUserMutation>;
+export type UnfollowUserMutationOptions = Apollo.BaseMutationOptions<UnfollowUserMutation, UnfollowUserMutationVariables>;
+export const UpdateFeedPreferencesDocument = gql`
+    mutation UpdateFeedPreferences($input: FeedFilter!) {
+  updateFeedPreferences(input: $input) {
+    entityTypes
+    topics
+    followingOnly
+    circleOnly
+    mutedUserIds
+  }
+}
+    `;
+export type UpdateFeedPreferencesMutationFn = Apollo.MutationFunction<UpdateFeedPreferencesMutation, UpdateFeedPreferencesMutationVariables>;
+
+/**
+ * __useUpdateFeedPreferencesMutation__
+ *
+ * To run a mutation, you first call `useUpdateFeedPreferencesMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useUpdateFeedPreferencesMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [updateFeedPreferencesMutation, { data, loading, error }] = useUpdateFeedPreferencesMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useUpdateFeedPreferencesMutation(baseOptions?: Apollo.MutationHookOptions<UpdateFeedPreferencesMutation, UpdateFeedPreferencesMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<UpdateFeedPreferencesMutation, UpdateFeedPreferencesMutationVariables>(UpdateFeedPreferencesDocument, options);
+      }
+export type UpdateFeedPreferencesMutationHookResult = ReturnType<typeof useUpdateFeedPreferencesMutation>;
+export type UpdateFeedPreferencesMutationResult = Apollo.MutationResult<UpdateFeedPreferencesMutation>;
+export type UpdateFeedPreferencesMutationOptions = Apollo.BaseMutationOptions<UpdateFeedPreferencesMutation, UpdateFeedPreferencesMutationVariables>;
 export const UpdateLocationDocument = gql`
     mutation UpdateLocation($id: ID!, $input: UpdateLocationInput!) {
   updateLocation(id: $id, input: $input) {

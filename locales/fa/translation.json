@@ -29,7 +29,11 @@
     "disabled": "غیرفعال",
     "of": "از",
     "notAvailable": "در دسترس نیست",
-    "people": "نفر"
+    "people": "نفر",
+    "add": "افزودن",
+    "reset": "بازنشانی",
+    "saved": "ذخیره شد",
+    "resetDefaults": "بازنشانی به حالت پیش‌فرض"
   },
   "language": {
     "en": "انگلیسی",
@@ -266,7 +270,8 @@
       "locationsEmpty": "هنوز موقعیتی وجود ندارد",
       "locationsEmptyDescription": "اولین موقعیت خود را ایجاد کنید",
       "locationsDescription": "آرشیو موقعیت‌ها را مدیریت کنید",
-      "locationsCreate": "ایجاد موقعیت"
+      "locationsCreate": "ایجاد موقعیت",
+      "posts": "پست‌ها"
     }
   },
   "explore": {
@@ -728,6 +733,18 @@
       "successMessage": "پروفایل با موفقیت به‌روزرسانی شد!"
     },
     "preferences": {
+      "feed": {
+        "title": "تنظیمات فید",
+        "followingOnly": "فقط دنبال‌شده‌ها",
+        "closeFriendsOnly": "فقط دوستان صمیمی",
+        "entityTypes": "انواع موجودیت",
+        "topics": "موضوعات",
+        "addTopic": "افزودن موضوع",
+        "addTopicPh": "برای جستجوی موضوعات تایپ کنید",
+        "mutedUsers": "کاربران بی‌صدا",
+        "addMuted": "افزودن شناسه کاربر برای بی‌صدا کردن",
+        "addMutedPh": "شناسه کاربر را وارد کنید"
+      },
       "travelStyle": "سبک سفر",
       "budgetRange": "محدوده بودجه",
       "interests": "علایق",

@@ -1,6 +1,8 @@
-import { eq } from 'drizzle-orm';
-import { getServerDB, posts, trips, tours, places, users } from '@database/server';
+import { eq, sql } from 'drizzle-orm';
+import { getServerDB, posts, trips, tours, places, users, feedEvents, searchIndex } from '@database/server';
 import type { GraphQLContext } from '../types';
+import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
+import { enqueueEmbeddingJob } from '../utilities/embeddings';
 
 interface CreatePostInput {
   content?: string;
@@ -93,6 +95,120 @@ export const createPost = async (
       })
       .returning()
       .get();
+
+    // Extract simple topics (hashtags) from content
+    const content = input.content || '';
+    const hashtagMatches = content.match(/#([A-Za-z0-9_\u0600-\u06FF]+)/g) || [];
+    const extractedTopics = Array.from(new Set(hashtagMatches.map((t) => t.replace('#', '').toLowerCase()))).slice(0, 20);
+
+    // Upsert search index (lexical MVP)
+    // Upsert search index (lexical MVP)
+    try {
+      const title = (input.type ? `${input.type} shared` : 'Post').trim();
+      const tokens = [input.content || '', ...(input.attachments || []), ...extractedTopics].join(' ').toLowerCase();
+      const existing = await db
+        .select()
+        .from(searchIndex)
+        .where(sql`${searchIndex.entityType} = 'POST' AND ${searchIndex.entityId} = ${result.id}`)
+        .get();
+      if (existing) {
+        await db
+          .update(searchIndex)
+          .set({
+            title,
+            text: input.content || null,
+            tags: JSON.stringify(extractedTopics),
+            tokens,
+            updatedAt: new Date().toISOString(),
+          })
+          .where(sql`${searchIndex.id} = ${existing.id}`)
+          .run();
+      } else {
+        await db
+          .insert(searchIndex)
+          .values({
+            entityType: 'POST',
+            entityId: result.id,
+            title,
+            text: input.content || null,
+            tags: JSON.stringify(extractedTopics),
+            tokens,
+          })
+          .run();
+      }
+    } catch (e) {
+      console.error('searchIndex upsert failed for POST', e);
+    }
+
+    // Insert corresponding feed event (PUBLIC by default in Phase 1)
+    try {
+      await db
+        .insert(feedEvents)
+        .values({
+          entityType: 'POST',
+          entityId: result.id,
+          actorId: userId,
+          verb: 'CREATED',
+          topics: JSON.stringify(extractedTopics),
+          visibility: 'PUBLIC',
+        })
+        .run();
+      // Trending increments
+      try {
+        await incrementTrendingEntity(context.env, 'POST');
+        for (const topic of extractedTopics) {
+          await incrementTrendingTopic(context.env, topic);
+        }
+      } catch (_) {
+        // ignore KV errors for now
+      }
+      // Publish subscription
+      context.publish('FEED_NEW_EVENTS', {
+        feedNewEvents: [
+          {
+            id: result.id,
+            entityType: 'POST',
+            entityId: result.id,
+            verb: 'CREATED',
+            actor: {
+              id: user.id,
+              name: user.name,
+              username: user.username,
+              email: user.email,
+              phone: user.phone,
+              avatar: user.avatar,
+              createdAt: user.createdAt,
+            },
+            entity: {
+              __typename: 'Post',
+              ...result,
+              attachments: result.attachments ? JSON.parse(result.attachments || '[]') : [],
+            },
+            topics: extractedTopics,
+            visibility: 'PUBLIC',
+            createdAt: result.createdAt,
+          },
+        ],
+      });
+    } catch (publishErr) {
+      console.error('Failed to publish feed event for createPost', publishErr);
+    }
+
+    // Enqueue embedding job
+    try {
+      const text = [input.content || '', extractedTopics.join(' ')].join(' ').trim();
+      if (text) {
+        await enqueueEmbeddingJob(context.env, {
+          entityType: 'POST',
+          entityId: result.id,
+          text,
+          lang: 'auto',
+          model: '@cf/baai/bge-m3',
+        });
+      }
+    } catch (e) {
+      console.warn('enqueueEmbeddingJob failed for POST', e);
+    }
 
     // Return post with user and parsed attachments
     return {

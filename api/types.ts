@@ -171,6 +171,67 @@ export type Device = {
   type?: Maybe<Scalars['String']['output']>;
 };
 
+/** Feed types and connections for home stream */
+export enum EntityType {
+  Location = 'LOCATION',
+  Place = 'PLACE',
+  Post = 'POST',
+  Tour = 'TOUR',
+  Trip = 'TRIP'
+}
+
+export type FeedConnection = {
+  __typename?: 'FeedConnection';
+  edges: Array<FeedEdge>;
+  pageInfo: PageInfo;
+};
+
+export type FeedEdge = {
+  __typename?: 'FeedEdge';
+  cursor: Scalars['String']['output'];
+  node: FeedEvent;
+};
+
+export type FeedEntity = Location | Place | Post | Tour | Trip;
+
+export type FeedEvent = {
+  __typename?: 'FeedEvent';
+  actor: User;
+  createdAt: Scalars['String']['output'];
+  entity: FeedEntity;
+  entityId: Scalars['ID']['output'];
+  entityType: EntityType;
+  id: Scalars['ID']['output'];
+  topics: Array<Scalars['String']['output']>;
+  verb: FeedVerb;
+  visibility: Visibility;
+};
+
+export type FeedFilter = {
+  circleOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  createdAtAfter?: InputMaybe<Scalars['String']['input']>;
+  createdAtBefore?: InputMaybe<Scalars['String']['input']>;
+  entityTypes?: InputMaybe<Array<EntityType>>;
+  followingOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  mutedUserIds?: InputMaybe<Array<Scalars['ID']['input']>>;
+  topics?: InputMaybe<Array<Scalars['String']['input']>>;
+  visibility?: InputMaybe<Array<Visibility>>;
+};
+
+export type FeedPreferences = {
+  __typename?: 'FeedPreferences';
+  circleOnly: Scalars['Boolean']['output'];
+  entityTypes: Array<EntityType>;
+  followingOnly: Scalars['Boolean']['output'];
+  mutedUserIds: Array<Scalars['ID']['output']>;
+  topics: Array<Scalars['String']['output']>;
+};
+
+export enum FeedVerb {
+  Created = 'CREATED',
+  Updated = 'UPDATED'
+}
+
 export type ItineraryDay = {
   __typename?: 'ItineraryDay';
   activities: Array<Scalars['String']['output']>;
@@ -203,6 +264,7 @@ export type Message = {
 export type Mutation = {
   __typename?: 'Mutation';
   addMessage: Message;
+  addToCloseFriends: Scalars['Boolean']['output'];
   bookTour: Booking;
   bookmarkPlace: Scalars['Boolean']['output'];
   bookmarkPost: Scalars['Boolean']['output'];
@@ -219,10 +281,14 @@ export type Mutation = {
   deleteReaction: Scalars['Boolean']['output'];
   deleteTour: Scalars['Boolean']['output'];
   deleteTrip: Scalars['Boolean']['output'];
+  followUser: Scalars['Boolean']['output'];
   loginUser: AuthPayload;
   registerUser: AuthPayload;
+  removeFromCloseFriends: Scalars['Boolean']['output'];
   requestChallenge: Scalars['String']['output'];
   revokeDevice: Scalars['Boolean']['output'];
+  unfollowUser: Scalars['Boolean']['output'];
+  updateFeedPreferences: FeedPreferences;
   updateLocation: Location;
   updatePlace: Place;
   updateTour: Tour;
@@ -233,6 +299,11 @@ export type Mutation = {
 
 export type MutationAddMessageArgs = {
   content: Scalars['String']['input'];
+};
+
+
+export type MutationAddToCloseFriendsArgs = {
+  friendId: Scalars['ID']['input'];
 };
 
 
@@ -319,6 +390,11 @@ export type MutationDeleteTripArgs = {
 };
 
 
+export type MutationFollowUserArgs = {
+  followeeId: Scalars['ID']['input'];
+};
+
+
 export type MutationLoginUserArgs = {
   deviceId: Scalars['String']['input'];
   publicKey?: InputMaybe<Scalars['String']['input']>;
@@ -335,6 +411,11 @@ export type MutationRegisterUserArgs = {
 };
 
 
+export type MutationRemoveFromCloseFriendsArgs = {
+  friendId: Scalars['ID']['input'];
+};
+
+
 export type MutationRequestChallengeArgs = {
   isRegister: Scalars['Boolean']['input'];
   username: Scalars['String']['input'];
@@ -343,6 +424,16 @@ export type MutationRequestChallengeArgs = {
 
 export type MutationRevokeDeviceArgs = {
   deviceId: Scalars['String']['input'];
+};
+
+
+export type MutationUnfollowUserArgs = {
+  followeeId: Scalars['ID']['input'];
+};
+
+
+export type MutationUpdateFeedPreferencesArgs = {
+  input: FeedFilter;
 };
 
 
@@ -372,6 +463,12 @@ export type MutationUpdateTripArgs = {
 
 export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
+};
+
+export type PageInfo = {
+  __typename?: 'PageInfo';
+  endCursor?: Maybe<Scalars['String']['output']>;
+  hasNextPage: Scalars['Boolean']['output'];
 };
 
 export type Place = {
@@ -432,6 +529,10 @@ export type Query = {
   checkUsernameAvailability: Scalars['Boolean']['output'];
   getAlerts: Array<Alert>;
   getBookmarks: Array<Bookmark>;
+  getFeed: FeedConnection;
+  getFeedPreferences: FeedPreferences;
+  getFollowers: Array<User>;
+  getFollowing: Array<User>;
   getLocation?: Maybe<Location>;
   getLocations: Array<Location>;
   getMessages: Array<Message>;
@@ -442,10 +543,15 @@ export type Query = {
   getPosts: PostsConnection;
   getTour?: Maybe<Tour>;
   getTours: Array<Tour>;
+  getTrending: TrendingList;
   getTrip?: Maybe<Trip>;
   getTrips: Array<Trip>;
   getUser?: Maybe<User>;
+  isFollowing: Scalars['Boolean']['output'];
   me?: Maybe<User>;
+  search: FeedConnection;
+  searchSemantic: FeedConnection;
+  searchSuggest: Array<Scalars['String']['output']>;
 };
 
 
@@ -456,6 +562,27 @@ export type QueryCheckUsernameAvailabilityArgs = {
 
 export type QueryGetBookmarksArgs = {
   type?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryGetFeedArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  filter?: InputMaybe<FeedFilter>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryGetFollowersArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  userId: Scalars['ID']['input'];
+};
+
+
+export type QueryGetFollowingArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  userId: Scalars['ID']['input'];
 };
 
 
@@ -505,6 +632,14 @@ export type QueryGetToursArgs = {
 };
 
 
+export type QueryGetTrendingArgs = {
+  entityTypes?: InputMaybe<Array<EntityType>>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  type: TrendingType;
+  window: TimeWindow;
+};
+
+
 export type QueryGetTripArgs = {
   id: Scalars['ID']['input'];
 };
@@ -517,6 +652,34 @@ export type QueryGetTripsArgs = {
 
 export type QueryGetUserArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type QueryIsFollowingArgs = {
+  userId: Scalars['ID']['input'];
+};
+
+
+export type QuerySearchArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  entityTypes?: InputMaybe<Array<EntityType>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+  topics?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
+export type QuerySearchSemanticArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  entityTypes?: InputMaybe<Array<EntityType>>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  query: Scalars['String']['input'];
+};
+
+
+export type QuerySearchSuggestArgs = {
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  prefix: Scalars['String']['input'];
 };
 
 export type Reaction = {
@@ -532,15 +695,27 @@ export type Reaction = {
 
 export type Subscription = {
   __typename?: 'Subscription';
+  feedNewEvents: Array<FeedEvent>;
   newAlerts: Alert;
   newMessages: Message;
   tripUpdates: TripUpdate;
 };
 
 
+export type SubscriptionFeedNewEventsArgs = {
+  filter?: InputMaybe<FeedFilter>;
+};
+
+
 export type SubscriptionTripUpdatesArgs = {
   tripId: Scalars['ID']['input'];
 };
+
+export enum TimeWindow {
+  D1 = 'D1',
+  H1 = 'H1',
+  M5 = 'M5'
+}
 
 export type Tour = {
   __typename?: 'Tour';
@@ -570,6 +745,28 @@ export type Tour = {
   title: Scalars['String']['output'];
   updatedAt: Scalars['String']['output'];
 };
+
+export type TrendingItem = {
+  __typename?: 'TrendingItem';
+  delta?: Maybe<Scalars['Float']['output']>;
+  key: Scalars['String']['output'];
+  label: Scalars['String']['output'];
+  score: Scalars['Float']['output'];
+};
+
+export type TrendingList = {
+  __typename?: 'TrendingList';
+  items: Array<TrendingItem>;
+  window: TimeWindow;
+};
+
+/** Trending types and windows */
+export enum TrendingType {
+  Entity = 'ENTITY',
+  Place = 'PLACE',
+  Topic = 'TOPIC',
+  User = 'USER'
+}
 
 export type Trip = {
   __typename?: 'Trip';
@@ -690,6 +887,12 @@ export type User = {
   publicKey?: Maybe<Scalars['String']['output']>;
   username: Scalars['String']['output'];
 };
+
+export enum Visibility {
+  Circle = 'CIRCLE',
+  Followers = 'FOLLOWERS',
+  Public = 'PUBLIC'
+}
 
 export type Waypoint = {
   __typename?: 'Waypoint';

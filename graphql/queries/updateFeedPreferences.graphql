@@ -1,0 +1,11 @@
+mutation UpdateFeedPreferences($input: FeedFilter!) {
+  updateFeedPreferences(input: $input) {
+    entityTypes
+    topics
+    followingOnly
+    circleOnly
+    mutedUserIds
+  }
+}
+
+

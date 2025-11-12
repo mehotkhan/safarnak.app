@@ -1018,6 +1018,37 @@ erDiagram
   - Both use UUID (text) IDs for consistency
 - **`api/`** - Auto-generated client code (run `yarn codegen` to update)
 
+## 📡 Social Feed & Streaming (How it Works)
+
+### Overview
+- Unified feed via normalized `feed_events` for all entities (Post/Trip/Tour/Place/Location).
+- Semi‑realtime: GraphQL `feedNewEvents` subscription with server‑side filters; client shows “Show 3 new” banner (capped), merges on tap.
+- Personalization: Per‑user `feed_preferences` (topics, entity types, following‑only, close‑friends‑only, mutes).
+- Follow graph: `follow_edges`, `close_friends` with filters and boosts (following +1, close‑friends +2, topic matches +0.5 each).
+- Trending: KV counters updated on writes; Durable Object `TrendingRollup` compacts/decays periodically; `getTrending` prefers KV (fallback to D1 for ENTITY).
+- Search: `search` (lexical) and `searchSemantic` (Vectorize + Workers AI + Queues). Writers upsert into `search_index`; producers enqueue embeddings; consumer upserts vectors.
+- Offline‑first: Queries work from Apollo/Drizzle cache; subscriptions no‑op when offline.
+
+### Key GraphQL APIs
+- Feed:
+  - `getFeed(first, after, filter: FeedFilter)` → paginated `FeedConnection`
+  - `feedNewEvents(filter: FeedFilter)` → subscription (server filters applied)
+  - `getFeedPreferences` / `updateFeedPreferences(input: FeedFilter!)`
+- Search:
+  - `search(query, entityTypes, topics, first, after)` (lexical)
+  - `searchSuggest(prefix, limit)`
+  - `searchSemantic(query, entityTypes, first, after)` (Vectorize KNN)
+- Trending:
+  - `getTrending(type: TrendingType!, window: TimeWindow!, entityTypes?, limit)` (KV preferred)
+
+### Storage & Infra
+- D1: `feed_events`, `feed_preferences`, `search_index`, `follow_edges`, `close_friends`, `embeddings_meta`.
+- KV: `top:entity:<window>`, `top:topic:<window>` lists.
+- DO: `SubscriptionPool` (subs), `TrendingRollup` (decay/trim); cron every 10 minutes.
+- Queues: `EMBED_QUEUE` producer/consumer; Workers AI (`@cf/baai/bge-m3`) to embed.
+- Vectorize: upsert vectors with metadata `{ entityType, entityId, lang }`.
+
+
 ---
 
 
@@ -1643,25 +1674,7 @@ The app includes a comprehensive system status page (`app/(app)/(profile)/system
 For more details, see the offline architecture implementation in `database/` folder.
 
 ---
-
-## 🔍 Technical Review & Checklist (Summary)
-
-Top risks (from v0.9.4 review):
-
-- Auth verification missing on server; `x-user-id` is trusted; tokens unsigned and unverified
-- Error exposure in prod (`maskedErrors: false`)
-- Limited input validation beyond `createTrip`
-- No unit/integration tests; relaxed linting rules
-
-Priority actions:
-
-- Implement signed token verification (HMAC or JWT) and derive `context.userId` from verified token only
-- Remove `x-user-id` usage; enable `maskedErrors: true` in production
-- Add zod validation to all resolvers and ownership checks to user-scoped ops
-- Establish a minimal test suite (auth + trips) and tighten ESLint gradually
-
-See `TECHNICAL_REVIEW.md` for the complete checklist.
-
+ 
 ---
 
 ## 🤝 Contributing

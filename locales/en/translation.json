@@ -29,7 +29,11 @@
     "disabled": "Disabled",
     "of": "of",
     "notAvailable": "N/A",
-    "people": "people"
+    "people": "people",
+    "add": "Add",
+    "reset": "Reset",
+    "saved": "Saved",
+    "resetDefaults": "Reset to defaults"
   },
   "language": {
     "en": "English",
@@ -262,7 +266,8 @@
       "locationsEmpty": "No locations yet",
       "locationsEmptyDescription": "Create your first location",
       "locationsDescription": "Manage locations archive",
-      "locationsCreate": "Create Location"
+      "locationsCreate": "Create Location",
+      "posts": "Posts"
     }
   },
   "plan.notFound": "Trip Not Found",
@@ -786,6 +791,18 @@
       "successMessage": "Profile updated successfully!"
     },
     "preferences": {
+      "feed": {
+        "title": "Feed Preferences",
+        "followingOnly": "Following only",
+        "closeFriendsOnly": "Close friends only",
+        "entityTypes": "Entity types",
+        "topics": "Topics",
+        "addTopic": "Add topic",
+        "addTopicPh": "Type to search topics",
+        "mutedUsers": "Muted users",
+        "addMuted": "Add user ID to mute",
+        "addMutedPh": "Paste user ID"
+      },
       "travelStyle": "Travel Style",
       "budgetRange": "Budget Range",
       "interests": "Interests",

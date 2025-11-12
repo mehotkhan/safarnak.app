@@ -1,0 +1,5 @@
+query IsFollowing($userId: ID!) {
+  isFollowing(userId: $userId)
+}
+
+

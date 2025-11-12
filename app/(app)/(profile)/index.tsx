@@ -2,7 +2,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Image, ScrollView, TouchableOpacity, View, Alert } from 'react-native';
+import { Image, ScrollView, TouchableOpacity, View, Alert, RefreshControl } from 'react-native';
+import { useRefresh } from '@hooks/useRefresh';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 
@@ -313,6 +314,11 @@ export default function ProfileScreen() {
   };
 
 
+  // Pull-to-refresh
+  const { refreshing, onRefresh } = useRefresh(async () => {
+    await Promise.all([refetchMe()]);
+  });
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <Stack.Screen 
@@ -394,7 +400,7 @@ export default function ProfileScreen() {
         }} 
       />
 
-      <ScrollView className="flex-1">
+      <ScrollView className="flex-1" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
         {isEditing ? (
           <>
             {/* Edit Mode */}

@@ -300,6 +300,71 @@ export const notifications = sqliteTable('notifications', {
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
 
+// Feed events (server)
+export const feedEvents = sqliteTable('feed_events', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  entityType: text('entity_type').notNull(), // POST/TRIP/TOUR/PLACE/LOCATION
+  entityId: text('entity_id').notNull(),
+  actorId: text('actor_id').references(() => users.id).notNull(),
+  verb: text('verb').notNull(), // CREATED/UPDATED
+  topics: text('topics'), // JSON array of strings
+  visibility: text('visibility').default('PUBLIC'),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  rank: real('rank').default(0),
+});
+
+// Feed preferences (server, per user)
+export const feedPreferences = sqliteTable('feed_preferences', {
+  userId: text('user_id').references(() => users.id).primaryKey(),
+  entityTypes: text('entity_types'), // JSON array of EntityType
+  topics: text('topics'), // JSON array of strings
+  followingOnly: integer('following_only', { mode: 'boolean' }).default(false),
+  circleOnly: integer('circle_only', { mode: 'boolean' }).default(false),
+  mutedUserIds: text('muted_user_ids'), // JSON array of IDs
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// Follow graph
+export const followEdges = sqliteTable('follow_edges', {
+  followerId: text('follower_id').references(() => users.id).notNull(),
+  followeeId: text('followee_id').references(() => users.id).notNull(),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// Close friends
+export const closeFriends = sqliteTable('close_friends', {
+  userId: text('user_id').references(() => users.id).notNull(),
+  friendId: text('friend_id').references(() => users.id).notNull(),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// Search index (server)
+export const searchIndex = sqliteTable('search_index', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id').notNull(),
+  title: text('title'),
+  text: text('text'),
+  tags: text('tags'),
+  locationName: text('location_name'),
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+  lang: text('lang'),
+  tokens: text('tokens'),
+  trigrams: text('trigrams'),
+});
+
+// Embeddings metadata (reference to Vectorize index)
+export const embeddingsMeta = sqliteTable('embeddings_meta', {
+  id: text('id').primaryKey().$defaultFn(() => createId()), // local meta id
+  entityType: text('entity_type').notNull(),
+  entityId: text('entity_id').notNull(),
+  vectorId: text('vector_id').notNull(), // id in vector index
+  model: text('model').notNull(),
+  lang: text('lang'),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
 export const locations = sqliteTable('locations', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   name: text('name').unique().notNull(),
@@ -517,6 +582,10 @@ export const placesRelations = relations(places, ({ one }) => ({
 
 export const thoughtsRelations = relations(thoughts, ({ one }) => ({
   trip: one(trips, { fields: [thoughts.tripId], references: [trips.id] }),
+}));
+
+export const feedEventsRelations = relations(feedEvents, ({ one }) => ({
+  actor: one(users, { fields: [feedEvents.actorId], references: [users.id] }),
 }));
 
 // ============================================================================

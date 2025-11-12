@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback, useEffect } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Image,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
@@ -12,7 +13,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
 import { CustomButton } from '@ui/forms';
 import { useTheme } from '@ui/context';
-import { useGetUserQuery, useGetPostsQuery, useGetTripsQuery } from '@api';
+import {
+  useGetUserQuery,
+  useGetPostsQuery,
+  useGetTripsQuery,
+  useIsFollowingQuery,
+  useFollowUserMutation,
+  useUnfollowUserMutation,
+  useGetFollowersQuery,
+  useGetFollowingQuery,
+} from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
 import Colors from '@constants/Colors';
@@ -32,7 +42,7 @@ export default function UserProfileScreen() {
   const { formatDate } = useDateTime();
 
   // GraphQL queries
-  const { data, loading, error } = useGetUserQuery({
+  const { data, loading, error, refetch: refetchUser } = useGetUserQuery({
     variables: { id: userId },
     skip: !userId,
     fetchPolicy: 'cache-and-network',
@@ -42,17 +52,66 @@ export default function UserProfileScreen() {
   const user = data?.getUser as any;
 
   // Fetch user's posts
-  const { data: postsData } = useGetPostsQuery({
+  const { data: postsData, refetch: refetchPosts } = useGetPostsQuery({
     variables: { limit: 20, offset: 0 },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
 
   // Fetch user's trips
-  const { data: tripsData } = useGetTripsQuery({
+  const { data: tripsData, refetch: refetchTrips } = useGetTripsQuery({
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
+  // Followers/Following data for counters
+  const { data: followersData, refetch: refetchFollowers } = useGetFollowersQuery({
+    variables: { userId: userId as string },
+    skip: !userId,
+    fetchPolicy: 'cache-and-network',
+  } as any);
+  const { data: followingData, refetch: refetchFollowing } = useGetFollowingQuery({
+    variables: { userId: userId as string },
+    skip: !userId,
+    fetchPolicy: 'cache-and-network',
+  } as any);
+  const followersCount = followersData?.getFollowers?.length || 0;
+  const followingCount = followingData?.getFollowing?.length || 0;
+
+  // Is following state
+  const { data: isFollowingData, refetch: refetchIsFollowing } = useIsFollowingQuery({
+    variables: { userId: userId as string },
+    skip: !userId,
+    fetchPolicy: 'cache-and-network',
+  } as any);
+
+  // Sync local state when query returns
+  useEffect(() => {
+    if (typeof isFollowingData?.isFollowing === 'boolean') {
+      setIsFollowing(isFollowingData.isFollowing);
+    }
+  }, [isFollowingData?.isFollowing]);
+
+  // Mutations
+  const [followUser] = useFollowUserMutation();
+  const [unfollowUser] = useUnfollowUserMutation();
+
+  // Pull-to-refresh
+  const [refreshing, setRefreshing] = useState(false);
+  const onRefresh = useCallback(async () => {
+    try {
+      setRefreshing(true);
+      await Promise.all([
+        refetchUser(),
+        refetchPosts(),
+        refetchTrips(),
+        refetchFollowers(),
+        refetchFollowing(),
+        refetchIsFollowing(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetchUser, refetchPosts, refetchTrips, refetchFollowers, refetchFollowing, refetchIsFollowing]);
 
   // Filter posts and trips by user
   const userPosts = useMemo(() => {
@@ -65,9 +124,22 @@ export default function UserProfileScreen() {
     return tripsData.getTrips.filter((trip: any) => trip.userId === userId);
   }, [tripsData, userId]);
 
-  const handleFollow = () => {
-    setIsFollowing(!isFollowing);
-    // TODO: Implement follow mutation when available
+  const handleFollow = async () => {
+    if (!userId) return;
+    try {
+      if (isFollowing) {
+        await unfollowUser({ variables: { followeeId: userId as string } } as any);
+        setIsFollowing(false);
+      } else {
+        await followUser({ variables: { followeeId: userId as string } } as any);
+        setIsFollowing(true);
+      }
+      // Refresh counts/state
+      await Promise.all([refetchFollowers(), refetchIsFollowing()]);
+    } catch (e) {
+      // revert on failure
+      setIsFollowing((prev) => !prev);
+    }
   };
 
   const handleMessage = () => {
@@ -111,7 +183,7 @@ export default function UserProfileScreen() {
   const joinedDate = user.createdAt ? formatDate(user.createdAt, 'long') : '';
 
   return (
-    <ScrollView className="flex-1 bg-white dark:bg-black">
+    <ScrollView className="flex-1 bg-white dark:bg-black" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
       <Stack.Screen 
         options={{ 
           title: user.username || 'User', 
@@ -144,7 +216,7 @@ export default function UserProfileScreen() {
             </View>
             <View className="items-center">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                0
+                {followersCount}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('userProfile.followers')}
@@ -152,7 +224,7 @@ export default function UserProfileScreen() {
             </View>
             <View className="items-center">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
-                0
+                {followingCount}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('userProfile.following')}

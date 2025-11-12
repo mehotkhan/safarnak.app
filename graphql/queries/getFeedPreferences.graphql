@@ -1,0 +1,11 @@
+query GetFeedPreferences {
+  getFeedPreferences {
+    entityTypes
+    topics
+    followingOnly
+    circleOnly
+    mutedUserIds
+  }
+}
+
+

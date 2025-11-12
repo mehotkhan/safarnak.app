@@ -11,7 +11,7 @@ import { LoadingState } from '@ui/feedback';
 import { ErrorState } from '@ui/feedback';
 import { EmptyState } from '@ui/feedback';
 import { TourCard, PlaceCard, PostCard } from '@ui/cards';
-import { useGetToursQuery, useGetPlacesQuery, useGetPostsQuery } from '@api';
+import { useGetToursQuery, useGetPlacesQuery, useGetPostsQuery, useSearchQuery, useSearchSuggestQuery } from '@api';
 import { FilterModal, type TourFilters, type PlaceFilters, type PostFilters } from '@ui/modals';
 import { useDebounce } from '@hooks/useDebounce';
 import { useRefresh } from '@hooks/useRefresh';
@@ -36,6 +36,26 @@ export default function ExploreScreen() {
 
   // Debounced search
   const debouncedSearch = useDebounce(searchQuery, 300);
+
+  // Global search (lexical) across entity types when query present
+  const entityTypesForTab = useMemo(() => {
+    if (activeTab === 'posts') return ['POST'] as any;
+    if (activeTab === 'tours') return ['TOUR'] as any;
+    if (activeTab === 'places') return ['PLACE'] as any;
+    return undefined;
+  }, [activeTab]);
+
+  const { data: globalSearchData } = useSearchQuery({
+    variables: { query: debouncedSearch || '', entityTypes: entityTypesForTab, first: 30 },
+    skip: !(debouncedSearch && debouncedSearch.length >= 2),
+    fetchPolicy: 'cache-and-network',
+  } as any);
+
+  const { data: suggestData } = useSearchSuggestQuery({
+    variables: { prefix: debouncedSearch || '', limit: 8 },
+    skip: !(debouncedSearch && debouncedSearch.length >= 1),
+    fetchPolicy: 'cache-first',
+  } as any);
 
   // GraphQL Queries
   const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetToursQuery({
@@ -250,8 +270,23 @@ export default function ExploreScreen() {
     router.push(`/(app)/(explore)/users/${userId}` as any);
   }, [router]);
 
-  // Get current filtered data based on active tab
+  // Get current filtered data based on active tab (or global search results)
   const currentFilteredData = useMemo(() => {
+    // If searching, map FeedConnection nodes to entities for the active tab
+    if (debouncedSearch && debouncedSearch.length >= 2 && globalSearchData?.search?.edges) {
+      const edges = globalSearchData.search.edges as any[];
+      const mapped = edges
+        .map((e) => e?.node?.entity)
+        .filter(Boolean)
+        .filter((ent: any) => {
+          const t = ent.__typename;
+          if (activeTab === 'posts') return t === 'Post';
+          if (activeTab === 'tours') return t === 'Tour';
+          if (activeTab === 'places') return t === 'Place';
+          return false;
+        });
+      return mapped;
+    }
     switch (activeTab) {
       case 'tours':
         return filteredTours;
@@ -446,7 +481,27 @@ export default function ExploreScreen() {
       </View>
 
       {/* Content */}
+      {debouncedSearch?.length ? (
+        <View className="px-6 py-2">
+          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+            {t('explore.resultsFor', { defaultValue: 'Results for' })} “{debouncedSearch}”
+          </CustomText>
+        </View>
+      ) : null}
       {renderContent()}
+
+      {/* Suggestions row */}
+      {debouncedSearch?.length ? (
+        <View className="px-6 pb-3">
+          <View className="flex-row flex-wrap gap-2">
+            {(suggestData?.searchSuggest || []).map((s: string) => (
+              <View key={s} className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-neutral-800">
+                <CustomText className="text-xs text-gray-700 dark:text-gray-300">#{s}</CustomText>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       {/* Filter Modal */}
       <FilterModal

@@ -12,8 +12,11 @@ export interface Env {
   KV: KVNamespace;           // Key-Value storage for sessions & caches
   R2: R2Bucket;              // Object storage for media
   VECTORIZE: VectorizeIndex; // Vector database for embeddings
+  TRENDING_ROLLUP: DurableObjectNamespace; // DO for trending rollups
   TRIP_CREATION_WORKFLOW: Workflow; // Workflow for trip creation notifications
   TRIP_UPDATE_WORKFLOW: Workflow; // Workflow for trip update notifications
+  EMBED_QUEUE: Queue<unknown>; // Cloudflare Queue for embedding jobs
+  AI: Ai; // Workers AI binding
 }
 
 /**

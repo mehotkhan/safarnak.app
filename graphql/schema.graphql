@@ -51,6 +51,7 @@ type Subscription {
   newMessages: Message!
   newAlerts: Alert!
   tripUpdates(tripId: ID!): TripUpdate!
+  feedNewEvents(filter: FeedFilter): [FeedEvent!]!
 }
 
 type Message {
@@ -306,6 +307,88 @@ type PostsConnection {
   hasPreviousPage: Boolean!
   nextOffset: Int
   previousOffset: Int
+}
+
+"""
+Feed types and connections for home stream
+"""
+enum EntityType { POST TRIP TOUR PLACE LOCATION }
+enum FeedVerb { CREATED UPDATED }
+enum Visibility { PUBLIC FOLLOWERS CIRCLE }
+
+union FeedEntity = Post | Trip | Tour | Place | Location
+
+type FeedEvent {
+  id: ID!
+  entityType: EntityType!
+  entityId: ID!
+  verb: FeedVerb!
+  actor: User!
+  entity: FeedEntity!
+  topics: [String!]!
+  visibility: Visibility!
+  createdAt: String!
+}
+
+type FeedEdge { cursor: String!, node: FeedEvent! }
+type PageInfo { endCursor: String, hasNextPage: Boolean! }
+type FeedConnection { edges: [FeedEdge!]!, pageInfo: PageInfo! }
+
+input FeedFilter {
+  entityTypes: [EntityType!]
+  topics: [String!]
+  followingOnly: Boolean
+  circleOnly: Boolean
+  mutedUserIds: [ID!]
+  visibility: [Visibility!]
+  createdAtAfter: String
+  createdAtBefore: String
+}
+
+type FeedPreferences {
+  entityTypes: [EntityType!]!
+  topics: [String!]!
+  followingOnly: Boolean!
+  circleOnly: Boolean!
+  mutedUserIds: [ID!]!
+}
+
+extend type Query {
+  getFeed(first: Int = 20, after: String, filter: FeedFilter): FeedConnection!
+  getFeedPreferences: FeedPreferences!
+  search(query: String!, entityTypes: [EntityType!], topics: [String!], first: Int = 20, after: String): FeedConnection!
+  searchSuggest(prefix: String!, limit: Int = 10): [String!]!
+  getTrending(type: TrendingType!, window: TimeWindow!, entityTypes: [EntityType!], limit: Int = 10): TrendingList!
+  isFollowing(userId: ID!): Boolean!
+  getFollowers(userId: ID!, first: Int = 20, after: String): [User!]!
+  getFollowing(userId: ID!, first: Int = 20, after: String): [User!]!
+  searchSemantic(query: String!, entityTypes: [EntityType!], first: Int = 20, after: String): FeedConnection!
+}
+
+extend type Mutation {
+  updateFeedPreferences(input: FeedFilter!): FeedPreferences!
+  followUser(followeeId: ID!): Boolean!
+  unfollowUser(followeeId: ID!): Boolean!
+  addToCloseFriends(friendId: ID!): Boolean!
+  removeFromCloseFriends(friendId: ID!): Boolean!
+}
+
+"""
+Trending types and windows
+"""
+enum TrendingType { TOPIC PLACE USER ENTITY }
+enum TimeWindow { M5 H1 D1 }
+
+type TrendingItem {
+  key: String!
+  label: String!
+  score: Float!
+  delta: Float
+}
+
+type TrendingList {
+  window: TimeWindow!
+  items: [TrendingItem!]!
 }
 
 input CreateTourInput {

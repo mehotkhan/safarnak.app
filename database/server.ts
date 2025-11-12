@@ -32,6 +32,12 @@ import {
   locations,
   places,
   thoughts,
+  feedEvents,
+  feedPreferences,
+  searchIndex,
+  followEdges,
+  closeFriends,
+  embeddingsMeta,
 } from './schema';
 
 /**
@@ -60,6 +66,12 @@ export const serverSchema = {
   locations,
   places,
   thoughts,
+  feedEvents,
+  feedPreferences,
+  searchIndex,
+  followEdges,
+  closeFriends,
+  embeddingsMeta,
 };
 
 /**
@@ -103,5 +115,11 @@ export {
   locations,
   places,
   thoughts,
+  feedEvents,
+  feedPreferences,
+  searchIndex,
+  followEdges,
+  closeFriends,
+  embeddingsMeta,
 } from './schema';
 

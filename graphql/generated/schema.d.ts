@@ -134,6 +134,24 @@ declare module '*/@graphql/deleteTour.graphql' {
 }
     
 
+declare module '*/@graphql/feedNewEvents.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const FeedNewEvents: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/followUser.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const FollowUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/getAlerts.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -147,6 +165,42 @@ declare module '*/@graphql/getBookmarks.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const GetBookmarks: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getFeed.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetFeed: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getFeedPreferences.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetFeedPreferences: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getFollowers.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetFollowers: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/getFollowing.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetFollowing: DocumentNode;
 
   export default defaultDocument;
 }
@@ -242,6 +296,15 @@ declare module '*/@graphql/getTours.graphql' {
 }
     
 
+declare module '*/@graphql/getTrending.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GetTrending: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/getTrip.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -264,6 +327,15 @@ declare module '*/@graphql/getUser.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const GetUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/isFollowing.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const IsFollowing: DocumentNode;
 
   export default defaultDocument;
 }
@@ -341,10 +413,55 @@ declare module '*/@graphql/revokeDevice.graphql' {
 }
     
 
+declare module '*/@graphql/search.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const Search: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/searchSemantic.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const SearchSemantic: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/searchSuggest.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const SearchSuggest: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/tripUpdates.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const TripUpdates: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/unfollowUser.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UnfollowUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/updateFeedPreferences.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const UpdateFeedPreferences: DocumentNode;
 
   export default defaultDocument;
 }

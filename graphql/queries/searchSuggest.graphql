@@ -1,0 +1,5 @@
+query SearchSuggest($prefix: String!, $limit: Int = 10) {
+  searchSuggest(prefix: $prefix, limit: $limit)
+}
+
+

@@ -1,0 +1,87 @@
+query GetFeed($first: Int = 20, $after: String, $filter: FeedFilter) {
+  getFeed(first: $first, after: $after, filter: $filter) {
+    edges {
+      cursor
+      node {
+        id
+        entityType
+        entityId
+        verb
+        visibility
+        topics
+        createdAt
+        actor {
+          id
+          name
+          username
+          avatar
+          createdAt
+        }
+        entity {
+          __typename
+          ... on Post {
+            id
+            userId
+            content
+            comments {
+              id
+              content
+              createdAt
+              user {
+                id
+                name
+                avatar
+              }
+            }
+            commentsCount
+            reactions {
+              id
+              emoji
+              userId
+              createdAt
+              user {
+                id
+                name
+              }
+            }
+            reactionsCount
+            createdAt
+          }
+          ... on Trip {
+            id
+            userId
+            destination
+            status
+            createdAt
+          }
+          ... on Tour {
+            id
+            title
+            category
+            price
+            createdAt
+          }
+          ... on Place {
+            id
+            name
+            type
+            location
+            createdAt
+          }
+          ... on Location {
+            id
+            name
+            country
+            createdAt
+          }
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+
+

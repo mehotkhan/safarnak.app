@@ -53,6 +53,9 @@ export const Dropdown = React.memo<DropdownProps>(({
   const [isOpen, setIsOpen] = useState(false);
 
   const _selectedOption = options.find(opt => opt.id === value);
+  const displayLabel = translationKey
+    ? (_selectedOption?.label ? (t(`${translationKey}.${_selectedOption.label}`) || _selectedOption.label) : _placeholder)
+    : (_selectedOption?.label || _placeholder);
 
   const handleSelect = (optionId: string) => {
     onChange(optionId);
@@ -78,11 +81,14 @@ export const Dropdown = React.memo<DropdownProps>(({
               color={isDark ? '#9ca3af' : '#6b7280'}
             />
           )}
+          <CustomText className="ml-2 text-sm text-gray-800 dark:text-gray-200">
+            {displayLabel}
+          </CustomText>
           <Ionicons
             name={isOpen ? 'chevron-up' : 'chevron-down'}
             size={14}
             color={isDark ? '#9ca3af' : '#6b7280'}
-            style={{ marginLeft: icon ? 4 : 0 }}
+            style={{ marginLeft: 6 }}
           />
         </TouchableOpacity>
       )}
@@ -93,7 +99,7 @@ export const Dropdown = React.memo<DropdownProps>(({
             activeOpacity={1}
             onPress={() => setIsOpen(false)}
             className="absolute -inset-96"
-            style={{ zIndex: 998 }}
+            style={{ zIndex: 10 }}
           />
           <View
             className={`absolute z-50 mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900 ${

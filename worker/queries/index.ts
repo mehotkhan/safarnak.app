@@ -14,6 +14,14 @@ import { getBookmarks } from './getBookmarks';
 import { getAlerts } from './getAlerts';
 import { checkUsernameAvailability } from './checkUsernameAvailability';
 import { getMyDevices } from './getMyDevices';
+import { getFeed } from './getFeed';
+import { getFeedPreferences } from './getFeedPreferences';
+import { search, searchSuggest } from './search';
+import { getTrending } from './getTrending';
+import { isFollowing } from './isFollowing';
+import { getFollowers } from './getFollowers';
+import { getFollowing } from './getFollowing';
+import { searchSemantic } from './searchSemantic';
 
 export const Query = {
   getMessages,
@@ -33,7 +41,16 @@ export const Query = {
   getAlerts,
   checkUsernameAvailability,
   getMyDevices,
+  getFeed,
+  getFeedPreferences,
+  search,
+  searchSuggest,
+  getTrending,
+  isFollowing,
+  getFollowers,
+  getFollowing,
+  searchSemantic,
 };
 
 // Re-export individual resolvers
-export { getMessages, me, getUser, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getLocations, getLocation, getPosts, getPost, getBookmarks, getAlerts, checkUsernameAvailability, getMyDevices };
+export { getMessages, me, getUser, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getLocations, getLocation, getPosts, getPost, getBookmarks, getAlerts, checkUsernameAvailability, getMyDevices, getFeed, getFeedPreferences, search, searchSuggest, getTrending, isFollowing, getFollowers, getFollowing, searchSemantic };

@@ -15,12 +15,9 @@ import { EmptyState } from '@ui/feedback';
 import { FeedItem } from '@ui/cards';
 import { useTheme } from '@ui/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
-import { useGetPostsQuery, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation } from '@api';
-import { ShareModal } from '@ui/modals';
+import { useGetFeedQuery, useFeedNewEventsSubscription, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation } from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useRefresh } from '@hooks/useRefresh';
-import { useInfiniteScroll } from '@hooks/useInfiniteScroll';
-import { TabBar } from '@ui/layout';
 import { Dropdown } from '@ui/forms';
 import { useDateTime } from '@hooks/useDateTime';
 
@@ -48,61 +45,124 @@ export default function HomeScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
   const { user } = useAppSelector(state => state.auth);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTab, setSelectedTab] = useState('all');
   const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
   const limit = 20;
 
-  const [showShareModal, setShowShareModal] = useState(false);
-
-  const handleCreatePost = () => {
-    setShowShareModal(true);
-  };
+  const [newItemsCount, setNewItemsCount] = useState(0);
+  const [queuedEvents, setQueuedEvents] = useState<any[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const { isOnline, isBackendReachable } = useSystemStatus();
   const { getNow } = useDateTime();
+  const [filterBounds, setFilterBounds] = useState<{ after?: string; before?: string }>({ after: undefined, before: undefined });
   
   // Show offline icon if offline OR backend unreachable
   const isOffline = !isOnline || !isBackendReachable;
 
-  // Calculate date filter based on time filter
-  const getDateFilter = useCallback(() => {
-    if (selectedTimeFilter === 'all') return { after: undefined, before: undefined };
+  // Compute stable time window bounds only when selection changes
+  useEffect(() => {
     const filter = timeFilters.find(f => f.id === selectedTimeFilter);
-    if (!filter || !filter.days) return { after: undefined, before: undefined };
-    
-    const now = getNow();
-    const after = now.minus({ days: filter.days });
-    return {
-      after: after.toISO(),
-      before: undefined,
-    };
-  }, [selectedTimeFilter, getNow]);
+    if (!filter || !filter.days) {
+      setFilterBounds({ after: undefined, before: undefined });
+      return;
+    }
+    const now = getNow(); // capture once
+    const afterIso = now.minus({ days: filter.days }).toISO() || undefined;
+    setFilterBounds({ after: afterIso, before: undefined });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTimeFilter]);
 
-  // Determine post type based on selected tab
-  const getPostType = useCallback(() => {
-    if (selectedTab === 'tours') return 'tour';
-    if (selectedTab === 'places') return 'place';
-    // For 'all' tab, use category filter if selected
-    if (selectedCategory === 'trips') return 'trip';
-    // For 'all' tab with no category or other categories (food, culture), show all
-    return undefined;
-  }, [selectedTab, selectedCategory]);
-
-  const dateFilter = getDateFilter();
-  const postType = getPostType();
-
-  const { data, loading, error, refetch, fetchMore } = useGetPostsQuery({
+  const { data, loading, error, refetch, fetchMore } = useGetFeedQuery({
     variables: {
-      type: postType,
-      limit,
-      offset: 0,
-      after: dateFilter.after,
-      before: dateFilter.before,
+      first: limit,
+      after: undefined,
+      filter: {
+        entityTypes: ['POST'] as any,
+        createdAtAfter: filterBounds.after,
+        createdAtBefore: filterBounds.before,
+      },
     },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
-  });
+  } as any);
+
+  // Reset list when filter changes and refetch
+  useEffect(() => {
+    setItems([]);
+    setEndCursor(undefined);
+    setHasNextPage(false);
+    refetch({
+      first: limit,
+      after: undefined,
+      filter: {
+        entityTypes: ['POST'] as any,
+        createdAtAfter: filterBounds.after,
+        createdAtBefore: filterBounds.before,
+      },
+    } as any);
+  }, [filterBounds.after, filterBounds.before, refetch]);
+
+  // Initialize list from connection
+  useEffect(() => {
+    const edges = (data as any)?.getFeed?.edges || [];
+    const initial = edges
+      .map((e: any) => e?.node)
+      .filter(Boolean)
+      .filter((n: any) => n.entityType === 'POST')
+      .map((n: any) => {
+        const ent = n.entity || {};
+        const actor = n.actor || {};
+        return {
+          ...ent,
+          id: ent.id,
+          userId: ent.userId,
+          content: ent.content,
+          comments: ent.comments || [],
+          commentsCount: ent.commentsCount || 0,
+          reactions: ent.reactions || [],
+          reactionsCount: ent.reactionsCount || 0,
+          createdAt: ent.createdAt,
+          user: {
+            id: actor.id,
+            name: actor.name,
+            username: actor.username,
+            avatar: actor.avatar,
+            createdAt: actor.createdAt,
+          },
+        };
+      });
+    if (initial.length || (data as any)?.getFeed) {
+      setItems(initial);
+      setEndCursor((data as any)?.getFeed?.pageInfo?.endCursor);
+      setHasNextPage(Boolean((data as any)?.getFeed?.pageInfo?.hasNextPage));
+    }
+  }, [data]);
+
+  // Subscribe and queue up to 50 new events; cap banner at 9+
+  useFeedNewEventsSubscription({
+    variables: { filter: { entityTypes: ['POST'] as any } },
+    onData: ({ data }: { data?: any }) => {
+      try {
+        const incoming = (data?.data as any)?.feedNewEvents || [];
+        if (!Array.isArray(incoming) || incoming.length === 0) return;
+        setQueuedEvents((prev) => {
+          const existingIds = new Set(items.map((p) => p.id));
+          const queuedIds = new Set(prev.map((ev) => ev.entityId));
+          const add = incoming.filter(
+            (ev: any) => ev.entityType === 'POST' && !existingIds.has(ev.entityId) && !queuedIds.has(ev.entityId)
+          );
+          const merged = [...prev, ...add];
+          setNewItemsCount(Math.min(9, merged.length));
+          return merged.slice(-50);
+        });
+      } catch {
+        // ignore
+      }
+    },
+  } as any);
 
   const [createReaction] = useCreateReactionMutation({
     refetchQueries: [GetPostsDocument],
@@ -118,39 +178,91 @@ export default function HomeScreen() {
     },
   });
 
-  const posts = useMemo(() => {
-    return data?.getPosts?.posts || [];
-  }, [data]);
-
   // Use refresh hook
   const { refreshing, onRefresh } = useRefresh(async () => {
-      await refetch();
+    await refetch();
   });
 
-  // Use infinite scroll hook
-  const { loadMore, reset } = useInfiniteScroll({
-    limit,
-    hasNextPage: data?.getPosts?.hasNextPage || false,
-    loading,
-    fetchMore,
-    getVariables: (newOffset) => ({
-        type: postType,
-        limit,
-        offset: newOffset,
-        after: dateFilter.after,
-        before: dateFilter.before,
-    }),
-    });
-
-  // Reset offset when category, tab, or time filter changes
-  useEffect(() => {
-    reset();
-  }, [selectedCategory, selectedTab, selectedTimeFilter, reset]);
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasNextPage || !endCursor) return;
+    try {
+      setLoadingMore(true);
+      const res = await fetchMore({
+        variables: {
+          first: limit,
+          after: endCursor,
+          filter: {
+            entityTypes: ['POST'] as any,
+            createdAtAfter: filterBounds.after,
+            createdAtBefore: filterBounds.before,
+          },
+        },
+      } as any);
+      const edges = (res?.data as any)?.getFeed?.edges || [];
+      const next = edges
+        .map((e: any) => e?.node)
+        .filter(Boolean)
+        .filter((n: any) => n.entityType === 'POST')
+        .map((n: any) => {
+          const ent = n.entity || {};
+          return {
+            ...ent,
+            id: ent.id,
+            userId: ent.userId,
+            content: ent.content,
+            createdAt: ent.createdAt,
+          };
+        });
+      if (next.length) {
+        setItems((prev) => [...prev, ...next]);
+      }
+      setEndCursor((res?.data as any)?.getFeed?.pageInfo?.endCursor);
+      setHasNextPage(Boolean((res?.data as any)?.getFeed?.pageInfo?.hasNextPage));
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [fetchMore, endCursor, hasNextPage, loadingMore]);
 
   const handleRefresh = useCallback(async () => {
-    reset();
     await onRefresh();
-  }, [onRefresh, reset]);
+  }, [onRefresh]);
+
+  const handleShowNew = useCallback(() => {
+    setQueuedEvents((prev) => {
+      const take = prev.slice(0, 3);
+      const rest = prev.slice(3);
+      const mapped = take.map((n: any) => {
+        const ent = n.entity || {};
+        const actor = n.actor || {};
+        return {
+          ...ent,
+          id: ent.id,
+          userId: ent.userId,
+          content: ent.content,
+          comments: ent.comments || [],
+          commentsCount: ent.commentsCount || 0,
+          reactions: ent.reactions || [],
+          reactionsCount: ent.reactionsCount || 0,
+          createdAt: ent.createdAt,
+          user: {
+            id: actor.id,
+            name: actor.name,
+            username: actor.username,
+            avatar: actor.avatar,
+            createdAt: actor.createdAt,
+          },
+        };
+      });
+      setItems((cur) => {
+        const ids = new Set(cur.map((p) => p.id));
+        const toPrepend = mapped.filter((m) => !ids.has(m.id));
+        return [...toPrepend, ...cur];
+      });
+      const remaining = Math.min(9, rest.length);
+      setNewItemsCount(remaining);
+      return rest;
+    });
+  }, []);
 
   const handleLike = useCallback(async (postId: string, currentReactions: any[] = []) => {
     if (!user?.id) return;
@@ -192,7 +304,11 @@ export default function HomeScreen() {
   };
 
   const handleUserPress = (userId: string) => {
-    router.push(`/(app)/(explore)/users/${userId}` as any);
+    // Switch to Explore tab first, then push user profile to maintain healthy history stack
+    router.push('/(app)/(explore)' as any);
+    setTimeout(() => {
+      router.push(`/(app)/(explore)/users/${userId}` as any);
+    }, 0);
   };
 
   const handlePostPress = (item: any) => {
@@ -230,7 +346,7 @@ export default function HomeScreen() {
 
   const handleEdit = useCallback((postId: string) => {
     // Navigate to edit page based on post type
-    const post = posts.find((p: any) => p.id === postId);
+    const post = items.find((p: any) => p.id === postId);
     if (!post) return;
 
     if (post.type === 'trip') {
@@ -243,20 +359,20 @@ export default function HomeScreen() {
       // For normal posts, navigate to post detail page
       router.push(`/(app)/(feed)/${postId}` as any);
     }
-  }, [posts, router]);
+  }, [items, router]);
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <Stack.Screen options={{ title: t('home.title'), headerShown: false }} />
       
       {/* Header with Logo - Compact */}
-      <View className="px-4 pt-10 pb-2 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
+      <View className="px-4 pt-12 pb-2 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
         <View className="flex-row items-center justify-between mb-2">
           <CustomText weight="bold" className="text-xl text-black dark:text-white">
             {t('common.appName')}
           </CustomText>
           <View className="flex-row items-center gap-2">
-            {/* Time Filter Dropdown */}
+            {/* Timeline Filter */}
             <Dropdown
               options={timeFilters.map(f => ({ id: f.id, label: f.label }))}
               value={selectedTimeFilter}
@@ -264,6 +380,19 @@ export default function HomeScreen() {
               icon="time-outline"
               translationKey="feed.timeFilters"
             />
+
+            {/* Customize Feed Preferences */}
+            <TouchableOpacity
+              className="w-9 h-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
+              onPress={() => router.push('/(app)/(profile)/settings/preferences' as any)}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="options-outline"
+                size={20}
+                color={isDark ? '#9ca3af' : '#6b7280'}
+              />
+            </TouchableOpacity>
 
             {/* Messages Icon */}
             <TouchableOpacity
@@ -273,7 +402,7 @@ export default function HomeScreen() {
             >
               <Ionicons
                 name="chatbubbles"
-                size={18}
+                size={20}
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
               {/* Connection Status Badge */}
@@ -286,72 +415,28 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Feed Tabs and Categories - Compact, Single Row */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="flex-row"
-          contentContainerStyle={{ paddingLeft: 0, paddingRight: 0 }}
-        >
-          <TabBar
-            tabs={feedTabs}
-            activeTab={selectedTab}
-            onTabChange={(tabId) => {
-              setSelectedTab(tabId);
-                // Reset category when switching tabs (categories only work with 'all' tab)
-              if (tabId !== 'all') {
-                  setSelectedCategory(null);
-                }
-              }}
-            variant="scrollable"
-          />
-
-          {/* Category Pills - Only show when "All" tab is selected, inline with tabs */}
-          {selectedTab === 'all' &&
-            categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                onPress={() =>
-                  setSelectedCategory(
-                    selectedCategory === category.id ? null : category.id
-                  )
-                }
-                className={`flex-row items-center px-3 py-1.5 rounded-full mr-2 ${
-                  selectedCategory === category.id
-                    ? 'bg-primary'
-                    : 'bg-gray-100 dark:bg-neutral-800'
-                }`}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={category.icon as any}
-                  size={14}
-                  color={
-                    selectedCategory === category.id
-                      ? '#fff'
-                      : isDark
-                        ? '#9ca3af'
-                        : '#6b7280'
-                  }
-                />
-                <CustomText
-                  weight={selectedCategory === category.id ? 'bold' : 'regular'}
-                  className={`ml-1.5 text-xs ${
-                    selectedCategory === category.id
-                      ? 'text-white'
-                      : 'text-gray-700 dark:text-gray-300'
-                  }`}
-                >
-                  {t(`explore.categories.${category.label}`)}
-                </CustomText>
-              </TouchableOpacity>
-            ))}
-        </ScrollView>
+        {/* Clean header - removed custom tabs and categories */}
       </View>
+
+      {/* New items banner */}
+      {newItemsCount > 0 && (
+        <TouchableOpacity
+          onPress={handleShowNew}
+          activeOpacity={0.8}
+          className="mx-4 mt-3 mb-1 rounded-full bg-primary items-center justify-center"
+          style={{ paddingVertical: 8 }}
+        >
+          <CustomText weight="bold" className="text-white">
+            {newItemsCount > 3
+              ? `Show 3 new (${newItemsCount > 9 ? '9+' : newItemsCount})`
+              : `Show ${newItemsCount} new`}
+          </CustomText>
+        </TouchableOpacity>
+      )}
 
       {/* Feed */}
       <FlatList
-        data={posts}
+        data={items}
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <FeedItem
@@ -399,28 +484,7 @@ export default function HomeScreen() {
         }
       />
 
-      {/* Create Post FAB - Simple button, no expansion */}
-              <TouchableOpacity
-                onPress={handleCreatePost}
-        className="absolute bottom-6 right-6 w-14 h-14 items-center justify-center rounded-full bg-primary shadow-lg"
-              style={{
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.3,
-          shadowRadius: 4.65,
-          elevation: 8,
-          zIndex: 999,
-        }}
-                activeOpacity={0.8}
-              >
-        <Ionicons name="create-outline" size={28} color="#fff" />
-              </TouchableOpacity>
-
-      {/* Share Modal for creating normal posts */}
-      <ShareModal
-        visible={showShareModal}
-        onClose={() => setShowShareModal(false)}
-      />
+      {/* Clean design: removed add post button and share modal on home */}
     </View>
   );
 }
