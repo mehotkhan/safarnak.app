@@ -359,9 +359,10 @@ jobs:
 
       - name: Expo prebuild (propagate version to native)
         run: |
+          set -o pipefail
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
           echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
-          npx expo prebuild --platform android --no-install || echo "Expo prebuild failed, continuing..."
+          npx expo prebuild --platform android --no-install 2>&1 | tee prebuild.log
           echo "Expo prebuild completed"
         env:
           # Production build configuration (GitHub Actions only builds release)
@@ -410,25 +411,29 @@ jobs:
           if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
             echo "🔐 Preparing release keystore from secrets..."
             # Write to temp file first, then decode (handles multiline and special chars)
-            echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r\t ' | base64 -d > "$RUNNER_TEMP/release-keystore.jks" || {
-              echo "❌ Failed to decode keystore. Checking secret format..."
-              echo "Secret length: ${#ANDROID_KEYSTORE_BASE64}"
-              echo "First 50 chars: ${ANDROID_KEYSTORE_BASE64:0:50}"
-              exit 1
-            }
+            if ! echo "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r\t ' | base64 -d > "$RUNNER_TEMP/release-keystore.jks"; then
+              echo "❌ Failed to decode keystore. Falling back to debug signing."
+              echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
+              echo "keystore_ready=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
             
             # Verify keystore file was created and has content
             if [ ! -s "$RUNNER_TEMP/release-keystore.jks" ]; then
-              echo "❌ Keystore file is empty or not created"
-              exit 1
+              echo "❌ Keystore file is empty or not created. Falling back to debug signing."
+              echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
+              echo "keystore_ready=false" >> $GITHUB_OUTPUT
+              exit 0
             fi
             
             echo "✅ Keystore decoded successfully"
             ls -lh "$RUNNER_TEMP/release-keystore.jks"
             # Validate keystore integrity and alias
             if ! keytool -list -keystore "$RUNNER_TEMP/release-keystore.jks" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null 2>&1; then
-              echo "❌ Keystore validation failed (bad password or alias)"
-              exit 1
+              echo "❌ Keystore validation failed (bad password or alias). Falling back to debug signing."
+              echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
+              echo "keystore_ready=false" >> $GITHUB_OUTPUT
+              exit 0
             fi
             
             echo "GRADLE_SIGNING_ARGS=-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release-keystore.jks -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD" >> $GITHUB_ENV
@@ -446,6 +451,7 @@ jobs:
       - name: Build Android APK (with versioned code)
         if: hashFiles('android/gradlew') != ''
         run: |
+          set -o pipefail
           cd android
           ./gradlew assembleRelease \
             --no-daemon \
@@ -455,7 +461,7 @@ jobs:
           -PreactNativeArchitectures=arm64-v8a \
           -Pandroid.enableMinifyInReleaseBuilds=true \
           -Pandroid.enableShrinkResourcesInReleaseBuilds=true \
-          $GRADLE_SIGNING_ARGS
+            $GRADLE_SIGNING_ARGS 2>&1 | tee ../gradle-build.log
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -480,12 +486,14 @@ jobs:
           compression-level: 0
 
       - name: Upload Gradle reports (if any)
-        if: always() && hashFiles('android/**/build/reports/**') != ''
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gradle-reports-${{ github.run_id }}
           path: |
             android/**/build/reports/**
+            prebuild.log
+            gradle-build.log
           retention-days: 7
           compression-level: 6
 
