@@ -399,6 +399,27 @@ jobs:
           add-job-summary: never
         continue-on-error: true
 
+      - name: Prepare release keystore (optional)
+        id: prepare_keystore
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "${ANDROID_KEYSTORE_BASE64:-}" ] && [ -n "${ANDROID_KEY_ALIAS:-}" ] && [ -n "${ANDROID_KEYSTORE_PASSWORD:-}" ] && [ -n "${ANDROID_KEY_PASSWORD:-}" ]; then
+            echo "🔐 Preparing release keystore from secrets..."
+            echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > $RUNNER_TEMP/release-keystore.jks
+            echo "GRADLE_SIGNING_ARGS=-Pandroid.injected.signing.store.file=$RUNNER_TEMP/release-keystore.jks -Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD -Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS -Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD" >> $GITHUB_ENV
+            echo "keystore_ready=true" >> $GITHUB_OUTPUT
+            ls -lh $RUNNER_TEMP/release-keystore.jks || true
+          else
+            echo "ℹ️  No keystore secrets found; build will use debug signing for release artifact."
+            echo "GRADLE_SIGNING_ARGS=" >> $GITHUB_ENV
+            echo "keystore_ready=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
 
@@ -411,7 +432,7 @@ jobs:
             --stacktrace \
             -x lint \
             -x test \
-            -PreactNativeArchitectures=arm64-v8a
+            -PreactNativeArchitectures=arm64-v8a $GRADLE_SIGNING_ARGS
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
@@ -425,6 +446,15 @@ jobs:
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
           # Mapbox removed
+
+      - name: Upload R8 mapping.txt (for deobfuscation)
+        if: steps.version_changed.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mapping-v${{ steps.version_code.outputs.version }}
+          path: android/app/build/outputs/mapping/release/mapping.txt
+          retention-days: 30
+          compression-level: 0
 
       - name: List APK files
         if: steps.version_changed.outputs.changed == 'true'

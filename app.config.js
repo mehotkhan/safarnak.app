@@ -129,6 +129,16 @@ const getAppConfig = () => {
             isAndroidBackgroundLocationEnabled: true,
           },
         ],
+        [
+          'expo-build-properties',
+          {
+            android: {
+              enableProguardInReleaseBuilds: true,
+              enableShrinkResourcesInReleaseBuilds: true,
+              abiFilters: ['arm64-v8a'],
+            },
+          },
+        ],
       ],
       experiments: {
         typedRoutes: true,

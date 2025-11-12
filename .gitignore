@@ -1,3 +1,11 @@
+android/app/debug.keystore
+android/app/build/
+android/build/
+android/
+.expo/
+node_modules/.cache/
+.keystore/
+
 # ============================================================================
 # Safarnak App - Unified Monorepo .gitignore
 # ============================================================================
