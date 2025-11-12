@@ -398,7 +398,7 @@ jobs:
           add-job-summary: never
         continue-on-error: true
 
-    - name: Prepare release keystore (optional)
+      - name: Prepare release keystore (optional)
       id: prepare_keystore
       shell: bash
       env:
@@ -439,11 +439,11 @@ jobs:
           echo "keystore_ready=false" >> $GITHUB_OUTPUT
         fi
 
-    - name: Make Gradle wrapper executable
+      - name: Make Gradle wrapper executable
       if: hashFiles('android/gradlew') != ''
       run: chmod +x android/gradlew
 
-    - name: Build Android APK (with versioned code)
+      - name: Build Android APK (with versioned code)
       if: hashFiles('android/gradlew') != ''
       run: |
         cd android
@@ -467,7 +467,7 @@ jobs:
         REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
         # Mapbox removed
 
-    - name: Upload R8 mapping.txt (for deobfuscation)
+      - name: Upload R8 mapping.txt (for deobfuscation)
       if: hashFiles('android/app/build/outputs/mapping/release/mapping.txt') != ''
       uses: actions/upload-artifact@v4
       with:
@@ -476,7 +476,7 @@ jobs:
         retention-days: 30
         compression-level: 0
 
-    - name: List APK files
+      - name: List APK files
       if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
       working-directory: android/app/build/outputs/apk/release
       run: |
@@ -496,7 +496,7 @@ jobs:
           echo "✅ APK files found successfully"
         fi
 
-    - name: Rename APK with descriptive name
+      - name: Rename APK with descriptive name
       if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
       run: |
           cd android/app/build/outputs/apk/release
@@ -531,7 +531,7 @@ jobs:
             exit 1
           fi
 
-    - name: Verify APK file before upload
+      - name: Verify APK file before upload
       if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
       run: |
           APK_PATH="android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk"
@@ -548,7 +548,7 @@ jobs:
             exit 1
           fi
 
-    - name: Upload APK artifact
+      - name: Upload APK artifact
       if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
       uses: actions/upload-artifact@v4
       with:
@@ -557,7 +557,7 @@ jobs:
         retention-days: 30
         compression-level: 0
         
-    - name: Generate commit list for release notes
+      - name: Generate commit list for release notes
       if: steps.version_changed.outputs.changed == 'true'
       id: commits
       run: |
@@ -591,7 +591,7 @@ jobs:
           echo "$COMMITS" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: Commit version bump if changed
+      - name: Commit version bump if changed
       if: steps.version_changed.outputs.changed == 'true'
       run: |
           git config user.name "github-actions[bot]"
@@ -600,7 +600,7 @@ jobs:
           git commit -m "chore: bump version to ${{ steps.version_code.outputs.version }} [skip ci]" || echo "No changes to commit"
           git push origin HEAD || echo "Push failed or unnecessary"
 
-    - name: Create GitHub Release with APK
+      - name: Create GitHub Release with APK
       if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
       uses: softprops/action-gh-release@v2
       with:
@@ -636,7 +636,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Cleanup Gradle cache
+      - name: Cleanup Gradle cache
       if: always() && hashFiles('android/gradlew') != ''
       working-directory: android
       run: |
