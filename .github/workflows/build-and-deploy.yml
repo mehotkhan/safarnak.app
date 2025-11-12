@@ -358,7 +358,6 @@ jobs:
           echo "📱 Version: $VERSION → Version Code: $VERSION_CODE"
 
       - name: Expo prebuild (propagate version to native)
-        if: steps.version_changed.outputs.changed == 'true'
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
           echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
@@ -421,10 +420,11 @@ jobs:
           fi
 
       - name: Make Gradle wrapper executable
+        if: hashFiles('android/gradlew') != ''
         run: chmod +x android/gradlew
 
       - name: Build Android APK (with versioned code)
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/gradlew') != ''
         run: |
           cd android
           ./gradlew assembleRelease \
@@ -448,7 +448,7 @@ jobs:
           # Mapbox removed
 
       - name: Upload R8 mapping.txt (for deobfuscation)
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/app/build/outputs/mapping/release/mapping.txt') != ''
         uses: actions/upload-artifact@v4
         with:
           name: mapping-v${{ steps.version_code.outputs.version }}
@@ -457,7 +457,7 @@ jobs:
           compression-level: 0
 
       - name: List APK files
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
         working-directory: android/app/build/outputs/apk/release
         run: |
           echo "=== Generated APK files ==="
@@ -477,7 +477,7 @@ jobs:
           fi
 
       - name: Rename APK with descriptive name
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
         run: |
           cd android/app/build/outputs/apk/release
           echo "=== Renaming APK file ==="
@@ -512,7 +512,7 @@ jobs:
           fi
 
       - name: Verify APK file before upload
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
         run: |
           APK_PATH="android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk"
           echo "Checking APK file: $APK_PATH"
@@ -529,7 +529,7 @@ jobs:
           fi
 
       - name: Upload APK artifact
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
         uses: actions/upload-artifact@v4
         with:
           name: safarnak-android-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
@@ -581,7 +581,7 @@ jobs:
           git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
-        if: steps.version_changed.outputs.changed == 'true'
+        if: hashFiles('android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk') != ''
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.version_code.outputs.version }}
@@ -617,7 +617,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Cleanup Gradle cache
-        if: always()
+        if: always() && hashFiles('android/gradlew') != ''
         working-directory: android
         run: |
           ./gradlew --stop || true
