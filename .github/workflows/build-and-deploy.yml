@@ -361,7 +361,7 @@ jobs:
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
           echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
-          npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
+          npx expo prebuild --platform android --no-install || echo "Expo prebuild failed, continuing..."
           echo "Expo prebuild completed"
         env:
           # Production build configuration (GitHub Actions only builds release)
