@@ -149,6 +149,24 @@ const getAppConfig = () => {
                 'expo.gif.enabled': 'false',
                 'expo.webp.enabled': 'false',
                 'expo.webp.animated': 'false',
+                // ====================================
+                // HERMES OPTIMIZATIONS
+                // ====================================
+                // Enable Hermes with aggressive optimizations
+                'hermesEnabled': 'true',
+                // Disable source maps in production (saves ~2-3MB)
+                'bundleInDebug': 'false',
+                'bundleInRelease': 'true',
+                'deleteDebugFilesForVariant': 'release',
+                // Hermes bytecode optimization flags
+                'hermes.bytecode.optimize': 'true',
+                'hermes.bytecode.stripDebugInfo': 'true',
+                // Disable React DevTools in release
+                'reactNativeDevtools': 'false',
+                // Additional size optimizations
+                'android.enableR8.fullMode': 'true',
+                'android.enableResourceOptimizations': 'true',
+                'android.useDeprecatedNdk': 'false',
               },
             },
           },

@@ -30,7 +30,8 @@
         "EXPO_PUBLIC_GRAPHQL_URL": "https://safarnak.app/graphql",
         "GRAPHQL_URL": "https://safarnak.app/graphql",
         "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql",
-        "BUNDLE_IDENTIFIER": "ir.mohet.safarnak"
+        "BUNDLE_IDENTIFIER": "ir.mohet.safarnak",
+        "NODE_ENV": "production"
       }
     },
     "preview": {
