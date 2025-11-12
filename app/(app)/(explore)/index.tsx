@@ -297,7 +297,7 @@ export default function ExploreScreen() {
       default:
         return [];
     }
-  }, [activeTab, filteredTours, filteredPlaces, filteredPosts]);
+  }, [activeTab, filteredTours, filteredPlaces, filteredPosts, debouncedSearch, globalSearchData?.search?.edges]);
 
   // Render content based on active tab
   const renderContent = () => {

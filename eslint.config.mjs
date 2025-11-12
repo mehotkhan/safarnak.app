@@ -30,7 +30,11 @@ export default [
       'db-manager.js',
       'scripts/**',
       'client/.expo/**',
-      'Template/**'
+      'Template/**',
+      // Generated files
+      'api/hooks.ts',
+      'api/types.ts',
+      'graphql/generated/**'
     ],
   },
 

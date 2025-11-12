@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, ScrollView, TouchableOpacity, Alert, Switch } from 'react-native';
 import { useNavigation } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -69,15 +69,15 @@ export default function PreferencesScreen() {
     );
   }, [origSnapshot, fpEntityTypes, fpTopics, fpFollowingOnly, fpCircleOnly, fpMutedUserIds]);
 
-  const resetToDefaults = () => {
+  const resetToDefaults = useCallback(() => {
     setFpEntityTypes(['POST','TRIP','TOUR','PLACE','LOCATION']);
     setFpTopics([]);
     setFpFollowingOnly(false);
     setFpCircleOnly(false);
     setFpMutedUserIds([]);
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     try {
       setLoading(true);
       await updateFeedPrefs({
@@ -102,7 +102,7 @@ export default function PreferencesScreen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [updateFeedPrefs, fpEntityTypes, fpTopics, fpFollowingOnly, fpCircleOnly, fpMutedUserIds, refetchFeedPrefs, t]);
 
   // Move actions to header: Reset defaults + Save
   useEffect(() => {

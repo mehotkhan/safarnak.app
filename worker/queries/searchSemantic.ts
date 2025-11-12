@@ -2,18 +2,6 @@ import type { GraphQLContext, Env } from '../types';
 import { getServerDB, posts, trips, tours, places, locations, users } from '@database/server';
 import { eq } from 'drizzle-orm';
 
-function parseCursor(after?: string): { createdAt?: string; id?: string } {
-  if (!after) return {};
-  try {
-    const decoded = typeof atob === 'function' ? atob(after) : after;
-    const [createdAt, id] = decoded.split('|');
-    if (createdAt && id) return { createdAt, id };
-  } catch {
-    /* no-op: invalid cursor */
-  }
-  return {};
-}
-
 function toCursor(createdAt: string, id: string): string {
   const s = `${createdAt}|${id}`;
   return typeof btoa === 'function' ? btoa(s) : s;
@@ -31,7 +19,7 @@ async function embedQuery(env: Env, query: string): Promise<number[]> {
 
 export const searchSemantic = async (
   _parent: unknown,
-  { query, entityTypes, first = 20, after }: { query: string; entityTypes?: string[]; first?: number; after?: string },
+  { query, entityTypes, first = 20, after: _after }: { query: string; entityTypes?: string[]; first?: number; after?: string },
   context: GraphQLContext
 ) => {
   const db = getServerDB(context.env.DB);

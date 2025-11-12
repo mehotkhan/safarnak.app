@@ -136,7 +136,7 @@ export default function UserProfileScreen() {
       }
       // Refresh counts/state
       await Promise.all([refetchFollowers(), refetchIsFollowing()]);
-    } catch (e) {
+    } catch (_e) {
       // revert on failure
       setIsFollowing((prev) => !prev);
     }

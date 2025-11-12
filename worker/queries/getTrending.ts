@@ -1,6 +1,6 @@
 import { getServerDB, feedEvents } from '@database/server';
 import type { GraphQLContext } from '../types';
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import { readTopList } from '../utilities/trending';
 
 type TrendingType = 'TOPIC' | 'PLACE' | 'USER' | 'ENTITY';

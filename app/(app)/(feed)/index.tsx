@@ -1,7 +1,6 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import {
   View,
-  ScrollView,
   TouchableOpacity,
   FlatList,
 } from 'react-native';
@@ -21,23 +20,11 @@ import { useRefresh } from '@hooks/useRefresh';
 import { Dropdown } from '@ui/forms';
 import { useDateTime } from '@hooks/useDateTime';
 
-const categories = [
-  { id: 'trips', label: 'trips', icon: 'airplane-outline' },
-  { id: 'food', label: 'food', icon: 'restaurant-outline' },
-  { id: 'culture', label: 'culture', icon: 'color-palette-outline' },
-];
-
 const timeFilters = [
   { id: 'all', label: 'allTime', days: null },
   { id: 'today', label: 'today', days: 1 },
   { id: 'week', label: 'thisWeek', days: 7 },
   { id: 'month', label: 'thisMonth', days: 30 },
-];
-
-const feedTabs = [
-  { id: 'all', label: 'all', icon: 'grid-outline' },
-  { id: 'tours', label: 'tours', icon: 'map-outline' },
-  { id: 'places', label: 'places', icon: 'location-outline' },
 ];
 
 export default function HomeScreen() {
@@ -49,7 +36,7 @@ export default function HomeScreen() {
   const limit = 20;
 
   const [newItemsCount, setNewItemsCount] = useState(0);
-  const [queuedEvents, setQueuedEvents] = useState<any[]>([]);
+  const [, setQueuedEvents] = useState<any[]>([]);
   const [items, setItems] = useState<any[]>([]);
   const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
   const [hasNextPage, setHasNextPage] = useState<boolean>(false);
@@ -221,7 +208,7 @@ export default function HomeScreen() {
     } finally {
       setLoadingMore(false);
     }
-  }, [fetchMore, endCursor, hasNextPage, loadingMore]);
+  }, [fetchMore, endCursor, hasNextPage, loadingMore, filterBounds.after, filterBounds.before]);
 
   const handleRefresh = useCallback(async () => {
     await onRefresh();
