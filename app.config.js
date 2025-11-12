@@ -136,6 +136,12 @@ const getAppConfig = () => {
               enableProguardInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
+              // Ensure code shrinking is enabled when resource shrinking is on (fixes Gradle error)
+              // and enforce v8-only builds by default at the Gradle level.
+              gradleProperties: {
+                'android.enableMinifyInReleaseBuilds': 'true',
+                'reactNativeArchitectures': 'arm64-v8a',
+              },
             },
           },
         ],
