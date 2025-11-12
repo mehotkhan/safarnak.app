@@ -452,7 +452,10 @@ jobs:
             --stacktrace \
             -x lint \
             -x test \
-            -PreactNativeArchitectures=arm64-v8a $GRADLE_SIGNING_ARGS
+          -PreactNativeArchitectures=arm64-v8a \
+          -Pandroid.enableMinifyInReleaseBuilds=true \
+          -Pandroid.enableShrinkResourcesInReleaseBuilds=true \
+          $GRADLE_SIGNING_ARGS
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
