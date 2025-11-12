@@ -479,6 +479,25 @@ jobs:
           retention-days: 30
           compression-level: 0
 
+      - name: Upload Gradle reports (if any)
+        if: always() && hashFiles('android/**/build/reports/**') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-reports-${{ github.run_id }}
+          path: |
+            android/**/build/reports/**
+          retention-days: 7
+          compression-level: 6
+
+      - name: Upload Gradle problems report (if present)
+        if: always() && hashFiles('android/build/reports/problems/problems-report.html') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-problems-report-${{ github.run_id }}
+          path: android/build/reports/problems/problems-report.html
+          retention-days: 7
+          compression-level: 0
+
       - name: List APK files
         if: hashFiles('android/app/build/outputs/apk/release/*.apk') != ''
         working-directory: android/app/build/outputs/apk/release
