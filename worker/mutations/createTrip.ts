@@ -6,6 +6,7 @@ import { eq } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
 import { enqueueEmbeddingJob } from '../utilities/embeddings';
+import { createTripAI } from '../utilities/ai';
 
 interface CreateTripInput {
   destination?: string;
@@ -44,30 +45,79 @@ export const createTrip = async (
     throw new Error('Number of travelers must be at least 1');
   }
 
-  // Generate AI reasoning and itinerary (mock for now)
-  const aiReasoning = `Based on your preferences for ${description || 'general travel'}, I've designed a trip to ${destination || 'your chosen destination'} that balances culture, activities, and relaxation.`;
+  // Generate AI-powered trip using Cloudflare Workers AI
+  let aiReasoning: string;
+  let itineraryData: any[];
+  let coordinatesData: any;
+  let waypoints: any[];
   
-  const mockItinerary = [
-    {
-      day: 1,
-      title: 'Arrival & Exploration',
-      activities: ['Check into accommodation', 'Local orientation walk', 'Welcome dinner'],
-    },
-    {
-      day: 2,
-      title: 'Main Attractions',
-      activities: ['Visit top landmarks', 'Cultural experience', 'Local cuisine tasting'],
-    },
-  ];
-
-  // Mock coordinates (would be fetched from geocoding API)
-  const mockCoordinates = {
-    latitude: 35.6762,
-    longitude: 139.6503,
-  };
-
-  // Generate waypoints for the trip route
-  const waypoints = generateWaypointsForDestination(destination);
+  try {
+    const ai = createTripAI(context.env);
+    
+    // Step 1: Analyze preferences
+    console.log('Starting AI trip generation...');
+    const analysis = await ai.analyzePreferences({
+      destination,
+      preferences: description,
+      budget: input.budget,
+      travelers,
+      startDate: input.startDate,
+      endDate: input.endDate,
+      accommodation,
+    });
+    
+    // Step 2: Generate itinerary
+    const itinerary = await ai.generateItinerary(
+      {
+        destination,
+        preferences: description,
+        budget: input.budget,
+        travelers,
+        startDate: input.startDate,
+        endDate: input.endDate,
+        accommodation,
+      },
+      analysis
+    );
+    
+    aiReasoning = itinerary.aiReasoning;
+    itineraryData = itinerary.days;
+    
+    // Step 3: Get coordinates (AI-based geocoding)
+    if (destination) {
+      const geoData = await ai.geocodeDestination(destination);
+      coordinatesData = geoData.coordinates;
+    } else {
+      coordinatesData = { latitude: 0, longitude: 0 };
+    }
+    
+    // Generate waypoints for the trip route
+    waypoints = generateWaypointsForDestination(destination || itinerary.destination);
+    
+    console.log('AI trip generation complete:', {
+      days: itineraryData.length,
+      destination: itinerary.destination,
+      style: analysis.travelStyle
+    });
+  } catch (aiError) {
+    // Fallback to simple data if AI fails
+    console.error('AI generation failed, using fallback:', aiError);
+    aiReasoning = `Based on your preferences for ${description}, I've created a trip plan to ${destination || 'your destination'}.`;
+    itineraryData = [
+      {
+        day: 1,
+        title: 'Arrival & Exploration',
+        activities: ['Check into accommodation', 'Local orientation walk', 'Welcome dinner'],
+      },
+      {
+        day: 2,
+        title: 'Main Attractions',
+        activities: ['Visit top landmarks', 'Cultural experience', 'Local cuisine tasting'],
+      },
+    ];
+    coordinatesData = { latitude: 35.6762, longitude: 139.6503 };
+    waypoints = generateWaypointsForDestination(destination);
+  }
 
   try {
     // Insert trip
@@ -85,8 +135,8 @@ export const createTrip = async (
         accommodation,
         status: 'pending',
         aiReasoning,
-        itinerary: JSON.stringify(mockItinerary),
-        coordinates: JSON.stringify(mockCoordinates),
+        itinerary: JSON.stringify(itineraryData),
+        coordinates: JSON.stringify(coordinatesData),
         waypoints: JSON.stringify(waypoints),
         aiGenerated: true,
       })
