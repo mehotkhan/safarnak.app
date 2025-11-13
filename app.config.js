@@ -158,15 +158,26 @@ const getAppConfig = () => {
                 'bundleInDebug': 'false',
                 'bundleInRelease': 'true',
                 'deleteDebugFilesForVariant': 'release',
-                // Hermes bytecode optimization flags
+                // Hermes bytecode optimization flags (APK size reduction)
                 'hermes.bytecode.optimize': 'true',
                 'hermes.bytecode.stripDebugInfo': 'true',
+                'hermes.bytecode.minify': 'true',
+                'hermes.bytecode.inlining': 'aggressive',
+                'hermes.bytecode.staticBuiltins': 'true',
                 // Disable React DevTools in release
                 'reactNativeDevtools': 'false',
                 // Additional size optimizations
                 'android.enableR8.fullMode': 'true',
                 'android.enableResourceOptimizations': 'true',
                 'android.useDeprecatedNdk': 'false',
+                // Bundle compression for JS assets
+                'android.enableBundleCompression': 'true',
+                // Strip native library symbols (reduces .so file sizes)
+                'android.packagingOptions.doNotStrip': '',
+                // Enable dex merging optimization
+                'android.enableDexingArtifactTransform': 'true',
+                // Use AAPT2 daemon for faster builds
+                'android.enableAapt2jni': 'true',
               },
             },
           },
