@@ -396,6 +396,124 @@ jobs:
             echo "✓ Version code updated in build.gradle"
           fi
 
+      - name: Force APK size optimizations into gradle.properties
+        run: |
+          echo "🔧 Injecting APK size optimizations into android/gradle.properties..."
+          
+          # Ensure android/gradle.properties exists
+          if [ ! -f android/gradle.properties ]; then
+            echo "❌ android/gradle.properties not found!"
+            exit 1
+          fi
+          
+          # Backup original
+          cp android/gradle.properties android/gradle.properties.backup
+          
+          # Function to set or update a property
+          set_property() {
+            local key=$1
+            local value=$2
+            if grep -q "^${key}=" android/gradle.properties; then
+              sed -i "s|^${key}=.*|${key}=${value}|" android/gradle.properties
+              echo "  ✓ Updated: ${key}=${value}"
+            else
+              echo "${key}=${value}" >> android/gradle.properties
+              echo "  ✓ Added: ${key}=${value}"
+            fi
+          }
+          
+          echo ""
+          echo "📦 Enabling ProGuard & Resource Shrinking..."
+          set_property "android.enableProguardInReleaseBuilds" "true"
+          set_property "android.enableShrinkResourcesInReleaseBuilds" "true"
+          set_property "android.enableMinifyInReleaseBuilds" "true"
+          
+          echo ""
+          echo "⚡ Enabling Hermes Optimizations..."
+          set_property "hermesEnabled" "true"
+          set_property "hermes.bytecode.optimize" "true"
+          set_property "hermes.bytecode.stripDebugInfo" "true"
+          set_property "hermes.bytecode.minify" "true"
+          set_property "hermes.bytecode.inlining" "aggressive"
+          set_property "hermes.bytecode.staticBuiltins" "true"
+          
+          echo ""
+          echo "🎯 Enabling R8 Full Mode..."
+          set_property "android.enableR8.fullMode" "true"
+          set_property "android.enableResourceOptimizations" "true"
+          
+          echo ""
+          echo "📦 Additional Size Optimizations..."
+          set_property "android.enableBundleCompression" "true"
+          set_property "android.packagingOptions.doNotStrip" ""
+          set_property "android.enableDexingArtifactTransform" "true"
+          set_property "android.enableAapt2jni" "true"
+          set_property "reactNativeDevtools" "false"
+          set_property "react.debuggableVariants" ""
+          
+          echo ""
+          echo "🏗️ Build Settings..."
+          set_property "reactNativeArchitectures" "arm64-v8a"
+          set_property "newArchEnabled" "false"
+          set_property "expo.gif.enabled" "false"
+          set_property "expo.webp.enabled" "false"
+          set_property "expo.webp.animated" "false"
+          
+          echo ""
+          echo "✅ All optimizations injected into android/gradle.properties"
+          echo ""
+          echo "📋 Final gradle.properties (optimization flags only):"
+          grep -E "^(android\.|hermes\.|react|expo\.|newArch)" android/gradle.properties | head -20
+
+      - name: Ensure ProGuard rules exist for R8 optimization
+        run: |
+          echo "📝 Checking/Creating ProGuard rules..."
+          
+          # Create proguard-rules.pro if it doesn't exist
+          if [ ! -f android/app/proguard-rules.pro ]; then
+            echo "Creating android/app/proguard-rules.pro..."
+            cat > android/app/proguard-rules.pro << 'PROGUARD_EOF'
+# React Native ProGuard Rules
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.jni.** { *; }
+
+# Apollo Client optimizations
+-keep class com.apollographql.** { *; }
+-dontwarn com.apollographql.**
+
+# Expo modules
+-keep class expo.modules.** { *; }
+-keepclassmembers class * {
+  @expo.modules.** *;
+}
+
+# GraphQL
+-keep class ** implements com.apollographql.apollo3.api.Operation { *; }
+-keep class ** implements com.apollographql.apollo3.api.Fragment { *; }
+
+# Remove logging
+-assumenosideeffects class android.util.Log {
+  public static *** d(...);
+  public static *** v(...);
+  public static *** i(...);
+}
+
+# Aggressive optimization
+-optimizationpasses 5
+-dontusemixedcaseclassnames
+-dontskipnonpubliclibraryclasses
+-dontpreverify
+-verbose
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+PROGUARD_EOF
+            echo "✓ ProGuard rules created"
+          else
+            echo "✓ ProGuard rules already exist"
+          fi
+          
+          echo "✓ ProGuard configuration ready"
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
