@@ -196,10 +196,9 @@ jobs:
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '11076708'
-          packages: |
-            platforms;android-36
-            build-tools;36.0.0
-            platform-tools
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: false
+          packages: "platforms;android-36 build-tools;36.0.0 platform-tools"
 
       - name: Cache Gradle home
         uses: actions/cache@v4
