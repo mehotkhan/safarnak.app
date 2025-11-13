@@ -293,6 +293,8 @@
     "browseToursDescription": "تورها و تجربیات راهنما را کاوش کنید",
     "browsePlaces": "مرور مکان‌ها",
     "browsePlacesDescription": "مکان‌های جالب را کشف کنید",
+    "browseTrips": "مرور سفرها",
+    "browseTripsDescription": "سفرها و برنامه‌های سفر جامعه را کاوش کنید",
     "mapComparison": "مقایسه نقشه",
     "mapComparisonDescription": "نماهای مختلف نقشه را مقایسه کنید",
     "untitled": "بدون عنوان",
@@ -377,7 +379,9 @@
       "places": "مکانی یافت نشد",
       "placesDescription": "فیلترها یا عبارت جستجو را تغییر دهید",
       "posts": "پستی یافت نشد",
-      "postsDescription": "فیلترها یا عبارت جستجو را تغییر دهید"
+      "postsDescription": "فیلترها یا عبارت جستجو را تغییر دهید",
+      "trips": "سفری یافت نشد",
+      "tripsDescription": "سفرهای جامعه را کاوش کنید یا سفر خود را ایجاد کنید"
     },
     "error": {
       "title": "خطا در بارگذاری محتوا",

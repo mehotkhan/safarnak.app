@@ -1,14 +1,25 @@
 import { useState, useCallback } from 'react';
-import { View, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { View, TouchableOpacity, FlatList, ScrollView, RefreshControl } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
 import { LoadingState, ErrorState, EmptyState } from '@ui/feedback';
+import { TourCard, PlaceCard, TripCard } from '@ui/cards';
 import { useTheme } from '@ui/context';
-import { useSearchSemanticQuery, useGetTrendingQuery } from '@api';
+import { 
+  useSearchSemanticQuery, 
+  useGetTrendingQuery,
+  useGetToursQuery,
+  useGetPlacesQuery,
+  useGetTripsQuery 
+} from '@api';
 import { useDebounce } from '@hooks/useDebounce';
+import { useRefresh } from '@hooks/useRefresh';
 import { SearchBar } from '@ui/forms';
+import { TabBar } from '@ui/layout';
+
+type TabType = 'discover' | 'tours' | 'places' | 'trips';
 
 export default function ExploreScreen() {
   const { t } = useTranslation();
@@ -16,6 +27,7 @@ export default function ExploreScreen() {
   const router = useRouter();
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<TabType>('discover');
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   // Semantic search (when user types)
@@ -26,10 +38,34 @@ export default function ExploreScreen() {
   } as any);
 
   // Trending topics (KV-backed)
-  const { data: trendingData, loading: trendingLoading } = useGetTrendingQuery({
+  const { data: trendingData, loading: trendingLoading, refetch: refetchTrending } = useGetTrendingQuery({
     variables: { type: 'TOPIC' as any, window: 'H1' as any, limit: 12 },
     fetchPolicy: 'cache-and-network',
   } as any);
+
+  // Tab data queries
+  const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetToursQuery({
+    variables: { limit: 20 },
+    skip: activeTab !== 'tours',
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const { data: placesData, loading: placesLoading, error: placesError, refetch: refetchPlaces } = useGetPlacesQuery({
+    variables: { limit: 20 },
+    skip: activeTab !== 'places',
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const { data: tripsData, loading: tripsLoading, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
+    skip: activeTab !== 'trips',
+    fetchPolicy: 'cache-and-network',
+  });
+
+  // Refresh hooks
+  const { refreshing: toursRefreshing, onRefresh: onRefreshTours } = useRefresh(refetchTours);
+  const { refreshing: placesRefreshing, onRefresh: onRefreshPlaces } = useRefresh(refetchPlaces);
+  const { refreshing: tripsRefreshing, onRefresh: onRefreshTrips } = useRefresh(refetchTrips);
+  const { refreshing: trendingRefreshing, onRefresh: onRefreshTrending } = useRefresh(refetchTrending);
 
   const searchResults = (searchData?.searchSemantic?.edges || [])
     .map((e: any) => e?.node)
@@ -59,6 +95,18 @@ export default function ExploreScreen() {
   const handleTrendingPress = useCallback((topic: string) => {
     setSearchQuery(topic);
   }, []);
+
+  const handleTourPress = useCallback((tourId: string) => {
+    router.push(`/(app)/(explore)/tours/${tourId}` as any);
+  }, [router]);
+
+  const handlePlacePress = useCallback((placeId: string) => {
+    router.push(`/(app)/(explore)/places/${placeId}` as any);
+  }, [router]);
+
+  const handleTripPress = useCallback((tripId: string) => {
+    router.push(`/(app)/(trips)/${tripId}` as any);
+  }, [router]);
 
   const renderSearchResult = useCallback(({ item }: { item: any }) => {
     const entity = item?.entity || {};
@@ -115,30 +163,32 @@ export default function ExploreScreen() {
     );
   }, [t, isDark, handleResultPress]);
 
-  const renderContent = () => {
-    // Searching state
-    if (debouncedSearch && debouncedSearch.length >= 2) {
-      if (searchLoading && searchResults.length === 0) {
-        return <LoadingState message={t('explore.searching')} className="py-20" />;
+  const renderTabContent = () => {
+    // Tours Tab
+    if (activeTab === 'tours') {
+      if (toursLoading) {
+        return <LoadingState message={t('common.loading')} className="py-20" />;
       }
 
-      if (searchError) {
+      if (toursError) {
         return (
           <ErrorState
             title={t('common.error')}
-            message={searchError.message || t('explore.searchError')}
-            onRetry={() => refetchSearch()}
+            message={toursError.message || t('explore.error.message')}
+            onRetry={refetchTours}
             className="py-20"
           />
         );
       }
 
-      if (searchResults.length === 0) {
+      const tours = toursData?.getTours || [];
+
+      if (tours.length === 0) {
         return (
           <EmptyState
-            icon="search-outline"
-            title={t('explore.noResults')}
-            description={t('explore.noResultsDescription')}
+            icon="map-outline"
+            title={t('explore.empty.tours')}
+            description={t('explore.empty.toursDescription')}
             iconSize={64}
             className="py-20"
           />
@@ -147,29 +197,153 @@ export default function ExploreScreen() {
 
       return (
         <FlatList
-          data={searchResults}
-          keyExtractor={(item, index) => `result-${item?.entityId || index}`}
-          renderItem={renderSearchResult}
+          data={tours}
+          keyExtractor={(item: any) => `tour-${item.id}`}
+          renderItem={({ item }: any) => (
+            <TourCard
+              tour={item}
+              onPress={() => handleTourPress(item.id)}
+              variant="detailed"
+            />
+          )}
+          contentContainerStyle={{ padding: 16 }}
           showsVerticalScrollIndicator={false}
-          ListHeaderComponent={
-            <View className="px-4 py-3 bg-gray-50 dark:bg-neutral-900">
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-                {t('explore.resultsCount', { count: searchResults.length })}
-              </CustomText>
-            </View>
+          refreshControl={
+            <RefreshControl
+              refreshing={toursRefreshing}
+              onRefresh={onRefreshTours}
+            />
           }
         />
       );
     }
 
-    // Default state: Trending topics
+    // Places Tab
+    if (activeTab === 'places') {
+      if (placesLoading) {
+        return <LoadingState message={t('common.loading')} className="py-20" />;
+      }
+
+      if (placesError) {
+        return (
+          <ErrorState
+            title={t('common.error')}
+            message={placesError.message || t('explore.error.message')}
+            onRetry={refetchPlaces}
+            className="py-20"
+          />
+        );
+      }
+
+      const places = placesData?.getPlaces || [];
+
+      if (places.length === 0) {
+        return (
+          <EmptyState
+            icon="location-outline"
+            title={t('explore.empty.places')}
+            description={t('explore.empty.placesDescription')}
+            iconSize={64}
+            className="py-20"
+          />
+        );
+      }
+
+      return (
+        <FlatList
+          data={places}
+          keyExtractor={(item: any) => `place-${item.id}`}
+          renderItem={({ item }: any) => (
+            <PlaceCard
+              place={item}
+              onPress={() => handlePlacePress(item.id)}
+              variant="detailed"
+            />
+          )}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={placesRefreshing}
+              onRefresh={onRefreshPlaces}
+            />
+          }
+        />
+      );
+    }
+
+    // Trips Tab
+    if (activeTab === 'trips') {
+      if (tripsLoading) {
+        return <LoadingState message={t('common.loading')} className="py-20" />;
+      }
+
+      if (tripsError) {
+        return (
+          <ErrorState
+            title={t('common.error')}
+            message={tripsError.message || t('explore.error.message')}
+            onRetry={refetchTrips}
+            className="py-20"
+          />
+        );
+      }
+
+      const trips = tripsData?.getTrips || [];
+
+      if (trips.length === 0) {
+        return (
+          <EmptyState
+            icon="airplane-outline"
+            title={t('explore.empty.trips')}
+            description={t('explore.empty.tripsDescription')}
+            iconSize={64}
+            className="py-20"
+          />
+        );
+      }
+
+      return (
+        <FlatList
+          data={trips}
+          keyExtractor={(item: any) => `trip-${item.id}`}
+          renderItem={({ item }: any) => (
+            <TripCard
+              trip={item}
+              onPress={() => handleTripPress(item.id)}
+            />
+          )}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={tripsRefreshing}
+              onRefresh={onRefreshTrips}
+            />
+          }
+        />
+      );
+    }
+
+    // Discover Tab (default)
     return (
-      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={trendingRefreshing}
+            onRefresh={onRefreshTrending}
+          />
+        }
+      >
         {/* Trending Topics */}
         <View className="px-4 py-6">
-          <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100 mb-3">
-            {t('explore.trending')}
-          </CustomText>
+          <View className="flex-row items-center justify-between mb-3">
+            <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100">
+              {t('explore.trending')}
+            </CustomText>
+          </View>
           <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-4">
             {t('explore.trendingDescription')}
           </CustomText>
@@ -220,7 +394,7 @@ export default function ExploreScreen() {
           </CustomText>
           
           <TouchableOpacity
-            onPress={() => router.push('/(app)/(explore)/tours' as any)}
+            onPress={() => setActiveTab('tours')}
             className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
             activeOpacity={0.7}
           >
@@ -239,7 +413,7 @@ export default function ExploreScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={() => router.push('/(app)/(explore)/places' as any)}
+            onPress={() => setActiveTab('places')}
             className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
             activeOpacity={0.7}
           >
@@ -252,6 +426,25 @@ export default function ExploreScreen() {
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('explore.browsePlacesDescription')}
+              </CustomText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? '#6b7280' : '#9ca3af'} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab('trips')}
+            className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            activeOpacity={0.7}
+          >
+            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+              <Ionicons name="airplane" size={24} color="#3b82f6" />
+            </View>
+            <View className="flex-1">
+              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+                {t('explore.browseTrips')}
+              </CustomText>
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {t('explore.browseTripsDescription')}
               </CustomText>
             </View>
             <Ionicons name="chevron-forward" size={20} color={isDark ? '#6b7280' : '#9ca3af'} />
@@ -280,6 +473,57 @@ export default function ExploreScreen() {
     );
   };
 
+  const renderContent = () => {
+    // Searching state (overrides tabs)
+    if (debouncedSearch && debouncedSearch.length >= 2) {
+      if (searchLoading && searchResults.length === 0) {
+        return <LoadingState message={t('explore.searching')} className="py-20" />;
+      }
+
+      if (searchError) {
+        return (
+          <ErrorState
+            title={t('common.error')}
+            message={searchError.message || t('explore.searchError')}
+            onRetry={() => refetchSearch()}
+            className="py-20"
+          />
+        );
+      }
+
+      if (searchResults.length === 0) {
+        return (
+          <EmptyState
+            icon="search-outline"
+            title={t('explore.noResults')}
+            description={t('explore.noResultsDescription')}
+            iconSize={64}
+            className="py-20"
+          />
+        );
+      }
+
+      return (
+        <FlatList
+          data={searchResults}
+          keyExtractor={(item, index) => `result-${item?.entityId || index}`}
+          renderItem={renderSearchResult}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View className="px-4 py-3 bg-gray-50 dark:bg-neutral-900">
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {t('explore.resultsCount', { count: searchResults.length })}
+              </CustomText>
+            </View>
+          }
+        />
+      );
+    }
+
+    // Tab content
+    return renderTabContent();
+  };
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <Stack.Screen options={{ title: t('explore.title'), headerShown: false }} />
@@ -297,8 +541,23 @@ export default function ExploreScreen() {
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder={t('explore.searchPlaceholder')}
-          className="mb-0"
+          className="mb-3"
         />
+
+        {/* Tabs (hidden when searching) */}
+        {!debouncedSearch && (
+          <TabBar
+            tabs={[
+              { id: 'discover', label: t('explore.discover') },
+              { id: 'tours', label: t('explore.categories.tours') },
+              { id: 'places', label: t('explore.categories.places') },
+              { id: 'trips', label: t('explore.categories.trips') },
+            ]}
+            activeTab={activeTab}
+            onTabChange={(tabId) => setActiveTab(tabId as TabType)}
+            variant="segmented"
+          />
+        )}
       </View>
 
       {/* Content */}

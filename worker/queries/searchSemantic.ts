@@ -8,13 +8,29 @@ function toCursor(createdAt: string, id: string): string {
 }
 
 async function embedQuery(env: Env, query: string): Promise<number[]> {
-  // Multilingual small model, inexpensive
-  const res: any = await env.AI.run('@cf/baai/bge-m3', {
-    text: query,
-  });
-  // bge-m3 returns { data: [ { embedding: number[] } ] } or similar
-  const embedding = res?.data?.[0]?.embedding || res?.embedding || [];
-  return embedding;
+  try {
+    // Multilingual small model, 1024 dimensions
+    const res: any = await env.AI.run('@cf/baai/bge-m3', {
+      text: query,
+    });
+    // bge-m3 returns { data: [ { embedding: number[] } ] } or similar
+    const embedding = res?.data?.[0]?.embedding || res?.embedding || [];
+    
+    if (!Array.isArray(embedding) || embedding.length === 0) {
+      console.error('[searchSemantic] Empty embedding returned for query:', query, 'Response:', JSON.stringify(res));
+      throw new Error('Failed to generate embedding: empty vector');
+    }
+    
+    if (embedding.length !== 1024) {
+      console.error('[searchSemantic] Wrong embedding dimension:', embedding.length, 'expected 1024');
+      throw new Error(`Invalid embedding dimension: ${embedding.length}, expected 1024`);
+    }
+    
+    return embedding;
+  } catch (error) {
+    console.error('[searchSemantic] Embedding generation failed:', error);
+    throw new Error('Failed to generate search embedding');
+  }
 }
 
 export const searchSemantic = async (

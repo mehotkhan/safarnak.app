@@ -305,6 +305,8 @@
     "browseToursDescription": "Explore guided tours and experiences",
     "browsePlaces": "Browse Places",
     "browsePlacesDescription": "Discover interesting locations",
+    "browseTrips": "Browse Trips",
+    "browseTripsDescription": "Explore community trips and itineraries",
     "mapComparison": "Map Comparison",
     "mapComparisonDescription": "Compare different map views",
     "untitled": "Untitled",
@@ -390,7 +392,9 @@
       "places": "No places found",
       "placesDescription": "Try adjusting your filters or search query",
       "posts": "No posts found",
-      "postsDescription": "Try adjusting your filters or search query"
+      "postsDescription": "Try adjusting your filters or search query",
+      "trips": "No trips found",
+      "tripsDescription": "Explore community trips or create your own"
     },
     "error": {
       "title": "Error loading content",
