@@ -110,7 +110,10 @@ const getAppConfig = () => {
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
         package: packageName,
-        softwareKeyboardLayoutMode: 'pan',
+        // Prefer resize so the window shrinks and content can layout naturally
+        softwareKeyboardLayoutMode: 'resize',
+        // Ensure the OS resizes the window when keyboard appears
+        windowSoftInputMode: 'adjustResize',
       },
       web: {
         bundler: 'metro',

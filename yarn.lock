@@ -8856,6 +8856,13 @@ react-is@^19.1.0:
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-19.2.0.tgz#ddc3b4a4e0f3336c3847f18b806506388d7b9973"
   integrity sha512-x3Ax3kNSMIIkyVYhWPyO09bu0uttcAIoecO/um/rKGQ4EltYWVYtyiGkS/3xMynrbVQdS69Jhlv8FXUEZehlzA==
 
+react-native-avoid-softinput@^8.0.2:
+  version "8.0.2"
+  resolved "https://registry.yarnpkg.com/react-native-avoid-softinput/-/react-native-avoid-softinput-8.0.2.tgz#e867a9d99a4c35fb55e76439b115daf8b8b059c4"
+  integrity sha512-2Tx/4Z3QWjQsf6WEz31ULWbI6RSNivH7UlSlCbA8cZUQvj3D6GO/GDX1e8JbmT+rXaSKgdQeHDITC8k0jjkb2g==
+  dependencies:
+    react-native-is-edge-to-edge "^1.1.6"
+
 react-native-css-interop@0.2.1:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/react-native-css-interop/-/react-native-css-interop-0.2.1.tgz#2d08ad4a971babeba17af4b731ba542eef79ed08"
