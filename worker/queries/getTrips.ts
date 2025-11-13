@@ -30,13 +30,24 @@ export const getTrips = async (
     ? results.filter(trip => trip.status === status)
     : results;
 
-  // Parse JSON fields
-  return filteredResults.map(trip => ({
-    ...trip,
-    itinerary: trip.itinerary ? JSON.parse(trip.itinerary) : null,
-    coordinates: trip.coordinates ? JSON.parse(trip.coordinates) : null,
-    waypoints: trip.waypoints ? JSON.parse(trip.waypoints) : null,
-  }));
+  // Parse JSON fields and coerce numeric fields
+  return filteredResults.map(trip => {
+    // Normalize budget to number or null
+    let budget: number | null = null;
+    if (typeof (trip as any).budget === 'number') {
+      budget = (trip as any).budget as number;
+    } else if ((trip as any).budget != null) {
+      const parsed = parseFloat(String((trip as any).budget).replace(/[^\d.]/g, ''));
+      budget = Number.isFinite(parsed) ? parsed : null;
+    }
+    return {
+      ...trip,
+      budget,
+      itinerary: trip.itinerary ? JSON.parse(trip.itinerary) : null,
+      coordinates: trip.coordinates ? JSON.parse(trip.coordinates) : null,
+      waypoints: trip.waypoints ? JSON.parse(trip.waypoints) : null,
+    };
+  });
 };
 
 export const getTrip = async (

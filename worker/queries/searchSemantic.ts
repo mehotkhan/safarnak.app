@@ -13,11 +13,45 @@ async function embedQuery(env: Env, query: string): Promise<number[]> {
     const res: any = await env.AI.run('@cf/baai/bge-m3', {
       text: query,
     });
-    // bge-m3 returns { data: [ { embedding: number[] } ] } or similar
-    const embedding = res?.data?.[0]?.embedding || res?.embedding || [];
     
+    // Log the response structure for debugging
+    console.log('[searchSemantic] Raw AI response structure:', {
+      hasData: !!res?.data,
+      dataIsArray: Array.isArray(res?.data),
+      dataLength: res?.data?.length,
+      data0IsArray: Array.isArray(res?.data?.[0]),
+      data0Length: res?.data?.[0]?.length,
+      hasEmbedding: !!res?.embedding,
+      embeddingIsArray: Array.isArray(res?.embedding),
+      keys: res ? Object.keys(res) : [],
+    });
+    
+    // bge-m3 can return embeddings in different formats:
+    // 1. { data: [[...]] } - 2D array where data[0] is the embedding
+    // 2. { data: [{ embedding: [...] }] } - array of objects with embedding property
+    // 3. { embedding: [...] } - direct embedding property
+    let embedding: number[] = [];
+    
+    if (res?.data && Array.isArray(res.data)) {
+      // Check if data[0] is an array (format 1: 2D array)
+      if (res.data.length > 0 && Array.isArray(res.data[0])) {
+        embedding = res.data[0];
+      } 
+      // Check if data[0] is an object with embedding property (format 2)
+      else if (res.data.length > 0 && res.data[0]?.embedding && Array.isArray(res.data[0].embedding)) {
+        embedding = res.data[0].embedding;
+      }
+    }
+    
+    // Check for direct embedding property (format 3)
+    if ((!embedding || embedding.length === 0) && Array.isArray(res?.embedding)) {
+      embedding = res.embedding;
+    }
+    
+    // Final validation
     if (!Array.isArray(embedding) || embedding.length === 0) {
-      console.error('[searchSemantic] Empty embedding returned for query:', query, 'Response:', JSON.stringify(res));
+      console.error('[searchSemantic] Empty embedding returned for query:', query);
+      console.error('[searchSemantic] Response:', JSON.stringify(res, null, 2));
       throw new Error('Failed to generate embedding: empty vector');
     }
     
@@ -26,10 +60,11 @@ async function embedQuery(env: Env, query: string): Promise<number[]> {
       throw new Error(`Invalid embedding dimension: ${embedding.length}, expected 1024`);
     }
     
+    console.log('[searchSemantic] Successfully extracted embedding with', embedding.length, 'dimensions');
     return embedding;
   } catch (error) {
     console.error('[searchSemantic] Embedding generation failed:', error);
-    throw new Error('Failed to generate search embedding');
+    throw error instanceof Error ? error : new Error('Failed to generate search embedding');
   }
 }
 
@@ -40,21 +75,42 @@ export const searchSemantic = async (
 ) => {
   const db = getServerDB(context.env.DB);
   const vector = await embedQuery(context.env, query);
-  const filter = entityTypes && entityTypes.length > 0 ? { entityType: entityTypes } : undefined;
+  
+  // Validate vector before querying
+  if (!Array.isArray(vector) || vector.length === 0) {
+    console.error('[searchSemantic] Invalid vector passed to VECTORIZE:', {
+      isArray: Array.isArray(vector),
+      length: vector?.length,
+      type: typeof vector,
+    });
+    throw new Error('Invalid embedding vector: empty or not an array');
+  }
+  
+  if (vector.length !== 1024) {
+    console.error('[searchSemantic] Vector dimension mismatch:', vector.length, 'expected 1024');
+    throw new Error(`Invalid vector dimension: ${vector.length}, expected 1024`);
+  }
+  
+  // Vectorize filters don't support arrays, so we'll filter results after querying
+  // For now, query without filter and filter in code if needed
   const topK = Math.min(Math.max(first, 1), 50);
 
-  const results: any = await context.env.VECTORIZE.query({
-    vector,
-    topK,
-    filter,
-  } as any);
+  // VECTORIZE.query takes vector as first arg, options as second arg
+  const results: any = await context.env.VECTORIZE.query(vector, {
+    topK: entityTypes && entityTypes.length > 0 ? topK * 2 : topK, // Get more results if filtering
+  });
 
   const edges: any[] = [];
+  const entityTypeSet = entityTypes && entityTypes.length > 0 ? new Set(entityTypes) : null;
+  
   for (const hit of results?.matches || []) {
     const meta = hit?.metadata || {};
     const entityType = meta.entityType || meta.entity_type;
     const entityId = meta.entityId || meta.entity_id || meta.id;
     if (!entityType || !entityId) continue;
+    
+    // Filter by entityTypes if provided
+    if (entityTypeSet && !entityTypeSet.has(entityType)) continue;
     let entity: any = null;
     let actor: any = null;
     if (entityType === 'POST') {
@@ -109,9 +165,12 @@ export const searchSemantic = async (
     });
   }
 
+  // Limit to requested count after filtering
+  const limitedEdges = edges.slice(0, first);
+
   return {
-    edges,
-    pageInfo: { endCursor: edges.length ? edges[edges.length - 1].cursor : null, hasNextPage: false },
+    edges: limitedEdges,
+    pageInfo: { endCursor: limitedEdges.length ? limitedEdges[limitedEdges.length - 1].cursor : null, hasNextPage: edges.length > first },
   };
 };
 

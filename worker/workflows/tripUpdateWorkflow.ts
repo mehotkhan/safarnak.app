@@ -186,9 +186,22 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           : [];
 
       // Build update data with AI-generated changes
+      // Coerce budget to a valid number if provided
+      let nextBudget = currentTrip.budget;
+      if (modifications.budget !== undefined && modifications.budget !== null) {
+        if (typeof modifications.budget === 'number') {
+          nextBudget = modifications.budget;
+        } else if (typeof modifications.budget === 'string') {
+          const parsed = parseFloat(modifications.budget.replace(/[^\d.]/g, ''));
+          if (Number.isFinite(parsed)) {
+            nextBudget = parsed;
+          }
+        }
+      }
+
       const updateData: any = {
         destination: modifications.destination ?? currentTrip.destination,
-        budget: modifications.budget !== undefined && modifications.budget !== null ? modifications.budget : currentTrip.budget,
+        budget: nextBudget,
         travelers: modifications.travelers ?? currentTrip.travelers,
         preferences: modifications.preferences ?? currentTrip.preferences,
         aiReasoning: updateResult.aiReasoning,
