@@ -8,7 +8,7 @@ on:
 env:
   NODE_VERSION: '20'
   JAVA_VERSION: '17'
-  GRADLE_OPTS: '-Dorg.gradle.daemon=true -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configuration-cache=true -Dorg.gradle.jvmargs=-Xmx4g -Dkotlin.compiler.execution.strategy=in-process'
+  GRADLE_OPTS: '-Dorg.gradle.daemon=true -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx4g -Dkotlin.compiler.execution.strategy=in-process'
   NODE_ENV: 'production'
 
 jobs:
@@ -92,7 +92,6 @@ jobs:
           ./gradlew assembleRelease \
             --stacktrace \
             --build-cache \
-            --configuration-cache \
             --parallel \
             --max-workers=4 \
             -x lint \
