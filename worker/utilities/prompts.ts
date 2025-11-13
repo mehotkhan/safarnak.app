@@ -39,16 +39,18 @@ Travelers: ${input.travelers} ${input.travelers === 1 ? 'person' : 'people'}
 Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
 Accommodation: ${input.accommodation || 'Any'}
 
+IMPORTANT: All text fields (reasoning, attractions) must be in Persian/Farsi (فارسی).
+
 Analyze the preferences and respond ONLY with valid JSON (no markdown, no explanation):
 {
   "travelStyle": "adventure|luxury|budget|cultural|relaxation|family",
   "interests": ["nature", "food", "history", "adventure", "art", "nightlife"],
   "pacePreference": "slow|moderate|fast",
   "budgetLevel": "budget|moderate|luxury",
-  "mustSeeAttractions": ["attraction1", "attraction2"],
+  "mustSeeAttractions": ["جاذبه اول", "جاذبه دوم"],
   "dietaryNeeds": ["vegetarian", "halal", "none"],
   "transportPreferences": ["walking", "public_transport", "car", "bike"],
-  "reasoning": "Brief 2-sentence analysis of what the traveler wants"
+  "reasoning": "تحلیل کوتاه دو جمله‌ای از خواسته‌های مسافر به فارسی"
 }`;
 }
 
@@ -60,7 +62,7 @@ export function buildItineraryGenerationPrompt(input: TripAnalysisInput, analysi
   const duration = calculateTripDuration(input.startDate, input.endDate);
   const destination = input.destination || 'the chosen destination';
   
-  return `You are a professional travel itinerary planner. Create a detailed ${duration}-day trip itinerary.
+  return `You are a professional travel itinerary planner. Create a detailed ${duration}-day trip itinerary for ${destination}.
 
 Destination: ${destination}
 Travelers: ${input.travelers} ${input.travelers === 1 ? 'person' : 'people'}
@@ -69,20 +71,21 @@ Travel Style: ${analysis?.travelStyle || 'balanced'}
 Interests: ${analysis?.interests?.join(', ') || 'general sightseeing'}
 Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
 
-Create a realistic, well-paced itinerary. Include specific attractions, restaurants, and activities.
+CRITICAL: All text content (title, activities, reasoning, highlights, tips) MUST be written in Persian/Farsi (فارسی).
+Create a realistic, well-paced itinerary with specific attractions, restaurants, and activities.
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
-  "title": "Trip to ${destination}",
+  "title": "سفر به ${destination}",
   "destination": "${destination}",
   "days": [
     {
       "day": 1,
-      "title": "Day title (e.g., Arrival & Historic Center)",
+      "title": "عنوان روز به فارسی (مثال: ورود و مرکز تاریخی)",
       "activities": [
-        "Morning: Activity with specific location and time suggestion",
-        "Afternoon: Activity with specific location",
-        "Evening: Activity with restaurant/venue recommendation"
+        "صبح: فعالیت با مکان مشخص و پیشنهاد زمانی",
+        "بعدازظهر: فعالیت با مکان مشخص",
+        "شب: فعالیت با توصیه رستوران یا مکان"
       ]
     }
   ],
@@ -93,9 +96,9 @@ Respond ONLY with valid JSON (no markdown, no explanation):
     "transport": 100,
     "total": 1100
   },
-  "aiReasoning": "2-3 sentence explanation of why this itinerary fits the traveler's needs",
-  "highlights": ["Top highlight 1", "Top highlight 2", "Top highlight 3"],
-  "tips": ["Practical tip 1", "Practical tip 2", "Practical tip 3"]
+  "aiReasoning": "توضیح 2-3 جمله‌ای به فارسی درباره اینکه چرا این برنامه سفر متناسب با نیازهای مسافر است",
+  "highlights": ["نکته برجسته اول", "نکته برجسته دوم", "نکته برجسته سوم"],
+  "tips": ["نکته کاربردی اول", "نکته کاربردی دوم", "نکته کاربردی سوم"]
 }`;
 }
 
@@ -104,32 +107,33 @@ Respond ONLY with valid JSON (no markdown, no explanation):
  * Optimizes the itinerary and adds specific venue recommendations
  */
 export function buildRecommendationsPrompt(destination: string, itinerary: any, analysis: any): string {
-  return `You are a local travel expert. Optimize this trip itinerary and add specific recommendations.
+  return `You are a local travel expert for ${destination}. Provide specific venue recommendations.
 
 Destination: ${destination}
 Itinerary: ${JSON.stringify(itinerary.days || [])}
 Travel Style: ${analysis?.travelStyle || 'balanced'}
 Interests: ${analysis?.interests?.join(', ') || 'general'}
 
-Add specific venue recommendations and optimize the schedule.
+CRITICAL: All text content (reason, specialty, tips, location names) MUST be in Persian/Farsi (فارسی).
+Add specific venue recommendations with Persian descriptions.
 
 Respond ONLY with valid JSON (no markdown):
 {
   "restaurants": [
-    {"name": "Restaurant Name", "cuisine": "Type", "priceRange": "$$", "bestFor": "lunch|dinner", "reason": "Why recommended"}
+    {"name": "نام رستوران", "cuisine": "نوع غذا", "priceRange": "$$", "bestFor": "lunch|dinner", "reason": "دلیل توصیه به فارسی"}
   ],
   "cafes": [
-    {"name": "Cafe Name", "specialty": "Coffee/Pastries", "location": "Area", "bestTime": "morning|afternoon"}
+    {"name": "نام کافه", "specialty": "قهوه/شیرینی", "location": "منطقه", "bestTime": "morning|afternoon"}
   ],
   "accommodations": [
-    {"name": "Hotel/Hostel Name", "type": "hotel|hostel|airbnb", "pricePerNight": 100, "neighborhood": "Area name", "reason": "Why recommended"}
+    {"name": "نام هتل", "type": "hotel|hostel|airbnb", "pricePerNight": 100, "neighborhood": "نام محله", "reason": "دلیل توصیه به فارسی"}
   ],
   "transportation": {
     "bestOption": "public_transport|taxi|walking|bike",
-    "passes": ["7-day metro pass: $35", "City tourist card: $50"],
-    "tips": ["Transportation tip 1", "Transportation tip 2"]
+    "passes": ["کارت ۷ روزه مترو: ۳۵ دلار", "کارت توریستی شهر: ۵۰ دلار"],
+    "tips": ["نکته حمل‌ونقل به فارسی", "نکته دوم به فارسی"]
   },
-  "localTips": ["Local insider tip 1", "Local insider tip 2", "Safety/cultural tip"]
+  "localTips": ["نکته محلی اول", "نکته محلی دوم", "نکته ایمنی/فرهنگی"]
 }`;
 }
 
@@ -149,11 +153,12 @@ Current Trip:
 
 User Request: "${input.userMessage}"
 
-Understand what the user wants to change and generate updated trip data.
+CRITICAL: All text content (understood, titles, activities, reasoning) MUST be in Persian/Farsi (فارسی).
+Understand what the user wants and generate updated trip data in Persian.
 
 Respond ONLY with valid JSON (no markdown):
 {
-  "understood": "Brief restatement of what user wants to change",
+  "understood": "خلاصه فارسی از درخواست کاربر",
   "modifications": {
     "destination": "New destination if changed, or null",
     "budget": "New budget if changed, or null",
@@ -163,11 +168,11 @@ Respond ONLY with valid JSON (no markdown):
   "updatedItinerary": [
     {
       "day": 1,
-      "title": "Day title",
-      "activities": ["Activity 1", "Activity 2", "Activity 3"]
+      "title": "عنوان روز به فارسی",
+      "activities": ["فعالیت اول", "فعالیت دوم", "فعالیت سوم"]
     }
   ],
-  "aiReasoning": "Explanation of changes made based on user request"
+  "aiReasoning": "توضیح تغییرات انجام شده بر اساس درخواست کاربر به فارسی"
 }`;
 }
 
@@ -260,24 +265,24 @@ export function validateItinerary(data: any): boolean {
  * Generate fallback itinerary if AI fails
  */
 export function generateFallbackItinerary(input: TripAnalysisInput): any {
-  const destination = input.destination || 'Your Destination';
+  const destination = input.destination || 'مقصد شما';
   const duration = calculateTripDuration(input.startDate, input.endDate);
   
   const days = [];
   for (let i = 1; i <= Math.min(duration, 7); i++) {
     days.push({
       day: i,
-      title: i === 1 ? 'Arrival & Exploration' : i === duration ? 'Departure' : `Day ${i} Activities`,
+      title: i === 1 ? 'ورود و کاوش' : i === duration ? 'خروج' : `فعالیت‌های روز ${i}`,
       activities: [
-        `Morning: Explore ${destination}'s main attractions`,
-        `Afternoon: Visit local markets and cultural sites`,
-        `Evening: Enjoy local cuisine at recommended restaurants`
+        `صبح: بازدید از جاذبه‌های اصلی ${destination}`,
+        `بعدازظهر: بازدید از بازارهای محلی و مکان‌های فرهنگی`,
+        `شب: لذت بردن از غذاهای محلی در رستوران‌های پیشنهادی`
       ]
     });
   }
   
   return {
-    title: `Trip to ${destination}`,
+    title: `سفر به ${destination}`,
     destination,
     days,
     estimatedBudget: {
@@ -287,9 +292,9 @@ export function generateFallbackItinerary(input: TripAnalysisInput): any {
       transport: Math.round((input.budget || 1000) * 0.1),
       total: input.budget || 1000
     },
-    aiReasoning: `Created a balanced ${duration}-day itinerary for ${destination} based on your preferences.`,
-    highlights: ['Local cuisine', 'Cultural experiences', 'Main attractions'],
-    tips: ['Book attractions in advance', 'Try local food', 'Learn basic local phrases']
+    aiReasoning: `یک برنامه سفر متعادل ${duration} روزه برای ${destination} بر اساس ترجیحات شما ایجاد شد.`,
+    highlights: ['غذاهای محلی', 'تجربیات فرهنگی', 'جاذبه‌های اصلی'],
+    tips: ['جاذبه‌ها را از قبل رزرو کنید', 'غذاهای محلی را امتحان کنید', 'عبارات ابتدایی محلی را یاد بگیرید']
   };
 }
 
