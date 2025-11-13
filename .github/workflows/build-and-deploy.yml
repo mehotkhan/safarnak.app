@@ -86,15 +86,6 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-disabled: false
-          add-job-summary: never
-          arguments: |
-            --configuration-cache
-            --build-cache
-
       - name: Build APK
         run: |
           cd android
