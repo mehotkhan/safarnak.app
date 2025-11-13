@@ -106,7 +106,24 @@ async function workerQueue(batch: MessageBatch<any>, env: Env): Promise<void> {
         ]);
         msg.ack();
       } catch (e) {
-        console.error('Embedding job failed', e);
+        try {
+          // Attempt to log vector dimension for easier diagnosis of Vectorize dimension mismatch
+          const attempted = (msg?.body as any) || {};
+          const attemptedModel = attempted?.model || '@cf/baai/bge-m3';
+          const attemptedTextLen = (attempted?.text || '').length;
+          const attemptedEmbeddingLen = Array.isArray((attempted as any)?.embedding)
+            ? ((attempted as any)?.embedding as any[]).length
+            : undefined;
+          console.error('Embedding job failed', {
+            error: String((e as any)?.message || e),
+            model: attemptedModel,
+            textLength: attemptedTextLen,
+            embeddingLength: attemptedEmbeddingLen,
+            hint: 'Ensure Vectorize index dimensions match the embedding model output (e.g., 1024 for @cf/baai/bge-m3).',
+          });
+        } catch {
+          console.error('Embedding job failed', e);
+        }
         // do not ack to retry
       }
     }
