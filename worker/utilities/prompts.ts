@@ -62,44 +62,58 @@ export function buildItineraryGenerationPrompt(input: TripAnalysisInput, analysi
   const duration = calculateTripDuration(input.startDate, input.endDate);
   const destination = input.destination || 'the chosen destination';
   
-  return `You are a professional travel itinerary planner. Create a detailed ${duration}-day trip itinerary for ${destination}.
+  return `You are an expert travel planner with deep knowledge of ${destination}. Create EXACTLY a ${duration}-day trip itinerary.
 
-Destination: ${destination}
-Travelers: ${input.travelers} ${input.travelers === 1 ? 'person' : 'people'}
-Budget: ${input.budget ? `$${input.budget}` : 'Moderate'}
-Travel Style: ${analysis?.travelStyle || 'balanced'}
-Interests: ${analysis?.interests?.join(', ') || 'general sightseeing'}
-Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
+TRIP DETAILS:
+- Destination: ${destination}
+- Duration: EXACTLY ${duration} days (NOT MORE, NOT LESS)
+- Travelers: ${input.travelers} ${input.travelers === 1 ? 'person' : 'people'}
+- Budget: ${input.budget ? `$${input.budget}` : 'Moderate'}
+- Travel Style: ${analysis?.travelStyle || 'balanced'}
+- Interests: ${analysis?.interests?.join(', ') || 'general sightseeing'}
+- Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
 
-CRITICAL: All text content (title, activities, reasoning, highlights, tips) MUST be written in Persian/Farsi (فارسی).
-Create a realistic, well-paced itinerary with specific attractions, restaurants, and activities.
+CRITICAL REQUIREMENTS:
+1. ALL text (title, activities, reasoning, highlights, tips) MUST be in Persian/Farsi (فارسی)
+2. Use REAL place names from ${destination} (actual restaurants, museums, landmarks, streets)
+3. Generate EXACTLY ${duration} days (days array must have ${duration} items, numbered 1 to ${duration})
+4. Include specific addresses and real locations that exist in ${destination}
+5. Mention actual restaurant names, hotel names, and attraction names from ${destination}
+
+Example of REAL places (use actual places like these):
+- For Paris: "برج ایفل"، "موزه لوور"، "کافه دو فلور"، "رستوران Le Jules Verne"
+- For Tokyo: "معبد سنسوجی"، "برج توکیو"، "بازار تسوکیجی"، "رستوران Ichiran"
+- For Istanbul: "مسجد آبی"، "کاخ توپکاپی"، "بازار بزرگ"، "رستوران Hamdi"
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
-  "title": "سفر به ${destination}",
+  "title": "سفر ${duration} روزه به ${destination}",
   "destination": "${destination}",
   "days": [
     {
       "day": 1,
-      "title": "عنوان روز به فارسی (مثال: ورود و مرکز تاریخی)",
+      "title": "ورود و بازدید از مرکز تاریخی",
       "activities": [
-        "صبح: فعالیت با مکان مشخص و پیشنهاد زمانی",
-        "بعدازظهر: فعالیت با مکان مشخص",
-        "شب: فعالیت با توصیه رستوران یا مکان"
+        "صبح ۹:۰۰: بازدید از [نام واقعی جاذبه] - آدرس دقیق",
+        "ظهر ۱۲:۳۰: ناهار در رستوران [نام واقعی] - غذای محلی معروف",
+        "بعدازظهر ۳:۰۰: گشت و گذار در [نام واقعی خیابان/محله]",
+        "شب ۸:۰۰: شام در [نام واقعی رستوران]"
       ]
     }
   ],
   "estimatedBudget": {
-    "accommodation": 500,
-    "food": 300,
-    "activities": 200,
-    "transport": 100,
-    "total": 1100
+    "accommodation": ${Math.round(((input.budget || 1000) * 0.4) / duration)} per night,
+    "food": ${Math.round(((input.budget || 1000) * 0.3) / duration)} per day,
+    "activities": ${Math.round(((input.budget || 1000) * 0.2) / duration)} per day,
+    "transport": ${Math.round(((input.budget || 1000) * 0.1) / duration)} per day,
+    "total": ${input.budget || 1000}
   },
-  "aiReasoning": "توضیح 2-3 جمله‌ای به فارسی درباره اینکه چرا این برنامه سفر متناسب با نیازهای مسافر است",
-  "highlights": ["نکته برجسته اول", "نکته برجسته دوم", "نکته برجسته سوم"],
-  "tips": ["نکته کاربردی اول", "نکته کاربردی دوم", "نکته کاربردی سوم"]
-}`;
+  "aiReasoning": "این برنامه ${duration} روزه برای ${destination} شامل بازدید از مهم‌ترین جاذبه‌ها و تجربه فرهنگ محلی است",
+  "highlights": ["نام واقعی جاذبه برتر اول", "نام واقعی جاذبه برتر دوم", "نام واقعی جاذبه برتر سوم"],
+  "tips": ["نکته کاربردی درباره ${destination}", "توصیه درباره حمل‌ونقل", "نکته فرهنگی یا ایمنی"]
+}
+
+REMEMBER: Generate EXACTLY ${duration} days, not more, not less!`;
 }
 
 /**
@@ -107,34 +121,48 @@ Respond ONLY with valid JSON (no markdown, no explanation):
  * Optimizes the itinerary and adds specific venue recommendations
  */
 export function buildRecommendationsPrompt(destination: string, itinerary: any, analysis: any): string {
-  return `You are a local travel expert for ${destination}. Provide specific venue recommendations.
+  return `You are a local travel expert for ${destination} with deep knowledge of the city's restaurants, cafes, and hotels.
 
 Destination: ${destination}
 Itinerary: ${JSON.stringify(itinerary.days || [])}
 Travel Style: ${analysis?.travelStyle || 'balanced'}
 Interests: ${analysis?.interests?.join(', ') || 'general'}
 
-CRITICAL: All text content (reason, specialty, tips, location names) MUST be in Persian/Farsi (فارسی).
-Add specific venue recommendations with Persian descriptions.
+CRITICAL REQUIREMENTS:
+1. ALL text (reason, specialty, tips, neighborhoods) MUST be in Persian/Farsi (فارسی)
+2. Use ONLY REAL place names that actually exist in ${destination}
+3. Include real restaurant names, cafe names, and hotel names
+4. Mention real neighborhoods and districts in ${destination}
+5. Provide 3-5 recommendations per category minimum
+
+Examples of REAL places format:
+- Restaurant: "رستوران Le Jules Verne" (Paris), "رستوران Nusr-Et" (Istanbul)
+- Cafe: "کافه Central Perk" (actual cafe name), "کافه فلور" (Cafe de Flore)
+- Hotel: "هتل Ritz" (real hotel), "هتل Four Seasons" (chain hotel)
 
 Respond ONLY with valid JSON (no markdown):
 {
   "restaurants": [
-    {"name": "نام رستوران", "cuisine": "نوع غذا", "priceRange": "$$", "bestFor": "lunch|dinner", "reason": "دلیل توصیه به فارسی"}
+    {"name": "نام واقعی رستوران", "cuisine": "نوع غذا", "priceRange": "$$", "bestFor": "lunch|dinner", "reason": "دلیل توصیه - چرا این رستوران خوب است"},
+    {"name": "نام واقعی رستوران دوم", "cuisine": "نوع غذا", "priceRange": "$$$", "bestFor": "dinner", "reason": "دلیل توصیه"}
   ],
   "cafes": [
-    {"name": "نام کافه", "specialty": "قهوه/شیرینی", "location": "منطقه", "bestTime": "morning|afternoon"}
+    {"name": "نام واقعی کافه", "specialty": "قهوه/شیرینی معروف", "location": "نام واقعی محله", "bestTime": "morning|afternoon"},
+    {"name": "نام واقعی کافه دوم", "specialty": "تخصص", "location": "محله", "bestTime": "afternoon"}
   ],
   "accommodations": [
-    {"name": "نام هتل", "type": "hotel|hostel|airbnb", "pricePerNight": 100, "neighborhood": "نام محله", "reason": "دلیل توصیه به فارسی"}
+    {"name": "نام واقعی هتل", "type": "hotel|hostel|airbnb", "pricePerNight": 100, "neighborhood": "نام واقعی محله", "reason": "دلیل توصیه"},
+    {"name": "نام واقعی هتل دوم", "type": "hotel", "pricePerNight": 150, "neighborhood": "محله", "reason": "دلیل"}
   ],
   "transportation": {
     "bestOption": "public_transport|taxi|walking|bike",
-    "passes": ["کارت ۷ روزه مترو: ۳۵ دلار", "کارت توریستی شهر: ۵۰ دلار"],
-    "tips": ["نکته حمل‌ونقل به فارسی", "نکته دوم به فارسی"]
+    "passes": ["نام واقعی کارت حمل‌ونقل و قیمت", "کارت دوم و قیمت"],
+    "tips": ["نکته عملی درباره حمل‌ونقل در ${destination}", "نکته دوم"]
   },
-  "localTips": ["نکته محلی اول", "نکته محلی دوم", "نکته ایمنی/فرهنگی"]
-}`;
+  "localTips": ["نکته محلی واقعی درباره ${destination}", "نکته ایمنی یا فرهنگی", "توصیه کاربردی"]
+}
+
+REMEMBER: Use ONLY real place names from ${destination}, not generic examples!`;
 }
 
 /**
@@ -200,6 +228,7 @@ Respond ONLY with valid JSON (no markdown):
 
 /**
  * Helper: Calculate trip duration from dates
+ * Returns the exact number of days between start and end dates (inclusive)
  */
 function calculateTripDuration(startDate?: string, endDate?: string): number {
   if (!startDate || !endDate) {
@@ -210,7 +239,8 @@ function calculateTripDuration(startDate?: string, endDate?: string): number {
     const start = new Date(startDate);
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    // Add 1 to make it inclusive (e.g., Jan 1 to Jan 3 = 3 days, not 2)
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
     return Math.max(1, Math.min(diffDays, 30)); // Between 1 and 30 days
   } catch {
     return 7;
