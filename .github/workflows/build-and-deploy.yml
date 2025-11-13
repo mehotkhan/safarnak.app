@@ -358,158 +358,62 @@ jobs:
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "📱 Version: $VERSION → Version Code: $VERSION_CODE"
 
-      - name: Cache Expo prebuild output
-        id: cache-prebuild
-        uses: actions/cache@v4
-        with:
-          path: |
-            android
-            .expo
-          key: expo-prebuild-${{ runner.os }}-${{ hashFiles('app.config.js', 'package.json', 'yarn.lock') }}
-          restore-keys: |
-            expo-prebuild-${{ runner.os }}-
-
-      - name: Expo prebuild (propagate version to native)
-        if: steps.cache-prebuild.outputs.cache-hit != 'true'
+      # ====================================
+      # BARE WORKFLOW - No expo prebuild!
+      # ====================================
+      # android/ folder is committed to git with all optimizations.
+      # We only need to update the version code dynamically.
+      
+      - name: Update version code in build.gradle
         run: |
-          set -o pipefail
-          echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
-          echo "📱 Production build: سفرناک (ir.mohet.safarnak)"
-          npx expo prebuild --platform android --no-install 2>&1 | tee prebuild.log
-          echo "Expo prebuild completed"
-        env:
-          # Production build configuration (GitHub Actions only builds release)
-          EAS_BUILD_PROFILE: 'release'
-          APP_NAME: 'سفرناک'
-          APP_SCHEME: 'safarnak'
-          BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
-          ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
-          # Mapbox removed
-
-      - name: Update version code in cached prebuild
-        if: steps.cache-prebuild.outputs.cache-hit == 'true'
-        run: |
-          echo "✓ Using cached prebuild, updating version code to ${{ steps.version_code.outputs.version_code }}"
+          echo "📱 Updating version code to ${{ steps.version_code.outputs.version_code }}"
+          echo "Using committed android/ folder (bare workflow)"
+          
           # Update versionCode in build.gradle
           if [ -f android/app/build.gradle ]; then
             sed -i "s/versionCode [0-9]*/versionCode ${{ steps.version_code.outputs.version_code }}/" android/app/build.gradle
-            echo "✓ Version code updated in build.gradle"
-          fi
-
-      - name: Force APK size optimizations into gradle.properties
-        run: |
-          echo "🔧 Injecting APK size optimizations into android/gradle.properties..."
-          
-          # Ensure android/gradle.properties exists
-          if [ ! -f android/gradle.properties ]; then
-            echo "❌ android/gradle.properties not found!"
+            echo "✓ Version code updated: ${{ steps.version_code.outputs.version_code }}"
+          else
+            echo "❌ android/app/build.gradle not found!"
             exit 1
           fi
           
-          # Backup original
-          cp android/gradle.properties android/gradle.properties.backup
-          
-          # Function to set or update a property
-          set_property() {
-            local key=$1
-            local value=$2
-            if grep -q "^${key}=" android/gradle.properties; then
-              sed -i "s|^${key}=.*|${key}=${value}|" android/gradle.properties
-              echo "  ✓ Updated: ${key}=${value}"
-            else
-              echo "${key}=${value}" >> android/gradle.properties
-              echo "  ✓ Added: ${key}=${value}"
-            fi
-          }
-          
-          echo ""
-          echo "📦 Enabling ProGuard & Resource Shrinking..."
-          set_property "android.enableProguardInReleaseBuilds" "true"
-          set_property "android.enableShrinkResourcesInReleaseBuilds" "true"
-          set_property "android.enableMinifyInReleaseBuilds" "true"
-          
-          echo ""
-          echo "⚡ Enabling Hermes Optimizations..."
-          set_property "hermesEnabled" "true"
-          set_property "hermes.bytecode.optimize" "true"
-          set_property "hermes.bytecode.stripDebugInfo" "true"
-          set_property "hermes.bytecode.minify" "true"
-          set_property "hermes.bytecode.inlining" "aggressive"
-          set_property "hermes.bytecode.staticBuiltins" "true"
-          
-          echo ""
-          echo "🎯 Enabling R8 Full Mode..."
-          set_property "android.enableR8.fullMode" "true"
-          set_property "android.enableResourceOptimizations" "true"
-          
-          echo ""
-          echo "📦 Additional Size Optimizations..."
-          set_property "android.enableBundleCompression" "true"
-          set_property "android.packagingOptions.doNotStrip" ""
-          set_property "android.enableDexingArtifactTransform" "true"
-          set_property "reactNativeDevtools" "false"
-          set_property "react.debuggableVariants" ""
-          
-          echo ""
-          echo "🏗️ Build Settings..."
-          set_property "reactNativeArchitectures" "arm64-v8a"
-          set_property "newArchEnabled" "false"
-          set_property "expo.gif.enabled" "false"
-          set_property "expo.webp.enabled" "false"
-          set_property "expo.webp.animated" "false"
-          
-          echo ""
-          echo "✅ All optimizations injected into android/gradle.properties"
-          echo ""
-          echo "📋 Final gradle.properties (optimization flags only):"
-          grep -E "^(android\.|hermes\.|react|expo\.|newArch)" android/gradle.properties | head -20
+          # Verify the update
+          echo "📋 Verifying android/ folder..."
+          ls -la android/ | head -10
+          echo "✓ android/ folder ready (committed to git with all optimizations)"
 
-      - name: Ensure ProGuard rules exist for R8 optimization
+      # ====================================
+      # NO MORE HACKY INJECTION!
+      # ====================================
+      # All optimizations are committed in git:
+      # - android/gradle.properties (all flags)
+      # - android/app/proguard-rules.pro (R8 rules)
+      #
+      # Verify they exist:
+      
+      - name: Verify build configuration
         run: |
-          echo "📝 Checking/Creating ProGuard rules..."
+          echo "🔍 Verifying committed build optimizations..."
           
-          if [ ! -f android/app/proguard-rules.pro ]; then
-            echo "Creating android/app/proguard-rules.pro..."
-            cat > android/app/proguard-rules.pro <<'EOF'
-          # React Native ProGuard Rules
-          -keep class com.facebook.react.** { *; }
-          -keep class com.facebook.hermes.** { *; }
-          -keep class com.facebook.jni.** { *; }
-          
-          # Apollo Client optimizations
-          -keep class com.apollographql.** { *; }
-          -dontwarn com.apollographql.**
-          
-          # Expo modules
-          -keep class expo.modules.** { *; }
-          -keepclassmembers class * {
-            @expo.modules.** *;
-          }
-          
-          # GraphQL
-          -keep class ** implements com.apollographql.apollo3.api.Operation { *; }
-          -keep class ** implements com.apollographql.apollo3.api.Fragment { *; }
-          
-          # Remove logging
-          -assumenosideeffects class android.util.Log {
-            public static *** d(...);
-            public static *** v(...);
-            public static *** i(...);
-          }
-          
-          # Aggressive optimization
-          -optimizationpasses 5
-          -dontusemixedcaseclassnames
-          -dontskipnonpubliclibraryclasses
-          -dontpreverify
-          -verbose
-          -optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
-          EOF
-            echo "✓ ProGuard rules created"
-          else
-            echo "✓ ProGuard rules already exist"
+          # Check gradle.properties
+          if [ ! -f android/gradle.properties ]; then
+            echo "❌ android/gradle.properties not found in git!"
+            exit 1
           fi
-          echo "✓ ProGuard configuration ready"
+          
+          # Check ProGuard rules
+          if [ ! -f android/app/proguard-rules.pro ]; then
+            echo "❌ android/app/proguard-rules.pro not found in git!"
+            exit 1
+          fi
+          
+          echo "✅ Build configuration files exist"
+          echo ""
+          echo "📋 Key optimizations in gradle.properties:"
+          grep -E "(enableProguard|enableShrinkResources|enableR8|hermes\.bytecode)" android/gradle.properties | head -10
+          echo ""
+          echo "✅ All optimizations are committed and ready!"
 
       - name: Setup Java
         uses: actions/setup-java@v4

@@ -129,57 +129,29 @@ const getAppConfig = () => {
             isAndroidBackgroundLocationEnabled: true,
           },
         ],
+        // ====================================
+        // BARE WORKFLOW - No gradleProperties needed!
+        // ====================================
+        // All build optimizations are now committed directly in:
+        // - android/gradle.properties (all Gradle/Hermes/R8 settings)
+        // - android/app/proguard-rules.pro (ProGuard/R8 rules)
+        // 
+        // Benefits:
+        // ✅ Full control over build configuration
+        // ✅ No expo prebuild overwriting our settings
+        // ✅ What we see locally = what CI builds
+        // ✅ Faster CI builds (no prebuild step)
+        //
+        // The expo-build-properties plugin is still needed for some Expo features,
+        // but we don't use it for optimization settings anymore.
         [
           'expo-build-properties',
           {
             android: {
+              // These are applied at plugin level (not Gradle)
               enableProguardInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
-              // Ensure code shrinking is enabled when resource shrinking is on (fixes Gradle error)
-              // and enforce v8-only builds by default at the Gradle level.
-              gradleProperties: {
-                // CRITICAL: Must explicitly set these in gradleProperties for them to work!
-                'android.enableProguardInReleaseBuilds': 'true',
-                'android.enableShrinkResourcesInReleaseBuilds': 'true',
-                'android.enableMinifyInReleaseBuilds': 'true',
-                'reactNativeArchitectures': 'arm64-v8a',
-                // Smaller JS asset inside APK
-                'android.enableBundleCompression': 'true',
-                // Disable New Architecture for release (saves APK size)
-                'newArchEnabled': 'false',
-                // Drop heavy Fresco extras if not required (saves several MB)
-                'expo.gif.enabled': 'false',
-                'expo.webp.enabled': 'false',
-                'expo.webp.animated': 'false',
-                // ====================================
-                // HERMES OPTIMIZATIONS
-                // ====================================
-                // Enable Hermes with aggressive optimizations
-                'hermesEnabled': 'true',
-                // Disable source maps in production (saves ~2-3MB)
-                'bundleInDebug': 'false',
-                'bundleInRelease': 'true',
-                'deleteDebugFilesForVariant': 'release',
-                // Hermes bytecode optimization flags (APK size reduction)
-                'hermes.bytecode.optimize': 'true',
-                'hermes.bytecode.stripDebugInfo': 'true',
-                'hermes.bytecode.minify': 'true',
-                'hermes.bytecode.inlining': 'aggressive',
-                'hermes.bytecode.staticBuiltins': 'true',
-                // Disable React DevTools in release
-                'reactNativeDevtools': 'false',
-                // Additional size optimizations
-                'android.enableR8.fullMode': 'true',
-                'android.enableResourceOptimizations': 'true',
-                'android.useDeprecatedNdk': 'false',
-                // Bundle compression for JS assets
-                'android.enableBundleCompression': 'true',
-                // Strip native library symbols (reduces .so file sizes)
-                'android.packagingOptions.doNotStrip': '',
-                // Enable dex merging optimization
-                'android.enableDexingArtifactTransform': 'true',
-              },
             },
           },
         ],

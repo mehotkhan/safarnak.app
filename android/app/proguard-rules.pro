@@ -1,20 +1,10 @@
 # Add project specific ProGuard rules here.
 # By default, the flags in this file are appended to flags specified
 # in /usr/local/Cellar/android-sdk/24.3.3/tools/proguard/proguard-android.txt
-# You can edit the include path and order by changing the proguardFiles
-# directive in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
-
-# react-native-reanimated
--keep class com.swmansion.reanimated.** { *; }
--keep class com.facebook.react.turbomodule.** { *; }
-
-# Add any project specific keep options here:
 
 # ====================================
-# ADVANCED APK SIZE REDUCTION RULES
+# SAFARNAK APK SIZE REDUCTION RULES
+# Committed to git for full control
 # ====================================
 
 # Aggressive optimization passes (more optimization iterations)
@@ -29,7 +19,7 @@
 -allowaccessmodification
 -repackageclasses ''
 
-# Remove logging (React Native & custom logs) in production
+# Remove all logging in production (React Native & Android logs)
 -assumenosideeffects class android.util.Log {
     public static *** d(...);
     public static *** v(...);
@@ -39,7 +29,7 @@
 }
 
 # ====================================
-# REACT NATIVE CORE OPTIMIZATIONS
+# REACT NATIVE CORE
 # ====================================
 
 # Keep React Native core classes
@@ -68,23 +58,26 @@
     native <methods>;
 }
 
-# Keep setters in Views so that animations can still work.
+# Keep setters in Views for animations
 -keepclassmembers public class * extends android.view.View {
     void set*(***);
     *** get*();
 }
 
-# Keep Activity class methods
+# Keep Activity methods
 -keepclassmembers class * extends android.app.Activity {
     public void *(android.view.View);
 }
 
-# Hermes bytecode optimizations
+# Hermes
 -keep class com.facebook.hermes.unicode.** { *; }
 -keep class com.facebook.jni.** { *; }
+-keep class com.facebook.react.bridge.** { *; }
+-keep class com.facebook.react.uimanager.** { *; }
+-keep class com.facebook.react.views.** { *; }
 
 # ====================================
-# APOLLO CLIENT OPTIMIZATIONS
+# APOLLO CLIENT / GRAPHQL
 # ====================================
 
 # Keep Apollo generated classes but allow obfuscation
@@ -116,11 +109,12 @@
 # React Native Safe Area Context
 -keep class com.th3rdwave.safeareacontext.** { *; }
 
-# Expo Router
--keep class com.facebook.react.** { *; }
+# React Native Reanimated
+-keep class com.swmansion.reanimated.** { *; }
+-keep class com.facebook.react.turbomodule.** { *; }
 
 # ====================================
-# KOTLIN & KOTLINX OPTIMIZATIONS
+# KOTLIN & KOTLINX
 # ====================================
 
 # Kotlin reflect - can be removed if not used
@@ -134,51 +128,22 @@
 }
 
 # ====================================
-# REMOVE UNUSED ANDROID COMPONENTS
-# ====================================
-
-# Remove Android components we don't use
--assumenosideeffects class android.widget.Toast {
-    public static *** makeText(...);
-}
-
-# Remove debug-only code
--assumenosideeffects class * {
-    void debug*(...);
-    void trace*(...);
-}
-
-# ====================================
 # OKHTTP & NETWORKING
 # ====================================
 
-# OkHttp platform used only on JVM and Android
+# OkHttp
 -dontwarn okhttp3.internal.platform.**
 -dontwarn org.conscrypt.**
 -dontwarn org.bouncycastle.**
 -dontwarn org.openjsse.**
-
-# Keep OkHttp internals
 -keep class okhttp3.** { *; }
 -keep interface okhttp3.** { *; }
-
-# ====================================
-# JAVASCRIPT ENGINE (JSC / HERMES)
-# ====================================
-
-# JavaScriptCore (JSC) - only if using JSC instead of Hermes
--keep class org.webkit.** { *; }
-
-# Keep important React Native classes
--keep class com.facebook.react.bridge.** { *; }
--keep class com.facebook.react.uimanager.** { *; }
--keep class com.facebook.react.views.** { *; }
 
 # ====================================
 # SERIALIZATION & JSON
 # ====================================
 
-# Keep JSON serialization classes
+# Keep attributes for serialization
 -keepattributes *Annotation*
 -keepattributes Signature
 -keepattributes Exceptions
@@ -198,25 +163,4 @@
     private void readObject(java.io.ObjectInputStream);
     java.lang.Object writeReplace();
     java.lang.Object readResolve();
-}
-
-# ====================================
-# ADDITIONAL SIZE OPTIMIZATIONS
-# ====================================
-
-# Remove metadata and debug info
--keepattributes SourceFile,LineNumberTable
--renamesourcefileattribute SourceFile
-
-# Merge interfaces aggressively
--mergeinterfacesaggressively
-
-# Remove assertions (saves code)
--assumenosideeffects class kotlin.jvm.internal.Intrinsics {
-    public static void checkParameterIsNotNull(...);
-    public static void checkExpressionValueIsNotNull(...);
-    public static void checkNotNullExpressionValue(...);
-    public static void checkReturnedValueIsNotNull(...);
-    public static void checkFieldIsNotNull(...);
-    public static void throwUninitializedPropertyAccessException(...);
 }
