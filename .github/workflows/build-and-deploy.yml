@@ -469,49 +469,47 @@ jobs:
         run: |
           echo "📝 Checking/Creating ProGuard rules..."
           
-          # Create proguard-rules.pro if it doesn't exist
           if [ ! -f android/app/proguard-rules.pro ]; then
             echo "Creating android/app/proguard-rules.pro..."
-            cat > android/app/proguard-rules.pro << 'PROGUARD_EOF'
-# React Native ProGuard Rules
--keep class com.facebook.react.** { *; }
--keep class com.facebook.hermes.** { *; }
--keep class com.facebook.jni.** { *; }
-
-# Apollo Client optimizations
--keep class com.apollographql.** { *; }
--dontwarn com.apollographql.**
-
-# Expo modules
--keep class expo.modules.** { *; }
--keepclassmembers class * {
-  @expo.modules.** *;
-}
-
-# GraphQL
--keep class ** implements com.apollographql.apollo3.api.Operation { *; }
--keep class ** implements com.apollographql.apollo3.api.Fragment { *; }
-
-# Remove logging
--assumenosideeffects class android.util.Log {
-  public static *** d(...);
-  public static *** v(...);
-  public static *** i(...);
-}
-
-# Aggressive optimization
--optimizationpasses 5
--dontusemixedcaseclassnames
--dontskipnonpubliclibraryclasses
--dontpreverify
--verbose
--optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
-PROGUARD_EOF
+            cat > android/app/proguard-rules.pro <<'EOF'
+          # React Native ProGuard Rules
+          -keep class com.facebook.react.** { *; }
+          -keep class com.facebook.hermes.** { *; }
+          -keep class com.facebook.jni.** { *; }
+          
+          # Apollo Client optimizations
+          -keep class com.apollographql.** { *; }
+          -dontwarn com.apollographql.**
+          
+          # Expo modules
+          -keep class expo.modules.** { *; }
+          -keepclassmembers class * {
+            @expo.modules.** *;
+          }
+          
+          # GraphQL
+          -keep class ** implements com.apollographql.apollo3.api.Operation { *; }
+          -keep class ** implements com.apollographql.apollo3.api.Fragment { *; }
+          
+          # Remove logging
+          -assumenosideeffects class android.util.Log {
+            public static *** d(...);
+            public static *** v(...);
+            public static *** i(...);
+          }
+          
+          # Aggressive optimization
+          -optimizationpasses 5
+          -dontusemixedcaseclassnames
+          -dontskipnonpubliclibraryclasses
+          -dontpreverify
+          -verbose
+          -optimizations !code/simplification/arithmetic,!field/*,!class/merging/*
+          EOF
             echo "✓ ProGuard rules created"
           else
             echo "✓ ProGuard rules already exist"
           fi
-          
           echo "✓ ProGuard configuration ready"
 
       - name: Setup Java
