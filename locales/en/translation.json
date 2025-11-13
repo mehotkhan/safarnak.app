@@ -323,6 +323,7 @@
     "featured": "Featured",
     "categories": {
       "all": "All",
+      "discover": "Discover",
       "tours": "Tours",
       "trips": "Trips",
       "places": "Places",

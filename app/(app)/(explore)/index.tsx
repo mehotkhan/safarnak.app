@@ -548,7 +548,7 @@ export default function ExploreScreen() {
         {!debouncedSearch && (
           <TabBar
             tabs={[
-              { id: 'discover', label: t('explore.discover') },
+              { id: 'discover', label: t('explore.categories.discover') },
               { id: 'tours', label: t('explore.categories.tours') },
               { id: 'places', label: t('explore.categories.places') },
               { id: 'trips', label: t('explore.categories.trips') },
