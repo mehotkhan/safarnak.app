@@ -68,11 +68,11 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  // Load essential fonts first (VazirRegular)
-  // This is needed for initial render
+  // Load essential fonts first (Vazirmatn Regular - optimized successor to Vazir)
+  // Vazirmatn fonts are 58% smaller than old Vazir fonts (120KB vs 286KB per font)
   const [essentialFontsLoaded, essentialFontsError] = useFonts({
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    VazirRegular: require('../assets/fonts/Vazir-Regular.ttf'),
+    VazirRegular: require('../assets/fonts/Vazirmatn-Regular.ttf'),
   });
 
   // Load non-essential fonts (VazirMedium, VazirBold) asynchronously after initial render
@@ -82,9 +82,9 @@ export default function RootLayout() {
       // Load additional fonts in background - app will use VazirRegular as fallback
       loadAsync({
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        VazirMedium: require('../assets/fonts/Vazir-Medium.ttf'),
+        VazirMedium: require('../assets/fonts/Vazirmatn-Medium.ttf'),
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        VazirBold: require('../assets/fonts/Vazir-Bold.ttf'),
+        VazirBold: require('../assets/fonts/Vazirmatn-Bold.ttf'),
       }).catch((err) => {
         // Silently fail - app will continue with VazirRegular for medium/bold weights
         if (__DEV__) {
