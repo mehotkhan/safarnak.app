@@ -81,9 +81,9 @@ export const MODEL_STRATEGY = {
   // Step 4: Quick updates and modifications
   TRIP_UPDATES: {
     model: AI_MODELS.TEXT_GENERATION_PRIMARY,
-    maxTokens: 2048,
-    temperature: 0.7,
-    reason: 'Fast iteration for user changes',
+    maxTokens: 3072,
+    temperature: 0.65,
+    reason: 'Detailed yet responsive updates for user changes',
   },
 
   // Step 5: Geocoding (simple classification)

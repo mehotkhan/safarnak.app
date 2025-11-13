@@ -70,7 +70,9 @@ export class TripAI {
         mustSeeAttractions: [],
         dietaryNeeds: ['none'],
         transportPreferences: ['public_transport', 'walking'],
-        reasoning: 'Created a balanced travel profile based on your input.'
+        reasoning: input.userLocation
+          ? `بر اساس موقعیت فعلی شما (${input.userLocation}) و ترجیحات ارسال‌شده، یک پروفایل متعادل ایجاد شد.`
+          : 'Created a balanced travel profile based on your input.'
       };
     }
   }
@@ -81,10 +83,14 @@ export class TripAI {
    */
   async generateItinerary(input: TripAnalysisInput, analysis: any): Promise<any> {
     try {
+      const MS_PER_DAY = 1000 * 60 * 60 * 24;
+      const durationDays = input.startDate && input.endDate
+        ? Math.max(1, Math.min(30, Math.ceil((new Date(input.endDate).getTime() - new Date(input.startDate).getTime()) / MS_PER_DAY) + 1))
+        : undefined;
+
       // Auto-select model based on trip complexity
       const useAdvanced = shouldUseAdvancedModel({
-        duration: input.startDate && input.endDate ? 
-          Math.ceil((new Date(input.endDate).getTime() - new Date(input.startDate).getTime()) / (1000 * 60 * 60 * 24)) : 7,
+        duration: durationDays,
         budget: input.budget,
         preferencesLength: input.preferences?.length || 0,
       });
@@ -111,9 +117,9 @@ export class TripAI {
       }
       
       return {
-        title: itineraryData.title || `Trip to ${input.destination}`,
-        destination: itineraryData.destination || input.destination,
-        days: itineraryData.days || [],
+        title: itineraryData.title || `سفر به ${input.destination || 'مقصد شما'}`,
+        destination: itineraryData.destination || input.destination || 'Destination',
+        days: Array.isArray(itineraryData.days) ? itineraryData.days : [],
         estimatedBudget: itineraryData.estimatedBudget || {
           accommodation: Math.round((input.budget || 1000) * 0.4),
           food: Math.round((input.budget || 1000) * 0.3),
@@ -135,10 +141,10 @@ export class TripAI {
    * Generate recommendations for restaurants, accommodations, transport
    * Uses PRIMARY model for balanced speed/quality
    */
-  async generateRecommendations(destination: string, itinerary: any, analysis: any): Promise<any> {
+  async generateRecommendations(destination: string, itinerary: any, analysis: any, userLocation?: string): Promise<any> {
     try {
       const config = MODEL_STRATEGY.RECOMMENDATIONS;
-      const prompt = buildRecommendationsPrompt(destination, itinerary, analysis);
+      const prompt = buildRecommendationsPrompt(destination, itinerary, analysis, userLocation);
       const response = await this.runAI(prompt, {
         model: config.model,
         max_tokens: config.maxTokens,
@@ -177,7 +183,13 @@ export class TripAI {
    */
   async updateTrip(input: TripUpdateInput): Promise<any> {
     try {
-      const config = MODEL_STRATEGY.TRIP_UPDATES;
+      const useAdvanced = shouldUseAdvancedModel({
+        duration: Array.isArray(input.currentTrip.itinerary) ? input.currentTrip.itinerary.length : undefined,
+        budget: input.currentTrip.budget,
+        preferencesLength: input.userMessage.length,
+      });
+
+      const config = useAdvanced ? MODEL_STRATEGY.ITINERARY_GENERATION : MODEL_STRATEGY.TRIP_UPDATES;
       const prompt = buildTripUpdatePrompt(input);
       const response = await this.runAI(prompt, {
         model: config.model,

@@ -35,6 +35,14 @@ export const createTrip = async (
   const destination = input.destination?.trim();
   const accommodation = input.accommodation ?? 'hotel';
 
+  let userLocation: string | undefined;
+  if (description) {
+    const locationMatch = description.match(/Current Location:\s*([^\n]+)/i);
+    if (locationMatch?.[1]) {
+      userLocation = locationMatch[1].trim();
+    }
+  }
+
   // Validate input - only description and travelers are required
   if (!description || description.length < 10) {
     throw new Error('Trip description is required and must be at least 10 characters');
@@ -64,6 +72,7 @@ export const createTrip = async (
       startDate: input.startDate,
       endDate: input.endDate,
       accommodation,
+      userLocation,
     });
     
     // Step 2: Generate itinerary
@@ -76,6 +85,7 @@ export const createTrip = async (
         startDate: input.startDate,
         endDate: input.endDate,
         accommodation,
+        userLocation,
       },
       analysis
     );
@@ -104,23 +114,25 @@ export const createTrip = async (
     console.error('AI generation failed, using fallback:', aiError);
     aiReasoning = `Based on your preferences for ${description}, I've created a trip plan to ${destination || 'your destination'}.`;
     itineraryData = [
-      {
-        day: 1,
-        title: 'Arrival & Exploration',
-        activities: ['Check into accommodation', 'Local orientation walk', 'Welcome dinner'],
-      },
-      {
-        day: 2,
-        title: 'Main Attractions',
-        activities: ['Visit top landmarks', 'Cultural experience', 'Local cuisine tasting'],
-      },
-    ];
+    {
+      day: 1,
+      title: 'Arrival & Exploration',
+      activities: ['Check into accommodation', 'Local orientation walk', 'Welcome dinner'],
+    },
+    {
+      day: 2,
+      title: 'Main Attractions',
+      activities: ['Visit top landmarks', 'Cultural experience', 'Local cuisine tasting'],
+    },
+  ];
     coordinatesData = { latitude: 35.6762, longitude: 139.6503 };
     waypoints = generateWaypointsForDestination(destination);
   }
 
   try {
     // Insert trip
+    const metadataPayload = userLocation ? { userLocation } : undefined;
+
     const result = await db
       .insert(trips)
       .values({
@@ -139,6 +151,7 @@ export const createTrip = async (
         coordinates: JSON.stringify(coordinatesData),
         waypoints: JSON.stringify(waypoints),
         aiGenerated: true,
+        metadata: metadataPayload ? JSON.stringify(metadataPayload) : null,
       })
       .returning()
       .get();
@@ -151,7 +164,13 @@ export const createTrip = async (
           tripId: result.id.toString(),
           userId,
           destination: destination || undefined,
+          startDate: input.startDate || undefined,
+          endDate: input.endDate || undefined,
+          budget: input.budget ?? undefined,
+          travelers,
+          accommodation,
           preferences: description,
+          userLocation,
         },
       });
       console.log('Trip creation workflow started:', workflowInstance.id);

@@ -7,18 +7,14 @@ import {
   ActivityIndicator,
   Platform,
   Keyboard,
-  KeyboardAvoidingView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import * as Location from 'expo-location';
 import { CustomText } from '@ui/display';
 import { InputField } from '@ui/forms';
-import { CustomButton } from '@ui/forms';
 import { useTheme } from '@ui/context';
 import { z } from 'zod';
 import { useCreateTripMutation, GetTripsDocument } from '@api';
@@ -33,10 +29,8 @@ export default function CreateTripScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [createTrip] = useCreateTripMutation();
-  const keyboardHeight = useSharedValue(0);
 
   // Location state
   const [currentLocation, setCurrentLocation] = useState<string>('');
@@ -45,24 +39,6 @@ export default function CreateTripScreen() {
 
   // Advanced options state
   const [showAdvanced, setShowAdvanced] = useState(false);
-
-  // Listen to keyboard show/hide events with proper platform handling
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSubscription = Keyboard.addListener(showEvent, (e) => {
-      keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, () => {
-      keyboardHeight.value = withTiming(0, { duration: 250 });
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [keyboardHeight]);
 
   const [formData, setFormData] = useState({
     destination: '',
@@ -289,26 +265,40 @@ export default function CreateTripScreen() {
 
   const formIsValid = isFormValid();
 
-  // Animated style for floating button positioning
-  const floatingButtonStyle = useAnimatedStyle(() => {
-    const height = keyboardHeight.value;
-    return {
-      bottom: height > 0 ? height : 0,
-      paddingBottom: height > 0 ? 16 : Math.max(insets.bottom, 16),
-    };
-  });
-
   return (
-    <KeyboardAvoidingView 
-      className="flex-1 bg-white dark:bg-black"
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-    >
-      <Stack.Screen options={{ title: t('plan.form.title'), headerShown: true }} />
+    <View className="flex-1 bg-white dark:bg-black">
+      <Stack.Screen 
+        options={{ 
+          title: t('plan.form.title'), 
+          headerShown: true,
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={handleSubmit}
+              disabled={loading || !formIsValid}
+              className={`px-4 py-2 rounded-full ${
+                loading || !formIsValid
+                  ? 'bg-gray-300 dark:bg-neutral-700'
+                  : 'bg-primary'
+              }`}
+            >
+              {loading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <View className="flex-row items-center gap-1">
+                  <Ionicons name="checkmark" size={18} color="#fff" />
+                  <CustomText className="text-white text-sm font-medium">
+                    {t('plan.form.submit')}
+                  </CustomText>
+                </View>
+              )}
+            </TouchableOpacity>
+          ),
+        }} 
+      />
 
       <ScrollView 
         className="flex-1 px-6 py-4" 
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Current Location - Compact */}
@@ -523,41 +513,6 @@ export default function CreateTripScreen() {
           </View>
         )}
       </ScrollView>
-
-      {/* Floating Submit Button - Adjusts with keyboard */}
-      <Animated.View 
-        className="absolute left-0 right-0 px-6 bg-white dark:bg-black border-t border-gray-200 dark:border-neutral-800"
-        style={[
-          {
-            paddingTop: 16,
-          },
-          floatingButtonStyle,
-        ]}
-      >
-        <CustomButton
-          title={loading ? t('plan.form.generating') : t('plan.form.submit')}
-          onPress={handleSubmit}
-          disabled={loading || !formIsValid}
-          IconLeft={
-            loading
-              ? () => (
-                  <ActivityIndicator
-                    color="#fff"
-                    style={{ marginRight: 8 }}
-                  />
-                )
-              : () => (
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={20}
-                    color="#fff"
-                    style={{ marginRight: 8 }}
-                  />
-                )
-          }
-          className="shadow-lg"
-        />
-    </Animated.View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

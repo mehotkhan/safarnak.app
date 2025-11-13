@@ -13,6 +13,7 @@ export interface TripAnalysisInput {
   startDate?: string;
   endDate?: string;
   accommodation?: string;
+  userLocation?: string;
 }
 
 export interface TripUpdateInput {
@@ -24,6 +25,7 @@ export interface TripUpdateInput {
     itinerary?: any;
   };
   userMessage: string;
+  userLocation?: string;
 }
 
 /**
@@ -38,8 +40,10 @@ Budget: ${input.budget ? `$${input.budget}` : 'Not specified'}
 Travelers: ${input.travelers} ${input.travelers === 1 ? 'person' : 'people'}
 Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
 Accommodation: ${input.accommodation || 'Any'}
+User Location (starting point): ${input.userLocation || 'Unknown (latitude, longitude or city)'}
 
 IMPORTANT: All text fields (reasoning, attractions) must be in Persian/Farsi (فارسی).
+When analyzing, consider the user's starting location to suggest realistic travel options (flights, trains, nearby attractions).
 
 Analyze the preferences and respond ONLY with valid JSON (no markdown, no explanation):
 {
@@ -50,7 +54,7 @@ Analyze the preferences and respond ONLY with valid JSON (no markdown, no explan
   "mustSeeAttractions": ["جاذبه اول", "جاذبه دوم"],
   "dietaryNeeds": ["vegetarian", "halal", "none"],
   "transportPreferences": ["walking", "public_transport", "car", "bike"],
-  "reasoning": "تحلیل کوتاه دو جمله‌ای از خواسته‌های مسافر به فارسی"
+  "reasoning": "تحلیل کوتاه دو جمله‌ای از خواسته‌های مسافر به فارسی که شامل اشاره به موقعیت فعلی کاربر نیز باشد"
 }`;
 }
 
@@ -72,6 +76,7 @@ TRIP DETAILS:
 - Travel Style: ${analysis?.travelStyle || 'balanced'}
 - Interests: ${analysis?.interests?.join(', ') || 'general sightseeing'}
 - Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
+- User Starting Location: ${input.userLocation || 'Unknown (latitude, longitude or city)'}
 
 CRITICAL REQUIREMENTS:
 1. ALL text (title, activities, reasoning, highlights, tips) MUST be in Persian/Farsi (فارسی)
@@ -79,11 +84,13 @@ CRITICAL REQUIREMENTS:
 3. Generate EXACTLY ${duration} days (days array must have ${duration} items, numbered 1 to ${duration})
 4. Include specific addresses and real locations that exist in ${destination}
 5. Mention actual restaurant names, hotel names, and attraction names from ${destination}
+6. Provide at LEAST 4 detailed activities per day with exact times (صبح، ظهر، بعدازظهر، شب)
+7. Tailor arrival/departure times based on the user's starting location when possible
 
 Example of REAL places (use actual places like these):
-- For Paris: "برج ایفل"، "موزه لوور"، "کافه دو فلور"، "رستوران Le Jules Verne"
-- For Tokyo: "معبد سنسوجی"، "برج توکیو"، "بازار تسوکیجی"، "رستوران Ichiran"
-- For Istanbul: "مسجد آبی"، "کاخ توپکاپی"، "بازار بزرگ"، "رستوران Hamdi"
+- For Paris: "برج ایفل"، "موزه لوور"، "رستوران Le Jules Verne"
+- For Tokyo: "معبد سنسوجی"، "بازار تسوکیجی"، "رستوران Ichiran"  
+- For Istanbul: "مسجد آبی"، "کاخ توپکاپی"، "رستوران Hamdi"
 
 Respond ONLY with valid JSON (no markdown, no explanation):
 {
@@ -97,15 +104,16 @@ Respond ONLY with valid JSON (no markdown, no explanation):
         "صبح ۹:۰۰: بازدید از [نام واقعی جاذبه] - آدرس دقیق",
         "ظهر ۱۲:۳۰: ناهار در رستوران [نام واقعی] - غذای محلی معروف",
         "بعدازظهر ۳:۰۰: گشت و گذار در [نام واقعی خیابان/محله]",
+        "غروب ۵:۳۰: فعالیت فرهنگی/هنری در [نام واقعی مکان]",
         "شب ۸:۰۰: شام در [نام واقعی رستوران]"
       ]
     }
   ],
   "estimatedBudget": {
-    "accommodation": ${Math.round(((input.budget || 1000) * 0.4) / duration)} per night,
-    "food": ${Math.round(((input.budget || 1000) * 0.3) / duration)} per day,
-    "activities": ${Math.round(((input.budget || 1000) * 0.2) / duration)} per day,
-    "transport": ${Math.round(((input.budget || 1000) * 0.1) / duration)} per day,
+    "accommodation": ${Math.round(((input.budget || 1000) * 0.4) / duration)},
+    "food": ${Math.round(((input.budget || 1000) * 0.3) / duration)},
+    "activities": ${Math.round(((input.budget || 1000) * 0.2) / duration)},
+    "transport": ${Math.round(((input.budget || 1000) * 0.1) / duration)},
     "total": ${input.budget || 1000}
   },
   "aiReasoning": "این برنامه ${duration} روزه برای ${destination} شامل بازدید از مهم‌ترین جاذبه‌ها و تجربه فرهنگ محلی است",
@@ -120,13 +128,14 @@ REMEMBER: Generate EXACTLY ${duration} days, not more, not less!`;
  * Step 6: Recommendations & Optimization
  * Optimizes the itinerary and adds specific venue recommendations
  */
-export function buildRecommendationsPrompt(destination: string, itinerary: any, analysis: any): string {
+export function buildRecommendationsPrompt(destination: string, itinerary: any, analysis: any, userLocation?: string): string {
   return `You are a local travel expert for ${destination} with deep knowledge of the city's restaurants, cafes, and hotels.
 
 Destination: ${destination}
 Itinerary: ${JSON.stringify(itinerary.days || [])}
 Travel Style: ${analysis?.travelStyle || 'balanced'}
 Interests: ${analysis?.interests?.join(', ') || 'general'}
+Traveler Starting Location: ${userLocation || 'نامشخص (مختصات یا شهر)'}
 
 CRITICAL REQUIREMENTS:
 1. ALL text (reason, specialty, tips, neighborhoods) MUST be in Persian/Farsi (فارسی)
@@ -170,38 +179,65 @@ REMEMBER: Use ONLY real place names from ${destination}, not generic examples!`;
  * Intelligently modifies trip based on user's natural language request
  */
 export function buildTripUpdatePrompt(input: TripUpdateInput): string {
-  return `You are a travel planning assistant. The user wants to modify their trip.
+  const currentDays = Array.isArray(input.currentTrip.itinerary) ? input.currentTrip.itinerary.length : 0;
+  const destination = input.currentTrip.destination || 'Unknown';
+  
+  return `You are an expert travel planner for ${destination}. The user wants to modify their existing trip based on their message.
 
-Current Trip:
-- Destination: ${input.currentTrip.destination || 'Unknown'}
-- Preferences: ${input.currentTrip.preferences || 'None'}
-- Budget: ${input.currentTrip.budget || 'Not set'}
+CURRENT TRIP DETAILS:
+- Destination: ${destination}
+- Budget: ${input.currentTrip.budget ? `$${input.currentTrip.budget}` : 'Not set'}
 - Travelers: ${input.currentTrip.travelers || 1}
+- Current Days: ${currentDays}
+- Preferences: ${input.currentTrip.preferences || 'None'}
+- User Location (starting point): ${input.userLocation || 'نامشخص (مختصات یا شهر)'}
 - Current Itinerary: ${JSON.stringify(input.currentTrip.itinerary || [])}
 
-User Request: "${input.userMessage}"
+USER'S UPDATE REQUEST: "${input.userMessage}"
 
-CRITICAL: All text content (understood, titles, activities, reasoning) MUST be in Persian/Farsi (فارسی).
-Understand what the user wants and generate updated trip data in Persian.
+CRITICAL REQUIREMENTS:
+1. ALL text (understood, titles, activities, reasoning) MUST be in Persian/Farsi (فارسی)
+2. Use REAL place names from ${destination} (actual restaurants, museums, landmarks, streets)
+3. Maintain the EXACT day count unless user specifically requests more/fewer days
+4. Include specific times and addresses like: "صبح ۹:۰۰: بازدید از [نام واقعی جاذبه]"
+5. If user adds activities, integrate them with real place names
+6. If user changes destination, use real places from the NEW destination
+7. Suggest realistic transitions considering user's starting location when relevant
+
+Example of REAL places:
+- Paris: "برج ایفل"، "موزه لوور"، "رستوران Le Jules Verne"
+- Tokyo: "معبد سنسوجی"، "بازار تسوکیجی"، "رستوران Ichiran"  
+- Istanbul: "مسجد آبی"، "کاخ توپکاپی"، "رستوران Hamdi"
 
 Respond ONLY with valid JSON (no markdown):
 {
-  "understood": "خلاصه فارسی از درخواست کاربر",
+  "understood": "خلاصه فارسی واضح از درخواست کاربر",
   "modifications": {
-    "destination": "New destination if changed, or null",
-    "budget": "New budget if changed, or null",
-    "travelers": "New number if changed, or null",
-    "preferences": "Updated preferences if changed, or null"
+    "destination": "نام مقصد جدید یا null اگر تغییری نکرده",
+    "budget": "عدد جدید یا null",
+    "travelers": "عدد جدید یا null",
+    "preferences": "متن جدید یا null"
   },
   "updatedItinerary": [
     {
       "day": 1,
-      "title": "عنوان روز به فارسی",
-      "activities": ["فعالیت اول", "فعالیت دوم", "فعالیت سوم"]
+      "title": "عنوان روز با اسامی واقعی",
+      "activities": [
+        "صبح ۹:۰۰: بازدید از [نام واقعی جاذبه] - آدرس",
+        "ظهر ۱۲:۳۰: ناهار در [نام واقعی رستوران]",
+        "بعدازظهر ۳:۰۰: [فعالیت واقعی]",
+        "شب ۸:۰۰: شام در [نام واقعی رستوران]"
+      ]
     }
   ],
-  "aiReasoning": "توضیح تغییرات انجام شده بر اساس درخواست کاربر به فارسی"
-}`;
+  "aiReasoning": "توضیح دقیق تغییرات: چه چیزی تغییر کرد، چرا، و چگونه درخواست کاربر اعمال شد"
+}
+
+REMEMBER: 
+- Keep ${currentDays} days unless user explicitly asks for more/fewer
+- Use ONLY real place names from ${destination}
+- All text in Persian (فارسی)
+- Include specific times and addresses`;
 }
 
 /**

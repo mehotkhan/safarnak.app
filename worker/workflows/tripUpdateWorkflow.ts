@@ -12,6 +12,34 @@ import { trips } from '@database/server';
 import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 import { createTripAI } from '../utilities/ai';
 
+function extractUserLocation(metadata?: string | null, preferences?: string | null): string | undefined {
+  if (metadata) {
+    try {
+      const parsed = JSON.parse(metadata);
+      if (parsed?.userLocation && typeof parsed.userLocation === 'string') {
+        const value = parsed.userLocation.trim();
+        if (value) {
+          return value;
+        }
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (preferences) {
+    const match = preferences.match(/Current Location:\s*([^\n]+)/i);
+    if (match?.[1]) {
+      const value = match[1].trim();
+      if (value) {
+        return value;
+      }
+    }
+  }
+
+  return undefined;
+}
+
 interface TripUpdateParams {
   tripId: string;
   userId: string;
@@ -81,6 +109,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
 
       // Use AI to understand and process user's update request
       const ai = createTripAI(this.env);
+      const userLocation = extractUserLocation(currentTrip.metadata, currentTrip.preferences);
       const updateResult = await ai.updateTrip({
         currentTrip: {
           destination: currentTrip.destination ?? undefined,
@@ -89,11 +118,12 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           travelers: currentTrip.travelers ?? 1,
           itinerary: currentItinerary
         },
-        userMessage
+        userMessage,
+        userLocation,
       });
 
       console.log('AI update processed:', updateResult.understood);
-      return { status: 'updating', updateResult, currentTrip };
+      return { status: 'updating', updateResult, currentTrip, currentItinerary, userLocation, userMessage };
     });
 
     // Wait 2 seconds
@@ -103,7 +133,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
     await step.do('Step 3: Complete update', async () => {
       const db = getServerDB(this.env.DB);
       
-      const { updateResult, currentTrip } = aiUpdateResult;
+      const { updateResult, currentTrip, currentItinerary, userLocation, userMessage } = aiUpdateResult;
       
       // Apply modifications from AI
       const modifications = updateResult.modifications || {};
@@ -136,19 +166,59 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         coordinates = { latitude: 0, longitude: 0 };
       }
       
+      const allowsDurationChange = /extend|longer|shorter|shorten|day|روز|کم کن|زیاد کن|کاهش|افزایش|اضافه/i.test(userMessage ?? '');
+
+      let newItinerary = Array.isArray(updateResult.updatedItinerary) ? updateResult.updatedItinerary : currentItinerary;
+      const originalDayCount = Array.isArray(currentItinerary) ? currentItinerary.length : 0;
+
+      if (Array.isArray(newItinerary) && originalDayCount && newItinerary.length !== originalDayCount && !allowsDurationChange) {
+        newItinerary = newItinerary.slice(0, originalDayCount);
+      }
+
+      const normalizedItinerary = Array.isArray(newItinerary)
+        ? newItinerary.map((day: any, index: number) => ({
+            ...day,
+            day: index + 1,
+            activities: Array.isArray(day?.activities) ? day.activities : [],
+          }))
+        : Array.isArray(currentItinerary)
+          ? currentItinerary
+          : [];
+
       // Build update data with AI-generated changes
       const updateData: any = {
-        destination: modifications.destination || currentTrip.destination,
+        destination: modifications.destination ?? currentTrip.destination,
         budget: modifications.budget !== undefined && modifications.budget !== null ? modifications.budget : currentTrip.budget,
-        travelers: modifications.travelers || currentTrip.travelers,
-        preferences: modifications.preferences || currentTrip.preferences,
+        travelers: modifications.travelers ?? currentTrip.travelers,
+        preferences: modifications.preferences ?? currentTrip.preferences,
         aiReasoning: updateResult.aiReasoning,
-        itinerary: JSON.stringify(updateResult.updatedItinerary),
+        itinerary: JSON.stringify(normalizedItinerary),
         coordinates: JSON.stringify(coordinates),
         waypoints: JSON.stringify(waypoints),
         status: 'ready',
         updatedAt: new Date().toISOString(),
       };
+
+      // Merge metadata (preserve user location and add reasoning)
+      let metadataPayload: Record<string, any> = {};
+      if (currentTrip.metadata) {
+        try {
+          metadataPayload = JSON.parse(currentTrip.metadata) || {};
+        } catch {
+          metadataPayload = {};
+        }
+      }
+
+      if (userLocation) {
+        metadataPayload.userLocation = userLocation;
+      }
+
+      metadataPayload.aiReasoning = updateResult.aiReasoning;
+      metadataPayload.lastUpdateAt = new Date().toISOString();
+      metadataPayload.lastUpdateRequest = userMessage;
+      metadataPayload.lastUpdateModifications = modifications;
+
+      updateData.metadata = JSON.stringify(metadataPayload);
 
       await db
         .update(trips)

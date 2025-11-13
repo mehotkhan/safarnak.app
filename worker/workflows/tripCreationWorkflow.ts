@@ -27,12 +27,13 @@ interface TripCreationParams {
   travelers?: number;
   preferences?: string;
   accommodation?: string;
+  userLocation?: string;
 }
 
 export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationParams> {
   override async run(event: WorkflowEvent<TripCreationParams>, step: WorkflowStep): Promise<void> {
     const { 
-      tripId, 
+        tripId,
       userId: _userId, 
       destination, 
       startDate,
@@ -41,6 +42,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       travelers,
       preferences,
       accommodation,
+      userLocation,
     } = event.payload;
 
     // Small initial delay to allow subscription to connect
@@ -52,16 +54,16 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     const formData = await step.do('Step 1: Initialize', async () => {
       await publishNotification(this.env, 'TRIP_UPDATE', { 
         tripUpdates: {
-          id: `${tripId}-step-1`,
-          tripId,
-          type: 'workflow',
+        id: `${tripId}-step-1`,
+        tripId,
+        type: 'workflow',
           title: 'آغاز ساخت سفر',
           message: `${destination || 'مقصد'} - ${travelers || 1} نفر - ${budget ? `$${budget}` : 'بدون بودجه'}`,
-          step: 1,
+        step: 1,
           totalSteps: 5,
-          status: 'processing',
+        status: 'processing',
           data: JSON.stringify({ status: 'initialized', destination, travelers, budget }),
-          createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
@@ -73,6 +75,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         travelers: travelers || 1,
         preferences: preferences || '',
         accommodation: accommodation || 'hotel',
+        userLocation,
       };
     });
 
@@ -82,16 +85,16 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     const [analysisResult, geoResult] = await step.do('Step 2: AI Analysis', async () => {
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-step-2`,
-          tripId,
-          type: 'workflow',
+        id: `${tripId}-step-2`,
+        tripId,
+        type: 'workflow',
           title: 'تحلیل هوشمند',
           message: 'تحلیل ترجیحات و موقعیت جغرافیایی...',
-          step: 2,
+        step: 2,
           totalSteps: 5,
-          status: 'processing',
+        status: 'processing',
           data: JSON.stringify({ status: 'parallel_analysis' }),
-          createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
@@ -114,6 +117,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
           startDate: formData.startDate,
           endDate: formData.endDate,
           accommodation: formData.accommodation,
+          userLocation: formData.userLocation,
         }).catch(err => {
           console.error('Preference analysis failed:', err);
           return {
@@ -159,16 +163,16 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     const itineraryResult = await step.do('Step 3: Generate Itinerary', async () => {
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-step-3`,
-          tripId,
-          type: 'workflow',
+        id: `${tripId}-step-3`,
+        tripId,
+        type: 'workflow',
           title: 'ساخت برنامه سفر',
           message: `ایجاد برنامه سفر ${analysisResult.analysis.travelStyle}...`,
-          step: 3,
+        step: 3,
           totalSteps: 5,
-          status: 'processing',
+        status: 'processing',
           data: JSON.stringify({ status: 'itinerary_generation', style: analysisResult.analysis.travelStyle }),
-          createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
@@ -186,40 +190,37 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     const [recommendationsResult] = await step.do('Step 4: Recommendations', async () => {
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-step-4`,
-          tripId,
-          type: 'workflow',
+        id: `${tripId}-step-4`,
+        tripId,
+        type: 'workflow',
           title: 'توصیه‌های سفر',
           message: 'یافتن بهترین رستوران‌ها و مکان‌ها...',
-          step: 4,
+        step: 4,
           totalSteps: 5,
-          status: 'processing',
+        status: 'processing',
           data: JSON.stringify({ status: 'parallel_recommendations' }),
-          createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
       const ai = createTripAI(this.env);
 
       // PARALLEL: Recommendations + Embeddings
-      const [recommendations] = await Promise.all([
-        ai.generateRecommendations(
-          formData.destination || itineraryResult.itinerary.destination,
-          itineraryResult.itinerary,
-          analysisResult.analysis
-        ).catch(err => {
-          console.warn('Recommendations failed:', err);
-          return {
-            restaurants: [],
-            cafes: [],
-            accommodations: [],
-            transportation: { bestOption: 'public_transport', passes: [], tips: [] },
-            localTips: []
-          };
-        }),
-
-        Promise.resolve(null) // Embeddings placeholder
-      ]);
+      const recommendations = await ai.generateRecommendations(
+        formData.destination || itineraryResult.itinerary.destination,
+        itineraryResult.itinerary,
+        analysisResult.analysis,
+        formData.userLocation
+      ).catch(err => {
+        console.warn('Recommendations failed:', err);
+        return {
+          restaurants: [],
+          cafes: [],
+          accommodations: [],
+          transportation: { bestOption: 'public_transport', passes: [], tips: [] },
+          localTips: []
+        };
+      });
 
       console.log('✅ Recommendations complete:', recommendations.restaurants.length);
 
@@ -231,10 +232,10 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     // ========================================================================
     await step.do('Step 5: Final save', async () => {
       const db = getServerDB(this.env.DB);
-
+      
       const finalDestination = formData.destination || itineraryResult.itinerary.destination || 'Destination';
       const waypoints = generateWaypointsForDestination(finalDestination);
-
+      
       const updateData: any = {
         title: itineraryResult.itinerary.title,
         destination: finalDestination,
@@ -246,14 +247,26 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         updatedAt: new Date().toISOString(),
       };
 
-      // Add recommendations as metadata
-      if (recommendationsResult.recommendations.restaurants.length > 0) {
-        updateData.metadata = JSON.stringify({
-          recommendations: recommendationsResult.recommendations,
-          analysis: analysisResult.analysis,
-          geoData: geoResult.geoData,
-        });
+      // Merge metadata (preserve user location, add AI insights)
+      let metadataPayload: Record<string, any> = {};
+      const existingTrip = await db.select().from(trips).where(eq(trips.id, tripId)).get();
+      if (existingTrip?.metadata) {
+        try {
+          metadataPayload = JSON.parse(existingTrip.metadata) || {};
+        } catch {
+          metadataPayload = {};
+        }
       }
+
+      if (formData.userLocation) {
+        metadataPayload.userLocation = formData.userLocation;
+      }
+
+      metadataPayload.analysis = analysisResult.analysis;
+      metadataPayload.geoData = geoResult.geoData;
+      metadataPayload.recommendations = recommendationsResult.recommendations;
+
+      updateData.metadata = JSON.stringify(metadataPayload);
 
       await db.update(trips).set(updateData).where(eq(trips.id, tripId)).run();
 
@@ -261,15 +274,15 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
           id: `${tripId}-step-5`,
-          tripId,
-          type: 'workflow',
-          title: 'سفر آماده است!',
+        tripId,
+        type: 'workflow',
+        title: 'سفر آماده است!',
           message: `${finalDestination} - ${itineraryResult.itinerary.days.length} روز - ${recommendationsResult.recommendations.restaurants.length} توصیه`,
           step: 5,
           totalSteps: 5,
-          status: 'completed',
+        status: 'completed',
           data: JSON.stringify({ status: 'completed', destination: finalDestination, days: itineraryResult.itinerary.days.length }),
-          createdAt: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
