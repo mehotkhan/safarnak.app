@@ -96,6 +96,16 @@ android {
         versionName "1.15.0"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
+        
+        // ====================================
+        // APK SIZE OPTIMIZATION - Resource Filtering
+        // ====================================
+        // Only include English and Persian languages (removes all other locales)
+        resConfigs "en", "fa"
+        
+        // Only include xxhdpi density (for arm64-v8a devices)
+        // This removes mdpi, hdpi, xhdpi, xxxhdpi variants
+        resConfigs "xxhdpi"
     }
     signingConfigs {
         debug {
@@ -116,7 +126,10 @@ android {
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
-            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+            
+            // Use proguard-android-optimize.txt for MORE aggressive R8 optimization
+            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
+            
             def enablePngCrunchInRelease = findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true'
             crunchPngs enablePngCrunchInRelease.toBoolean()
         }
