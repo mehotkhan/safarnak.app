@@ -1,526 +1,308 @@
-import { useState, useMemo, useCallback } from 'react';
-import {
-  View,
-  FlatList,
-  RefreshControl,
-} from 'react-native';
+import { useState, useCallback } from 'react';
+import { View, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, Stack } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
-import { LoadingState } from '@ui/feedback';
-import { ErrorState } from '@ui/feedback';
-import { EmptyState } from '@ui/feedback';
-import { TourCard, PlaceCard, PostCard } from '@ui/cards';
-import { useGetToursQuery, useGetPlacesQuery, useGetPostsQuery, useSearchQuery, useSearchSuggestQuery } from '@api';
-import { FilterModal, type TourFilters, type PlaceFilters, type PostFilters } from '@ui/modals';
+import { LoadingState, ErrorState, EmptyState } from '@ui/feedback';
+import { useTheme } from '@ui/context';
+import { useSearchSemanticQuery, useGetTrendingQuery } from '@api';
 import { useDebounce } from '@hooks/useDebounce';
-import { useRefresh } from '@hooks/useRefresh';
-import { TabBar } from '@ui/layout';
 import { SearchBar } from '@ui/forms';
-import { useDateTime } from '@hooks/useDateTime';
-
-type TabType = 'tours' | 'places' | 'posts';
 
 export default function ExploreScreen() {
   const { t } = useTranslation();
+  const { isDark } = useTheme();
   const router = useRouter();
-  const { parseDate } = useDateTime();
   
-  // State
-  const [activeTab, setActiveTab] = useState<TabType>('tours');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [tourFilters, setTourFilters] = useState<TourFilters>({});
-  const [placeFilters, setPlaceFilters] = useState<PlaceFilters>({});
-  const [postFilters, setPostFilters] = useState<PostFilters>({});
+  const debouncedSearch = useDebounce(searchQuery, 400);
 
-  // Debounced search
-  const debouncedSearch = useDebounce(searchQuery, 300);
-
-  // Global search (lexical) across entity types when query present
-  const entityTypesForTab = useMemo(() => {
-    if (activeTab === 'posts') return ['POST'] as any;
-    if (activeTab === 'tours') return ['TOUR'] as any;
-    if (activeTab === 'places') return ['PLACE'] as any;
-    return undefined;
-  }, [activeTab]);
-
-  const { data: globalSearchData } = useSearchQuery({
-    variables: { query: debouncedSearch || '', entityTypes: entityTypesForTab, first: 30 },
-    skip: !(debouncedSearch && debouncedSearch.length >= 2),
+  // Semantic search (when user types)
+  const { data: searchData, loading: searchLoading, error: searchError, refetch: refetchSearch } = useSearchSemanticQuery({
+    variables: { query: debouncedSearch || '', first: 30 },
+    skip: !debouncedSearch || debouncedSearch.length < 2,
     fetchPolicy: 'cache-and-network',
   } as any);
 
-  const { data: suggestData } = useSearchSuggestQuery({
-    variables: { prefix: debouncedSearch || '', limit: 8 },
-    skip: !(debouncedSearch && debouncedSearch.length >= 1),
-    fetchPolicy: 'cache-first',
+  // Trending topics (KV-backed)
+  const { data: trendingData, loading: trendingLoading } = useGetTrendingQuery({
+    variables: { type: 'TOPIC' as any, window: 'H1' as any, limit: 12 },
+    fetchPolicy: 'cache-and-network',
   } as any);
 
-  // GraphQL Queries
-  const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetToursQuery({
-    variables: {
-      category: tourFilters.category,
-      limit: 50,
-    },
-    fetchPolicy: 'cache-and-network',
-  });
+  const searchResults = (searchData?.searchSemantic?.edges || [])
+    .map((e: any) => e?.node)
+    .filter(Boolean);
 
-  const { data: placesData, loading: placesLoading, error: placesError, refetch: refetchPlaces } = useGetPlacesQuery({
-    variables: {
-      category: placeFilters.type,
-      limit: 50,
-    },
-    fetchPolicy: 'cache-and-network',
-  });
+  const trendingTopics = (trendingData?.getTrending?.items || [])
+    .filter((item: any) => item?.key && item?.score > 0);
 
-  const { data: postsData, loading: postsLoading, error: postsError, refetch: refetchPosts } = useGetPostsQuery({
-    variables: {
-      type: postFilters.type,
-      limit: 20,
-      offset: 0,
-    },
-    fetchPolicy: 'cache-and-network',
-  });
+  const handleResultPress = useCallback((item: any) => {
+    const entityType = item?.entityType;
+    const entityId = item?.entityId;
+    if (!entityType || !entityId) return;
 
-  // Filter and search data
-  const filteredTours = useMemo(() => {
-    try {
-      if (!toursData?.getTours || !Array.isArray(toursData.getTours)) return [];
-      let tours = [...toursData.getTours].filter((tour: any) => tour != null);
-    
-    // Search filter
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      tours = tours.filter(
-        (tour: any) =>
-            tour?.title?.toLowerCase().includes(query) ||
-            tour?.location?.toLowerCase().includes(query) ||
-            tour?.description?.toLowerCase().includes(query)
-      );
+    if (entityType === 'POST') {
+      router.push(`/(app)/(feed)/${entityId}` as any);
+    } else if (entityType === 'TRIP') {
+      router.push(`/(app)/(trips)/${entityId}` as any);
+    } else if (entityType === 'TOUR') {
+      router.push(`/(app)/(explore)/tours/${entityId}` as any);
+    } else if (entityType === 'PLACE') {
+      router.push(`/(app)/(explore)/places/${entityId}` as any);
+    } else if (entityType === 'LOCATION') {
+      router.push(`/(app)/(explore)/locations/${entityId}` as any);
     }
-
-    // Price filter
-    if (tourFilters.minPrice !== undefined) {
-      tours = tours.filter((tour: any) => (tour.price ?? 0) >= tourFilters.minPrice!);
-    }
-    if (tourFilters.maxPrice !== undefined) {
-      tours = tours.filter((tour: any) => (tour.price ?? 0) <= tourFilters.maxPrice!);
-    }
-
-    // Rating filter
-    if (tourFilters.minRating !== undefined) {
-      tours = tours.filter((tour: any) => (tour.rating ?? 0) >= tourFilters.minRating!);
-    }
-
-    // Difficulty filter
-    if (tourFilters.difficulty) {
-      tours = tours.filter((tour: any) => tour.difficulty === tourFilters.difficulty);
-    }
-
-    // Sort
-    if (tourFilters.sortBy) {
-      tours = [...tours].sort((a: any, b: any) => {
-        switch (tourFilters.sortBy) {
-          case 'rating':
-            return (b.rating || 0) - (a.rating || 0);
-          case 'price':
-            return (a.price || 0) - (b.price || 0);
-          case 'newest': {
-            const aTime = a.createdAt ? parseDate(a.createdAt).toMillis() : 0;
-            const bTime = b.createdAt ? parseDate(b.createdAt).toMillis() : 0;
-            return bTime - aTime;
-          }
-          case 'popular':
-          default:
-            return (b.reviews || 0) - (a.reviews || 0);
-        }
-      });
-    }
-
-    return tours;
-    } catch {
-      return [];
-    }
-  }, [toursData, debouncedSearch, tourFilters, parseDate]);
-
-  const filteredPlaces = useMemo(() => {
-    try {
-      if (!placesData?.getPlaces || !Array.isArray(placesData.getPlaces)) return [];
-      let places = [...placesData.getPlaces].filter((place: any) => place != null);
-    
-    // Search filter
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      places = places.filter(
-        (place: any) =>
-            place?.name?.toLowerCase().includes(query) ||
-            place?.location?.toLowerCase().includes(query) ||
-            place?.description?.toLowerCase().includes(query)
-      );
-    }
-
-    // Rating filter
-    if (placeFilters.minRating !== undefined) {
-      places = places.filter((place: any) => (place.rating ?? 0) >= placeFilters.minRating!);
-    }
-
-    // Open filter
-    if (placeFilters.isOpen !== undefined) {
-      places = places.filter((place: any) => place.isOpen === placeFilters.isOpen);
-    }
-
-    // Sort
-    if (placeFilters.sortBy) {
-      places = [...places].sort((a: any, b: any) => {
-        switch (placeFilters.sortBy) {
-          case 'rating':
-            return (b.rating || 0) - (a.rating || 0);
-          case 'newest': {
-            const aTime = a.createdAt ? parseDate(a.createdAt).toMillis() : 0;
-            const bTime = b.createdAt ? parseDate(b.createdAt).toMillis() : 0;
-            return bTime - aTime;
-          }
-          case 'popular':
-          default:
-            return (b.reviews || 0) - (a.reviews || 0);
-        }
-      });
-    }
-
-    return places;
-    } catch {
-      return [];
-    }
-  }, [placesData, debouncedSearch, placeFilters, parseDate]);
-
-  const filteredPosts = useMemo(() => {
-    try {
-      if (!postsData?.getPosts?.posts || !Array.isArray(postsData.getPosts.posts)) return [];
-      let posts = [...postsData.getPosts.posts].filter((post: any) => post != null);
-    
-    // Search filter
-    if (debouncedSearch) {
-      const query = debouncedSearch.toLowerCase();
-      posts = posts.filter(
-        (post: any) =>
-            post?.content?.toLowerCase().includes(query) ||
-            post?.user?.name?.toLowerCase().includes(query) ||
-            post?.user?.username?.toLowerCase().includes(query)
-      );
-    }
-
-    // Sort
-    if (postFilters.sortBy) {
-      posts = [...posts].sort((a: any, b: any) => {
-        switch (postFilters.sortBy) {
-          case 'newest': {
-            const aTime = a.createdAt ? parseDate(a.createdAt).toMillis() : 0;
-            const bTime = b.createdAt ? parseDate(b.createdAt).toMillis() : 0;
-            return bTime - aTime;
-          }
-          case 'popular':
-          default:
-            return (b.reactionsCount || 0) - (a.reactionsCount || 0);
-        }
-      });
-    }
-
-    return posts;
-    } catch {
-      return [];
-    }
-  }, [postsData, debouncedSearch, postFilters, parseDate]);
-
-  // Loading state
-  const currentLoading = activeTab === 'tours' ? toursLoading : activeTab === 'places' ? placesLoading : postsLoading;
-
-  // Error state
-  const currentError = activeTab === 'tours' ? toursError : activeTab === 'places' ? placesError : postsError;
-
-  // Refresh handlers for each tab
-  const { refreshing: toursRefreshing, onRefresh: onRefreshTours } = useRefresh(refetchTours);
-  const { refreshing: placesRefreshing, onRefresh: onRefreshPlaces } = useRefresh(refetchPlaces);
-  const { refreshing: postsRefreshing, onRefresh: onRefreshPosts } = useRefresh(refetchPosts);
-
-  const handleRefresh = useCallback(() => {
-    if (activeTab === 'tours') {
-      onRefreshTours();
-    } else if (activeTab === 'places') {
-      onRefreshPlaces();
-    } else {
-      onRefreshPosts();
-    }
-  }, [activeTab, onRefreshTours, onRefreshPlaces, onRefreshPosts]);
-
-  // Navigation handlers
-  const handleTourPress = useCallback((tourId: string) => {
-    router.push(`/(app)/(explore)/tours/${tourId}` as any);
   }, [router]);
 
-  const handlePlacePress = useCallback((placeId: string) => {
-    router.push(`/(app)/(explore)/places/${placeId}` as any);
-  }, [router]);
+  const handleTrendingPress = useCallback((topic: string) => {
+    setSearchQuery(topic);
+  }, []);
 
-  const handlePostPress = useCallback((postId: string) => {
-    router.push(`/(app)/(feed)/${postId}` as any);
-  }, [router]);
+  const renderSearchResult = useCallback(({ item }: { item: any }) => {
+    const entity = item?.entity || {};
+    const entityType = item?.entityType || '';
+    const actor = item?.actor;
 
-  const handleUserPress = useCallback((userId: string) => {
-    router.push(`/(app)/(explore)/users/${userId}` as any);
-  }, [router]);
+    let title = '';
+    let subtitle = '';
+    let icon: any = 'document-text-outline';
 
-  // Get current filtered data based on active tab (or global search results)
-  const currentFilteredData = useMemo(() => {
-    // If searching, map FeedConnection nodes to entities for the active tab
-    if (debouncedSearch && debouncedSearch.length >= 2 && globalSearchData?.search?.edges) {
-      const edges = globalSearchData.search.edges as any[];
-      const mapped = edges
-        .map((e) => e?.node?.entity)
-        .filter(Boolean)
-        .filter((ent: any) => {
-          const t = ent.__typename;
-          if (activeTab === 'posts') return t === 'Post';
-          if (activeTab === 'tours') return t === 'Tour';
-          if (activeTab === 'places') return t === 'Place';
-          return false;
-        });
-      return mapped;
+    if (entityType === 'POST') {
+      title = entity?.content?.substring(0, 80) || t('explore.untitled');
+      subtitle = actor?.username ? `@${actor.username}` : t('explore.anonymousUser');
+      icon = 'chatbubble-outline';
+    } else if (entityType === 'TRIP') {
+      title = entity?.destination || t('explore.untitledTrip');
+      subtitle = entity?.status || t('explore.trip');
+      icon = 'airplane-outline';
+    } else if (entityType === 'TOUR') {
+      title = entity?.title || t('explore.untitledTour');
+      subtitle = entity?.location || t('explore.tour');
+      icon = 'map-outline';
+    } else if (entityType === 'PLACE') {
+      title = entity?.name || t('explore.untitledPlace');
+      subtitle = entity?.type || t('explore.place');
+      icon = 'location-outline';
+    } else if (entityType === 'LOCATION') {
+      title = entity?.city || entity?.country || t('explore.untitledLocation');
+      subtitle = t('explore.location');
+      icon = 'globe-outline';
     }
-    switch (activeTab) {
-      case 'tours':
-        return filteredTours;
-      case 'places':
-        return filteredPlaces;
-      case 'posts':
-        return filteredPosts;
-      default:
-        return [];
-    }
-  }, [activeTab, filteredTours, filteredPlaces, filteredPosts, debouncedSearch, globalSearchData?.search?.edges]);
 
-  // Render content based on active tab
+    return (
+      <TouchableOpacity
+        onPress={() => handleResultPress(item)}
+        className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800"
+        activeOpacity={0.7}
+      >
+        <View className="flex-row items-center">
+          <View className="w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 items-center justify-center mr-3">
+            <Ionicons name={icon} size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+          </View>
+          <View className="flex-1">
+            <CustomText weight="medium" className="text-base text-gray-900 dark:text-gray-100 mb-0.5" numberOfLines={2}>
+              {title}
+            </CustomText>
+            <CustomText className="text-sm text-gray-500 dark:text-gray-400">
+              {subtitle}
+            </CustomText>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={isDark ? '#6b7280' : '#9ca3af'} />
+        </View>
+      </TouchableOpacity>
+    );
+  }, [t, isDark, handleResultPress]);
+
   const renderContent = () => {
-    const hasData = currentFilteredData.length > 0;
-    if (currentLoading && !hasData) {
-      return <LoadingState message={t('common.loading')} />;
-    }
+    // Searching state
+    if (debouncedSearch && debouncedSearch.length >= 2) {
+      if (searchLoading && searchResults.length === 0) {
+        return <LoadingState message={t('explore.searching')} className="py-20" />;
+      }
 
-    if (currentError) {
-      return (
-        <ErrorState
-          title={t('explore.error.title')}
-          message={currentError.message || t('explore.error.message')}
-          iconSize={48}
-          onRetry={handleRefresh}
-        />
-      );
-    }
+      if (searchError) {
+        return (
+          <ErrorState
+            title={t('common.error')}
+            message={searchError.message || t('explore.searchError')}
+            onRetry={() => refetchSearch()}
+            className="py-20"
+          />
+        );
+      }
 
-    if (activeTab === 'tours') {
-      if (currentFilteredData.length === 0) {
+      if (searchResults.length === 0) {
         return (
           <EmptyState
-            icon="map-outline"
-            title={t('explore.empty.tours')}
-            description={t('explore.empty.toursDescription')}
+            icon="search-outline"
+            title={t('explore.noResults')}
+            description={t('explore.noResultsDescription')}
             iconSize={64}
+            className="py-20"
           />
         );
       }
 
       return (
         <FlatList
-          key={`tours-list-${activeTab}`}
-          extraData={`${activeTab}-${currentFilteredData.length}`}
-          data={currentFilteredData as any[]}
-          keyExtractor={(item, index) => `tour-${item?.id || index}`}
-          removeClippedSubviews={true}
-          renderItem={({ item }) => {
-            if (!item?.id) return null;
-            return (
-            <TourCard
-              tour={item}
-              onPress={() => handleTourPress(item.id)}
-              variant="detailed"
-            />
-            );
-          }}
-          contentContainerStyle={{ padding: 16 }}
-          refreshControl={
-            <RefreshControl refreshing={toursRefreshing || toursLoading} onRefresh={handleRefresh} />
+          data={searchResults}
+          keyExtractor={(item, index) => `result-${item?.entityId || index}`}
+          renderItem={renderSearchResult}
+          showsVerticalScrollIndicator={false}
+          ListHeaderComponent={
+            <View className="px-4 py-3 bg-gray-50 dark:bg-neutral-900">
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {t('explore.resultsCount', { count: searchResults.length })}
+              </CustomText>
+            </View>
           }
         />
       );
     }
 
-    if (activeTab === 'places') {
-      if (currentFilteredData.length === 0) {
-        return (
-          <EmptyState
-            icon="location-outline"
-            title={t('explore.empty.places')}
-            description={t('explore.empty.placesDescription')}
-            iconSize={64}
-          />
-        );
-      }
+    // Default state: Trending topics
+    return (
+      <ScrollView showsVerticalScrollIndicator={false} className="flex-1">
+        {/* Trending Topics */}
+        <View className="px-4 py-6">
+          <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100 mb-3">
+            {t('explore.trending')}
+          </CustomText>
+          <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {t('explore.trendingDescription')}
+          </CustomText>
 
-      return (
-        <FlatList
-          key={`places-list-${activeTab}`}
-          extraData={`${activeTab}-${currentFilteredData.length}`}
-          data={currentFilteredData as any[]}
-          keyExtractor={(item, index) => `place-${item?.id || index}`}
-          removeClippedSubviews={true}
-          renderItem={({ item }) => {
-            if (!item?.id) return null;
-            return (
-            <PlaceCard
-              place={item}
-              onPress={() => handlePlacePress(item.id)}
-              variant="detailed"
+          {trendingLoading ? (
+            <LoadingState message={t('common.loading')} className="py-8" />
+          ) : trendingTopics.length > 0 ? (
+            <View className="flex-row flex-wrap gap-2">
+              {trendingTopics.map((item: any) => {
+                const label = item.label?.replace(/^#/, '') || item.key;
+                const score = Math.round(item.score || 0);
+                return (
+                  <TouchableOpacity
+                    key={item.key}
+                    onPress={() => handleTrendingPress(label)}
+                    className="px-4 py-2.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
+                    activeOpacity={0.7}
+                  >
+                    <CustomText weight="medium" className="text-primary mr-1.5">
+                      #{label}
+                    </CustomText>
+                    {score > 1 && (
+                      <View className="px-1.5 py-0.5 rounded-full bg-primary/20">
+                        <CustomText className="text-xs text-primary" weight="bold">
+                          {score}
+                        </CustomText>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : (
+            <EmptyState
+              icon="trending-up-outline"
+              title={t('explore.noTrending')}
+              description={t('explore.noTrendingDescription')}
+              iconSize={48}
+              className="py-8"
             />
-            );
-          }}
-          contentContainerStyle={{ padding: 16 }}
-          refreshControl={
-            <RefreshControl refreshing={placesRefreshing || placesLoading} onRefresh={handleRefresh} />
-          }
-        />
-      );
-    }
+          )}
+        </View>
 
-    if (activeTab === 'posts') {
-      if (currentFilteredData.length === 0) {
-        return (
-          <EmptyState
-            icon="newspaper-outline"
-            title={t('explore.empty.posts')}
-            description={t('explore.empty.postsDescription')}
-            iconSize={64}
-          />
-        );
-      }
+        {/* Quick Actions */}
+        <View className="px-4 py-6 border-t border-gray-200 dark:border-neutral-800">
+          <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100 mb-4">
+            {t('explore.discover')}
+          </CustomText>
+          
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/(explore)/tours' as any)}
+            className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            activeOpacity={0.7}
+          >
+            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+              <Ionicons name="map" size={24} color="#3b82f6" />
+            </View>
+            <View className="flex-1">
+              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+                {t('explore.browseTours')}
+              </CustomText>
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {t('explore.browseToursDescription')}
+              </CustomText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? '#6b7280' : '#9ca3af'} />
+          </TouchableOpacity>
 
-      return (
-        <FlatList
-          key={`posts-list-${activeTab}`}
-          extraData={`${activeTab}-${currentFilteredData.length}`}
-          data={currentFilteredData as any[]}
-          keyExtractor={(item, index) => `post-${item?.id || index}`}
-          removeClippedSubviews={true}
-          renderItem={({ item }) => {
-            if (!item?.id) return null;
-            return (
-            <PostCard
-              post={item}
-              onPress={() => handlePostPress(item.id)}
-                onUserPress={() => handleUserPress((item as any).userId || '')}
-            />
-            );
-          }}
-          contentContainerStyle={{ padding: 16 }}
-          refreshControl={
-            <RefreshControl refreshing={postsRefreshing || postsLoading} onRefresh={handleRefresh} />
-          }
-        />
-      );
-    }
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/(explore)/places' as any)}
+            className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            activeOpacity={0.7}
+          >
+            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+              <Ionicons name="location" size={24} color="#3b82f6" />
+            </View>
+            <View className="flex-1">
+              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+                {t('explore.browsePlaces')}
+              </CustomText>
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {t('explore.browsePlacesDescription')}
+              </CustomText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? '#6b7280' : '#9ca3af'} />
+          </TouchableOpacity>
 
-    return null;
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/(explore)/map-comparison' as any)}
+            className="flex-row items-center p-4 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            activeOpacity={0.7}
+          >
+            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+              <Ionicons name="globe" size={24} color="#3b82f6" />
+            </View>
+            <View className="flex-1">
+              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+                {t('explore.mapComparison')}
+              </CustomText>
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {t('explore.mapComparisonDescription')}
+              </CustomText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? '#6b7280' : '#9ca3af'} />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    );
   };
-
-  // Count active filters
-  const getActiveFilterCount = () => {
-    if (activeTab === 'tours') {
-      return Object.values(tourFilters).filter(v => v !== undefined && v !== '').length;
-    } else if (activeTab === 'places') {
-      return Object.values(placeFilters).filter(v => v !== undefined && v !== '').length;
-    } else {
-      return Object.values(postFilters).filter(v => v !== undefined && v !== '').length;
-    }
-  };
-
-  const activeFilterCount = getActiveFilterCount();
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <Stack.Screen options={{ title: t('explore.title'), headerShown: false }} />
       
-      {/* Header */}
-      <View className="px-6 pt-12 pb-4 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
-        <CustomText
-          weight="bold"
-          className="text-3xl text-black dark:text-white mb-4"
-        >
-          {t('explore.title')}
-        </CustomText>
+      {/* Compact Header */}
+      <View className="px-4 pt-12 pb-3 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
+        <View className="flex-row items-center justify-between mb-3">
+          <CustomText weight="bold" className="text-2xl text-black dark:text-white">
+            {t('explore.title')}
+          </CustomText>
+        </View>
 
         {/* Search Bar */}
         <SearchBar
-              value={searchQuery}
-              onChangeText={setSearchQuery}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
           placeholder={t('explore.searchPlaceholder')}
-          showFilterButton
-          filterButtonBadge={activeFilterCount}
-          onFilterPress={() => setShowFilters(true)}
-          className="mb-4"
-        />
-
-        {/* Tabs */}
-        <TabBar
-          tabs={(['tours', 'places', 'posts'] as TabType[]).map(tab => ({
-            id: tab,
-            label: tab,
-          }))}
-          activeTab={activeTab}
-          onTabChange={(tabId) => setActiveTab(tabId as TabType)}
-          variant="segmented"
+          className="mb-0"
         />
       </View>
 
       {/* Content */}
-      {debouncedSearch?.length ? (
-        <View className="px-6 py-2">
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-            {t('explore.resultsFor', { defaultValue: 'Results for' })} “{debouncedSearch}”
-          </CustomText>
-        </View>
-      ) : null}
       {renderContent()}
-
-      {/* Suggestions row */}
-      {debouncedSearch?.length ? (
-        <View className="px-6 pb-3">
-          <View className="flex-row flex-wrap gap-2">
-            {(suggestData?.searchSuggest || []).map((s: string) => (
-              <View key={s} className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-neutral-800">
-                <CustomText className="text-xs text-gray-700 dark:text-gray-300">#{s}</CustomText>
-              </View>
-            ))}
-          </View>
-        </View>
-      ) : null}
-
-      {/* Filter Modal */}
-      <FilterModal
-        visible={showFilters}
-        onClose={() => setShowFilters(false)}
-        filterType={activeTab}
-        tourFilters={tourFilters}
-        placeFilters={placeFilters}
-        postFilters={postFilters}
-        onApplyFilters={(filters) => {
-          if (activeTab === 'tours') {
-            setTourFilters(filters as TourFilters);
-          } else if (activeTab === 'places') {
-            setPlaceFilters(filters as PlaceFilters);
-          } else {
-            setPostFilters(filters as PostFilters);
-          }
-        }}
-      />
     </View>
   );
 }
