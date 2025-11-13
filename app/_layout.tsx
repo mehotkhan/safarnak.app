@@ -68,11 +68,9 @@ export const unstable_settings = {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  // Load essential fonts first (SpaceMono and VazirRegular)
-  // These are needed for initial render
+  // Load essential fonts first (VazirRegular)
+  // This is needed for initial render
   const [essentialFontsLoaded, essentialFontsError] = useFonts({
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     VazirRegular: require('../assets/fonts/Vazir-Regular.ttf'),
   });

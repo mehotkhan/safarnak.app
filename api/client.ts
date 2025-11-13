@@ -8,11 +8,16 @@
  * - Automatic structured table sync (no manual sync needed!)
  */
 
-import { ApolloClient, InMemoryCache, createHttpLink, from, split } from '@apollo/client';
-import { setContext } from '@apollo/client/link/context';
-import { onError } from '@apollo/client/link/error';
-import { getMainDefinition } from '@apollo/client/utilities';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+// Use direct imports for better tree-shaking (reduces bundle size)
+import { ApolloClient } from '@apollo/client/core/ApolloClient.js';
+import { InMemoryCache } from '@apollo/client/cache/inmemory/inMemoryCache.js';
+import { createHttpLink } from '@apollo/client/link/http/createHttpLink.js';
+import { from } from '@apollo/client/link/core/from.js';
+import { split } from '@apollo/client/link/core/split.js';
+import { setContext } from '@apollo/client/link/context/index.js';
+import { onError } from '@apollo/client/link/error/index.js';
+import { getMainDefinition } from '@apollo/client/utilities/graphql/getFromAST.js';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { createClient } from 'graphql-ws';
 import { persistCache } from 'apollo3-cache-persist';
 import AsyncStorage from '@react-native-async-storage/async-storage';

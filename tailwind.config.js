@@ -20,6 +20,18 @@ module.exports = {
       },
     },
   },
+  // Disable unused core plugins for React Native (reduces bundle size)
+  corePlugins: {
+    preflight: false,      // No CSS reset needed in RN
+    container: false,      // Not used in RN
+    float: false,          // Not supported in RN
+    clear: false,          // Not supported in RN
+    objectFit: false,      // Not supported in RN
+    objectPosition: false, // Not supported in RN
+    overscrollBehavior: false,
+    textDecoration: false, // Limited support in RN
+    writingMode: false,    // Not supported in RN
+  },
   plugins: [],
 };
 

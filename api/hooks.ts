@@ -8,28 +8,28 @@ export type AddMessageMutationVariables = Exact<{
 }>;
 
 
-export type AddMessageMutation = { __typename?: 'Mutation', addMessage: { __typename?: 'Message', id: string, content: string, createdAt: string } };
+export type AddMessageMutation = { addMessage: { id: string, content: string, createdAt: string } };
 
 export type BookTourMutationVariables = Exact<{
   input: BookTourInput;
 }>;
 
 
-export type BookTourMutation = { __typename?: 'Mutation', bookTour: { __typename?: 'Booking', id: string, tourId: string, userId: string, participants: number, selectedDate: string, fullName: string, email: string, phone?: string | null, specialRequests?: string | null, totalPrice: number, status: string, createdAt: string } };
+export type BookTourMutation = { bookTour: { id: string, tourId: string, userId: string, participants: number, selectedDate: string, fullName: string, email: string, phone?: string | null, specialRequests?: string | null, totalPrice: number, status: string, createdAt: string } };
 
 export type BookmarkPostMutationVariables = Exact<{
   postId: Scalars['ID']['input'];
 }>;
 
 
-export type BookmarkPostMutation = { __typename?: 'Mutation', bookmarkPost: boolean };
+export type BookmarkPostMutation = { bookmarkPost: boolean };
 
 export type CheckUsernameQueryVariables = Exact<{
   username: Scalars['String']['input'];
 }>;
 
 
-export type CheckUsernameQuery = { __typename?: 'Query', checkUsernameAvailability: boolean };
+export type CheckUsernameQuery = { checkUsernameAvailability: boolean };
 
 export type CreateCommentMutationVariables = Exact<{
   postId: Scalars['ID']['input'];
@@ -37,31 +37,31 @@ export type CreateCommentMutationVariables = Exact<{
 }>;
 
 
-export type CreateCommentMutation = { __typename?: 'Mutation', createComment: { __typename?: 'Comment', id: string, postId: string, userId: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null } } };
+export type CreateCommentMutation = { createComment: { id: string, postId: string, userId: string, content: string, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null } } };
 
 export type CreateLocationMutationVariables = Exact<{
   input: CreateLocationInput;
 }>;
 
 
-export type CreateLocationMutation = { __typename?: 'Mutation', createLocation: { __typename?: 'Location', id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } };
+export type CreateLocationMutation = { createLocation: { id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { latitude: number, longitude: number } } };
 
 export type CreatePlaceMutationVariables = Exact<{
   input: CreatePlaceInput;
 }>;
 
 
-export type CreatePlaceMutation = { __typename?: 'Mutation', createPlace: { __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } };
+export type CreatePlaceMutation = { createPlace: { id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { latitude: number, longitude: number } } };
 
 export type CreatePostMutationVariables = Exact<{
   input: CreatePostInput;
 }>;
 
 
-export type CreatePostMutation = { __typename?: 'Mutation', createPost: { __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
-      | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
-      | { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-      | { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
+export type CreatePostMutation = { createPost: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+      | { id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
+      | { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
+      | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
      | null } };
 
 export type CreateReactionMutationVariables = Exact<{
@@ -71,59 +71,59 @@ export type CreateReactionMutationVariables = Exact<{
 }>;
 
 
-export type CreateReactionMutation = { __typename?: 'Mutation', createReaction: { __typename?: 'Reaction', id: string, postId?: string | null, commentId?: string | null, userId: string, emoji: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string } } };
+export type CreateReactionMutation = { createReaction: { id: string, postId?: string | null, commentId?: string | null, userId: string, emoji: string, createdAt: string, user: { id: string, name: string, username: string } } };
 
 export type CreateTourMutationVariables = Exact<{
   input: CreateTourInput;
 }>;
 
 
-export type CreateTourMutation = { __typename?: 'Mutation', createTour: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
+export type CreateTourMutation = { createTour: { id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null } };
 
 export type CreateTripMutationVariables = Exact<{
   input: CreateTripInput;
 }>;
 
 
-export type CreateTripMutation = { __typename?: 'Mutation', createTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } };
+export type CreateTripMutation = { createTrip: { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } };
 
 export type DeleteLocationMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeleteLocationMutation = { __typename?: 'Mutation', deleteLocation: boolean };
+export type DeleteLocationMutation = { deleteLocation: boolean };
 
 export type DeletePlaceMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeletePlaceMutation = { __typename?: 'Mutation', deletePlace: boolean };
+export type DeletePlaceMutation = { deletePlace: boolean };
 
 export type DeleteReactionMutationVariables = Exact<{
   reactionId: Scalars['ID']['input'];
 }>;
 
 
-export type DeleteReactionMutation = { __typename?: 'Mutation', deleteReaction: boolean };
+export type DeleteReactionMutation = { deleteReaction: boolean };
 
 export type DeleteTourMutationVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type DeleteTourMutation = { __typename?: 'Mutation', deleteTour: boolean };
+export type DeleteTourMutation = { deleteTour: boolean };
 
 export type FeedNewEventsSubscriptionVariables = Exact<{
   filter?: InputMaybe<FeedFilter>;
 }>;
 
 
-export type FeedNewEventsSubscription = { __typename?: 'Subscription', feedNewEvents: Array<{ __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, visibility: Visibility, topics: Array<string>, createdAt: string, actor: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string }, entity:
+export type FeedNewEventsSubscription = { feedNewEvents: Array<{ id: string, entityType: EntityType, entityId: string, verb: FeedVerb, visibility: Visibility, topics: Array<string>, createdAt: string, actor: { id: string, name: string, username: string, avatar?: string | null, createdAt: string }, entity:
       | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
       | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
-      | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ __typename?: 'Comment', id: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, userId: string, createdAt: string, user: { __typename?: 'User', id: string, name: string } }> }
+      | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ id: string, content: string, createdAt: string, user: { id: string, name: string, avatar?: string | null } }>, reactions: Array<{ id: string, emoji: string, userId: string, createdAt: string, user: { id: string, name: string } }> }
       | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
       | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
      }> };
@@ -133,23 +133,23 @@ export type FollowUserMutationVariables = Exact<{
 }>;
 
 
-export type FollowUserMutation = { __typename?: 'Mutation', followUser: boolean };
+export type FollowUserMutation = { followUser: boolean };
 
 export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAlertsQuery = { __typename?: 'Query', getAlerts: Array<{ __typename?: 'Alert', id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string }> };
+export type GetAlertsQuery = { getAlerts: Array<{ id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string }> };
 
 export type GetBookmarksQueryVariables = Exact<{
   type?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetBookmarksQuery = { __typename?: 'Query', getBookmarks: Array<{ __typename?: 'Bookmark', id: string, userId: string, postId?: string | null, tourId?: string | null, placeId?: string | null, createdAt: string, post?: { __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
-        | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
-        | { __typename?: 'Tour', id: string, title: string, location: string, imageUrl?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-        | { __typename?: 'Trip', id: string, destination?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-       | null } | null, tour?: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, category: string, createdAt: string } | null, place?: { __typename?: 'Place', id: string, name: string, location: string, rating: number, type: string, imageUrl?: string | null, createdAt: string } | null }> };
+export type GetBookmarksQuery = { getBookmarks: Array<{ id: string, userId: string, postId?: string | null, tourId?: string | null, placeId?: string | null, createdAt: string, post?: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+        | { id: string, name: string, location: string, imageUrl?: string | null, placeCoordinates: { latitude: number, longitude: number } }
+        | { id: string, title: string, location: string, imageUrl?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
+        | { id: string, destination?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
+       | null } | null, tour?: { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, category: string, createdAt: string } | null, place?: { id: string, name: string, location: string, rating: number, type: string, imageUrl?: string | null, createdAt: string } | null }> };
 
 export type GetFeedQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -158,63 +158,63 @@ export type GetFeedQueryVariables = Exact<{
 }>;
 
 
-export type GetFeedQuery = { __typename?: 'Query', getFeed: { __typename?: 'FeedConnection', edges: Array<{ __typename?: 'FeedEdge', cursor: string, node: { __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, visibility: Visibility, topics: Array<string>, createdAt: string, actor: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string }, entity:
+export type GetFeedQuery = { getFeed: { edges: Array<{ cursor: string, node: { id: string, entityType: EntityType, entityId: string, verb: FeedVerb, visibility: Visibility, topics: Array<string>, createdAt: string, actor: { id: string, name: string, username: string, avatar?: string | null, createdAt: string }, entity:
           | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
           | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
-          | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ __typename?: 'Comment', id: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, emoji: string, userId: string, createdAt: string, user: { __typename?: 'User', id: string, name: string } }> }
+          | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ id: string, content: string, createdAt: string, user: { id: string, name: string, avatar?: string | null } }>, reactions: Array<{ id: string, emoji: string, userId: string, createdAt: string, user: { id: string, name: string } }> }
           | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
           | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
-         } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+         } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
 
 export type GetFeedPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetFeedPreferencesQuery = { __typename?: 'Query', getFeedPreferences: { __typename?: 'FeedPreferences', entityTypes: Array<EntityType>, topics: Array<string>, followingOnly: boolean, circleOnly: boolean, mutedUserIds: Array<string> } };
+export type GetFeedPreferencesQuery = { getFeedPreferences: { entityTypes: Array<EntityType>, topics: Array<string>, followingOnly: boolean, circleOnly: boolean, mutedUserIds: Array<string> } };
 
 export type GetFollowersQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
 }>;
 
 
-export type GetFollowersQuery = { __typename?: 'Query', getFollowers: Array<{ __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }> };
+export type GetFollowersQuery = { getFollowers: Array<{ id: string, name: string, username: string, avatar?: string | null }> };
 
 export type GetFollowingQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
 }>;
 
 
-export type GetFollowingQuery = { __typename?: 'Query', getFollowing: Array<{ __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }> };
+export type GetFollowingQuery = { getFollowing: Array<{ id: string, name: string, username: string, avatar?: string | null }> };
 
 export type GetLocationQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetLocationQuery = { __typename?: 'Query', getLocation?: { __typename?: 'Location', id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } | null };
+export type GetLocationQuery = { getLocation?: { id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { latitude: number, longitude: number } } | null };
 
 export type GetLocationsQueryVariables = Exact<{
   limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 
-export type GetLocationsQuery = { __typename?: 'Query', getLocations: Array<{ __typename?: 'Location', id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }> };
+export type GetLocationsQuery = { getLocations: Array<{ id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { latitude: number, longitude: number } }> };
 
 export type GetMessagesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMessagesQuery = { __typename?: 'Query', getMessages: Array<{ __typename?: 'Message', id: string, content: string, createdAt: string }> };
+export type GetMessagesQuery = { getMessages: Array<{ id: string, content: string, createdAt: string }> };
 
 export type GetMyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetMyDevicesQuery = { __typename?: 'Query', getMyDevices: Array<{ __typename?: 'Device', id: string, deviceId: string, publicKey: string, type?: string | null, lastSeen: string, createdAt: string }> };
+export type GetMyDevicesQuery = { getMyDevices: Array<{ id: string, deviceId: string, publicKey: string, type?: string | null, lastSeen: string, createdAt: string }> };
 
 export type GetPlaceQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetPlaceQuery = { __typename?: 'Query', getPlace?: { __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } | null };
+export type GetPlaceQuery = { getPlace?: { id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { latitude: number, longitude: number } } | null };
 
 export type GetPlacesQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
@@ -222,18 +222,18 @@ export type GetPlacesQueryVariables = Exact<{
 }>;
 
 
-export type GetPlacesQuery = { __typename?: 'Query', getPlaces: Array<{ __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }> };
+export type GetPlacesQuery = { getPlaces: Array<{ id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { latitude: number, longitude: number } }> };
 
 export type GetPostQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetPostQuery = { __typename?: 'Query', getPost?: { __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
-      | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
-      | { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-      | { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-     | null, comments: Array<{ __typename?: 'Comment', id: string, userId: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, userId: string, emoji: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string } }> } | null };
+export type GetPostQuery = { getPost?: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+      | { id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
+      | { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
+      | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
+     | null, comments: Array<{ id: string, userId: string, content: string, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ id: string, userId: string, emoji: string, createdAt: string, user: { id: string, name: string, username: string } }> } | null };
 
 export type GetPostsQueryVariables = Exact<{
   type?: InputMaybe<Scalars['String']['input']>;
@@ -244,18 +244,18 @@ export type GetPostsQueryVariables = Exact<{
 }>;
 
 
-export type GetPostsQuery = { __typename?: 'Query', getPosts: { __typename?: 'PostsConnection', totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean, nextOffset?: number | null, previousOffset?: number | null, posts: Array<{ __typename?: 'Post', id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string }, relatedEntity?:
-        | { __typename?: 'Place', id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } }
-        | { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-        | { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }
-       | null, comments: Array<{ __typename?: 'Comment', id: string, userId: string, content: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ __typename?: 'Reaction', id: string, userId: string, emoji: string, createdAt: string, user: { __typename?: 'User', id: string, name: string, username: string } }> }> } };
+export type GetPostsQuery = { getPosts: { totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean, nextOffset?: number | null, previousOffset?: number | null, posts: Array<{ id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null, createdAt: string }, relatedEntity?:
+        | { id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
+        | { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
+        | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
+       | null, comments: Array<{ id: string, userId: string, content: string, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ id: string, userId: string, emoji: string, createdAt: string, user: { id: string, name: string, username: string } }> }> } };
 
 export type GetTourQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetTourQuery = { __typename?: 'Query', getTour?: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } | null };
+export type GetTourQuery = { getTour?: { id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null } | null };
 
 export type GetToursQueryVariables = Exact<{
   category?: InputMaybe<Scalars['String']['input']>;
@@ -263,7 +263,7 @@ export type GetToursQueryVariables = Exact<{
 }>;
 
 
-export type GetToursQuery = { __typename?: 'Query', getTours: Array<{ __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null }> };
+export type GetToursQuery = { getTours: Array<{ id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null }> };
 
 export type GetTrendingQueryVariables = Exact<{
   type: TrendingType;
@@ -273,35 +273,35 @@ export type GetTrendingQueryVariables = Exact<{
 }>;
 
 
-export type GetTrendingQuery = { __typename?: 'Query', getTrending: { __typename?: 'TrendingList', window: TimeWindow, items: Array<{ __typename?: 'TrendingItem', key: string, label: string, score: number, delta?: number | null }> } };
+export type GetTrendingQuery = { getTrending: { window: TimeWindow, items: Array<{ key: string, label: string, score: number, delta?: number | null }> } };
 
 export type GetTripQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetTripQuery = { __typename?: 'Query', getTrip?: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } | null };
+export type GetTripQuery = { getTrip?: { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ day: number, title: string, activities: Array<string> }> | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } | null };
 
 export type GetTripsQueryVariables = Exact<{
   status?: InputMaybe<Scalars['String']['input']>;
 }>;
 
 
-export type GetTripsQuery = { __typename?: 'Query', getTrips: Array<{ __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, budget?: number | null, accommodation?: string | null, createdAt: string, updatedAt: string }> };
+export type GetTripsQuery = { getTrips: Array<{ id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, budget?: number | null, accommodation?: string | null, createdAt: string, updatedAt: string }> };
 
 export type GetUserQueryVariables = Exact<{
   id: Scalars['ID']['input'];
 }>;
 
 
-export type GetUserQuery = { __typename?: 'Query', getUser?: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, createdAt: string } | null };
+export type GetUserQuery = { getUser?: { id: string, name: string, username: string, avatar?: string | null, createdAt: string } | null };
 
 export type IsFollowingQueryVariables = Exact<{
   userId: Scalars['ID']['input'];
 }>;
 
 
-export type IsFollowingQuery = { __typename?: 'Query', isFollowing: boolean };
+export type IsFollowingQuery = { isFollowing: boolean };
 
 export type LoginMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -311,7 +311,7 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { __typename?: 'Mutation', loginUser: { __typename?: 'AuthPayload', token: string, user: { __typename?: 'User', id: string, name: string, username: string, createdAt: string } } };
+export type LoginMutation = { loginUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
 
 export type LoginUserMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -321,17 +321,17 @@ export type LoginUserMutationVariables = Exact<{
 }>;
 
 
-export type LoginUserMutation = { __typename?: 'Mutation', loginUser: { __typename?: 'AuthPayload', token: string, user: { __typename?: 'User', id: string, name: string, username: string, createdAt: string } } };
+export type LoginUserMutation = { loginUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { __typename?: 'Query', me?: { __typename?: 'User', id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, createdAt: string } | null };
+export type MeQuery = { me?: { id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, createdAt: string } | null };
 
 export type NewAlertsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type NewAlertsSubscription = { __typename?: 'Subscription', newAlerts: { __typename?: 'Alert', id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string } };
+export type NewAlertsSubscription = { newAlerts: { id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string } };
 
 export type RegisterMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -341,7 +341,7 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { __typename?: 'Mutation', registerUser: { __typename?: 'AuthPayload', token: string, user: { __typename?: 'User', id: string, name: string, username: string, createdAt: string } } };
+export type RegisterMutation = { registerUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
 
 export type RegisterUserMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -351,7 +351,7 @@ export type RegisterUserMutationVariables = Exact<{
 }>;
 
 
-export type RegisterUserMutation = { __typename?: 'Mutation', registerUser: { __typename?: 'AuthPayload', token: string, user: { __typename?: 'User', id: string, name: string, username: string, createdAt: string } } };
+export type RegisterUserMutation = { registerUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
 
 export type RequestChallengeMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -359,14 +359,14 @@ export type RequestChallengeMutationVariables = Exact<{
 }>;
 
 
-export type RequestChallengeMutation = { __typename?: 'Mutation', requestChallenge: string };
+export type RequestChallengeMutation = { requestChallenge: string };
 
 export type RevokeDeviceMutationVariables = Exact<{
   deviceId: Scalars['String']['input'];
 }>;
 
 
-export type RevokeDeviceMutation = { __typename?: 'Mutation', revokeDevice: boolean };
+export type RevokeDeviceMutation = { revokeDevice: boolean };
 
 export type SearchQueryVariables = Exact<{
   query: Scalars['String']['input'];
@@ -377,13 +377,13 @@ export type SearchQueryVariables = Exact<{
 }>;
 
 
-export type SearchQuery = { __typename?: 'Query', search: { __typename?: 'FeedConnection', edges: Array<{ __typename?: 'FeedEdge', cursor: string, node: { __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, createdAt: string, visibility: Visibility, topics: Array<string>, actor: { __typename?: 'User', id: string, username: string, name: string, avatar?: string | null }, entity:
+export type SearchQuery = { search: { edges: Array<{ cursor: string, node: { id: string, entityType: EntityType, entityId: string, verb: FeedVerb, createdAt: string, visibility: Visibility, topics: Array<string>, actor: { id: string, username: string, name: string, avatar?: string | null }, entity:
           | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
           | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
           | { __typename: 'Post', id: string, userId: string, content?: string | null, createdAt: string }
           | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
           | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
-         } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+         } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
 
 export type SearchSemanticQueryVariables = Exact<{
   query: Scalars['String']['input'];
@@ -393,13 +393,13 @@ export type SearchSemanticQueryVariables = Exact<{
 }>;
 
 
-export type SearchSemanticQuery = { __typename?: 'Query', searchSemantic: { __typename?: 'FeedConnection', edges: Array<{ __typename?: 'FeedEdge', cursor: string, node: { __typename?: 'FeedEvent', id: string, entityType: EntityType, entityId: string, verb: FeedVerb, createdAt: string, visibility: Visibility, topics: Array<string>, actor: { __typename?: 'User', id: string, username: string, name: string, avatar?: string | null }, entity:
+export type SearchSemanticQuery = { searchSemantic: { edges: Array<{ cursor: string, node: { id: string, entityType: EntityType, entityId: string, verb: FeedVerb, createdAt: string, visibility: Visibility, topics: Array<string>, actor: { id: string, username: string, name: string, avatar?: string | null }, entity:
           | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
           | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
           | { __typename: 'Post', id: string, userId: string, content?: string | null, createdAt: string }
           | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
           | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
-         } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+         } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
 
 export type SearchSuggestQueryVariables = Exact<{
   prefix: Scalars['String']['input'];
@@ -407,28 +407,28 @@ export type SearchSuggestQueryVariables = Exact<{
 }>;
 
 
-export type SearchSuggestQuery = { __typename?: 'Query', searchSuggest: Array<string> };
+export type SearchSuggestQuery = { searchSuggest: Array<string> };
 
 export type TripUpdatesSubscriptionVariables = Exact<{
   tripId: Scalars['ID']['input'];
 }>;
 
 
-export type TripUpdatesSubscription = { __typename?: 'Subscription', tripUpdates: { __typename?: 'TripUpdate', id: string, tripId: string, type: string, title: string, message: string, step: number, totalSteps: number, status: string, data?: string | null, createdAt: string } };
+export type TripUpdatesSubscription = { tripUpdates: { id: string, tripId: string, type: string, title: string, message: string, step: number, totalSteps: number, status: string, data?: string | null, createdAt: string } };
 
 export type UnfollowUserMutationVariables = Exact<{
   followeeId: Scalars['ID']['input'];
 }>;
 
 
-export type UnfollowUserMutation = { __typename?: 'Mutation', unfollowUser: boolean };
+export type UnfollowUserMutation = { unfollowUser: boolean };
 
 export type UpdateFeedPreferencesMutationVariables = Exact<{
   input: FeedFilter;
 }>;
 
 
-export type UpdateFeedPreferencesMutation = { __typename?: 'Mutation', updateFeedPreferences: { __typename?: 'FeedPreferences', entityTypes: Array<EntityType>, topics: Array<string>, followingOnly: boolean, circleOnly: boolean, mutedUserIds: Array<string> } };
+export type UpdateFeedPreferencesMutation = { updateFeedPreferences: { entityTypes: Array<EntityType>, topics: Array<string>, followingOnly: boolean, circleOnly: boolean, mutedUserIds: Array<string> } };
 
 export type UpdateLocationMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -436,7 +436,7 @@ export type UpdateLocationMutationVariables = Exact<{
 }>;
 
 
-export type UpdateLocationMutation = { __typename?: 'Mutation', updateLocation: { __typename?: 'Location', id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } };
+export type UpdateLocationMutation = { updateLocation: { id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { latitude: number, longitude: number } } };
 
 export type UpdatePlaceMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -444,7 +444,7 @@ export type UpdatePlaceMutationVariables = Exact<{
 }>;
 
 
-export type UpdatePlaceMutation = { __typename?: 'Mutation', updatePlace: { __typename?: 'Place', id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { __typename?: 'Coordinates', latitude: number, longitude: number } } };
+export type UpdatePlaceMutation = { updatePlace: { id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { latitude: number, longitude: number } } };
 
 export type UpdateTourMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -452,7 +452,7 @@ export type UpdateTourMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTourMutation = { __typename?: 'Mutation', updateTour: { __typename?: 'Tour', id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null } };
+export type UpdateTourMutation = { updateTour: { id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null } };
 
 export type UpdateTripMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -460,14 +460,14 @@ export type UpdateTripMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTripMutation = { __typename?: 'Mutation', updateTrip: { __typename?: 'Trip', id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ __typename?: 'ItineraryDay', day: number, title: string, activities: Array<string> }> | null, coordinates?: { __typename?: 'Coordinates', latitude: number, longitude: number } | null, waypoints?: Array<{ __typename?: 'Waypoint', latitude: number, longitude: number, label?: string | null }> | null } };
+export type UpdateTripMutation = { updateTrip: { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ day: number, title: string, activities: Array<string> }> | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'Mutation', updateUser: { __typename?: 'User', id: string, name: string, username: string, avatar?: string | null, publicKey?: string | null, createdAt: string } };
+export type UpdateUserMutation = { updateUser: { id: string, name: string, username: string, avatar?: string | null, publicKey?: string | null, createdAt: string } };
 
 
 export const AddMessageDocument = gql`
@@ -479,7 +479,6 @@ export const AddMessageDocument = gql`
   }
 }
     `;
-export type AddMessageMutationFn = Apollo.MutationFunction<AddMessageMutation, AddMessageMutationVariables>;
 
 /**
  * __useAddMessageMutation__
@@ -523,7 +522,6 @@ export const BookTourDocument = gql`
   }
 }
     `;
-export type BookTourMutationFn = Apollo.MutationFunction<BookTourMutation, BookTourMutationVariables>;
 
 /**
  * __useBookTourMutation__
@@ -554,7 +552,6 @@ export const BookmarkPostDocument = gql`
   bookmarkPost(postId: $postId)
 }
     `;
-export type BookmarkPostMutationFn = Apollo.MutationFunction<BookmarkPostMutation, BookmarkPostMutationVariables>;
 
 /**
  * __useBookmarkPostMutation__
@@ -635,7 +632,6 @@ export const CreateCommentDocument = gql`
   }
 }
     `;
-export type CreateCommentMutationFn = Apollo.MutationFunction<CreateCommentMutation, CreateCommentMutationVariables>;
 
 /**
  * __useCreateCommentMutation__
@@ -682,7 +678,6 @@ export const CreateLocationDocument = gql`
   }
 }
     `;
-export type CreateLocationMutationFn = Apollo.MutationFunction<CreateLocationMutation, CreateLocationMutationVariables>;
 
 /**
  * __useCreateLocationMutation__
@@ -736,7 +731,6 @@ export const CreatePlaceDocument = gql`
   }
 }
     `;
-export type CreatePlaceMutationFn = Apollo.MutationFunction<CreatePlaceMutation, CreatePlaceMutationVariables>;
 
 /**
  * __useCreatePlaceMutation__
@@ -820,7 +814,6 @@ export const CreatePostDocument = gql`
   }
 }
     `;
-export type CreatePostMutationFn = Apollo.MutationFunction<CreatePostMutation, CreatePostMutationVariables>;
 
 /**
  * __useCreatePostMutation__
@@ -863,7 +856,6 @@ export const CreateReactionDocument = gql`
   }
 }
     `;
-export type CreateReactionMutationFn = Apollo.MutationFunction<CreateReactionMutation, CreateReactionMutationVariables>;
 
 /**
  * __useCreateReactionMutation__
@@ -925,7 +917,6 @@ export const CreateTourDocument = gql`
   }
 }
     `;
-export type CreateTourMutationFn = Apollo.MutationFunction<CreateTourMutation, CreateTourMutationVariables>;
 
 /**
  * __useCreateTourMutation__
@@ -975,7 +966,6 @@ export const CreateTripDocument = gql`
   }
 }
     `;
-export type CreateTripMutationFn = Apollo.MutationFunction<CreateTripMutation, CreateTripMutationVariables>;
 
 /**
  * __useCreateTripMutation__
@@ -1006,7 +996,6 @@ export const DeleteLocationDocument = gql`
   deleteLocation(id: $id)
 }
     `;
-export type DeleteLocationMutationFn = Apollo.MutationFunction<DeleteLocationMutation, DeleteLocationMutationVariables>;
 
 /**
  * __useDeleteLocationMutation__
@@ -1037,7 +1026,6 @@ export const DeletePlaceDocument = gql`
   deletePlace(id: $id)
 }
     `;
-export type DeletePlaceMutationFn = Apollo.MutationFunction<DeletePlaceMutation, DeletePlaceMutationVariables>;
 
 /**
  * __useDeletePlaceMutation__
@@ -1068,7 +1056,6 @@ export const DeleteReactionDocument = gql`
   deleteReaction(reactionId: $reactionId)
 }
     `;
-export type DeleteReactionMutationFn = Apollo.MutationFunction<DeleteReactionMutation, DeleteReactionMutationVariables>;
 
 /**
  * __useDeleteReactionMutation__
@@ -1099,7 +1086,6 @@ export const DeleteTourDocument = gql`
   deleteTour(id: $id)
 }
     `;
-export type DeleteTourMutationFn = Apollo.MutationFunction<DeleteTourMutation, DeleteTourMutationVariables>;
 
 /**
  * __useDeleteTourMutation__
@@ -1231,7 +1217,6 @@ export const FollowUserDocument = gql`
   followUser(followeeId: $followeeId)
 }
     `;
-export type FollowUserMutationFn = Apollo.MutationFunction<FollowUserMutation, FollowUserMutationVariables>;
 
 /**
  * __useFollowUserMutation__
@@ -2632,7 +2617,6 @@ export const LoginDocument = gql`
   }
 }
     `;
-export type LoginMutationFn = Apollo.MutationFunction<LoginMutation, LoginMutationVariables>;
 
 /**
  * __useLoginMutation__
@@ -2679,7 +2663,6 @@ export const LoginUserDocument = gql`
   }
 }
     `;
-export type LoginUserMutationFn = Apollo.MutationFunction<LoginUserMutation, LoginUserMutationVariables>;
 
 /**
  * __useLoginUserMutation__
@@ -2810,7 +2793,6 @@ export const RegisterDocument = gql`
   }
 }
     `;
-export type RegisterMutationFn = Apollo.MutationFunction<RegisterMutation, RegisterMutationVariables>;
 
 /**
  * __useRegisterMutation__
@@ -2857,7 +2839,6 @@ export const RegisterUserDocument = gql`
   }
 }
     `;
-export type RegisterUserMutationFn = Apollo.MutationFunction<RegisterUserMutation, RegisterUserMutationVariables>;
 
 /**
  * __useRegisterUserMutation__
@@ -2891,7 +2872,6 @@ export const RequestChallengeDocument = gql`
   requestChallenge(username: $username, isRegister: $isRegister)
 }
     `;
-export type RequestChallengeMutationFn = Apollo.MutationFunction<RequestChallengeMutation, RequestChallengeMutationVariables>;
 
 /**
  * __useRequestChallengeMutation__
@@ -2923,7 +2903,6 @@ export const RevokeDeviceDocument = gql`
   revokeDevice(deviceId: $deviceId)
 }
     `;
-export type RevokeDeviceMutationFn = Apollo.MutationFunction<RevokeDeviceMutation, RevokeDeviceMutationVariables>;
 
 /**
  * __useRevokeDeviceMutation__
@@ -3244,7 +3223,6 @@ export const UnfollowUserDocument = gql`
   unfollowUser(followeeId: $followeeId)
 }
     `;
-export type UnfollowUserMutationFn = Apollo.MutationFunction<UnfollowUserMutation, UnfollowUserMutationVariables>;
 
 /**
  * __useUnfollowUserMutation__
@@ -3281,7 +3259,6 @@ export const UpdateFeedPreferencesDocument = gql`
   }
 }
     `;
-export type UpdateFeedPreferencesMutationFn = Apollo.MutationFunction<UpdateFeedPreferencesMutation, UpdateFeedPreferencesMutationVariables>;
 
 /**
  * __useUpdateFeedPreferencesMutation__
@@ -3327,7 +3304,6 @@ export const UpdateLocationDocument = gql`
   }
 }
     `;
-export type UpdateLocationMutationFn = Apollo.MutationFunction<UpdateLocationMutation, UpdateLocationMutationVariables>;
 
 /**
  * __useUpdateLocationMutation__
@@ -3382,7 +3358,6 @@ export const UpdatePlaceDocument = gql`
   }
 }
     `;
-export type UpdatePlaceMutationFn = Apollo.MutationFunction<UpdatePlaceMutation, UpdatePlaceMutationVariables>;
 
 /**
  * __useUpdatePlaceMutation__
@@ -3443,7 +3418,6 @@ export const UpdateTourDocument = gql`
   }
 }
     `;
-export type UpdateTourMutationFn = Apollo.MutationFunction<UpdateTourMutation, UpdateTourMutationVariables>;
 
 /**
  * __useUpdateTourMutation__
@@ -3501,7 +3475,6 @@ export const UpdateTripDocument = gql`
   }
 }
     `;
-export type UpdateTripMutationFn = Apollo.MutationFunction<UpdateTripMutation, UpdateTripMutationVariables>;
 
 /**
  * __useUpdateTripMutation__
@@ -3540,7 +3513,6 @@ export const UpdateUserDocument = gql`
   }
 }
     `;
-export type UpdateUserMutationFn = Apollo.MutationFunction<UpdateUserMutation, UpdateUserMutationVariables>;
 
 /**
  * __useUpdateUserMutation__

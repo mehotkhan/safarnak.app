@@ -4,6 +4,14 @@ generates:
   ./api/types.ts:
     plugins:
       - typescript
+    config:
+      # Optimize generated types for smaller bundle size
+      skipTypename: true        # Don't generate __typename fields
+      avoidOptionals: false     # Keep optionals for type safety
+      maybeValue: T | null      # Simpler Maybe type
+      enumsAsTypes: true        # Generate enums as union types (smaller)
+      onlyOperationTypes: true  # Only generate types used in operations
+      dedupeFragments: true     # Deduplicate fragments
   ./api/hooks.ts:
     plugins:
       - add:
@@ -12,8 +20,12 @@ generates:
       - typescript-react-apollo
     config:
       withHooks: true
-      withComponent: false
-      withHOC: false
+      withComponent: false      # Disable unused component generation
+      withHOC: false            # Disable unused HOC generation
+      withMutationFn: false     # Disable unused mutation function types
+      withRefetchFn: false      # Disable unused refetch function types
+      skipTypename: true        # Don't add __typename to operations
+      dedupeFragments: true     # Deduplicate fragments
   ./graphql/generated/schema.d.ts:
     plugins:
       - typescript-graphql-files-modules
