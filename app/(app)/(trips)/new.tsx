@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   ScrollView,
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  Platform,
   Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
