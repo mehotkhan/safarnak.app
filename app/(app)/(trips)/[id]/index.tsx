@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Platform,
   Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
@@ -34,6 +35,7 @@ export default function TripDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const keyboardHeight = useSharedValue(0);
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [keyboardHeightState, setKeyboardHeightState] = useState(0);
 
   // Listen to keyboard show/hide events with proper platform handling
   useEffect(() => {
@@ -41,11 +43,14 @@ export default function TripDetailScreen() {
     const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
     const showSubscription = Keyboard.addListener(showEvent, (e) => {
-      keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
+      const height = e.endCoordinates.height;
+      keyboardHeight.value = withTiming(height, { duration: 250 });
+      setKeyboardHeightState(height);
       setIsKeyboardVisible(true);
     });
     const hideSubscription = Keyboard.addListener(hideEvent, () => {
       keyboardHeight.value = withTiming(0, { duration: 250 });
+      setKeyboardHeightState(0);
       setIsKeyboardVisible(false);
     });
 
@@ -179,9 +184,10 @@ export default function TripDetailScreen() {
   // Animated style for floating input positioning - MUST be before early returns
   const floatingInputStyle = useAnimatedStyle(() => {
     const height = keyboardHeight.value;
+    // When keyboard is visible, position input just above keyboard
+    // When keyboard is hidden, position at bottom with safe area
     return {
-      bottom: height > 0 ? height : 0,
-      paddingBottom: height > 0 ? 0 : insets.bottom,
+      bottom: height > 0 ? height : insets.bottom,
     };
   });
 
@@ -347,7 +353,8 @@ export default function TripDetailScreen() {
         className="flex-1"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: 100 }}
+        contentContainerStyle={{ paddingBottom: keyboardHeightState > 0 ? keyboardHeightState + 80 : 100 }}
+        showsVerticalScrollIndicator={true}
       >
         {/* Map View */}
         {showMap && location && (
@@ -655,7 +662,8 @@ export default function TripDetailScreen() {
         style={[
           {
             backgroundColor: isDark ? '#000000' : '#ffffff',
-            paddingTop: 0,
+            paddingTop: 8,
+            paddingBottom: keyboardHeightState > 0 ? 0 : insets.bottom,
           },
           floatingInputStyle,
         ]}

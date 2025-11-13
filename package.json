@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently -k -n worker,expo -c yellow,cyan \"yarn worker:dev\" \"yarn start\"",
     "start": "NEW_ARCH=1 expo start",
-    "android": "REACT_NATIVE_ANDROID_ARCHITECTURES=arm64-v8a sh -c \"[ -f android/gradle.properties ] || npx expo prebuild --platform android --no-install; sed -i 's/^reactNativeArchitectures=.*/reactNativeArchitectures=arm64-v8a/' android/gradle.properties || true; sed -i 's/^android.enableShrinkResourcesInReleaseBuilds=.*/android.enableShrinkResourcesInReleaseBuilds=false/' android/gradle.properties || echo 'android.enableShrinkResourcesInReleaseBuilds=false' >> android/gradle.properties; expo run:android\"",
+    "android": "cd android && ./gradlew :app:installDebug --stacktrace --build-cache --parallel --max-workers=4 -x lint",
     "android:newarch": "NEW_ARCH=1 REACT_NATIVE_ANDROID_ARCHITECTURES=arm64-v8a expo run:android",
     "android:reset": "rm -rf android && npx expo prebuild --platform android --no-install",
     "assets:generate": "bash scripts/generate-icons.sh",
