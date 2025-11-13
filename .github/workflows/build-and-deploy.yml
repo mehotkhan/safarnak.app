@@ -447,7 +447,6 @@ jobs:
           set_property "android.enableBundleCompression" "true"
           set_property "android.packagingOptions.doNotStrip" ""
           set_property "android.enableDexingArtifactTransform" "true"
-          set_property "android.enableAapt2jni" "true"
           set_property "reactNativeDevtools" "false"
           set_property "react.debuggableVariants" ""
           

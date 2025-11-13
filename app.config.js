@@ -176,8 +176,6 @@ const getAppConfig = () => {
                 'android.packagingOptions.doNotStrip': '',
                 // Enable dex merging optimization
                 'android.enableDexingArtifactTransform': 'true',
-                // Use AAPT2 daemon for faster builds
-                'android.enableAapt2jni': 'true',
               },
             },
           },
