@@ -139,6 +139,9 @@ const getAppConfig = () => {
               // Ensure code shrinking is enabled when resource shrinking is on (fixes Gradle error)
               // and enforce v8-only builds by default at the Gradle level.
               gradleProperties: {
+                // CRITICAL: Must explicitly set these in gradleProperties for them to work!
+                'android.enableProguardInReleaseBuilds': 'true',
+                'android.enableShrinkResourcesInReleaseBuilds': 'true',
                 'android.enableMinifyInReleaseBuilds': 'true',
                 'reactNativeArchitectures': 'arm64-v8a',
                 // Smaller JS asset inside APK
