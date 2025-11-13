@@ -113,7 +113,7 @@ export const TabBar = React.memo<TabBarProps>(({
                 : 'text-gray-600 dark:text-gray-400'
             }`}
           >
-            {t(`trips.tabs.${tab.id}`) || t(`explore.categories.${tab.id}`) || tab.label}
+            {tab.label}
           </CustomText>
         </TouchableOpacity>
       ))}
