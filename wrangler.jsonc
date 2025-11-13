@@ -92,7 +92,9 @@
     },
   ],
 
-  // Vectorize Index (commented out)
+  // Vectorize Index (768 dimensions, cosine similarity)
+  // Current index uses 768-dimensional embeddings (e.g., sentence-transformers/all-mpnet-base-v2)
+  // If you need OpenAI text-embedding-3-small (1536 dims), recreate the index
   "vectorize": [
     {
       "binding": "VECTORIZE",
