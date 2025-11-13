@@ -17,7 +17,8 @@ on:
 env:
   NODE_VERSION: '20'
   JAVA_VERSION: '17'
-  GRADLE_OPTS: '-Dorg.gradle.daemon=true -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dkotlin.compiler.execution.strategy=in-process'
+  # Optimized Gradle settings for faster builds with caching
+  GRADLE_OPTS: '-Dorg.gradle.daemon=true -Dorg.gradle.workers.max=4 -Dorg.gradle.parallel=true -Dorg.gradle.caching=true -Dorg.gradle.configuration-cache=true -Dorg.gradle.configuration-cache.problems=warn -Dorg.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dkotlin.compiler.execution.strategy=in-process'
   NODE_ENV: 'production'
   # Environment variables for the app
   GRAPHQL_URL: 'https://safarnak.app/graphql'
@@ -29,7 +30,7 @@ jobs:
   build_android:
     name: Build Android APK
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 45  # Reduced from 60 with caching optimizations
     concurrency:
       group: "${{ github.workflow }}-${{ github.ref }}"
       cancel-in-progress: false
@@ -357,7 +358,19 @@ jobs:
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "📱 Version: $VERSION → Version Code: $VERSION_CODE"
 
+      - name: Cache Expo prebuild output
+        id: cache-prebuild
+        uses: actions/cache@v4
+        with:
+          path: |
+            android
+            .expo
+          key: expo-prebuild-${{ runner.os }}-${{ hashFiles('app.config.js', 'package.json', 'yarn.lock') }}
+          restore-keys: |
+            expo-prebuild-${{ runner.os }}-
+
       - name: Expo prebuild (propagate version to native)
+        if: steps.cache-prebuild.outputs.cache-hit != 'true'
         run: |
           set -o pipefail
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
@@ -372,6 +385,16 @@ jobs:
           BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           # Mapbox removed
+
+      - name: Update version code in cached prebuild
+        if: steps.cache-prebuild.outputs.cache-hit == 'true'
+        run: |
+          echo "✓ Using cached prebuild, updating version code to ${{ steps.version_code.outputs.version_code }}"
+          # Update versionCode in build.gradle
+          if [ -f android/app/build.gradle ]; then
+            sed -i "s/versionCode [0-9]*/versionCode ${{ steps.version_code.outputs.version_code }}/" android/app/build.gradle
+            echo "✓ Version code updated in build.gradle"
+          fi
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -397,7 +420,22 @@ jobs:
           cache-disabled: false
           cache-read-only: ${{ github.event_name == 'pull_request' }}
           add-job-summary: never
+          # Enable configuration cache for faster builds
+          arguments: |
+            --configuration-cache
+            --build-cache
         continue-on-error: true
+
+      - name: Cache React Native prebuilt binaries
+        uses: actions/cache@v4
+        with:
+          path: |
+            android/app/build/react-native-0*/
+            android/app/build/intermediates/merged_native_libs/
+            android/app/build/intermediates/stripped_native_libs/
+          key: rn-binaries-${{ runner.os }}-${{ hashFiles('yarn.lock', 'android/app/build.gradle') }}
+          restore-keys: |
+            rn-binaries-${{ runner.os }}-
 
       - name: Prepare release keystore (optional)
         id: prepare_keystore
@@ -454,13 +492,16 @@ jobs:
           set -o pipefail
           cd android
           ./gradlew assembleRelease \
-            --no-daemon \
             --stacktrace \
+            --build-cache \
+            --configuration-cache \
+            --parallel \
+            --max-workers=4 \
             -x lint \
             -x test \
-          -PreactNativeArchitectures=arm64-v8a \
-          -Pandroid.enableMinifyInReleaseBuilds=true \
-          -Pandroid.enableShrinkResourcesInReleaseBuilds=true \
+            -PreactNativeArchitectures=arm64-v8a \
+            -Pandroid.enableMinifyInReleaseBuilds=true \
+            -Pandroid.enableShrinkResourcesInReleaseBuilds=true \
             $GRADLE_SIGNING_ARGS 2>&1 | tee ../gradle-build.log
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
