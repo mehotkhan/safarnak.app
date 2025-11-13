@@ -6,15 +6,12 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
-  Platform,
-  Keyboard,
-  KeyboardAvoidingView,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { CustomText } from '@ui/display';
 import { ProgressBar } from '@ui/feedback';
 import { CustomButton } from '@ui/forms';
@@ -24,6 +21,7 @@ import { useGetTripQuery, useTripUpdatesSubscription, useUpdateTripMutation } fr
 import Colors from '@constants/Colors';
 import { FloatingChatInput } from '@ui/chat';
 import { ShareModal } from '@ui/modals';
+import { useKeyboardInsets } from '@hooks/useKeyboardInsets';
 
 export default function TripDetailScreen() {
   const { t } = useTranslation();
@@ -33,32 +31,7 @@ export default function TripDetailScreen() {
   const { id } = useLocalSearchParams();
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [refreshing, setRefreshing] = useState(false);
-  const keyboardHeight = useSharedValue(0);
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  const [keyboardHeightState, setKeyboardHeightState] = useState(0);
-
-  // Listen to keyboard show/hide events with proper platform handling
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSubscription = Keyboard.addListener(showEvent, (e) => {
-      const height = e.endCoordinates.height;
-      keyboardHeight.value = withTiming(height, { duration: 250 });
-      setKeyboardHeightState(height);
-      setIsKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, () => {
-      keyboardHeight.value = withTiming(0, { duration: 250 });
-      setKeyboardHeightState(0);
-      setIsKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [keyboardHeight]);
+  const { keyboardHeight, keyboardHeightState, keyboardVisible } = useKeyboardInsets();
   
   // Use cache-first for offline support, with skip if no tripId
   const { data, loading, error, refetch } = useGetTripQuery({
@@ -672,7 +645,7 @@ export default function TripDetailScreen() {
           onSend={handleChatSend}
           placeholder={t('plan.form.chatPlaceholder')}
           disabled={updatingTrip || trip?.status === 'pending'}
-          keyboardVisible={isKeyboardVisible}
+          keyboardVisible={keyboardVisible}
         />
       </Animated.View>
 

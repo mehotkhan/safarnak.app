@@ -40,13 +40,13 @@ export default function CreateTripScreen() {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const [formData, setFormData] = useState({
-    destination: '',
-    startDate: '',
-    endDate: '',
-    description: '',
-    preferences: '',
-    travelers: '1',
-    accommodation: 'hotel',
+    destination: 'اصفهان، ایران',
+    startDate: '2026-01-15',
+    endDate: '2026-01-19',
+    description: 'می‌خواهم یک سفر ۵ روزه به شهر اصفهان داشته باشم. علاقه‌مند به بازدید از مکان‌های تاریخی و معماری زیبای این شهر هستم. می‌خواهم میدان نقش جهان، مسجد امام، کاخ چهل ستون، پل خواجو و دیگر جاذبه‌های تاریخی اصفهان را ببینم. دوست دارم غذاهای محلی اصفهان را امتحان کنم و تجربه‌ای از فرهنگ و زندگی محلی داشته باشم. ترجیح می‌دهم با بودجه متوسط سفر کنم و از حمل‌ونقل عمومی استفاده کنم.',
+    preferences: 'بازدید از مکان‌های تاریخی، معماری اسلامی، غذاهای محلی، بازارهای سنتی',
+    travelers: '5',
+    accommodation: 'camping',
   });
 
   // Request location permissions and get current location

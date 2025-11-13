@@ -80,12 +80,14 @@ TRIP DETAILS:
 
 CRITICAL REQUIREMENTS:
 1. ALL text (title, activities, reasoning, highlights, tips) MUST be in Persian/Farsi (فارسی)
-2. Use REAL place names from ${destination} (actual restaurants, museums, landmarks, streets)
+2. Use ONLY REAL place names from ${destination} (actual restaurants, museums, landmarks, streets) - NO generic placeholders like "رستوران نام رستوران" or "جاذبه اول"
 3. Generate EXACTLY ${duration} days (days array must have ${duration} items, numbered 1 to ${duration})
 4. Include specific addresses and real locations that exist in ${destination}
-5. Mention actual restaurant names, hotel names, and attraction names from ${destination}
-6. Provide at LEAST 4 detailed activities per day with exact times (صبح، ظهر، بعدازظهر، شب)
-7. Tailor arrival/departure times based on the user's starting location when possible
+5. Mention actual restaurant names, hotel names, and attraction names from ${destination} - use real names like "رستوران شاندیز" (Isfahan) or "Le Jules Verne" (Paris)
+6. Provide at LEAST 4 detailed activities per day with exact times (صبح ۹:۰۰، ظهر ۱۲:۳۰، بعدازظهر ۳:۰۰، شب ۸:۰۰)
+7. Each activity MUST mention a specific real place name - do NOT use generic descriptions
+8. Tailor arrival/departure times based on the user's starting location when possible
+9. DO NOT generate mock or placeholder data - only use places that actually exist in ${destination}
 
 Example of REAL places (use actual places like these):
 - For Paris: "برج ایفل"، "موزه لوور"، "رستوران Le Jules Verne"
@@ -101,11 +103,11 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       "day": 1,
       "title": "ورود و بازدید از مرکز تاریخی",
       "activities": [
-        "صبح ۹:۰۰: بازدید از [نام واقعی جاذبه] - آدرس دقیق",
-        "ظهر ۱۲:۳۰: ناهار در رستوران [نام واقعی] - غذای محلی معروف",
-        "بعدازظهر ۳:۰۰: گشت و گذار در [نام واقعی خیابان/محله]",
-        "غروب ۵:۳۰: فعالیت فرهنگی/هنری در [نام واقعی مکان]",
-        "شب ۸:۰۰: شام در [نام واقعی رستوران]"
+        "صبح ۹:۰۰: بازدید از میدان نقش جهان - اصفهان",
+        "ظهر ۱۲:۳۰: ناهار در رستوران شاندیز - غذای محلی معروف",
+        "بعدازظهر ۳:۰۰: گشت و گذار در خیابان چهارباغ - اصفهان",
+        "غروب ۵:۳۰: بازدید از مسجد امام - میدان نقش جهان",
+        "شب ۸:۰۰: شام در رستوران عالی قاپو"
       ]
     }
   ],

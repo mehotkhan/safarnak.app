@@ -112,8 +112,22 @@ export class TripAI {
       
       // Validate itinerary structure
       if (!validateItinerary(itineraryData)) {
-        console.warn('AI generated invalid itinerary structure, using fallback');
-        return generateFallbackItinerary(input);
+        console.warn('AI generated invalid itinerary structure, retrying...');
+        throw new Error('Invalid itinerary structure from AI');
+      }
+
+      // Check for placeholder/mock data in activities
+      const itineraryStr = JSON.stringify(itineraryData);
+      const hasPlaceholders = itineraryStr.includes('[نام') || 
+                             itineraryStr.includes('[name]') ||
+                             itineraryStr.includes('جاذبه اول') ||
+                             itineraryStr.includes('رستوران نام') ||
+                             itineraryStr.includes('نام واقعی') ||
+                             itineraryStr.includes('جاذبه برتر');
+      
+      if (hasPlaceholders) {
+        console.warn('AI generated placeholder data, rejecting...');
+        throw new Error('AI generated placeholder/mock data instead of real places');
       }
       
       return {

@@ -15,6 +15,7 @@ import { publishNotification } from '../utilities/publishNotification';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
+import { extractWaypointsFromItinerary } from '../utils/waypointsFromItinerary';
 import { createTripAI } from '../utilities/ai';
 
 interface TripCreationParams {
@@ -234,7 +235,21 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       const db = getServerDB(this.env.DB);
       
       const finalDestination = formData.destination || itineraryResult.itinerary.destination || 'Destination';
-      const waypoints = generateWaypointsForDestination(finalDestination);
+      
+      // Extract waypoints from actual itinerary places (real coordinates)
+      let waypoints;
+      try {
+        waypoints = await extractWaypointsFromItinerary(
+          this.env,
+          itineraryResult.itinerary,
+          finalDestination
+        );
+        console.log('✅ Extracted waypoints from itinerary:', waypoints.length);
+      } catch (error) {
+        console.warn('Failed to extract waypoints from itinerary, using fallback:', error);
+        // Fallback to hardcoded waypoints only for known Iranian cities
+        waypoints = generateWaypointsForDestination(finalDestination);
+      }
       
       const updateData: any = {
         title: itineraryResult.itinerary.title,

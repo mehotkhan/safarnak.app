@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -14,7 +14,7 @@ import { useTranslation } from 'react-i18next';
 import { Stack } from 'expo-router';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
+import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import * as Location from 'expo-location';
 import { CustomText } from '@ui/display';
 import { InputField } from '@ui/forms';
@@ -22,6 +22,7 @@ import { CustomButton } from '@ui/forms';
 import { z } from 'zod';
 import { useCreateTourMutation, GetToursDocument } from '@api';
 import { TextArea } from '@ui/forms';
+import { useKeyboardInsets } from '@hooks/useKeyboardInsets';
 
 const categories = ['adventure', 'cultural', 'nature', 'food', 'relaxation', 'sports'];
 const difficultyLevels = ['easy', 'medium', 'hard', 'expert'];
@@ -33,30 +34,13 @@ export default function CreateTourScreen() {
   const insets = useSafeAreaInsets();
   const [loading, setLoading] = useState(false);
   const [createTour] = useCreateTourMutation();
-  const keyboardHeight = useSharedValue(0);
+  const { keyboardHeight, keyboardHeightState } = useKeyboardInsets();
 
   // Location state
   const [_currentLocation, setCurrentLocation] = useState<string>('');
   const [locationLoading, setLocationLoading] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(null);
-
-  useEffect(() => {
-    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
-
-    const showSubscription = Keyboard.addListener(showEvent, (e) => {
-      keyboardHeight.value = withTiming(e.endCoordinates.height, { duration: 250 });
-    });
-    const hideSubscription = Keyboard.addListener(hideEvent, () => {
-      keyboardHeight.value = withTiming(0, { duration: 250 });
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, [keyboardHeight]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -193,8 +177,8 @@ export default function CreateTourScreen() {
   const floatingButtonStyle = useAnimatedStyle(() => {
     const height = keyboardHeight.value;
     return {
-      bottom: height > 0 ? height : 0,
-      paddingBottom: height > 0 ? 16 : Math.max(insets.bottom, 16),
+      bottom: height > 0 ? height : insets.bottom,
+      paddingBottom: height > 0 ? 0 : Math.max(insets.bottom, 16),
     };
   });
 
@@ -207,7 +191,7 @@ export default function CreateTourScreen() {
 
       <ScrollView 
         className="flex-1 px-6 py-4" 
-        contentContainerStyle={{ paddingBottom: 120 }}
+        contentContainerStyle={{ paddingBottom: keyboardHeightState > 0 ? keyboardHeightState + 100 : 140 }}
         keyboardShouldPersistTaps="handled"
       >
         <InputField
