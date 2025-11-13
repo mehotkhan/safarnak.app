@@ -92,9 +92,9 @@
     },
   ],
 
-  // Vectorize Index (768 dimensions, cosine similarity)
-  // Current index uses 768-dimensional embeddings (e.g., sentence-transformers/all-mpnet-base-v2)
-  // If you need OpenAI text-embedding-3-small (1536 dims), recreate the index
+  // Vectorize Index (1024 dimensions, cosine similarity)
+  // Default aligned to Workers AI '@cf/baai/bge-m3' (multilingual) which produces 1024-dim vectors.
+  // If you need OpenAI text-embedding-3-small (1536 dims), recreate the index with 1536 dimensions.
   "vectorize": [
     {
       "binding": "VECTORIZE",

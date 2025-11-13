@@ -63,7 +63,7 @@ export const Dropdown = React.memo<DropdownProps>(({
   };
 
   return (
-    <View style={{ position: 'relative' }} className={className}>
+    <View style={{ position: 'relative', zIndex: 1000 }} className={className}>
       {trigger ? (
         <TouchableOpacity onPress={() => setIsOpen(!isOpen)} activeOpacity={0.7}>
           {trigger}
@@ -98,11 +98,17 @@ export const Dropdown = React.memo<DropdownProps>(({
           <TouchableOpacity
             activeOpacity={1}
             onPress={() => setIsOpen(false)}
-            className="absolute -inset-96"
-            style={{ zIndex: 10 }}
+            className="absolute"
+            style={{
+              zIndex: 9998,
+              top: -4000,
+              left: -4000,
+              right: -4000,
+              bottom: -4000,
+            }}
           />
           <View
-            className={`absolute z-50 mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900 ${
+            className={`absolute mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900 ${
               placement === 'top' ? 'bottom-full mb-2' : ''
             }`}
             style={{
@@ -112,7 +118,8 @@ export const Dropdown = React.memo<DropdownProps>(({
               shadowOpacity: 0.15,
               shadowRadius: 8,
               shadowOffset: { width: 0, height: 4 },
-              elevation: 6,
+              elevation: 12,
+              zIndex: 9999,
             }}
           >
             {options.map((option) => (

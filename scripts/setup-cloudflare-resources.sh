@@ -84,15 +84,17 @@ echo ""
 # 4. Vectorize Index
 echo "4️⃣  Vectorize Index: safarnak-embeddings"
 echo "   Checking if Vectorize index exists..."
+# Default dimensions aligned to Workers AI '@cf/baai/bge-m3' (multilingual) = 1024
+CF_VECTORIZE_DIMS="${CF_VECTORIZE_DIMS:-1024}"
 if wrangler vectorize list 2>/dev/null | grep -q "safarnak-embeddings"; then
     echo "   ✓ Vectorize index already exists"
 else
     echo "   Creating Vectorize index..."
-    # OpenAI text-embedding-3-small: 1536 dimensions, cosine similarity
     wrangler vectorize create safarnak-embeddings \
-        --dimensions=1536 \
+        --dimensions="$CF_VECTORIZE_DIMS" \
         --metric=cosine
-    echo "   ✓ Vectorize index created (1536 dimensions, cosine similarity)"
+    echo "   ✓ Vectorize index created (${CF_VECTORIZE_DIMS} dimensions, cosine similarity)"
+    echo "   ℹ️  To use OpenAI text-embedding-3-small (1536 dims), recreate the index with CF_VECTORIZE_DIMS=1536"
 fi
 echo ""
 
