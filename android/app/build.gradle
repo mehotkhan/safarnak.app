@@ -1,7 +1,6 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
-import groovy.json.JsonSlurper
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
@@ -100,8 +99,11 @@ android {
         // 2) APP_VERSION (semver) can override versionName
         // 3) Fallback versionName to package.json version
         def envVersionName = System.getenv('APP_VERSION')
-        def packageJson = new JsonSlurper().parseText(new File(projectRoot, 'package.json').text)
-        def resolvedVersionName = envVersionName ?: (packageJson.version ?: "0.0.0")
+        // Parse version from package.json without relying on groovy.json.JsonSlurper
+        def pkgFile = new File(projectRoot, 'package.json')
+        def pkgText = pkgFile.exists() ? pkgFile.getText('UTF-8') : ''
+        def versionMatcher = (pkgText =~ /\"version\"\\s*:\\s*\"([0-9]+\\.[0-9]+\\.[0-9]+)\"/)
+        def resolvedVersionName = envVersionName ?: (versionMatcher ? versionMatcher[0][1] : "0.0.0")
 
         def envVersionCode = System.getenv('ANDROID_VERSION_CODE')
         def computeCode = { String v ->
