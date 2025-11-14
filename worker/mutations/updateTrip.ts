@@ -2,7 +2,6 @@ import { eq } from 'drizzle-orm';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 import type { GraphQLContext } from '../types';
-import { createTripAI } from '../utilities/ai';
 
 interface UpdateTripInput {
   destination?: string;
@@ -96,11 +95,11 @@ export const updateTrip = async (
     updateData.destination = input.destination;
     // Generate new waypoints when destination changes
     try {
-      const ai = createTripAI(context.env);
-      const geo = await ai.geocodeDestination(input.destination);
-      const wp = geo?.coordinates ? [{
-        latitude: geo.coordinates.latitude,
-        longitude: geo.coordinates.longitude,
+      const { geocodeDestinationCenter } = await import('../utilities/geocode');
+      const center = await geocodeDestinationCenter(input.destination);
+      const wp = center ? [{
+        latitude: center.latitude,
+        longitude: center.longitude,
         label: input.destination,
       }] : [];
       updateData.waypoints = JSON.stringify(wp);

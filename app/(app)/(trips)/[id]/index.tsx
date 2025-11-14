@@ -72,7 +72,11 @@ export default function TripDetailScreen() {
   useEffect(() => {
     if (!tripUpdateData?.tripUpdates) return;
 
-    const update = tripUpdateData.tripUpdates;
+    const update = tripUpdateData.tripUpdates as any;
+    // Filter: ensure this update belongs to the current trip
+    if (!update?.tripId || String(update.tripId) !== String(tripId)) {
+      return;
+    }
     
     // Always update state with subscription data
     setCurrentStep(update.step);
@@ -106,7 +110,7 @@ export default function TripDetailScreen() {
     }, 3000); // Refresh every 3 seconds while pending
 
     return () => clearInterval(interval);
-  }, [isPending, refetch]);
+  }, [isPending, refetch, tripId]);
 
   // When tripId changes or page loads, ensure we refetch if trip is pending
   // This catches any missed workflow updates if subscription wasn't connected yet

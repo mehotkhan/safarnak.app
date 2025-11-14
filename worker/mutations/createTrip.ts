@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
 import { enqueueEmbeddingJob } from '../utilities/embeddings';
-import { createTripAI } from '../utilities/ai';
+// Note: orchestrateTripPlanning is used by TripCreationWorkflow, not directly here
 
 interface CreateTripInput {
   destination?: string;
@@ -53,123 +53,11 @@ export const createTrip = async (
     throw new Error('Number of travelers must be at least 1');
   }
 
-  // Generate AI-powered trip using Cloudflare Workers AI
-  let aiReasoning: string;
-  let itineraryData: any[];
-  let coordinatesData: any;
-  let waypoints: any[];
-  
-  try {
-    const ai = createTripAI(context.env);
-    
-    // Step 1: Analyze preferences
-    console.log('Starting AI trip generation...');
-    const analysis = await ai.analyzePreferences({
-      destination,
-      preferences: description,
-      budget: input.budget,
-      travelers,
-      startDate: input.startDate,
-      endDate: input.endDate,
-      accommodation,
-      userLocation,
-    });
-    
-    // Step 2: Generate itinerary
-    const itinerary = await ai.generateItinerary(
-      {
-        destination,
-        preferences: description,
-        budget: input.budget,
-        travelers,
-        startDate: input.startDate,
-        endDate: input.endDate,
-        accommodation,
-        userLocation,
-      },
-      analysis
-    );
-    
-    aiReasoning = itinerary.aiReasoning;
-    itineraryData = itinerary.days;
-    
-    // Step 2.5: Translate to user's language if provided
-    const targetLang = (input.lang || '').trim();
-    if (targetLang) {
-      try {
-        aiReasoning = await ai.translateText(aiReasoning, targetLang);
-        itineraryData = await ai.translateItinerary(itineraryData, targetLang);
-      } catch (translateError) {
-        console.warn('Translation step failed, proceeding with original language', translateError);
-      }
-    }
-    
-    // Step 3: Get coordinates (AI-based geocoding)
-    if (destination) {
-      const geoData = await ai.geocodeDestination(destination);
-      coordinatesData = geoData.coordinates;
-    } else {
-      coordinatesData = { latitude: 0, longitude: 0 };
-    }
-    
-    // Generate waypoints for the trip route based on itinerary places (fallback to destination)
-    waypoints = await ai.generateWaypointsFromItinerary(
-      { days: itineraryData },
-      destination || itinerary.destination
-    );
-    
-    console.log('AI trip generation complete:', {
-      days: itineraryData.length,
-      destination: itinerary.destination,
-      style: analysis.travelStyle
-    });
-  } catch (aiError) {
-    // Fallback to simple data if AI fails
-    console.error('AI generation failed, using fallback:', aiError);
-    aiReasoning = `Based on your preferences for ${description}, I've created a trip plan to ${destination || 'your destination'}.`;
-    itineraryData = [
-    {
-      day: 1,
-      title: 'Arrival & Exploration',
-      activities: ['Check into accommodation', 'Local orientation walk', 'Welcome dinner'],
-    },
-    {
-      day: 2,
-      title: 'Main Attractions',
-      activities: ['Visit top landmarks', 'Cultural experience', 'Local cuisine tasting'],
-    },
-  ];
-    // Fallback geocoding center for coordinates and waypoints
-    try {
-      const ai = createTripAI(context.env);
-      if (destination) {
-        const geo = await ai.geocodeDestination(destination);
-        coordinatesData = geo?.coordinates || { latitude: 0, longitude: 0 };
-        waypoints = geo?.coordinates ? [{
-          latitude: geo.coordinates.latitude,
-          longitude: geo.coordinates.longitude,
-          label: destination,
-        }] : [];
-      } else {
-        coordinatesData = { latitude: 0, longitude: 0 };
-        waypoints = [];
-      }
-    } catch {
-      coordinatesData = { latitude: 0, longitude: 0 };
-      waypoints = [];
-    }
-    // Attempt translation on fallback as well
-    const targetLang = (input.lang || '').trim();
-    if (targetLang) {
-      try {
-        const ai = createTripAI(context.env);
-        aiReasoning = await ai.translateText(aiReasoning, targetLang);
-        itineraryData = await ai.translateItinerary(itineraryData, targetLang);
-      } catch (translateError) {
-        console.warn('Translation step (fallback) failed, proceeding with original language', translateError);
-      }
-    }
-  }
+  // Fast path: do NOT block on AI. Insert minimal trip first; workflows will populate details.
+  const aiReasoning: string | null = null;
+  const itineraryData: any[] = [];
+  const coordinatesData: any = { latitude: 0, longitude: 0 };
+  const waypoints: any[] = [];
 
   try {
     // Insert trip
@@ -218,6 +106,7 @@ export const createTrip = async (
           accommodation,
           preferences: description,
           userLocation,
+          lang: input.lang || undefined,
         },
       });
       console.log('Trip creation workflow started:', workflowInstance.id);

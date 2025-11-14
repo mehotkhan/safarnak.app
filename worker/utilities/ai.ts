@@ -24,6 +24,8 @@ import {
 import {
   MODEL_STRATEGY,
   shouldUseAdvancedModel,
+  FALLBACK_MODELS,
+  OPTIMIZATION,
 } from './aiModels';
 // import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 
@@ -61,17 +63,45 @@ export class TripAI {
     if (!Array.isArray(days) || !targetLang) return Array.isArray(days) ? days : [];
     const translated: any[] = [];
     for (const day of days) {
-      const title = await this.translateText(String(day?.title || ''), targetLang, sourceLang);
-      const activitiesSrc: string[] = Array.isArray(day?.activities) ? day.activities : [];
-      const activitiesOut: string[] = [];
-      for (const act of activitiesSrc) {
-        activitiesOut.push(await this.translateText(String(act), targetLang, sourceLang));
+      const rawTitle = String(day?.title || '');
+      const activitiesSrc: string[] = Array.isArray(day?.activities) ? (day.activities as any[]).map((a: any) => String(a)) : [];
+      // Reduce translation calls to one per day by bundling title + activities with clear markers
+      const bundled = [
+        '<<<TITLE>>>',
+        rawTitle,
+        '<<<ACT>>>',
+        ...activitiesSrc,
+        '<<<END>>>',
+      ].join('\n');
+      const translatedBundled = await this.translateText(bundled, targetLang, sourceLang);
+      // Parse back using markers (if markers were translated, fallback to original content)
+      let outTitle = rawTitle;
+      let outActivities = activitiesSrc;
+      try {
+        const t = translatedBundled;
+        const titleIdx = t.indexOf('<<<TITLE>>>');
+        const actIdx = t.indexOf('<<<ACT>>>');
+        const endIdx = t.indexOf('<<<END>>>');
+        if (titleIdx !== -1 && actIdx !== -1 && endIdx !== -1 && actIdx > titleIdx) {
+          const titleSection = t.slice(titleIdx + '<<<TITLE>>>'.length, actIdx).trim();
+          const actsSection = t.slice(actIdx + '<<<ACT>>>'.length, endIdx).trim();
+          outTitle = titleSection.split('\n').join(' ').trim() || rawTitle;
+          outActivities = actsSection.length ? actsSection.split('\n').map(s => s.trim()).filter(Boolean) : activitiesSrc;
+        } else {
+          // markers missing (translated?), fallback to single-call per field for safety
+          outTitle = await this.translateText(rawTitle, targetLang, sourceLang);
+          const tmpActs: string[] = [];
+          for (const a of activitiesSrc) {
+            tmpActs.push(await this.translateText(a, targetLang, sourceLang));
+          }
+          outActivities = tmpActs;
+        }
+      } catch {
+        // On any parsing or translation error, keep originals
+        outTitle = rawTitle;
+        outActivities = activitiesSrc;
       }
-      translated.push({
-        ...day,
-        title,
-        activities: activitiesOut,
-      });
+      translated.push({ ...day, title: outTitle, activities: outActivities });
     }
     return translated;
   }
@@ -111,21 +141,15 @@ export class TripAI {
       // Deduplicate and compact
       const unique = Array.from(new Set(candidates.map(c => c.trim()))).filter(Boolean).slice(0, MAX_CANDIDATES);
       const waypoints: { latitude: number; longitude: number; label?: string }[] = [];
+      // Resolve candidates using deterministic Nominatim geocoding
+      // Lazy import to avoid circular deps
+      const { geocodePlaceInDestination, geocodeDestinationCenter } = await import('./geocode');
       for (const name of unique) {
         try {
-          const q = fallbackDestination && !name.toLowerCase().includes(fallbackDestination.toLowerCase())
-            ? `${name}, ${fallbackDestination}`
-            : name;
-          const geo = await this.geocodeDestination(q);
-          const confidence = String(geo?.confidence || '').toLowerCase();
-          if (geo?.coordinates && typeof geo.coordinates.latitude === 'number' && typeof geo.coordinates.longitude === 'number' &&
-              (confidence === 'high' || confidence === 'medium')) {
-            waypoints.push({
-              latitude: geo.coordinates.latitude,
-              longitude: geo.coordinates.longitude,
-              label: name,
-            });
-          }
+          const scoped = fallbackDestination
+            ? await geocodePlaceInDestination(name, fallbackDestination)
+            : null;
+          if (scoped) waypoints.push(scoped);
         } catch {
           // ignore individual failures
         }
@@ -136,14 +160,14 @@ export class TripAI {
         return waypoints;
       }
 
-      // Fallback: geocode destination center if available
+      // Fallback: destination center if available
       if (fallbackDestination && typeof fallbackDestination === 'string' && fallbackDestination.trim()) {
         try {
-          const geo = await this.geocodeDestination(fallbackDestination.trim());
-          if (geo?.coordinates && typeof geo.coordinates.latitude === 'number' && typeof geo.coordinates.longitude === 'number') {
+          const center = await geocodeDestinationCenter(fallbackDestination.trim());
+          if (center) {
             return [{
-              latitude: geo.coordinates.latitude,
-              longitude: geo.coordinates.longitude,
+              latitude: center.latitude,
+              longitude: center.longitude,
               label: fallbackDestination.trim(),
             }];
           }
@@ -153,20 +177,7 @@ export class TripAI {
       }
       return [];
     } catch {
-      if (fallbackDestination && typeof fallbackDestination === 'string' && fallbackDestination.trim()) {
-        try {
-          const geo = await this.geocodeDestination(fallbackDestination.trim());
-          if (geo?.coordinates && typeof geo.coordinates.latitude === 'number' && typeof geo.coordinates.longitude === 'number') {
-            return [{
-              latitude: geo.coordinates.latitude,
-              longitude: geo.coordinates.longitude,
-              label: fallbackDestination.trim(),
-            }];
-          }
-        } catch {
-          // ignore
-        }
-      }
+      // On unexpected error, return empty to avoid mock data
       return [];
     }
   }
@@ -420,39 +431,79 @@ export class TripAI {
     } = {}
   ): Promise<string> {
     const startTime = Date.now();
-    const model = options.model || MODEL_STRATEGY.ITINERARY_GENERATION.model;
-    
-    try {
-      const response: any = await this.env.AI.run(model as any, {
-        prompt,
-        max_tokens: options.max_tokens || 1024,
-        temperature: options.temperature || 0.7,
+    const primaryModel = options.model || MODEL_STRATEGY.ITINERARY_GENERATION.model;
+    const makeCall = async (modelToUse: string, maxTokens?: number): Promise<any> => {
+      // Enforce timeout to prevent 504 stalling the whole mutation
+      const timeoutMs = OPTIMIZATION.AI_TIMEOUT || 30000;
+      const controller: { timedOut?: boolean } = {};
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => {
+          controller.timedOut = true;
+          reject(new Error('AI_TIMEOUT'));
+        }, timeoutMs);
+        // best-effort clear handled inside main promise via finally
       });
-
-      const duration = Date.now() - startTime;
-      console.log(`AI request completed in ${duration}ms (model: ${model}, task: ${options.task || 'unknown'})`);
-
-      // Handle different response formats
-      let textResponse: string;
-      if (typeof response === 'string') {
-        textResponse = response;
-      } else if (response && typeof response.response === 'string') {
-        textResponse = response.response;
-      } else if (response && typeof response.generated_text === 'string') {
-        textResponse = response.generated_text;
-      } else {
-        throw new Error('Invalid AI response format');
+      const aiPromise = this.env.AI.run(modelToUse as any, {
+        prompt,
+        max_tokens: maxTokens || options.max_tokens || 1024,
+        temperature: options.temperature || 0.7,
+      } as any);
+      try {
+        // Race against timeout
+        const response: any = await Promise.race([aiPromise, timeoutPromise]);
+        return response;
+      } finally {
+        // Nothing to clean explicitly; relying on race only
       }
+    };
 
-      return textResponse;
+    const parseResponse = (response: any): string => {
+      if (typeof response === 'string') return response;
+      if (response && typeof response.response === 'string') return response.response;
+      if (response && typeof response.generated_text === 'string') return response.generated_text;
+      throw new Error('Invalid AI response format');
+    };
+
+    const tryOnce = async (modelToUse: string, maxTokens?: number) => {
+      const response = await makeCall(modelToUse, maxTokens);
+      const text = parseResponse(response);
+      const duration = Date.now() - startTime;
+      console.log(`AI request completed in ${duration}ms (model: ${modelToUse}, task: ${options.task || 'unknown'})`);
+      return text;
+    };
+
+    try {
+      return await tryOnce(primaryModel);
     } catch (error: any) {
       const duration = Date.now() - startTime;
+      const errMsg = error?.message || String(error);
       console.error('AI request failed:', {
-        error: error?.message || String(error),
+        error: errMsg,
         duration,
-        model,
+        model: primaryModel,
         task: options.task
       });
+      // Fallback on 504/timeout/upstream errors
+      const isTimeout = errMsg.includes('AI_TIMEOUT') || /504|Gateway Time-out|gateway timeout/i.test(errMsg);
+      const fallbackModel = (FALLBACK_MODELS as any)[primaryModel];
+      if (fallbackModel || isTimeout) {
+        try {
+          const chosen = fallbackModel || MODEL_STRATEGY.TRIP_UPDATES.model;
+          // Use smaller max tokens on fallback to reduce latency risk
+          const reducedTokens = Math.min(options.max_tokens || 1024, 1024);
+          console.warn(`Retrying with fallback model: ${chosen} (task: ${options.task || 'unknown'})`);
+          return await tryOnce(chosen, reducedTokens);
+        } catch (fallbackError: any) {
+          const fduration = Date.now() - startTime;
+          console.error('AI fallback failed:', {
+            error: fallbackError?.message || String(fallbackError),
+            duration: fduration,
+            model: fallbackModel || MODEL_STRATEGY.TRIP_UPDATES.model,
+            task: options.task
+          });
+          throw fallbackError;
+        }
+      }
       throw error;
     }
   }

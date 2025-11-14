@@ -145,9 +145,13 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         const currentCoords = currentTrip.coordinates ? JSON.parse(currentTrip.coordinates) : { latitude: 0, longitude: 0 };
         
         if (modifications.destination) {
-          const ai = createTripAI(this.env);
-          const geoData = await ai.geocodeDestination(finalDestination);
-          coordinates = geoData.coordinates;
+          try {
+            const { geocodeDestinationCenter } = await import('../utilities/geocode');
+            const center = await geocodeDestinationCenter(finalDestination);
+            coordinates = center || currentCoords;
+          } catch {
+            coordinates = currentCoords;
+          }
         } else {
           coordinates = currentCoords;
         }
@@ -207,7 +211,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           waypoints = [];
         }
       }
-      
+
       // Build update data with AI-generated changes
       // Coerce budget to a valid number if provided
       let nextBudget = currentTrip.budget;

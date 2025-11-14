@@ -71,7 +71,7 @@ export const MODEL_STRATEGY = {
   // Step 2: Main itinerary generation
   ITINERARY_GENERATION: {
     model: AI_MODELS.TEXT_GENERATION_ADVANCED, // Use advanced model for quality
-    maxTokens: 3072, // Longer output for detailed itineraries
+    maxTokens: 2048, // Reduce to lower 504 risk and latency
     temperature: 0.8, // Slightly higher for creativity
     reason: 'High-quality detailed planning',
   },

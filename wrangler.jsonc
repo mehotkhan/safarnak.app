@@ -106,6 +106,7 @@
   // Workers AI
   "ai": {
     "binding": "AI",
+    "remote": true,
   },
 
   // Queues
