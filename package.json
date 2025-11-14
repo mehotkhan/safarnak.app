@@ -1,6 +1,6 @@
 {
   "name": "safarnak-app",
-  "version": "2.3.1",
+  "version": "2.4.0",
   "main": "expo-router/entry",
   "license": "MIT",
   "scripts": {
