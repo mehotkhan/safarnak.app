@@ -122,13 +122,13 @@ android {
         }
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
-
+        
         // ====================================
         // APK SIZE OPTIMIZATION - Resource Filtering
         // ====================================
         // Only include English and Persian languages (removes all other locales)
         resConfigs "en", "fa"
-
+        
         // Only include xxhdpi density (for arm64-v8a devices)
         // This removes mdpi, hdpi, xhdpi, xxxhdpi variants
         resConfigs "xxhdpi"
