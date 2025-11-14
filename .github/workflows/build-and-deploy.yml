@@ -562,27 +562,51 @@ jobs:
           LAST_TAG=$(git tag --sort=-version:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 1 || echo "")
           
           if [ -z "$LAST_TAG" ]; then
-            # No previous release tag found, show last 20 commits
             echo "⚠️ No previous release tag found, showing last 20 commits"
-            COMMITS=$(git log --oneline --no-decorate --format="- %s (%h)" -20)
+            ALL_COMMITS=$(git log --oneline --no-decorate --format="%s|||%h" -20)
           else
-            # Show commits between last release and current HEAD
-            # Exclude automatic version bump commits and [skip ci] commits
             echo "📋 Finding commits since last release: $LAST_TAG"
-            COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="- %s (%h)" | \
+            ALL_COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="%s|||%h" | \
               grep -v "chore: bump version" | \
               grep -v "chore(release)" | \
               grep -v "\[skip ci\]" || echo "")
-            
-            if [ -z "$COMMITS" ]; then
-              COMMITS="- No new commits since last release"
-            fi
           fi
           
-          echo "✅ Commits for release notes:"
-          echo "$COMMITS" | head -20
+          # Categorize commits by type
+          FEATURES=""
+          FIXES=""
+          OTHERS=""
+          
+          while IFS='|||' read -r msg hash; do
+            if [[ "$msg" =~ ^feat(\(|:) ]]; then
+              FEATURES="${FEATURES}- ✨ ${msg} (\`${hash}\`)\n"
+            elif [[ "$msg" =~ ^fix(\(|:) ]]; then
+              FIXES="${FIXES}- 🐛 ${msg} (\`${hash}\`)\n"
+            else
+              OTHERS="${OTHERS}- ${msg} (\`${hash}\`)\n"
+            fi
+          done <<< "$ALL_COMMITS"
+          
+          # Build formatted output
+          FORMATTED=""
+          if [ -n "$FEATURES" ]; then
+            FORMATTED="${FORMATTED}### ✨ Features\n${FEATURES}\n"
+          fi
+          if [ -n "$FIXES" ]; then
+            FORMATTED="${FORMATTED}### 🐛 Bug Fixes\n${FIXES}\n"
+          fi
+          if [ -n "$OTHERS" ]; then
+            FORMATTED="${FORMATTED}### 🔧 Other Changes\n${OTHERS}\n"
+          fi
+          
+          if [ -z "$FORMATTED" ]; then
+            FORMATTED="No new commits since last release"
+          fi
+          
+          echo "✅ Formatted commits for release notes"
+          echo -e "$FORMATTED" | head -50
           echo "commits<<EOF" >> $GITHUB_OUTPUT
-          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo -e "$FORMATTED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Commit version bump if changed
@@ -601,28 +625,49 @@ jobs:
           tag_name: v${{ steps.version_code.outputs.version }}
           name: Safarnak v${{ steps.version_code.outputs.version }}
           body: |
-            ## 🚀 Safarnak v${{ steps.version_code.outputs.version }}
-
-            ### 📋 Build Info
-            - **Version**: ${{ steps.version_code.outputs.version }}
-            - **Version Code**: ${{ steps.version_code.outputs.version_code }}
-            - **Build**: #${{ github.run_number }}
-            - **Commit**: ${{ github.sha }}
-            - **Date**: ${{ github.event.head_commit.timestamp }}
-
-            ### 📝 Changes in This Build
-            ${{ github.event.head_commit.message }}
-
-            ### 📚 Commits Since Last Release
+            # 🚀 Safarnak v${{ steps.version_code.outputs.version }}
+            
+            > **سفرناک** - AI-powered offline-first travel companion
+            
+            ## 📦 What's New
+            
             ${{ steps.commits.outputs.commits }}
-
-            ### 📱 Installation
-            1. Download the APK file below
-            2. Enable "Install from unknown sources" on your Android device
-            3. Install the APK
-
+            
+            ## 📋 Build Information
+            
+            | Property | Value |
+            |----------|-------|
+            | **Version** | `${{ steps.version_code.outputs.version }}` |
+            | **Version Code** | `${{ steps.version_code.outputs.version_code }}` |
+            | **Build Number** | `#${{ github.run_number }}` |
+            | **APK Size** | ~38 MB (arm64-v8a only) |
+            | **Commit** | [`${{ github.sha }}`](https://github.com/mehotkhan/safarnak.app/commit/${{ github.sha }}) |
+            | **Build Date** | ${{ github.event.head_commit.timestamp }} |
+            
+            ## 📱 Installation Instructions
+            
+            1. **Download** the APK file from the Assets section below
+            2. **Enable** "Install from unknown sources" in your Android settings
+            3. **Install** the APK on your device
+            4. **Grant** location permissions when prompted for full functionality
+            
+            ## 🔧 Technical Details
+            
+            - **Architecture**: ARM64-v8a (64-bit)
+            - **Min SDK**: Android 6.0 (API 23)
+            - **Target SDK**: Android 15 (API 36)
+            - **Languages**: English, Persian (فارسی)
+            - **Features**: Offline-first, RTL support, GraphQL sync
+            
+            ## 📚 Documentation
+            
+            - [README](https://github.com/mehotkhan/safarnak.app/blob/master/README.md) - Full documentation
+            - [Contributing](https://github.com/mehotkhan/safarnak.app/blob/master/CONTRIBUTING.md) - How to contribute
+            - [Changelog](https://github.com/mehotkhan/safarnak.app/releases) - All releases
+            
             ---
-            See [README](https://github.com/mehotkhan/safarnak.app/blob/master/README.md) for full documentation.
+            
+            **Note**: This is an alpha release. Please report any issues on [GitHub Issues](https://github.com/mehotkhan/safarnak.app/issues).
           files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
           prerelease: false
