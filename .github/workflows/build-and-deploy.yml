@@ -99,11 +99,13 @@ jobs:
           
           // Get latest release tag (matching pattern vX.Y.Z)
           let lastTag = '';
+          let lastTagVersion = '';
           try {
             const tags = cp.execSync('git tag --sort=-version:refname | grep -E "^v[0-9]+\\.[0-9]+\\.[0-9]+$" | head -n 1', { encoding: 'utf8' }).trim();
             if (tags) {
               lastTag = tags.split('\n')[0];
-              console.log(`📋 Found last release tag: ${lastTag}`);
+              lastTagVersion = lastTag.replace(/^v/, '');
+              console.log(`📋 Found last release tag: ${lastTag} (version: ${lastTagVersion})`);
               
               // Verify the tag exists in the current repository
               try {
@@ -112,6 +114,7 @@ jobs:
               } catch (e) {
                 console.log(`⚠️  Tag ${lastTag} not found in repository, will use all commits`);
                 lastTag = '';
+                lastTagVersion = '';
               }
             } else {
               console.log('ℹ️  No previous release tag found');
@@ -120,12 +123,17 @@ jobs:
             console.log('ℹ️  Error finding tags:', e.message);
           }
           
+          // CRITICAL: Use lastTagVersion as base, NOT package.json current version
+          // This prevents double-bumping when package.json was already updated
+          const baseVersion = lastTagVersion || current;
+          console.log(`\n📌 Base version for bump calculation: ${baseVersion}`);
+          console.log(`   (package.json is at ${current}, but we use last tag ${lastTagVersion || 'none'} as base)`);
+          
           // Get all commits since last release (or last 50 commits if no tag)
           let commitMessages = [];
           try {
             if (lastTag) {
               console.log(`\n📋 Collecting all commits between ${lastTag} and HEAD...`);
-              // Use --no-walk to ensure we get commits in order
               const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges --reverse`, { encoding: 'utf8' }).trim();
               commitMessages = commits.split('\n\n').filter(msg => msg.trim());
               console.log(`   Range: ${lastTag}..HEAD (exclusive of tag, inclusive of HEAD)`);
@@ -273,8 +281,9 @@ jobs:
           console.log(`   Types found: ${[...new Set(commitTypes)].join(', ')}`);
           
           // Determine bump type based on commit analysis
+          // CRITICAL: Calculate bump from baseVersion (last tag), not current package.json
           let bump = 'build';
-          const m = current.split('.').map(n => parseInt(n, 10) || 0);
+          const m = baseVersion.split('.').map(n => parseInt(n, 10) || 0);
           
           if (hasBreaking) {
             // Breaking changes → major bump
@@ -305,7 +314,8 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=${bump}\n`);
           fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=${shouldRelease}\n`);
           
-          console.log(`\n📦 Version: ${current} → ${next} (${bump})`);
+          console.log(`\n📦 Version: ${baseVersion} → ${next} (${bump})`);
+          console.log(`   package.json was at ${current}, will be updated to ${next}`);
           if (shouldRelease) {
             console.log('✅ Will create new release');
           } else {
