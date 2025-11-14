@@ -141,10 +141,47 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       });
 
       if (!result.success || !result.trip) {
+        // Log error but don't throw - let user see the error
+        console.error('[Workflow] Orchestrator failed:', result.error);
+        
+        // Notify user of error
+        await publishNotification(this.env, 'TRIP_UPDATE', {
+          tripUpdates: {
+            id: `${tripId}-error`,
+            tripId,
+            type: 'workflow',
+            title: 'خطا در ساخت سفر',
+            message: result.error || 'متأسفانه نتوانستیم سفر شما را ایجاد کنیم. لطفاً دوباره تلاش کنید.',
+            step: 3,
+            totalSteps: 4,
+            status: 'error',
+            data: JSON.stringify({ error: result.error, warnings: result.warnings }),
+            createdAt: new Date().toISOString(),
+          }
+        }, this.ctx);
+        
         throw new Error(result.error || 'Trip generation failed');
       }
 
       console.log('✅ Intelligent trip generated:', result.trip.days.length, 'days');
+      
+      // Show warnings to user if any
+      if (result.warnings && result.warnings.length > 0) {
+        await publishNotification(this.env, 'TRIP_UPDATE', {
+          tripUpdates: {
+            id: `${tripId}-warnings`,
+            tripId,
+            type: 'workflow',
+            title: 'هشدارها',
+            message: result.warnings.join(', '),
+            step: 3,
+            totalSteps: 4,
+            status: 'processing',
+            data: JSON.stringify({ warnings: result.warnings }),
+            createdAt: new Date().toISOString(),
+          }
+        }, this.ctx);
+      }
 
       return { trip: result.trip, warnings: result.warnings };
     });

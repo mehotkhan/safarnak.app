@@ -84,10 +84,10 @@ export async function validateTripRequest(
     }
   }
   
-  // Validate destination has enough attractions
+  // Validate destination has enough attractions (warning only, not blocking)
   if (destinationData.attractions.length < 3) {
-    warnings.push('Limited attraction data available for this destination');
-    confidence = 'low';
+    warnings.push('Limited attraction data available for this destination - using AI fallback');
+    // Don't lower confidence - this is expected for some cities
   }
   
   // Check user location reachability (if provided)
@@ -110,8 +110,9 @@ export async function validateTripRequest(
     }
   }
   
-  // Determine if feasible
-  const feasible = warnings.length === 0 || confidence !== 'low';
+  // Determine if feasible - only block on critical issues (duration < 1, budget impossibly low)
+  // Warnings are informational, not blocking
+  const feasible = duration >= 1 && (!request.budget || request.budget >= minBudget * 0.5);
   
   return {
     feasible,

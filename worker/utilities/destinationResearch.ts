@@ -320,10 +320,16 @@ async function fetchRestaurants(
       }
     );
     
-    const places = await response.json() as any[];
+    const places = await response.json();
+    
+    // Ensure places is an array
+    if (!Array.isArray(places)) {
+      console.warn('[Research] Nominatim returned non-array for restaurants:', typeof places);
+      return [];
+    }
     
     const restaurants: Restaurant[] = places
-      .filter((p: any) => p.lat && p.lon && p.display_name)
+      .filter((p: any) => p && p.lat && p.lon && p.display_name)
       .map((place: any) => ({
         id: `${destination.toLowerCase()}-restaurant-${place.osm_id}`,
         name: place.display_name.split(',')[0].trim(),
