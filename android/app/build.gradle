@@ -99,11 +99,19 @@ android {
         // 2) APP_VERSION (semver) can override versionName
         // 3) Fallback versionName to package.json version
         def envVersionName = System.getenv('APP_VERSION')
-        // Parse version from package.json without relying on groovy.json.JsonSlurper
-        def pkgFile = new File(projectRoot, 'package.json')
-        def pkgText = pkgFile.exists() ? pkgFile.getText('UTF-8') : ''
-        def versionMatcher = (pkgText =~ /\"version\"\\s*:\\s*\"([0-9]+\\.[0-9]+\\.[0-9]+)\"/)
-        def resolvedVersionName = envVersionName ?: (versionMatcher ? versionMatcher[0][1] : "0.0.0")
+        // Resolve version from package.json using Node (consistent across envs)
+        def resolvedVersionName = envVersionName
+        if (!resolvedVersionName) {
+            try {
+                resolvedVersionName = ["node", "-p", "require('./package.json').version"].execute(null, rootDir).text.trim()
+            } catch (ignored) {
+                // Fallback to simple regex parse if node is unavailable for any reason
+                def pkgFile = new File(projectRoot, 'package.json')
+                def pkgText = pkgFile.exists() ? pkgFile.getText('UTF-8') : ''
+                def m = (pkgText =~ /\"version\"\\s*:\\s*\"([0-9]+\\.[0-9]+\\.[0-9]+)\"/)
+                resolvedVersionName = (m && m.find()) ? m.group(1) : "0.0.0"
+            }
+        }
 
         def envVersionCode = System.getenv('ANDROID_VERSION_CODE')
         def computeCode = { String v ->

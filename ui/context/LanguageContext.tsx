@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import { I18nManager } from 'react-native';
 
 interface LanguageContextType {
   currentLanguage: string;
@@ -35,9 +36,19 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       if (!savedLanguage) {
         await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
       }
-      // Note: RTL is disabled in Android (supportsRtl=false), so we don't need to
-      // change layout direction or reload the app. Language change is handled
-      // by i18n.changeLanguage() which updates translations without app reload.
+      // Sync native layout direction with selected language
+      const shouldBeRTL = language === 'fa';
+      if (I18nManager.isRTL !== shouldBeRTL) {
+        try {
+          I18nManager.allowRTL(shouldBeRTL);
+          I18nManager.forceRTL(shouldBeRTL);
+        } catch (e) {
+          // Ensure we don't fail silently in production builds
+          console.warn('Failed to set RTL direction via I18nManager:', e);
+        }
+        // Note: RN requires app reload to fully apply RTL/LTR switch.
+        // In production (updates disabled), advise manual restart.
+      }
     } catch (error) {
       console.log('Error loading saved language:', error);
       // Fallback to Persian on error
@@ -56,9 +67,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       setCurrentLanguage(language);
       await i18n.changeLanguage(language);
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
-      // Note: RTL is disabled in Android (supportsRtl=false), so we don't need to
-      // change layout direction or reload the app. Language change is handled
-      // by i18n.changeLanguage() which updates translations without app reload.
+      // Sync native layout direction with selected language
+      const shouldBeRTL = language === 'fa';
+      if (I18nManager.isRTL !== shouldBeRTL) {
+        try {
+          I18nManager.allowRTL(shouldBeRTL);
+          I18nManager.forceRTL(shouldBeRTL);
+        } catch (e) {
+          console.warn('Failed to set RTL direction via I18nManager:', e);
+        }
+        // Requires app reload to fully apply on RN
+      }
     } catch (error) {
       console.log('Error saving language:', error);
     }
