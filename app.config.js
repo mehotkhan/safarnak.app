@@ -74,7 +74,7 @@ const getAppConfig = () => {
       slug: 'safarNak',
       version: appVersion,
       orientation: 'portrait',
-      icon: './assets/images/icon.png',
+      icon: './assets/images/icon.webp',
       scheme: scheme,
       userInterfaceStyle: 'automatic',
       // Enable New Architecture for debug and local development builds, or when explicitly overridden
@@ -85,13 +85,13 @@ const getAppConfig = () => {
         isDebug ||
         isDevelopment,
       splash: {
-        image: './assets/images/splash-icon.png',
+        image: './assets/images/splash-icon.webp',
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
         // Optimize splash screen for smaller APK
         ...(isProduction && {
-          // Use smaller splash image in production
-          image: './assets/images/splash-icon.png', // Keep same for now, but could use WebP
+          // Use smaller splash image in production (WebP is smaller)
+          image: './assets/images/splash-icon.webp',
           // Disable splash screen animation in production for faster startup
           enableSplashScreenAnimation: false,
         }),
@@ -112,7 +112,7 @@ const getAppConfig = () => {
             return maj * 10000 + min * 100 + pat;
           })(),
         adaptiveIcon: {
-          foregroundImage: './assets/images/adaptive-icon.png',
+          foregroundImage: './assets/images/adaptive-icon.webp',
           backgroundColor: '#ffffff',
         },
         edgeToEdgeEnabled: true,
@@ -126,7 +126,7 @@ const getAppConfig = () => {
       web: {
         bundler: 'metro',
         output: 'static',
-        favicon: './assets/images/favicon.png',
+        favicon: './assets/images/favicon.webp',
       },
       // ====================================
       // PRODUCTION OPTIMIZATIONS
