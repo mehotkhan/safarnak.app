@@ -6,12 +6,12 @@ import {
   ActivityIndicator,
   Linking,
   Alert,
-  Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
+import { ImageWithPlaceholder } from '@ui/display';
 import { CustomButton } from '@ui/forms';
 import { useTheme } from '@ui/context';
 import { useGetPlaceQuery } from '@api';
@@ -35,6 +35,12 @@ export default function PlaceDetailScreen() {
   });
 
   const place = data?.getPlace as any;
+
+  // Generate placeholder image URL using Picsum Photos
+  const placeholderImageUrl = useMemo(() => {
+    const seed = place?.id ? place.id.substring(0, 8) : 'default';
+    return `https://picsum.photos/seed/${seed}/800/600`;
+  }, [place?.id]);
 
   const handleBookmark = () => {
     setIsBookmarked(!isBookmarked);
@@ -135,11 +141,14 @@ export default function PlaceDetailScreen() {
         )}
 
         {/* Image fallback if no map */}
-        {!location && place.imageUrl && (
+        {!location && (
           <View className="h-64 bg-gray-200 dark:bg-neutral-800">
-            <Image
-              source={{ uri: place.imageUrl }}
-              className="w-full h-full"
+            <ImageWithPlaceholder
+              source={place.imageUrl ? { uri: place.imageUrl } : { uri: placeholderImageUrl }}
+              placeholder={placeholderImageUrl}
+              fallbackText={t('places.noImage') || 'Place Image'}
+              width="100%"
+              height="100%"
               resizeMode="cover"
             />
           </View>

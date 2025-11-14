@@ -3,13 +3,13 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
+import { ImageWithPlaceholder } from '@ui/display';
 import { RatingDisplay } from '@ui/display';
 import { CustomButton } from '@ui/forms';
 import { useTheme } from '@ui/context';
@@ -34,6 +34,12 @@ export default function TourDetailScreen() {
   });
 
   const tour = data?.getTour as any;
+
+  // Generate placeholder image URL using Picsum Photos (must be before early returns)
+  const placeholderImageUrl = useMemo(() => {
+    const seed = tour?.id ? tour.id.substring(0, 8) : 'default';
+    return `https://picsum.photos/seed/${seed}/800/600`;
+  }, [tour]);
 
   const handleJoinTour = () => {
     router.push(`/(app)/(explore)/tours/${tourId}/book` as any);
@@ -69,7 +75,8 @@ export default function TourDetailScreen() {
     );
   }
 
-  const imageUrl = tour.imageUrl || tour.gallery?.[0] || 'https://via.placeholder.com/800x600';
+  const imageUrl = tour.imageUrl || tour.gallery?.[0] || null;
+  
   const highlights = Array.isArray(tour.highlights) ? tour.highlights : [];
   const inclusions = Array.isArray(tour.inclusions) ? tour.inclusions : [];
 
@@ -99,9 +106,12 @@ export default function TourDetailScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Image */}
         <View className="h-64 bg-gray-200 dark:bg-neutral-800">
-          <Image
-            source={{ uri: imageUrl }}
-            className="w-full h-full"
+          <ImageWithPlaceholder
+            source={imageUrl ? { uri: imageUrl } : { uri: placeholderImageUrl }}
+            placeholder={placeholderImageUrl}
+            fallbackText={t('tours.noImage') || 'Tour Image'}
+            width="100%"
+            height="100%"
             resizeMode="cover"
           />
         </View>

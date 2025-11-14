@@ -80,10 +80,11 @@ export const FeedItem = React.memo<FeedItemProps>(({
   const entityInfo = getEntityInfo(item);
   const imageUrl = entityInfo.imageUrl || (item.attachments && item.attachments[0]) || null;
 
-  // Generate placeholder image URL using Unsplash (travel category)
+  // Generate placeholder image URL using Picsum Photos (globally accessible)
   const placeholderImageUrl = useMemo(() => {
+    // Use post ID as seed for consistent images per post
     const seed = item.id ? item.id.substring(0, 8) : 'default';
-    return `https://source.unsplash.com/800x600/?travel,landscape&sig=${seed}`;
+    return `https://picsum.photos/seed/${seed}/800/600`;
   }, [item.id]);
 
   // Get connected item type icon and label
@@ -135,7 +136,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
         className="flex-row items-center px-4 py-3"
         activeOpacity={0.7}
       >
-        <UserAvatar avatar={item.user?.avatar} size={40} className="mr-3" showBorder />
+        <UserAvatar avatar={item.user?.avatar} size={40} className="mr-3" showBorder userId={item.user?.id} username={item.user?.username} />
         <View className="flex-1">
           <View className="flex-row items-center">
             <CustomText weight="bold" className="text-base text-black dark:text-white">
@@ -267,7 +268,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
           {item.comments.slice(0, 4).map((comment: any, index: number) => (
             <View key={comment.id || index} className="mb-2 last:mb-0">
               <View className="flex-row items-start">
-                <UserAvatar avatar={comment.user?.avatar} size={24} className="mr-2" />
+                <UserAvatar avatar={comment.user?.avatar} size={24} className="mr-2" userId={comment.user?.id} username={comment.user?.username} />
                 <View className="flex-1">
                   <View className="flex-row items-center mb-0.5">
                     <CustomText weight="medium" className="text-xs text-black dark:text-white mr-2">

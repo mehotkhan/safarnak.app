@@ -4,7 +4,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Image,
   Alert,
   ActivityIndicator,
 } from 'react-native';
@@ -15,6 +14,7 @@ import { CustomText } from '@ui/display';
 import { LoadingState } from '@ui/feedback';
 import { ErrorState } from '@ui/feedback';
 import { UserAvatar } from '@ui/display';
+import { ImageWithPlaceholder } from '@ui/display';
 import { KeyboardAwareView } from '@ui/layout';
 import Colors from '@constants/Colors';
 import { useTheme } from '@ui/context';
@@ -76,10 +76,11 @@ export default function PostDetailScreen() {
 
   const imageUrl = entityInfo?.imageUrl || (post?.attachments && post.attachments[0]) || null;
   
-  // Generate placeholder image URL using Unsplash (travel category)
+  // Generate placeholder image URL using Picsum Photos (globally accessible)
   const placeholderImageUrl = useMemo(() => {
+    // Use post ID as seed for consistent images per post
     const seed = post?.id ? post.id.substring(0, 8) : 'default';
-    return `https://source.unsplash.com/800x600/?travel,landscape&sig=${seed}`;
+    return `https://picsum.photos/seed/${seed}/800/600`;
   }, [post]);
 
   if (!post && !loading) {
@@ -175,7 +176,7 @@ export default function PostDetailScreen() {
       <ScrollView className="flex-1">
         {/* User Header */}
         <View className="flex-row items-center px-4 py-4 border-b border-gray-200 dark:border-neutral-800">
-          <UserAvatar avatar={post.user?.avatar} size={48} className="mr-3" />
+          <UserAvatar avatar={post.user?.avatar} size={48} className="mr-3" userId={post.user?.id} username={post.user?.username} />
           <View className="flex-1">
             <CustomText weight="bold" className="text-base text-black dark:text-white">
               {post.user?.name || 'Unknown User'}
@@ -200,29 +201,14 @@ export default function PostDetailScreen() {
         </View>
 
         {/* Image */}
-        <View className="w-full h-96 bg-gray-200 dark:bg-neutral-800 relative overflow-hidden">
-          {imageUrl ? (
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-full"
-              resizeMode="cover"
-            />
-          ) : (
-            <View className="w-full h-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
-              <Image
-                source={{ uri: placeholderImageUrl }}
-                className="w-full h-full opacity-50"
-                resizeMode="cover"
-              />
-              <View className="absolute inset-0 items-center justify-center">
-                <Ionicons name="image-outline" size={48} color={isDark ? '#4b5563' : '#9ca3af'} />
-                <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                  {t('feed.noImage') || 'Travel Image'}
-                </CustomText>
-              </View>
-            </View>
-          )}
-        </View>
+        <ImageWithPlaceholder
+          source={imageUrl ? { uri: imageUrl } : { uri: placeholderImageUrl }}
+          placeholder={placeholderImageUrl}
+          fallbackText={t('feed.noImage') || 'Travel Image'}
+          width="100%"
+          height={384}
+          resizeMode="cover"
+        />
 
         {/* Content */}
         {post.content && (
@@ -307,7 +293,7 @@ export default function PostDetailScreen() {
             post.comments.map((comment: any) => (
               <View key={comment.id} className="mb-4">
                 <View className="flex-row items-start">
-                  <UserAvatar avatar={comment.user?.avatar} size={32} className="mr-3" />
+                  <UserAvatar avatar={comment.user?.avatar} size={32} className="mr-3" userId={comment.user?.id} username={comment.user?.username} />
                   <View className="flex-1">
                     <View className="flex-row items-center mb-1">
                       <CustomText weight="bold" className="text-sm text-black dark:text-white mr-2">

@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@ui/display';
 import { UserAvatar } from '@ui/display';
+import { ImageWithPlaceholder } from '@ui/display';
 import { useTheme } from '@ui/context';
 import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
@@ -34,7 +35,14 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
   const { isDark } = useTheme();
   
   const entityInfo = getEntityInfo(post);
-  const hasImage = post.attachments?.[0] || entityInfo?.imageUrl;
+  const imageUrl = post.attachments?.[0] || entityInfo?.imageUrl;
+
+  // Generate placeholder image URL using Picsum Photos (globally accessible)
+  const placeholderImageUrl = useMemo(() => {
+    // Use post ID as seed for consistent images per post
+    const seed = post.id ? post.id.substring(0, 8) : 'default';
+    return `https://picsum.photos/seed/${seed}/800/600`;
+  }, [post.id]);
 
   return (
     <TouchableOpacity
@@ -45,7 +53,7 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
       {/* Header */}
       <View className="flex-row items-center p-3 border-b border-gray-100 dark:border-neutral-800">
         <TouchableOpacity onPress={onUserPress} className="flex-row items-center flex-1">
-          <UserAvatar avatar={post.user?.avatar} size={40} className="mr-2" />
+          <UserAvatar avatar={post.user?.avatar} size={40} className="mr-2" userId={post.user?.id} username={post.user?.username} />
           <View className="flex-1">
             <CustomText weight="medium" className="text-sm text-black dark:text-white">
               {post.user?.name || post.user?.username || 'User'}
@@ -65,14 +73,15 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
       </View>
 
       {/* Content */}
-      {hasImage && (
-        <View className="h-48 bg-gray-200 dark:bg-neutral-800">
-          <Image
-            source={{ uri: hasImage }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
-        </View>
+      {imageUrl && (
+        <ImageWithPlaceholder
+          source={{ uri: imageUrl }}
+          placeholder={placeholderImageUrl}
+          fallbackText={t('feed.noImage') || 'Travel Image'}
+          width="100%"
+          height={192}
+          resizeMode="cover"
+        />
       )}
       
       {post.content && (

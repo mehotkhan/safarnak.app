@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, TouchableOpacity, Image } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { CustomText } from '@ui/display';
 import { RatingDisplay } from '@ui/display';
+import { ImageWithPlaceholder } from '@ui/display';
 import { useTheme } from '@ui/context';
 
 export interface PlaceCardProps {
@@ -26,9 +27,15 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
   const { isDark } = useTheme();
   const { t } = useTranslation();
 
+  // Generate placeholder image URL using Picsum Photos
+  const placeholderImageUrl = useMemo(() => {
+    const seed = place?.id ? place.id.substring(0, 8) : 'default';
+    return `https://picsum.photos/seed/${seed}/200/200`;
+  }, [place]);
+
   // Detailed variant (explore) - shows image on left side
   if (variant === 'detailed') {
-    const imageUrl = place.imageUrl || 'https://via.placeholder.com/400x300';
+    const imageUrl = place.imageUrl || null;
     
     return (
       <TouchableOpacity
@@ -38,9 +45,12 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
       >
         <View className="flex-row">
           <View className="w-24 h-24 bg-gray-200 dark:bg-neutral-800">
-            <Image
-              source={{ uri: imageUrl }}
-              className="w-full h-full"
+            <ImageWithPlaceholder
+              source={imageUrl ? { uri: imageUrl } : { uri: placeholderImageUrl }}
+              placeholder={placeholderImageUrl}
+              fallbackText={t('places.noImage') || 'Place Image'}
+              width="100%"
+              height="100%"
               resizeMode="cover"
             />
           </View>

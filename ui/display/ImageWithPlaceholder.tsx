@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Image, ImageErrorEventData, NativeSyntheticEvent } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import NetInfo from '@react-native-community/netinfo';
 import { CustomText } from './CustomText';
 import { useTheme } from '@ui/context';
 
@@ -21,7 +22,8 @@ export interface ImageWithPlaceholderProps {
 /**
  * ImageWithPlaceholder Component
  * 
- * Displays an image with a placeholder fallback when the image fails to load or is not available
+ * Displays an image with a placeholder fallback when the image fails to load or is not available.
+ * When online, tries to load the placeholder image URL instead of showing a simple icon.
  * 
  * @example
  * <ImageWithPlaceholder 
@@ -46,13 +48,35 @@ export const ImageWithPlaceholder = React.memo<ImageWithPlaceholderProps>(({
   onLoad,
 }) => {
   const { isDark } = useTheme();
-  const [hasError, setHasError] = useState(false);
+  const [hasMainError, setHasMainError] = useState(false);
+  const [hasPlaceholderError, setHasPlaceholderError] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
   const [_isLoading, setIsLoading] = useState(true);
 
-  const handleError = (error: NativeSyntheticEvent<ImageErrorEventData>) => {
-    setHasError(true);
+  // Check network status
+  useEffect(() => {
+    const checkNetwork = async () => {
+      const state = await NetInfo.fetch();
+      setIsOnline(state.isConnected ?? false);
+    };
+    
+    checkNetwork();
+    
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsOnline(state.isConnected ?? false);
+    });
+    
+    return () => unsubscribe();
+  }, []);
+
+  const handleMainError = (error: NativeSyntheticEvent<ImageErrorEventData>) => {
+    setHasMainError(true);
     setIsLoading(false);
     onError?.(error);
+  };
+
+  const handlePlaceholderError = () => {
+    setHasPlaceholderError(true);
   };
 
   const handleLoad = () => {
@@ -61,7 +85,11 @@ export const ImageWithPlaceholder = React.memo<ImageWithPlaceholderProps>(({
   };
 
   const imageUri = typeof source === 'object' && 'uri' in source ? source.uri : null;
-  const showPlaceholder = hasError || !imageUri;
+  const shouldShowPlaceholder = hasMainError || !imageUri;
+  
+  // When online and main image failed, try to show placeholder image
+  // Only show icon if offline or if placeholder also failed
+  const shouldShowPlaceholderImage = shouldShowPlaceholder && isOnline && placeholder && !hasPlaceholderError;
 
   const containerStyle: any = {};
   if (width) containerStyle.width = width;
@@ -72,37 +100,34 @@ export const ImageWithPlaceholder = React.memo<ImageWithPlaceholderProps>(({
       className={`bg-gray-200 dark:bg-neutral-800 relative overflow-hidden ${className}`}
       style={containerStyle}
     >
-      {!showPlaceholder ? (
+      {!shouldShowPlaceholder ? (
         <Image
           source={source}
           className={`w-full h-full ${imageClassName}`}
           resizeMode={resizeMode}
-          onError={handleError}
+          onError={handleMainError}
+          onLoad={handleLoad}
+        />
+      ) : shouldShowPlaceholderImage ? (
+        <Image
+          source={{ uri: placeholder }}
+          className={`w-full h-full ${imageClassName}`}
+          resizeMode={resizeMode}
+          onError={handlePlaceholderError}
           onLoad={handleLoad}
         />
       ) : (
         <View className="w-full h-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
-          {placeholder && !hasError ? (
-            <Image
-              source={{ uri: placeholder }}
-              className="w-full h-full opacity-50"
-              resizeMode={resizeMode}
-              onError={handleError}
-              onLoad={handleLoad}
-            />
-          ) : null}
-          <View className="absolute inset-0 items-center justify-center">
-            <Ionicons 
-              name={fallbackIcon as any} 
-              size={48} 
-              color={isDark ? '#4b5563' : '#9ca3af'} 
-            />
-            {fallbackText && (
-              <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                {fallbackText}
-              </CustomText>
-            )}
-          </View>
+          <Ionicons 
+            name={fallbackIcon as any} 
+            size={48} 
+            color={isDark ? '#4b5563' : '#9ca3af'} 
+          />
+          {fallbackText && (
+            <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+              {fallbackText}
+            </CustomText>
+          )}
         </View>
       )}
     </View>
