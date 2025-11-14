@@ -1,6 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
+import groovy.json.JsonSlurper
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
 
@@ -87,22 +88,47 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'ir.mohet.safarnak_debug'
+    // Use production namespace / applicationId for release builds
+    namespace 'ir.mohet.safarnak'
     defaultConfig {
-        applicationId 'ir.mohet.safarnak_debug'
+        applicationId 'ir.mohet.safarnak'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 20300
-        versionName "2.3.0"
+
+        // Resolve versionName and versionCode from environment/package.json (CI friendly)
+        // 1) ANDROID_VERSION_CODE (int) can override versionCode
+        // 2) APP_VERSION (semver) can override versionName
+        // 3) Fallback versionName to package.json version
+        def envVersionName = System.getenv('APP_VERSION')
+        def packageJson = new JsonSlurper().parseText(new File(projectRoot, 'package.json').text)
+        def resolvedVersionName = envVersionName ?: (packageJson.version ?: "0.0.0")
+
+        def envVersionCode = System.getenv('ANDROID_VERSION_CODE')
+        def computeCode = { String v ->
+            def m = (v =~ /(\d+)\.(\d+)\.(\d+)/)
+            if (m) {
+                return m[0][1].toInteger() * 10000 + m[0][2].toInteger() * 100 + m[0][3].toInteger()
+            }
+            return 1
+        }
+        def resolvedVersionCode = envVersionCode ? envVersionCode.toInteger() : computeCode(resolvedVersionName)
+
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
+
+        // Only ship arm64-v8a ABI to keep APK size small
+        ndk {
+            abiFilters 'arm64-v8a'
+        }
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
-        
+
         // ====================================
         // APK SIZE OPTIMIZATION - Resource Filtering
         // ====================================
         // Only include English and Persian languages (removes all other locales)
         resConfigs "en", "fa"
-        
+
         // Only include xxhdpi density (for arm64-v8a devices)
         // This removes mdpi, hdpi, xhdpi, xxxhdpi variants
         resConfigs "xxhdpi"
@@ -118,6 +144,8 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
+            // Use a different applicationId for debug builds
+            applicationIdSuffix ".debug"
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
@@ -139,6 +167,9 @@ android {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
+        // Handle duplicate native libraries (kept from previous good build)
+        pickFirst '**/libc++_shared.so'
+        pickFirst '**/libjsc.so'
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
