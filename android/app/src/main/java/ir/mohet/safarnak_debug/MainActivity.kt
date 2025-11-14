@@ -1,4 +1,4 @@
-package ir.mohet.safarnak_debug
+package ir.mohet.safarnak
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build
