@@ -77,14 +77,20 @@ export async function generateIntelligentTrip(
   console.log(`[Generator] Starting intelligent trip generation for ${request.destination}`);
   
   // Step 1: Match attractions to user preferences using semantic search
-  const matchedAttractions = await searchAttractionsByPreferences(
+  let matchedAttractions = await searchAttractionsByPreferences(
     env,
     request.destination,
     request.preferences,
     request.duration * 4 // 4 attractions per day max
   );
   
-  console.log(`[Generator] Matched ${matchedAttractions.length} attractions via semantic search`);
+  // If we have very few attractions, use ALL available attractions
+  if (matchedAttractions.length < request.duration * 2) {
+    console.log(`[Generator] Limited semantic matches (${matchedAttractions.length}), using all attractions`);
+    matchedAttractions = destinationData.attractions;
+  }
+  
+  console.log(`[Generator] Using ${matchedAttractions.length} attractions for ${request.duration} days`);
   
   // Step 2: Select best restaurants
   const selectedRestaurants = selectRestaurants(
@@ -93,7 +99,14 @@ export async function generateIntelligentTrip(
     request.duration
   );
   
-  // Step 3: Generate day-by-day itinerary
+  // Step 3: If still insufficient data, enhance with AI-generated suggestions
+  if (matchedAttractions.length < request.duration * 2) {
+    console.log('[Generator] Insufficient OSM data, enhancing with AI suggestions...');
+    const aiEnhanced = await enhanceWithAI(env, request, destinationData, matchedAttractions);
+    matchedAttractions = aiEnhanced.attractions;
+  }
+  
+  // Step 4: Generate day-by-day itinerary
   const days = await generateDayPlans(
     env,
     request,
@@ -131,6 +144,88 @@ export async function generateIntelligentTrip(
 }
 
 /**
+ * Enhance with AI-generated attractions when OSM data is insufficient
+ */
+async function enhanceWithAI(
+  env: Env,
+  request: TripGenerationRequest,
+  destinationData: DestinationData,
+  existingAttractions: Attraction[]
+): Promise<{ attractions: Attraction[] }> {
+  try {
+    const prompt = `You are a travel expert. Suggest ${request.duration * 3} must-visit attractions in ${request.destination} for a ${request.duration}-day trip.
+
+User preferences: ${request.preferences}
+Budget level: ${request.budget ? `$${request.budget}` : 'moderate'}
+
+Respond with ONLY valid JSON (no markdown):
+{
+  "attractions": [
+    {
+      "name": "exact place name",
+      "type": "historical|museum|park|religious|entertainment|shopping|nature",
+      "description": "brief description",
+      "estimatedCost": cost in USD,
+      "duration": minutes to visit,
+      "tags": ["tag1", "tag2"]
+    }
+  ]
+}`;
+
+    const aiResponse: any = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+      prompt,
+      max_tokens: 1024,
+      temperature: 0.7,
+    });
+
+    const text = typeof aiResponse === 'string' ? aiResponse : 
+                 aiResponse?.response || aiResponse?.generated_text || '{}';
+    
+    const jsonMatch = text.match(/\{[\s\S]*\}/);
+    const data = jsonMatch ? JSON.parse(jsonMatch[0]) : { attractions: [] };
+
+    // Geocode each AI-suggested attraction
+    const { geocodePlaceInDestination } = await import('./geocode');
+    const enhancedAttractions: Attraction[] = [];
+
+    for (const aiAttr of data.attractions || []) {
+      try {
+        const result = await geocodePlaceInDestination(
+          aiAttr.name,
+          request.destination
+        );
+
+        if (result) {
+          enhancedAttractions.push({
+            id: `${request.destination.toLowerCase()}-ai-${aiAttr.name.toLowerCase().replace(/\s+/g, '-')}`,
+            name: result.label || aiAttr.name,
+            type: aiAttr.type || 'entertainment',
+            coords: { lat: result.latitude, lon: result.longitude },
+            rating: 4.0 + Math.random() * 0.5,
+            cost: aiAttr.estimatedCost || 0,
+            duration: aiAttr.duration || 90,
+            tags: aiAttr.tags || [],
+            description: aiAttr.description,
+          });
+        }
+      } catch (err) {
+        console.warn(`[Generator] Failed to geocode AI attraction ${aiAttr.name}:`, err);
+      }
+    }
+
+    console.log(`[Generator] AI enhanced with ${enhancedAttractions.length} additional attractions`);
+
+    // Combine existing + AI-enhanced
+    return {
+      attractions: [...existingAttractions, ...enhancedAttractions],
+    };
+  } catch (error) {
+    console.error('[Generator] AI enhancement failed:', error);
+    return { attractions: existingAttractions };
+  }
+}
+
+/**
  * Generate detailed day plans with real places and realistic timing
  */
 async function generateDayPlans(
@@ -142,7 +237,32 @@ async function generateDayPlans(
   validation: ValidationResult
 ): Promise<DayPlan[]> {
   const days: DayPlan[] = [];
-  const attractionsPerDay = Math.ceil(attractions.length / request.duration);
+  
+  // Ensure we have at least some attractions
+  if (attractions.length === 0) {
+    console.warn('[Generator] No attractions available, creating minimal itinerary');
+    // Create a minimal day with destination center
+    for (let dayNum = 1; dayNum <= request.duration; dayNum++) {
+      days.push({
+        day: dayNum,
+        title: `Day ${dayNum} - Explore ${request.destination}`,
+        activities: [{
+          time: '09:00',
+          title: `Explore ${request.destination}`,
+          location: request.destination,
+          coords: destinationData.facts.coordinates,
+          duration: 240,
+          cost: 0,
+          type: 'attraction',
+          description: 'Free exploration day',
+        }],
+        estimatedCost: 50,
+      });
+    }
+    return days;
+  }
+  
+  const attractionsPerDay = Math.max(2, Math.ceil(attractions.length / request.duration));
   
   for (let dayNum = 1; dayNum <= request.duration; dayNum++) {
     const dayAttractions = attractions.slice(
@@ -154,8 +274,9 @@ async function generateDayPlans(
     let currentTime = 9; // Start at 9 AM
     let dailyCost = 0;
     
-    // Morning activities
-    for (let i = 0; i < Math.min(2, dayAttractions.length); i++) {
+    // Morning activities (at least 1-2 attractions)
+    const morningCount = Math.min(2, dayAttractions.length);
+    for (let i = 0; i < morningCount; i++) {
       const attr = dayAttractions[i];
       activities.push({
         time: `${String(Math.floor(currentTime)).padStart(2, '0')}:${String(Math.floor((currentTime % 1) * 60)).padStart(2, '0')}`,
@@ -165,7 +286,7 @@ async function generateDayPlans(
         duration: attr.duration || 90,
         cost: attr.cost || 0,
         type: 'attraction',
-        description: `Explore ${attr.type} attraction`,
+        description: attr.description || `Explore ${attr.type} attraction`,
       });
       
       dailyCost += attr.cost || 0;
@@ -194,8 +315,9 @@ async function generateDayPlans(
     }
     
     // Afternoon activities
-    for (let i = 2; i < dayAttractions.length; i++) {
-      const attr = dayAttractions[i];
+    const afternoonCount = dayAttractions.length - morningCount;
+    for (let i = 0; i < afternoonCount; i++) {
+      const attr = dayAttractions[morningCount + i];
       activities.push({
         time: `${String(Math.floor(currentTime)).padStart(2, '0')}:${String(Math.floor((currentTime % 1) * 60)).padStart(2, '0')}`,
         title: `Explore ${attr.name}`,
@@ -204,6 +326,7 @@ async function generateDayPlans(
         duration: attr.duration || 60,
         cost: attr.cost || 0,
         type: 'attraction',
+        description: attr.description || `Visit ${attr.type} site`,
       });
       
       dailyCost += attr.cost || 0;
@@ -302,16 +425,19 @@ function extractWaypoints(days: DayPlan[]): GeneratedTrip['waypoints'] {
   
   for (const day of days) {
     for (const activity of day.activities) {
-      if (activity.type === 'attraction' || activity.type === 'food') {
+      // Include all activities with valid coordinates
+      if (activity.coords && activity.coords.lat !== 0 && activity.coords.lon !== 0) {
         waypoints.push({
           latitude: activity.coords.lat,
           longitude: activity.coords.lon,
-          label: activity.location,
+          label: activity.location || activity.title,
           order: order++,
         });
       }
     }
   }
+  
+  console.log(`[Generator] Extracted ${waypoints.length} waypoints from ${days.length} days`);
   
   return waypoints;
 }
