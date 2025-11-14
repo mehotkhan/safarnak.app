@@ -11,7 +11,7 @@ import { InputField } from '@ui/forms';
 import { useAppSelector } from '@state/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const authLoginBg = require('@assets/images/auth-login.jpg');
+const authLoginBg = require('@assets/images/auth-login.webp');
 
 export default function LoginScreen() {
   const { t } = useTranslation();

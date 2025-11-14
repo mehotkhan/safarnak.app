@@ -19,7 +19,7 @@ import { useDateTime } from '@hooks/useDateTime';
 import { copyToClipboard } from '@utils/clipboard';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const appIcon = require('@assets/images/icon.png');
+const appIcon = require('@assets/images/icon.webp');
 
 
 export default function ProfileScreen() {

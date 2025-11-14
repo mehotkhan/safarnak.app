@@ -10,17 +10,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppSelector } from '@state/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage1 = require('@assets/images/welcome-onboarding1.jpg');
+const onboardingImage1 = require('@assets/images/welcome-onboarding1.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage2 = require('@assets/images/welcome-onboarding2.jpg');
+const onboardingImage2 = require('@assets/images/welcome-onboarding2.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage3 = require('@assets/images/welcome-onboarding3.jpg');
+const onboardingImage3 = require('@assets/images/welcome-onboarding3.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage4 = require('@assets/images/welcome-onboarding4.jpg');
+const onboardingImage4 = require('@assets/images/welcome-onboarding4.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage5 = require('@assets/images/welcome-onboarding5.jpg');
+const onboardingImage5 = require('@assets/images/welcome-onboarding5.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const logoBeta = require('@assets/images/icon.png');
+const logoBeta = require('@assets/images/icon.webp');
 
 export default function WelcomeScreen() {
   const { t } = useTranslation();

@@ -13,7 +13,7 @@ import { Alert, Image, KeyboardAvoidingView, Platform, TouchableOpacity, View } 
 import { useAppSelector } from '@state/hooks';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const authRegisterBg = require('@assets/images/auth-login.jpg');
+const authRegisterBg = require('@assets/images/auth-login.webp');
 
 export default function RegisterScreen() {
   const { t } = useTranslation();

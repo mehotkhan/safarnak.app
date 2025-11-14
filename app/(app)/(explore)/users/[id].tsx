@@ -28,7 +28,7 @@ import { useDateTime } from '@hooks/useDateTime';
 import Colors from '@constants/Colors';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const appIcon = require('@assets/images/icon.png');
+const appIcon = require('@assets/images/icon.webp');
 
 export default function UserProfileScreen() {
   const { t } = useTranslation();
