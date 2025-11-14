@@ -103,12 +103,20 @@ android {
         def resolvedVersionName = envVersionName
         if (!resolvedVersionName) {
             try {
-                resolvedVersionName = ["node", "-p", "require('./package.json').version"].execute(null, rootDir).text.trim()
-            } catch (ignored) {
-                // Fallback to simple regex parse if node is unavailable for any reason
+                // Execute from projectRoot (parent of android/) to find package.json
+                def nodeCmd = ["node", "-p", "require('./package.json').version"]
+                def proc = nodeCmd.execute(null, new File(projectRoot))
+                proc.waitFor()
+                if (proc.exitValue() == 0) {
+                    resolvedVersionName = proc.text.trim()
+                } else {
+                    throw new Exception("Node command failed")
+                }
+            } catch (Exception e) {
+                // Fallback to simple regex parse if node fails
                 def pkgFile = new File(projectRoot, 'package.json')
                 def pkgText = pkgFile.exists() ? pkgFile.getText('UTF-8') : ''
-                def m = (pkgText =~ /\"version\"\\s*:\\s*\"([0-9]+\\.[0-9]+\\.[0-9]+)\"/)
+                def m = (pkgText =~ /"version"\s*:\s*"([0-9]+\.[0-9]+\.[0-9]+)"/)
                 resolvedVersionName = (m && m.find()) ? m.group(1) : "0.0.0"
             }
         }
