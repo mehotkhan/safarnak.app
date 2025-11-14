@@ -1,4 +1,17 @@
 import 'dotenv/config';
+// Inline config plugin to ensure Android manifest has supportsRtl=true
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { withAndroidManifest } = require('@expo/config-plugins');
+
+const withAndroidRTL = config =>
+  withAndroidManifest(config, config => {
+    const app = config.modResults.manifest.application?.[0];
+    if (app) {
+      app.$ = app.$ || {};
+      app.$['android:supportsRtl'] = 'true';
+    }
+    return config;
+  });
 
 const getAppConfig = () => {
   const isDebug = process.env.EAS_BUILD_PROFILE === 'debug';
@@ -145,6 +158,8 @@ const getAppConfig = () => {
       plugins: [
         'expo-router',
         'expo-localization',
+        // Ensure Android supports RTL layouts at the manifest level
+        withAndroidRTL,
         [
           'expo-location',
           {

@@ -27,8 +27,8 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
           onPress={() => setOpen(o => !o)}
           className="flex-row items-center px-3 py-2 rounded-xl border bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700"
         >
-          <Text className="text-base mr-2">{current.flag}</Text>
-          <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 mr-1">
+          <Text className="text-base ltr:mr-2 rtl:ml-2">{current.flag}</Text>
+          <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 ltr:mr-1 rtl:ml-1">
             {current.nativeName || current.name}
           </Text>
           <Ionicons
@@ -40,7 +40,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
 
         {open && (
           <View
-            className="absolute z-50 mt-2 right-0 rounded-xl border bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
+            className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl border bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
             style={{ minWidth: 180, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
           >
             {languages.map((lang, idx) => (
@@ -54,7 +54,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
                   idx > 0 ? 'border-t border-gray-100 dark:border-neutral-800' : ''
                 } ${currentLanguage === lang.code ? 'bg-gray-50 dark:bg-neutral-800' : ''}`}
               >
-                <Text className="text-lg mr-2">{lang.flag}</Text>
+                <Text className="text-lg ltr:mr-2 rtl:ml-2">{lang.flag}</Text>
                 <View className="flex-1">
                   <Text className="text-sm text-gray-900 dark:text-gray-100 font-medium">
                     {lang.nativeName || lang.name}
@@ -80,7 +80,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
           onPress={() => setOpen(o => !o)}
           className="flex-row items-center rounded-full"
         >
-          <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 mr-1">
+          <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 ltr:mr-1 rtl:ml-1">
             {current.nativeName || current.name}
           </Text>
           <Ionicons
@@ -92,7 +92,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
 
         {open && (
           <View
-            className="absolute z-50 mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900"
+            className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900"
             style={{ minWidth: 140, paddingVertical: 4, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
           >
             {languages.map((lang) => (
@@ -110,7 +110,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
                   {lang.nativeName || lang.name}
                 </Text>
                 {currentLanguage === lang.code && (
-                  <Ionicons name="checkmark" size={16} color="#10b981" style={{ marginLeft: 'auto' }} />
+                  <Ionicons name="checkmark" size={16} color="#10b981" style={{ marginStart: 'auto' }} />
                 )}
               </TouchableOpacity>
             ))}
@@ -160,7 +160,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
               : 'bg-gray-100 border-gray-300'
           }`}
         >
-          <Text className="text-xl mr-2">{lang.flag}</Text>
+          <Text className="text-xl ltr:mr-2 rtl:ml-2">{lang.flag}</Text>
           <Text
             className={`text-base font-medium ${
               currentLanguage === lang.code ? 'text-blue-600' : 'text-gray-700'

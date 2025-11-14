@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, I18nManager } from 'react-native';
 import React, { useRef, useState, useEffect } from 'react';
 import { router } from 'expo-router';
 import PagerView from 'react-native-pager-view';
@@ -97,7 +97,7 @@ export default function WelcomeScreen() {
                 onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
                 className="flex-row items-center justify-center rounded-full px-3 py-1.5"
               >
-                <Text className="text-white text-base font-medium mr-1">
+                <Text className="text-white text-base font-medium ltr:mr-1 rtl:ml-1">
                   {currentLang.name}
                 </Text>
                 <Ionicons
@@ -109,7 +109,7 @@ export default function WelcomeScreen() {
 
               {languageDropdownOpen && (
                 <View
-                  className="absolute z-50 mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900"
+                  className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900"
                   style={{
                     minWidth: 140,
                     paddingVertical: 4,
@@ -139,7 +139,7 @@ export default function WelcomeScreen() {
                           name="checkmark"
                           size={16}
                           color="#10b981"
-                          style={{ marginLeft: 'auto' }}
+                          style={{ [I18nManager.isRTL ? 'marginRight' : 'marginLeft']: 'auto' } as any }
                         />
                       )}
                     </TouchableOpacity>

@@ -355,10 +355,10 @@ export default function PlanScreen() {
       )}
 
       {/* Multi-Add FAB - Create Trip, Tour, Place, Location */}
-      <View className="absolute bottom-6 right-6" style={{ zIndex: 999 }}>
+      <View className="absolute bottom-6 ltr:right-6 rtl:left-6" style={{ zIndex: 999 }}>
         {/* Expanded Options */}
         {fabExpanded && (
-          <View className="absolute bottom-20 right-0 items-end gap-3">
+          <View className="absolute bottom-20 ltr:right-0 rtl:left-0 ltr:items-end rtl:items-start gap-3">
             {/* Create Location Option */}
             <Animated.View
               style={{
@@ -374,7 +374,7 @@ export default function PlanScreen() {
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
               >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
+                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 ltr:mr-3 rtl:ml-3">
                   <Ionicons name="globe-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
                 </View>
                 <CustomText weight="medium" className="text-base text-black dark:text-white">
@@ -398,7 +398,7 @@ export default function PlanScreen() {
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
               >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
+                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 ltr:mr-3 rtl:ml-3">
                   <Ionicons name="location-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
                 </View>
                 <CustomText weight="medium" className="text-base text-black dark:text-white">
@@ -422,7 +422,7 @@ export default function PlanScreen() {
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
               >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
+                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 ltr:mr-3 rtl:ml-3">
                   <Ionicons name="map-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
                 </View>
                 <CustomText weight="medium" className="text-base text-black dark:text-white">
@@ -446,7 +446,7 @@ export default function PlanScreen() {
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
               >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
+                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 ltr:mr-3 rtl:ml-3">
                   <Ionicons name="airplane-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
                 </View>
                 <CustomText weight="medium" className="text-base text-black dark:text-white">
@@ -472,7 +472,7 @@ export default function PlanScreen() {
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
               >
-                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 mr-3">
+                <View className="w-10 h-10 items-center justify-center rounded-full bg-primary/10 ltr:mr-3 rtl:ml-3">
                   <Ionicons name="create-outline" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
                 </View>
                 <CustomText weight="medium" className="text-base text-black dark:text-white">

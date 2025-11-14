@@ -81,14 +81,14 @@ export const Dropdown = React.memo<DropdownProps>(({
               color={isDark ? '#9ca3af' : '#6b7280'}
             />
           )}
-          <CustomText className="ml-2 text-sm text-gray-800 dark:text-gray-200">
+          <CustomText className="ltr:ml-2 rtl:mr-2 text-sm text-gray-800 dark:text-gray-200">
             {displayLabel}
           </CustomText>
           <Ionicons
             name={isOpen ? 'chevron-up' : 'chevron-down'}
             size={14}
             color={isDark ? '#9ca3af' : '#6b7280'}
-            style={{ marginLeft: 6 }}
+            style={{ marginStart: 6 }}
           />
         </TouchableOpacity>
       )}
@@ -108,7 +108,7 @@ export const Dropdown = React.memo<DropdownProps>(({
             }}
           />
           <View
-            className={`absolute mt-2 right-0 rounded-xl bg-white dark:bg-neutral-900 ${
+            className={`absolute mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900 ${
               placement === 'top' ? 'bottom-full mb-2' : ''
             }`}
             style={{
@@ -150,7 +150,7 @@ export const Dropdown = React.memo<DropdownProps>(({
                     name="checkmark"
                     size={16}
                     color="#3b82f6"
-                    style={{ marginLeft: 'auto' }}
+                    style={{ marginStart: 'auto' }}
                   />
                 )}
               </TouchableOpacity>

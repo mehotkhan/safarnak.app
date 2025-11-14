@@ -498,7 +498,7 @@ export default function MapView({
 
       {/* Map Controls - Only show if showControls is true */}
       {showControls && (
-        <View className="absolute bottom-8 right-5 flex-col z-[100] gap-2">
+        <View className="absolute bottom-8 ltr:right-5 rtl:left-5 flex-col z-[100] gap-2">
           {/* Zoom In */}
           <TouchableOpacity
             className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"

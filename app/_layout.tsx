@@ -14,11 +14,13 @@ import { useEffect } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 
 import { client } from '@api';
 import { persistor, store } from '@state';
 import { useAppSelector } from '@state/hooks';
 import { processQueue } from '@state/middleware/offlineMiddleware';
+import { useLanguage } from '@ui/context';
 import NetInfo from '@react-native-community/netinfo';
 import { AppState } from 'react-native';
 import '../i18n';
@@ -104,6 +106,7 @@ export default function RootLayout() {
   // Component that needs theme state (inside providers)
   function ThemedApp() {
     const isDark = useAppSelector(state => state.theme.isDark);
+    const { isRTL } = useLanguage();
 
     // Process offline queue when connection is restored
     useEffect(() => {
@@ -138,14 +141,16 @@ export default function RootLayout() {
     }, []);
 
     return (
-      <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
-        <AuthWrapper>
-          <Stack>
-            <Stack.Screen name='(auth)' options={{ headerShown: false }} />
-            <Stack.Screen name='(app)' options={{ headerShown: false }} />
-          </Stack>
-        </AuthWrapper>
-      </ThemeProvider>
+      <View style={{ flex: 1, direction: isRTL ? 'rtl' : 'ltr' }}>
+        <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
+          <AuthWrapper>
+            <Stack>
+              <Stack.Screen name='(auth)' options={{ headerShown: false }} />
+              <Stack.Screen name='(app)' options={{ headerShown: false }} />
+            </Stack>
+          </AuthWrapper>
+        </ThemeProvider>
+      </View>
     );
   }
 

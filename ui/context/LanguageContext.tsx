@@ -7,7 +7,8 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
+import RNRestart from 'react-native-restart';
 
 interface LanguageContextType {
   currentLanguage: string;
@@ -38,6 +39,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       }
       // Sync native layout direction with selected language
       const shouldBeRTL = language === 'fa';
+      // Web: keep document dir in sync
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        document.documentElement?.setAttribute('dir', shouldBeRTL ? 'rtl' : 'ltr');
+      }
       if (I18nManager.isRTL !== shouldBeRTL) {
         try {
           I18nManager.allowRTL(shouldBeRTL);
@@ -69,6 +74,10 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, language);
       // Sync native layout direction with selected language
       const shouldBeRTL = language === 'fa';
+      // Web: keep document dir in sync
+      if (Platform.OS === 'web' && typeof document !== 'undefined') {
+        document.documentElement?.setAttribute('dir', shouldBeRTL ? 'rtl' : 'ltr');
+      }
       if (I18nManager.isRTL !== shouldBeRTL) {
         try {
           I18nManager.allowRTL(shouldBeRTL);
@@ -76,7 +85,14 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
           console.warn('Failed to set RTL direction via I18nManager:', e);
         }
-        // Requires app reload to fully apply on RN
+        // Requires app restart to fully apply on RN (directional metrics)
+        if (Platform.OS !== 'web') {
+          try {
+            RNRestart.Restart();
+          } catch (e) {
+            console.warn('Failed to restart app after RTL change:', e);
+          }
+        }
       }
     } catch (error) {
       console.log('Error saving language:', error);
