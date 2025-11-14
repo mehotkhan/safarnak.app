@@ -9,7 +9,6 @@ import type { Env } from '../types';
 import { publishNotification } from '../utilities/publishNotification';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
-import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 import { createTripAI } from '../utilities/ai';
 
 function extractUserLocation(metadata?: string | null, preferences?: string | null): string | undefined {
@@ -45,11 +44,12 @@ interface TripUpdateParams {
   userId: string;
   userMessage: string;
   destination?: string;
+  lang?: string;
 }
 
 export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams> {
   override async run(event: WorkflowEvent<TripUpdateParams>, step: WorkflowStep): Promise<void> {
-    const { tripId, userId: _userId, userMessage, destination: _destination } = event.payload;
+    const { tripId, userId: _userId, userMessage, destination: _destination, lang } = event.payload;
 
     // Step 1: Acknowledge user request
     await step.do('Step 1: Acknowledge user request', async () => {
@@ -139,17 +139,6 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
       const modifications = updateResult.modifications || {};
       const finalDestination = modifications.destination || currentTrip.destination || 'Destination';
       
-      // Generate waypoints for the trip route if destination changed
-      let waypoints;
-      try {
-        const currentWaypoints = currentTrip.waypoints ? JSON.parse(currentTrip.waypoints) : [];
-        waypoints = modifications.destination 
-          ? generateWaypointsForDestination(finalDestination)
-          : currentWaypoints;
-      } catch {
-        waypoints = generateWaypointsForDestination(finalDestination);
-      }
-      
       // Get updated coordinates if destination changed
       let coordinates;
       try {
@@ -175,7 +164,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         newItinerary = newItinerary.slice(0, originalDayCount);
       }
 
-      const normalizedItinerary = Array.isArray(newItinerary)
+      let normalizedItinerary = Array.isArray(newItinerary)
         ? newItinerary.map((day: any, index: number) => ({
             ...day,
             day: index + 1,
@@ -185,6 +174,40 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           ? currentItinerary
           : [];
 
+      // Optional translation to user's language
+      if (lang && typeof lang === 'string' && lang.trim()) {
+        try {
+          const ai = createTripAI(this.env);
+          normalizedItinerary = await ai.translateItinerary(normalizedItinerary, lang.trim());
+          updateResult.aiReasoning = await ai.translateText(updateResult.aiReasoning, lang.trim());
+          updateResult.understood = await ai.translateText(updateResult.understood, lang.trim());
+        } catch (translateError) {
+          console.warn('Trip update translation failed, proceeding without translation', translateError);
+        }
+      }
+
+      // Generate waypoints for the trip route from itinerary (fallback to destination)
+      let waypoints: { latitude: number; longitude: number; label?: string }[];
+      try {
+        const ai = createTripAI(this.env);
+        waypoints = await ai.generateWaypointsFromItinerary(
+          { days: normalizedItinerary },
+          finalDestination
+        );
+      } catch {
+        try {
+          const ai = createTripAI(this.env);
+          const geo = await ai.geocodeDestination(finalDestination);
+          waypoints = geo?.coordinates ? [{
+            latitude: geo.coordinates.latitude,
+            longitude: geo.coordinates.longitude,
+            label: finalDestination,
+          }] : [];
+        } catch {
+          waypoints = [];
+        }
+      }
+      
       // Build update data with AI-generated changes
       // Coerce budget to a valid number if provided
       let nextBudget = currentTrip.budget;
@@ -227,6 +250,9 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
       }
 
       metadataPayload.aiReasoning = updateResult.aiReasoning;
+      if (lang && typeof lang === 'string' && lang.trim()) {
+        metadataPayload.language = lang.trim();
+      }
       metadataPayload.lastUpdateAt = new Date().toISOString();
       metadataPayload.lastUpdateRequest = userMessage;
       metadataPayload.lastUpdateModifications = modifications;

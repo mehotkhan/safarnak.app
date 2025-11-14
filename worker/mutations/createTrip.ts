@@ -1,7 +1,6 @@
 import { getServerDB } from '@database/server';
 import { trips, feedEvents, users, searchIndex } from '@database/server';
 import type { GraphQLContext } from '../types';
-import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 import { eq } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
@@ -16,6 +15,7 @@ interface CreateTripInput {
   travelers: number;
   preferences?: string;
   accommodation?: string;
+  lang?: string;
 }
 
 export const createTrip = async (
@@ -93,6 +93,17 @@ export const createTrip = async (
     aiReasoning = itinerary.aiReasoning;
     itineraryData = itinerary.days;
     
+    // Step 2.5: Translate to user's language if provided
+    const targetLang = (input.lang || '').trim();
+    if (targetLang) {
+      try {
+        aiReasoning = await ai.translateText(aiReasoning, targetLang);
+        itineraryData = await ai.translateItinerary(itineraryData, targetLang);
+      } catch (translateError) {
+        console.warn('Translation step failed, proceeding with original language', translateError);
+      }
+    }
+    
     // Step 3: Get coordinates (AI-based geocoding)
     if (destination) {
       const geoData = await ai.geocodeDestination(destination);
@@ -101,8 +112,11 @@ export const createTrip = async (
       coordinatesData = { latitude: 0, longitude: 0 };
     }
     
-    // Generate waypoints for the trip route
-    waypoints = generateWaypointsForDestination(destination || itinerary.destination);
+    // Generate waypoints for the trip route based on itinerary places (fallback to destination)
+    waypoints = await ai.generateWaypointsFromItinerary(
+      { days: itineraryData },
+      destination || itinerary.destination
+    );
     
     console.log('AI trip generation complete:', {
       days: itineraryData.length,
@@ -125,13 +139,46 @@ export const createTrip = async (
       activities: ['Visit top landmarks', 'Cultural experience', 'Local cuisine tasting'],
     },
   ];
-    coordinatesData = { latitude: 35.6762, longitude: 139.6503 };
-    waypoints = generateWaypointsForDestination(destination);
+    // Fallback geocoding center for coordinates and waypoints
+    try {
+      const ai = createTripAI(context.env);
+      if (destination) {
+        const geo = await ai.geocodeDestination(destination);
+        coordinatesData = geo?.coordinates || { latitude: 0, longitude: 0 };
+        waypoints = geo?.coordinates ? [{
+          latitude: geo.coordinates.latitude,
+          longitude: geo.coordinates.longitude,
+          label: destination,
+        }] : [];
+      } else {
+        coordinatesData = { latitude: 0, longitude: 0 };
+        waypoints = [];
+      }
+    } catch {
+      coordinatesData = { latitude: 0, longitude: 0 };
+      waypoints = [];
+    }
+    // Attempt translation on fallback as well
+    const targetLang = (input.lang || '').trim();
+    if (targetLang) {
+      try {
+        const ai = createTripAI(context.env);
+        aiReasoning = await ai.translateText(aiReasoning, targetLang);
+        itineraryData = await ai.translateItinerary(itineraryData, targetLang);
+      } catch (translateError) {
+        console.warn('Translation step (fallback) failed, proceeding with original language', translateError);
+      }
+    }
   }
 
   try {
     // Insert trip
-    const metadataPayload = userLocation ? { userLocation } : undefined;
+    const metadataPayload = (() => {
+      const base: Record<string, any> = {};
+      if (userLocation) base.userLocation = userLocation;
+      if (input.lang) base.language = input.lang;
+      return Object.keys(base).length ? base : undefined;
+    })();
 
     const result = await db
       .insert(trips)

@@ -120,6 +120,7 @@ input CreateTripInput {
   travelers: Int!
   preferences: String
   accommodation: String
+  lang: String
 }
 
 input UpdateTripInput {
@@ -134,6 +135,7 @@ input UpdateTripInput {
   aiReasoning: String
   itinerary: String
   userMessage: String
+  lang: String
 }
 
 type Tour {

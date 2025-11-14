@@ -15,6 +15,7 @@ import * as Location from 'expo-location';
 import { CustomText } from '@ui/display';
 import { InputField } from '@ui/forms';
 import { useTheme } from '@ui/context';
+import { useLanguage } from '@ui/context';
 import { z } from 'zod';
 import { useCreateTripMutation, GetTripsDocument } from '@api';
 import { DatePicker } from '@ui/forms';
@@ -27,6 +28,7 @@ const accommodationTypes = ['hotel', 'hostel', 'apartment', 'camping'];
 export default function CreateTripScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const { currentLanguage } = useLanguage();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [createTrip] = useCreateTripMutation();
@@ -188,6 +190,7 @@ export default function CreateTripScreen() {
             travelers: travelersNum,
             accommodation: validated.accommodation,
             preferences: combinedPreferences,
+            lang: currentLanguage,
           },
         },
         // Refetch trips list to show new trip immediately

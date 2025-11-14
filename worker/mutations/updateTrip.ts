@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
 import type { GraphQLContext } from '../types';
-import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
+import { createTripAI } from '../utilities/ai';
 
 interface UpdateTripInput {
   destination?: string;
@@ -16,6 +16,7 @@ interface UpdateTripInput {
   aiReasoning?: string;
   itinerary?: string;
   userMessage?: string; // User chat message for AI processing
+  lang?: string;
 }
 
 export const updateTrip = async (
@@ -66,6 +67,7 @@ export const updateTrip = async (
           userId,
           userMessage: input.userMessage.trim(),
           destination: existing.destination || undefined,
+          lang: input.lang,
         },
       });
       console.log('Trip update workflow started:', workflowInstance.id);
@@ -93,8 +95,18 @@ export const updateTrip = async (
   if (input.destination) {
     updateData.destination = input.destination;
     // Generate new waypoints when destination changes
-    const newWaypoints = generateWaypointsForDestination(input.destination);
-    updateData.waypoints = JSON.stringify(newWaypoints);
+    try {
+      const ai = createTripAI(context.env);
+      const geo = await ai.geocodeDestination(input.destination);
+      const wp = geo?.coordinates ? [{
+        latitude: geo.coordinates.latitude,
+        longitude: geo.coordinates.longitude,
+        label: input.destination,
+      }] : [];
+      updateData.waypoints = JSON.stringify(wp);
+    } catch {
+      updateData.waypoints = JSON.stringify([]);
+    }
   }
   if (input.startDate) updateData.startDate = input.startDate;
   if (input.endDate) updateData.endDate = input.endDate;

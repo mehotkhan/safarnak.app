@@ -13,7 +13,7 @@ export const AI_MODELS = {
    * Quality: High
    * Context: 8K tokens
    */
-  TEXT_GENERATION_PRIMARY: '@cf/meta/llama-3.1-8b-instruct',
+  TEXT_GENERATION_PRIMARY: '@cf/meta/llama-3.1-8b-instruct-fp8',
 
   /**
    * ADVANCED TEXT GENERATION
@@ -23,7 +23,7 @@ export const AI_MODELS = {
    * Context: 32K tokens
    * Use when: Quality > Speed (e.g., detailed multi-day itineraries)
    */
-  TEXT_GENERATION_ADVANCED: '@cf/qwen/qwen1.5-14b-chat-awq',
+  TEXT_GENERATION_ADVANCED: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 
   /**
    * FAST TEXT GENERATION
@@ -32,7 +32,7 @@ export const AI_MODELS = {
    * Quality: Good
    * Use when: Speed > Quality (e.g., quick preference extraction)
    */
-  TEXT_GENERATION_FAST: '@cf/meta/llama-3.1-8b-instruct',
+  TEXT_GENERATION_FAST: '@cf/meta/llama-3.1-8b-instruct-fp8',
 
   /**
    * EMBEDDINGS
@@ -48,6 +48,12 @@ export const AI_MODELS = {
    * Model: Stable Diffusion XL
    */
   IMAGE_GENERATION: '@cf/stabilityai/stable-diffusion-xl-base-1.0',
+  
+  /**
+   * TRANSLATION
+   * Best for: Translating generated itinerary and reasoning to user language
+   */
+  TRANSLATION: '@cf/meta/m2m100-1.2b',
 } as const;
 
 /**

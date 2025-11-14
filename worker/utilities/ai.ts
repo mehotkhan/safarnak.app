@@ -25,12 +25,151 @@ import {
   MODEL_STRATEGY,
   shouldUseAdvancedModel,
 } from './aiModels';
+// import { generateWaypointsForDestination } from '../utils/waypointsGenerator';
 
 /**
  * AI Service - Main class for all AI operations
  */
 export class TripAI {
   constructor(private env: Env) {}
+
+  /**
+   * Translate a single text into target language using M2M100
+   */
+  async translateText(text: string, targetLang: string, sourceLang?: string): Promise<string> {
+    if (!text || !targetLang) return text;
+    try {
+      const res: any = await this.env.AI.run('@cf/meta/m2m100-1.2b' as any, {
+        text,
+        target_lang: targetLang,
+        ...(sourceLang ? { source_lang: sourceLang } : {}),
+      } as any);
+      const translated = typeof res === 'string'
+        ? res
+        : (res?.translated_text || res?.response || res?.generated_text || text);
+      return translated;
+    } catch (e) {
+      console.warn('translateText failed, returning original text', { targetLang, error: String((e as any)?.message || e) });
+      return text;
+    }
+  }
+
+  /**
+   * Translate itinerary structure fields (title, activities) into target language
+   */
+  async translateItinerary(days: any[], targetLang: string, sourceLang?: string): Promise<any[]> {
+    if (!Array.isArray(days) || !targetLang) return Array.isArray(days) ? days : [];
+    const translated: any[] = [];
+    for (const day of days) {
+      const title = await this.translateText(String(day?.title || ''), targetLang, sourceLang);
+      const activitiesSrc: string[] = Array.isArray(day?.activities) ? day.activities : [];
+      const activitiesOut: string[] = [];
+      for (const act of activitiesSrc) {
+        activitiesOut.push(await this.translateText(String(act), targetLang, sourceLang));
+      }
+      translated.push({
+        ...day,
+        title,
+        activities: activitiesOut,
+      });
+    }
+    return translated;
+  }
+
+  /**
+   * Build route waypoints from itinerary activities by geocoding extracted place names.
+   * Falls back to destination-based waypoints if insufficient high-confidence results.
+   */
+  async generateWaypointsFromItinerary(itinerary: { days?: any[] }, fallbackDestination?: string): Promise<{ latitude: number; longitude: number; label?: string }[]> {
+    try {
+      const days: any[] = Array.isArray((itinerary as any)?.days) ? (itinerary as any).days : Array.isArray(itinerary) ? (itinerary as any) : [];
+      const candidates: string[] = [];
+      const MAX_CANDIDATES = 8;
+      for (const day of days) {
+        const activities: string[] = Array.isArray(day?.activities) ? day.activities : [];
+        for (const a of activities) {
+          const s = String(a || '');
+          // Heuristics to extract place names
+          // Patterns like "09:00: Visit PLACE - address" or "Lunch at PLACE"
+          const visitMatch = s.match(/(?:Visit|بازدید از)\s+([^(),-]+?)(?:\s+-|\s*\(|$)/i);
+          if (visitMatch?.[1]) candidates.push(visitMatch[1].trim());
+          const atMatch = s.match(/(?:at|در)\s+([^(),-]+?)(?:\s+-|\s*\(|$)/i);
+          if (atMatch?.[1]) candidates.push(atMatch[1].trim());
+          // Fallback: capitalized chunk between times and separator
+          const generic = s.replace(/^\s*\d{1,2}:\d{2}\s*:\s*/, '').split('-')[0];
+          if (generic) {
+            const cleaned = generic.replace(/^(Visit|Explore|Lunch|Dinner|Breakfast)\s+/i, '').trim();
+            if (cleaned && /[A-Za-z\u0600-\u06FF]/.test(cleaned)) {
+              candidates.push(cleaned);
+            }
+          }
+          if (candidates.length >= MAX_CANDIDATES) break;
+        }
+        if (candidates.length >= MAX_CANDIDATES) break;
+      }
+
+      // Deduplicate and compact
+      const unique = Array.from(new Set(candidates.map(c => c.trim()))).filter(Boolean).slice(0, MAX_CANDIDATES);
+      const waypoints: { latitude: number; longitude: number; label?: string }[] = [];
+      for (const name of unique) {
+        try {
+          const q = fallbackDestination && !name.toLowerCase().includes(fallbackDestination.toLowerCase())
+            ? `${name}, ${fallbackDestination}`
+            : name;
+          const geo = await this.geocodeDestination(q);
+          const confidence = String(geo?.confidence || '').toLowerCase();
+          if (geo?.coordinates && typeof geo.coordinates.latitude === 'number' && typeof geo.coordinates.longitude === 'number' &&
+              (confidence === 'high' || confidence === 'medium')) {
+            waypoints.push({
+              latitude: geo.coordinates.latitude,
+              longitude: geo.coordinates.longitude,
+              label: name,
+            });
+          }
+        } catch {
+          // ignore individual failures
+        }
+        if (waypoints.length >= 6) break;
+      }
+
+      if (waypoints.length >= 3) {
+        return waypoints;
+      }
+
+      // Fallback: geocode destination center if available
+      if (fallbackDestination && typeof fallbackDestination === 'string' && fallbackDestination.trim()) {
+        try {
+          const geo = await this.geocodeDestination(fallbackDestination.trim());
+          if (geo?.coordinates && typeof geo.coordinates.latitude === 'number' && typeof geo.coordinates.longitude === 'number') {
+            return [{
+              latitude: geo.coordinates.latitude,
+              longitude: geo.coordinates.longitude,
+              label: fallbackDestination.trim(),
+            }];
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return [];
+    } catch {
+      if (fallbackDestination && typeof fallbackDestination === 'string' && fallbackDestination.trim()) {
+        try {
+          const geo = await this.geocodeDestination(fallbackDestination.trim());
+          if (geo?.coordinates && typeof geo.coordinates.latitude === 'number' && typeof geo.coordinates.longitude === 'number') {
+            return [{
+              latitude: geo.coordinates.latitude,
+              longitude: geo.coordinates.longitude,
+              label: fallbackDestination.trim(),
+            }];
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return [];
+    }
+  }
 
   /**
    * Analyze user preferences and extract structured travel intent
