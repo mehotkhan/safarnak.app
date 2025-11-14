@@ -9,7 +9,10 @@ import type { Env } from '../types';
 import { publishNotification } from '../utilities/publishNotification';
 import { getServerDB } from '@database/server';
 import { trips } from '@database/server';
-import { createTripAI } from '../utilities/ai';
+import { researchDestination, searchAttractionsByPreferences } from '../utilities/destinationResearch';
+import { validateTripRequest } from '../utilities/tripValidator';
+import { geocodeDestinationCenter, geocodePlaceInDestination } from '../utilities/geocode';
+import { TripAI } from '../utilities/ai';
 
 function extractUserLocation(metadata?: string | null, preferences?: string | null): string | undefined {
   if (metadata) {
@@ -74,24 +77,24 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
     // Wait 1 second
     await step.sleep('Wait 1 second', '1 second');
 
-    // Step 2: Processing AI updates (Real AI processing)
-    const aiUpdateResult = await step.do('Step 2: Processing AI updates', async () => {
+    // Step 2: Persist feedback and load current trip context
+    const ctxResult = await step.do('Step 2: Persist feedback', async () => {
       const tripUpdate = {
         id: `${tripId}-update-step-2`,
         tripId,
         type: 'workflow',
-        title: 'به‌روزرسانی سفر',
-        message: 'در حال به‌روزرسانی سفر بر اساس درخواست شما...',
+        title: 'ثبت بازخورد شما',
+        message: 'در حال ذخیره و آماده‌سازی داده‌ها برای بازطراحی برنامه...',
         step: 2,
-        totalSteps: 3,
+        totalSteps: 7,
         status: 'processing',
-        data: JSON.stringify({ status: 'updating', userMessage }),
+        data: JSON.stringify({ status: 'feedback_saved', userMessage }),
         createdAt: new Date().toISOString(),
       };
 
       await publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx);
 
-      // Fetch current trip
+      // Fetch current trip and persist feedback in metadata
       const db = getServerDB(this.env.DB);
       const currentTrip = await db.select().from(trips).where(eq(trips.id, tripId)).get();
       
@@ -99,169 +102,233 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         throw new Error('Trip not found');
       }
 
-      // Parse current itinerary
-      let currentItinerary;
-      try {
-        currentItinerary = currentTrip.itinerary ? JSON.parse(currentTrip.itinerary) : [];
-      } catch {
-        currentItinerary = [];
+      // Merge feedback into metadata
+      let metadataPayload: Record<string, any> = {};
+      if (currentTrip.metadata) {
+        try { metadataPayload = JSON.parse(currentTrip.metadata) || {}; } catch { /* ignore */ }
       }
-
-      // Use AI to understand and process user's update request
-      const ai = createTripAI(this.env);
-      const userLocation = extractUserLocation(currentTrip.metadata, currentTrip.preferences);
-      const updateResult = await ai.updateTrip({
-        currentTrip: {
-          destination: currentTrip.destination ?? undefined,
-          preferences: currentTrip.preferences ?? undefined,
-          budget: currentTrip.budget !== null ? currentTrip.budget : undefined,
-          travelers: currentTrip.travelers ?? 1,
-          itinerary: currentItinerary
-        },
-        userMessage,
-        userLocation,
+      const feedbackArray = Array.isArray(metadataPayload.feedback) ? metadataPayload.feedback : [];
+      feedbackArray.push({
+        message: userMessage,
+        at: new Date().toISOString(),
       });
+      metadataPayload.feedback = feedbackArray;
+      await db.update(trips).set({ metadata: JSON.stringify(metadataPayload) }).where(eq(trips.id, tripId)).run();
 
-      console.log('AI update processed:', updateResult.understood);
-      return { status: 'updating', updateResult, currentTrip, currentItinerary, userLocation, userMessage };
+      // Parse current itinerary
+      let currentItinerary: any[] = [];
+      try { currentItinerary = currentTrip.itinerary ? JSON.parse(currentTrip.itinerary) : []; } catch { /* ignore */ }
+
+      const userLocation = extractUserLocation(currentTrip.metadata, currentTrip.preferences);
+      return { currentTrip, currentItinerary, userLocation };
     });
 
-    // Wait 2 seconds
-    await step.sleep('Wait 2 seconds', '2 seconds');
+    // Step 3: Research (cache-first)
+    const researchResult = await step.do('Step 3: Research', async () => {
+      const destination = ctxResult.currentTrip.destination || 'Unknown';
+      await publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: {
+        id: `${tripId}-update-step-3`,
+        tripId,
+        type: 'workflow',
+        title: 'تحقیق مجدد مقصد',
+        message: `در حال به‌روزرسانی اطلاعات مقصد: ${destination} ...`,
+        step: 3, totalSteps: 7, status: 'processing',
+        data: JSON.stringify({ status: 'research', destination }),
+        createdAt: new Date().toISOString(),
+      }}, this.ctx);
+      const destinationData = await researchDestination(this.env, destination);
+      return { destinationData };
+    });
 
-    // Step 3: Complete update and mark as ready (Apply AI changes)
-    await step.do('Step 3: Complete update', async () => {
-      const db = getServerDB(this.env.DB);
-      
-      const { updateResult, currentTrip, currentItinerary, userLocation, userMessage } = aiUpdateResult;
-      
-      // Apply modifications from AI
-      const modifications = updateResult.modifications || {};
-      const finalDestination = modifications.destination || currentTrip.destination || 'Destination';
-      
-      // Get updated coordinates if destination changed
-      let coordinates;
-      try {
-        const currentCoords = currentTrip.coordinates ? JSON.parse(currentTrip.coordinates) : { latitude: 0, longitude: 0 };
-        
-        if (modifications.destination) {
-          try {
-            const { geocodeDestinationCenter } = await import('../utilities/geocode');
-            const center = await geocodeDestinationCenter(finalDestination);
-            coordinates = center || currentCoords;
-          } catch {
-            coordinates = currentCoords;
+    // Step 4: Validate (non-blocking)
+    const validationResult = await step.do('Step 4: Validate', async () => {
+      const destination = ctxResult.currentTrip.destination || 'Unknown';
+      const duration = Array.isArray(ctxResult.currentItinerary) && ctxResult.currentItinerary.length > 0
+        ? ctxResult.currentItinerary.length
+        : 7;
+      const validation = await validateTripRequest(this.env, {
+        destination,
+        duration,
+        budget: ctxResult.currentTrip.budget ?? undefined,
+        travelers: ctxResult.currentTrip.travelers ?? 1,
+        preferences: (ctxResult.currentTrip.preferences || '') + ' ' + userMessage,
+        userLocation: ctxResult.userLocation,
+      }, researchResult.destinationData);
+      if (validation.warnings?.length) {
+        await publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: {
+          id: `${tripId}-update-step-4-warn`,
+          tripId, type: 'workflow',
+          title: 'هشدار اعتبارسنجی',
+          message: validation.warnings.join(' • '),
+          step: 4, totalSteps: 7, status: 'processing',
+          data: JSON.stringify({ warnings: validation.warnings }),
+          createdAt: new Date().toISOString(),
+        }}, this.ctx);
+      }
+      return { validation };
+    });
+
+    // Step 5: Match + AI Enhancement
+    const attractionsResult = await step.do('Step 5: Match & Enhance', async () => {
+      const destination = ctxResult.currentTrip.destination || 'Unknown';
+      const duration = Array.isArray(ctxResult.currentItinerary) && ctxResult.currentItinerary.length > 0
+        ? ctxResult.currentItinerary.length
+        : 7;
+      let matched = await searchAttractionsByPreferences(this.env, destination, (ctxResult.currentTrip.preferences || '') + ' ' + userMessage, duration * 4);
+      if (matched.length < duration * 2) {
+        // AI enhancement: ask for more and geocode
+        const ai = new TripAI(this.env);
+        const prompt = `Suggest ${duration * 3} must-visit attractions in ${destination} with JSON list (name,type,description,duration,cost).`;
+        try {
+          const resp: any = await (ai as any).runAI?.('text_generation', prompt) || {};
+          const text = resp?.response || resp?.generated_text || '';
+          const m = text.match(/\{[\s\S]*\}/);
+          const data = m ? JSON.parse(m[0]) : { attractions: [] };
+          const enhanced: any[] = [];
+          for (const a of (data.attractions || []).slice(0, duration * 3)) {
+            const g = await geocodePlaceInDestination(a.name, destination);
+            if (g) {
+              enhanced.push({
+                id: `ai-${a.name.toLowerCase().replace(/\s+/g, '-')}`,
+                name: g.label || a.name,
+                type: a.type || 'entertainment',
+                coords: { lat: g.latitude, lon: g.longitude },
+                rating: 4.2,
+                cost: a.estimatedCost || 0,
+                duration: a.duration || 90,
+                tags: [],
+                description: a.description,
+              });
+            }
           }
-        } else {
-          coordinates = currentCoords;
+          matched = [...matched, ...enhanced];
+        } catch (_e) {
+          // ignore enhancement failure
         }
-      } catch {
-        coordinates = { latitude: 0, longitude: 0 };
       }
-      
-      const allowsDurationChange = /extend|longer|shorter|shorten|day|روز|کم کن|زیاد کن|کاهش|افزایش|اضافه/i.test(userMessage ?? '');
+      return { attractions: matched };
+    });
 
-      let newItinerary = Array.isArray(updateResult.updatedItinerary) ? updateResult.updatedItinerary : currentItinerary;
-      const originalDayCount = Array.isArray(currentItinerary) ? currentItinerary.length : 0;
-
-      if (Array.isArray(newItinerary) && originalDayCount && newItinerary.length !== originalDayCount && !allowsDurationChange) {
-        newItinerary = newItinerary.slice(0, originalDayCount);
+    // Step 6: Generate Day Plans (with restaurants)
+    const dayPlansResult = await step.do('Step 6: Generate Days', async () => {
+      const destination = ctxResult.currentTrip.destination || 'Unknown';
+      const duration = attractionsResult.attractions.length > 0
+        ? Math.max(1, Math.ceil(attractionsResult.attractions.length / 3))
+        : (Array.isArray(ctxResult.currentItinerary) && ctxResult.currentItinerary.length > 0 ? ctxResult.currentItinerary.length : 7);
+      const restaurants = researchResult.destinationData.restaurants || [];
+      const days: any[] = [];
+      if (attractionsResult.attractions.length === 0) {
+        const center = await geocodeDestinationCenter(destination) || { latitude: 0, longitude: 0 };
+        for (let dayNum = 1; dayNum <= duration; dayNum++) {
+          days.push({
+            day: dayNum,
+            title: `Day ${dayNum} - ${destination} Essentials`,
+            activities: [
+              { time: '09:00', title: 'City highlights walking tour', location: destination, coords: { lat: center.latitude, lon: center.longitude }, duration: 120, cost: 0, type: 'attraction' },
+              { time: '12:30', title: 'Lunch: try local cuisine', location: destination, coords: { lat: center.latitude, lon: center.longitude }, duration: 60, cost: 15 * (ctxResult.currentTrip.travelers || 1), type: 'food' },
+              { time: '15:00', title: 'Afternoon exploration', location: destination, coords: { lat: center.latitude, lon: center.longitude }, duration: 90, cost: 0, type: 'attraction' },
+              { time: '19:00', title: 'Dinner: local specialties', location: destination, coords: { lat: center.latitude, lon: center.longitude }, duration: 90, cost: 25 * (ctxResult.currentTrip.travelers || 1), type: 'food' },
+            ],
+            estimatedCost: 40 * (ctxResult.currentTrip.travelers || 1),
+          });
+        }
+      } else {
+        const perDay = Math.max(2, Math.ceil(attractionsResult.attractions.length / duration));
+        for (let dayNum = 1; dayNum <= duration; dayNum++) {
+          const slice = attractionsResult.attractions.slice((dayNum - 1) * perDay, dayNum * perDay);
+          const activities: any[] = [];
+          let currentTime = 9;
+          let cost = 0;
+          const morningCount = Math.min(2, slice.length || 1);
+          for (let i = 0; i < morningCount; i++) {
+            const a = slice[i] || attractionsResult.attractions[0];
+            activities.push({ time: `${String(Math.floor(currentTime)).padStart(2,'0')}:00`, title: `Visit ${a.name}`, location: a.name, coords: a.coords, duration: a.duration || 90, cost: a.cost || 0, type: 'attraction' });
+            cost += a.cost || 0; currentTime += (a.duration || 90) / 60 + 0.5;
+          }
+          if (restaurants.length > 0) {
+            const r = restaurants[dayNum % restaurants.length];
+            const lunch = validationResult.validation.metadata.costLevel === 'budget' ? 10 : validationResult.validation.metadata.costLevel === 'mid' ? 20 : 40;
+            activities.push({ time: `${String(Math.floor(currentTime)).padStart(2,'0')}:30`, title: `Lunch at ${r.name}`, location: r.name, coords: r.coords, duration: 60, cost: lunch * (ctxResult.currentTrip.travelers || 1), type: 'food' });
+            cost += lunch * (ctxResult.currentTrip.travelers || 1); currentTime += 1.5;
+          }
+          for (let i = morningCount; i < slice.length; i++) {
+            const a = slice[i];
+            activities.push({ time: `${String(Math.floor(currentTime)).padStart(2,'0')}:00`, title: `Explore ${a.name}`, location: a.name, coords: a.coords, duration: a.duration || 60, cost: a.cost || 0, type: 'attraction' });
+            cost += a.cost || 0; currentTime += (a.duration || 60) / 60 + 0.5;
+          }
+          days.push({ day: dayNum, title: dayNum === 1 ? 'Arrival & Exploration' : dayNum === duration ? 'Final Day' : `Day ${dayNum} Adventures`, activities, estimatedCost: cost });
+        }
       }
+      // Waypoints + dedupe
+      const rawWps: any[] = [];
+      let order = 1;
+      for (const d of days) for (const act of d.activities) {
+        if (act?.coords?.lat && act?.coords?.lon) rawWps.push({ latitude: act.coords.lat, longitude: act.coords.lon, label: act.location || act.title, order: order++ });
+      }
+      const deduped: any[] = []; const seen = new Set<string>();
+      for (const w of rawWps) { const k = `${w.latitude.toFixed(3)},${w.longitude.toFixed(3)}`; if (!seen.has(k)) { seen.add(k); deduped.push(w);} }
+      return { days, waypoints: deduped };
+    });
 
-      let normalizedItinerary = Array.isArray(newItinerary)
-        ? newItinerary.map((day: any, index: number) => ({
-            ...day,
-            day: index + 1,
-            activities: Array.isArray(day?.activities) ? day.activities : [],
-          }))
-        : Array.isArray(currentItinerary)
-          ? currentItinerary
-          : [];
+    // Step 7: Translate & Save
+    await step.do('Step 7: Translate & Save', async () => {
+      const db = getServerDB(this.env.DB);
 
-      // Optional translation to user's language
+      const destination = ctxResult.currentTrip.destination || 'Unknown';
+
+      // Optional translation (titles + activities) then normalize to strings
+      let days = dayPlansResult.days;
       if (lang && typeof lang === 'string' && lang.trim()) {
         try {
-          const ai = createTripAI(this.env);
-          normalizedItinerary = await ai.translateItinerary(normalizedItinerary, lang.trim());
-          updateResult.aiReasoning = await ai.translateText(updateResult.aiReasoning, lang.trim());
-          updateResult.understood = await ai.translateText(updateResult.understood, lang.trim());
-        } catch (translateError) {
-          console.warn('Trip update translation failed, proceeding without translation', translateError);
-        }
+          const ai = new TripAI(this.env);
+          days = await Promise.all(days.map(async (day: any) => {
+            const translatedActivities = await Promise.all(day.activities.map(async (a: any) => ({
+              ...a,
+              title: await ai.translateText(a.title, lang).catch(() => a.title),
+              description: a.description ? await ai.translateText(a.description, lang).catch(() => a.description) : undefined,
+            })));
+            return { ...day, title: await ai.translateText(day.title, lang).catch(() => day.title), activities: translatedActivities };
+          }));
+        } catch { /* ignore translation failure */ }
       }
+      const normalizedDays = (days as any[]).map((d: any) => ({
+        day: d.day,
+        title: d.title,
+        activities: (Array.isArray(d.activities) ? d.activities : []).map((a: any) => {
+          if (typeof a === 'string') return a;
+          const parts: string[] = [];
+          if (a?.time) parts.push(String(a.time));
+          if (a?.title) parts.push(String(a.title));
+          if (a?.location) parts.push(`@ ${String(a.location)}`);
+          return parts.length ? parts.join(' - ') : 'Activity';
+        }),
+      }));
 
-      // Generate waypoints for the trip route from itinerary (fallback to destination)
-      let waypoints: { latitude: number; longitude: number; label?: string }[];
-      try {
-        const ai = createTripAI(this.env);
-        waypoints = await ai.generateWaypointsFromItinerary(
-          { days: normalizedItinerary },
-          finalDestination
-        );
-      } catch {
-        try {
-          const ai = createTripAI(this.env);
-          const geo = await ai.geocodeDestination(finalDestination);
-          waypoints = geo?.coordinates ? [{
-            latitude: geo.coordinates.latitude,
-            longitude: geo.coordinates.longitude,
-            label: finalDestination,
-          }] : [];
-        } catch {
-          waypoints = [];
-        }
-      }
-
-      // Build update data with AI-generated changes
-      // Coerce budget to a valid number if provided
-      let nextBudget = currentTrip.budget;
-      if (modifications.budget !== undefined && modifications.budget !== null) {
-        if (typeof modifications.budget === 'number') {
-          nextBudget = modifications.budget;
-        } else if (typeof modifications.budget === 'string') {
-          const parsed = parseFloat(modifications.budget.replace(/[^\d.]/g, ''));
-          if (Number.isFinite(parsed)) {
-            nextBudget = parsed;
-          }
-        }
-      }
+      // Coordinates fallback
+      const center = await geocodeDestinationCenter(destination) || { latitude: 0, longitude: 0 };
 
       const updateData: any = {
-        destination: modifications.destination ?? currentTrip.destination,
-        budget: nextBudget,
-        travelers: modifications.travelers ?? currentTrip.travelers,
-        preferences: modifications.preferences ?? currentTrip.preferences,
-        aiReasoning: updateResult.aiReasoning,
-        itinerary: JSON.stringify(normalizedItinerary),
-        coordinates: JSON.stringify(coordinates),
-        waypoints: JSON.stringify(waypoints),
+        destination,
+        budget: ctxResult.currentTrip.budget,
+        travelers: ctxResult.currentTrip.travelers,
+        preferences: ctxResult.currentTrip.preferences,
+        aiReasoning: `User feedback applied: ${userMessage.substring(0, 120)}`,
+        itinerary: JSON.stringify(normalizedDays),
+        coordinates: JSON.stringify(center),
+        waypoints: JSON.stringify(dayPlansResult.waypoints),
         status: 'ready',
         updatedAt: new Date().toISOString(),
       };
 
-      // Merge metadata (preserve user location and add reasoning)
-      let metadataPayload: Record<string, any> = {};
-      if (currentTrip.metadata) {
-        try {
-          metadataPayload = JSON.parse(currentTrip.metadata) || {};
-        } catch {
-          metadataPayload = {};
-        }
-      }
-
-      if (userLocation) {
-        metadataPayload.userLocation = userLocation;
-      }
-
-      metadataPayload.aiReasoning = updateResult.aiReasoning;
-      if (lang && typeof lang === 'string' && lang.trim()) {
-        metadataPayload.language = lang.trim();
-      }
-      metadataPayload.lastUpdateAt = new Date().toISOString();
-      metadataPayload.lastUpdateRequest = userMessage;
-      metadataPayload.lastUpdateModifications = modifications;
-
-      updateData.metadata = JSON.stringify(metadataPayload);
+      // Merge metadata
+      let meta: Record<string, any> = {};
+      if (ctxResult.currentTrip.metadata) { try { meta = JSON.parse(ctxResult.currentTrip.metadata) || {}; } catch (_err) { meta = {}; } }
+      if (ctxResult.userLocation) meta.userLocation = ctxResult.userLocation;
+      if (lang && typeof lang === 'string' && lang.trim()) meta.language = lang.trim();
+      meta.lastUpdateAt = new Date().toISOString();
+      meta.lastUpdateRequest = userMessage;
+      meta.pipeline = 'edit-7-steps';
+      updateData.metadata = JSON.stringify(meta);
 
       await db
         .update(trips)
@@ -271,18 +338,18 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
 
       // Send final trip update
       const tripUpdate = {
-        id: `${tripId}-update-step-3`,
+        id: `${tripId}-update-step-7`,
         tripId,
         type: 'workflow',
         title: 'سفر به‌روزرسانی شد!',
-        message: `${updateResult.understood} - سفر شما با موفقیت به‌روزرسانی شد!`,
-        step: 3,
-        totalSteps: 3,
+        message: `بازطراحی برنامه سفر براساس بازخورد شما انجام شد.`,
+        step: 7,
+        totalSteps: 7,
         status: 'completed',
         data: JSON.stringify({ 
           status: 'completed', 
-          understood: updateResult.understood,
-          modifications: Object.keys(modifications).length
+          days: normalizedDays.length,
+          waypoints: dayPlansResult.waypoints.length,
         }),
         createdAt: new Date().toISOString(),
       };

@@ -53,9 +53,38 @@ export const createTrip = async (
     throw new Error('Number of travelers must be at least 1');
   }
 
-  // Fast path: do NOT block on AI. Insert minimal trip first; workflows will populate details.
-  const aiReasoning: string | null = null;
-  const itineraryData: any[] = [];
+  // Smart placeholder: create a lightweight, user-friendly placeholder itinerary
+  // while the background workflow generates the real plan.
+  const calcDuration = (start?: string, end?: string): number => {
+    if (!start || !end) return 5;
+    try {
+      const s = new Date(start);
+      const e = new Date(end);
+      const diff = Math.abs(e.getTime() - s.getTime());
+      return Math.max(1, Math.min(14, Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1));
+    } catch {
+      return 5;
+    }
+  };
+  const placeholderDuration = calcDuration(input.startDate, input.endDate);
+  const placeholderTitle = destination ? `${placeholderDuration}-Day ${destination} (Planning...)` : 'Planning...';
+  const makeAct = (time: string, title: string) => `${time} - ${title}`;
+  const placeholderDays: Array<{ day: number; title: string; activities: string[] }> = Array.from({ length: placeholderDuration }).map((_, idx) => {
+    const dayNum = idx + 1;
+    return {
+      day: dayNum,
+      title: dayNum === 1 ? 'Arrival & Overview (Planning...)' : dayNum === placeholderDuration ? 'Final Day (Planning...)' : `Day ${dayNum} (Planning...)`,
+      activities: [
+        makeAct('09:00', `Personalized morning plan is being prepared for ${destination || 'your destination'}`),
+        makeAct('12:30', `Lunch recommendation is being selected based on your preferences`),
+        makeAct('15:00', `Afternoon activities are being optimized for distance and time`),
+        makeAct('19:00', `Dinner suggestion is being curated for your budget level`),
+      ],
+    };
+  });
+  // Fast path save values
+  const aiReasoning: string = 'Generating your personalized trip plan...';
+  const itineraryData: any[] = placeholderDays;
   const coordinatesData: any = { latitude: 0, longitude: 0 };
   const waypoints: any[] = [];
 
@@ -72,7 +101,7 @@ export const createTrip = async (
       .insert(trips)
       .values({
         userId,
-        title: destination || 'Untitled Trip',
+        title: placeholderTitle || destination || 'Untitled Trip',
         destination: destination || 'Untitled Trip',
         startDate: input.startDate,
         endDate: input.endDate,

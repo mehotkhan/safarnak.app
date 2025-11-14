@@ -99,7 +99,7 @@ export default function TripDetailScreen() {
         }, 2000);
       }, 500);
     }
-  }, [tripUpdateData?.tripUpdates, refetch]);
+  }, [tripUpdateData?.tripUpdates, refetch, tripId]);
 
   // Auto-refresh if trip is pending (every 3 seconds) - backup in case subscription fails
   useEffect(() => {

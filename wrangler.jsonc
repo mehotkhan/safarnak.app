@@ -4,6 +4,9 @@
   "main": "worker/index.ts",
   "compatibility_date": "2025-10-11",
   "workers_dev": true,
+  "placement": {
+    "mode": "smart"
+  },
 
   // Observability
   "observability": {

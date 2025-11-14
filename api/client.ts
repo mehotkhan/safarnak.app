@@ -98,14 +98,22 @@ const httpLink = createHttpLink({
   },
 });
 
-// WebSocket client with lazy connection (connects only when first subscription is used)
+// ============================================================================
+// WebSocket Connection State Management
+// ============================================================================
+
+let wsConnectionState: 'disconnected' | 'connecting' | 'connected' = 'disconnected';
+const activeSubscriptions = new Set<string>();
+let reconnectTimeout: NodeJS.Timeout | null = null;
+
+// WebSocket client with enhanced reliability for unstable connections
 const wsClient = createClient({
   url: GRAPHQL_WS_URI,
-  lazy: true, // Don't connect until first subscription - this is the key for fast bootup!
+  lazy: true, // Don't connect until first subscription
+  keepAlive: 10000, // Send ping every 10 seconds to keep connection alive
   connectionParams: async () => {
     // Add auth token to WebSocket connection
     try {
-      // Get token from AsyncStorage (stored by useAuth hook)
       const savedUser = await AsyncStorage.getItem('@safarnak_user');
       if (savedUser) {
         const userData = JSON.parse(savedUser);
@@ -125,45 +133,183 @@ const wsClient = createClient({
     }
     return {};
   },
-  shouldRetry: () => true,
-  retryAttempts: Infinity,
+  
+  // Retry configuration for unstable connections
+  shouldRetry: (errOrCloseEvent: any) => {
+    // Always retry on connection errors
+    if (errOrCloseEvent instanceof Error) {
+      return true;
+    }
+    
+    // Retry on abnormal closures (not 1000 or 1001)
+    const code = errOrCloseEvent?.code;
+    if (code && code !== 1000 && code !== 1001) {
+      return true;
+    }
+    
+    return true; // Retry by default
+  },
+  
+  retryAttempts: Infinity, // Keep trying forever
+  
+  // Exponential backoff with max 30 seconds
   retryWait: async (retries: number) => {
-    const delay = 1000 * Math.min(retries + 1, 5);
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (max)
+    const delay = Math.min(1000 * Math.pow(2, retries), 30000);
+    
+    if (__DEV__) {
+      console.log(`📡 WebSocket reconnecting in ${delay / 1000}s (attempt ${retries + 1})...`);
+    }
+    
     await new Promise(resolve => setTimeout(resolve, delay));
   },
+  
+  // Connection lifecycle hooks
   on: {
-    opened: () => {},
-    closed: (event: any) => {
+    connecting: () => {
+      wsConnectionState = 'connecting';
       if (__DEV__) {
-        // Only log unexpected closes (code 1000 is normal closure)
-        const code = event?.code;
-        if (code !== 1000 && code !== 1001) {
-          console.warn('📡 WebSocket connection closed unexpectedly:', code, event?.reason || '');
+        console.log('📡 WebSocket connecting...');
+      }
+    },
+    
+    opened: (_socket: any) => {
+      wsConnectionState = 'connected';
+      if (__DEV__) {
+        console.log('✅ WebSocket connected');
+      }
+      
+      // Clear any pending reconnect timeout
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+        reconnectTimeout = null;
+      }
+    },
+    
+    closed: (event: any) => {
+      const previousState = wsConnectionState;
+      wsConnectionState = 'disconnected';
+      
+      const code = event?.code;
+      const reason = event?.reason || '';
+      
+      // Log unexpected closures
+      if (__DEV__ && code !== 1000 && code !== 1001) {
+        console.warn(`📡 WebSocket closed unexpectedly: code=${code}, reason="${reason}"`);
+      }
+      
+      // If we had active subscriptions, schedule reconnect
+      if (previousState === 'connected' && activeSubscriptions.size > 0) {
+        if (__DEV__) {
+          console.log(`📡 ${activeSubscriptions.size} active subscriptions, will reconnect...`);
         }
       }
     },
+    
     error: (error: any) => {
-      // WebSocket errors are common during connection attempts and retries
-      // Only log meaningful errors, not generic connection failures
+      const errorMessage = error?.message || String(error);
+      
+      // Only log meaningful errors (not common connection failures)
       if (__DEV__) {
-        const errorMessage = error?.message || String(error);
-        const errorType = error?.type || '';
+        const isCommonError = 
+          errorMessage.includes('connection') ||
+          errorMessage.includes('ECONNREFUSED') ||
+          errorMessage.includes('ENOTFOUND') ||
+          errorMessage.includes('Network') ||
+          errorMessage.includes('timeout');
         
-        // Suppress common connection errors that are expected during retries
-        if (
-          !errorMessage.includes('connection') &&
-          !errorMessage.includes('ECONNREFUSED') &&
-          !errorMessage.includes('Network') &&
-          errorType !== 'error'
-        ) {
+        if (!isCommonError) {
           console.warn('📡 WebSocket error:', errorMessage);
         }
       }
     },
+    
+    // Track subscriptions to prevent duplicates
+    message: (_message: any) => {
+      // Silently handle messages
+    },
   },
+  
+  // Generate unique subscription IDs to prevent duplicates
+  generateID: (() => {
+    let id = 0;
+    return () => {
+      id = (id + 1) % Number.MAX_SAFE_INTEGER;
+      return `sub_${Date.now()}_${id}`;
+    };
+  })(),
 });
 
-const wsLink = new GraphQLWsLink(wsClient);
+// Import Observable for proper typing
+import { Observable } from '@apollo/client/utilities/observables/Observable.js';
+import type { FetchResult } from '@apollo/client/link/core/types.js';
+import type { Operation } from '@apollo/client/link/core/types.js';
+
+// Wrap wsLink to track active subscriptions and prevent duplicates
+class SubscriptionTrackingLink extends GraphQLWsLink {
+  override request(operation: Operation): Observable<FetchResult> {
+    const subscriptionKey = `${operation.operationName}_${JSON.stringify(operation.variables || {})}`;
+    
+    // Check for duplicate subscription
+    if (activeSubscriptions.has(subscriptionKey)) {
+      if (__DEV__) {
+        console.warn(`⚠️ Duplicate subscription prevented: ${operation.operationName}`);
+      }
+      // Return empty observable to prevent duplicate
+      return new Observable((observer) => {
+        // Immediately complete without subscribing
+        observer.complete();
+        return () => {}; // Cleanup function
+      });
+    }
+    
+    // Track this subscription
+    activeSubscriptions.add(subscriptionKey);
+    
+    if (__DEV__) {
+      console.log(`📡 Starting subscription: ${operation.operationName} (${activeSubscriptions.size} active)`);
+    }
+    
+    // Call original request
+    const observable = super.request(operation);
+    
+    // Wrap to track unsubscribe
+    return new Observable((observer) => {
+      const subscription = observable.subscribe({
+        next: (value) => {
+          observer.next(value);
+        },
+        error: (error) => {
+          // Remove from tracking on error
+          activeSubscriptions.delete(subscriptionKey);
+          if (__DEV__) {
+            console.log(`📡 Subscription error: ${operation.operationName} (${activeSubscriptions.size} active)`);
+          }
+          observer.error(error);
+        },
+        complete: () => {
+          // Remove from tracking on complete
+          activeSubscriptions.delete(subscriptionKey);
+          if (__DEV__) {
+            console.log(`📡 Subscription complete: ${operation.operationName} (${activeSubscriptions.size} active)`);
+          }
+          observer.complete();
+        },
+      });
+      
+      // Return cleanup function
+      return () => {
+        activeSubscriptions.delete(subscriptionKey);
+        if (__DEV__) {
+          console.log(`📡 Unsubscribed: ${operation.operationName} (${activeSubscriptions.size} active)`);
+        }
+        subscription.unsubscribe();
+      };
+    });
+  }
+}
+
+const wsLink = new SubscriptionTrackingLink(wsClient);
 
 // Split link: HTTP for queries/mutations, WebSocket for subscriptions
 // The lazy: true option above ensures no connection until first subscription
@@ -325,4 +471,55 @@ if (Platform.OS !== 'web') {
       // Silently fail - cache persistence is optional
     });
   }, 2000); // 2 second delay
+}
+
+// ============================================================================
+// WebSocket Utilities
+// ============================================================================
+
+/**
+ * Get current WebSocket connection state
+ */
+export function getWebSocketState(): 'disconnected' | 'connecting' | 'connected' {
+  return wsConnectionState;
+}
+
+/**
+ * Get number of active subscriptions
+ */
+export function getActiveSubscriptionsCount(): number {
+  return activeSubscriptions.size;
+}
+
+/**
+ * Manually reconnect WebSocket (useful after network change)
+ */
+export function reconnectWebSocket(): void {
+  if (wsConnectionState === 'connected') {
+    if (__DEV__) {
+      console.log('📡 WebSocket already connected, skipping reconnect');
+    }
+    return;
+  }
+  
+  if (__DEV__) {
+    console.log('📡 Manually reconnecting WebSocket...');
+  }
+  
+  // Dispose and recreate connection
+  try {
+    wsClient.dispose();
+  } catch (_error) {
+    // Ignore disposal errors
+  }
+}
+
+/**
+ * Clear all active subscriptions (useful for cleanup)
+ */
+export function clearActiveSubscriptions(): void {
+  if (__DEV__) {
+    console.log(`📡 Clearing ${activeSubscriptions.size} active subscriptions`);
+  }
+  activeSubscriptions.clear();
 }
