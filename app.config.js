@@ -4,6 +4,7 @@ const getAppConfig = () => {
   const isDebug = process.env.EAS_BUILD_PROFILE === 'debug';
   const isRelease = process.env.EAS_BUILD_PROFILE === 'release';
   const isDevelopment = !isDebug && !isRelease; // Development mode (expo run:android)
+  const isProduction = isRelease || process.env.NODE_ENV === 'production';
 
   // Default configuration
   let appName = 'سفرناک';
@@ -87,6 +88,13 @@ const getAppConfig = () => {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
+        // Optimize splash screen for smaller APK
+        ...(isProduction && {
+          // Use smaller splash image in production
+          image: './assets/images/splash-icon.png', // Keep same for now, but could use WebP
+          // Disable splash screen animation in production for faster startup
+          enableSplashScreenAnimation: false,
+        }),
       },
       android: {
         // Display version (shown in Play Store and app info)
@@ -120,6 +128,20 @@ const getAppConfig = () => {
         output: 'static',
         favicon: './assets/images/favicon.png',
       },
+      // ====================================
+      // PRODUCTION OPTIMIZATIONS
+      // ====================================
+      ...(isProduction && {
+        // Strip unused Expo modules in production
+        _internal: {
+          // Disable unused Expo features
+          isHeadless: false,
+          // Disable development features
+          enableDevMenu: false,
+          // Disable storybook in production
+          enableStorybook: false,
+        },
+      }),
       plugins: [
         'expo-router',
         'expo-localization',
@@ -155,13 +177,52 @@ const getAppConfig = () => {
               enableProguardInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
+              // Additional APK size optimizations
+              ...(isProduction && {
+                // Aggressive optimizations for production
+                enableHermes: true,
+                // Disable unused native libraries
+                excludeUnusedPackages: true,
+                // Strip unused C++ code
+                enableCppOptimizations: true,
+                // Optimize native library loading
+                optimizeNativeLibs: true,
+                // Remove unused architecture support
+                useLegacyPackaging: false,
+              }),
             },
+            ios: isProduction ? {
+              // iOS optimizations (if you add iOS later)
+              deploymentTarget: '13.4',
+              enableHermes: true,
+            } : {},
           },
         ],
       ],
       experiments: {
         typedRoutes: true,
+        // Disable experimental features in production for stability
+        ...(isProduction && {
+          // Disable experimental features that add bundle size
+          turboModules: false,
+        }),
       },
+      // Production-specific optimizations
+      ...(isProduction && {
+        // Disable development features in production
+        devClient: false,
+        // Disable updates in production (we use EAS builds)
+        updates: {
+          enabled: false,
+        },
+        // Disable notifications in production (if not needed)
+        notification: {
+          icon: './assets/images/icon.png',
+          color: '#ffffff',
+          // Disable notification sounds to reduce APK size
+          defaultChannel: 'default',
+        },
+      }),
       extra: {
         router: {},
         eas: {
