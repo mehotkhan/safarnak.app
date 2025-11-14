@@ -1,6 +1,6 @@
-module.exports = function (api) {
-  api.cache(true);
-  const isProduction = api.env('production');
+module.exports = function () {
+  const isProduction =
+    process.env.BABEL_ENV === 'production' || process.env.NODE_ENV === 'production';
 
   return {
     presets: [
@@ -23,18 +23,11 @@ module.exports = function (api) {
       ] : []),
       'react-native-worklets/plugin', // MUST be last
     ],
-    // Production-specific env settings
+    // Production-specific options
     ...(isProduction && {
-      env: {
-        production: {
-          // More aggressive minification
-          compact: true,
-          // Remove comments
-          comments: false,
-          // Minimize whitespace
-          minified: true,
-        },
-      },
+      comments: false,
+      compact: true,
+      minified: true,
     }),
   };
 };
