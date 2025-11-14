@@ -238,8 +238,9 @@ jobs:
           });
           
           // Analyze all commits to determine bump type
-          let hasFeat = false;
-          let hasFix = false;
+          // COUNT each feat/fix for cumulative bumping (Plan B)
+          let featCount = 0;
+          let fixCount = 0;
           let hasBreaking = false;
           const commitTypes = [];
           
@@ -249,12 +250,12 @@ jobs:
             
             // Check for features (minor bump)
             if (/^(feat|feature)(\(|:)/i.test(firstLine)) {
-              hasFeat = true;
+              featCount++;
               commitType = 'feat';
             }
             // Check for fixes (patch bump)
             else if (/^(fix|bugfix)(\(|:)/i.test(firstLine)) {
-              hasFix = true;
+              fixCount++;
               commitType = 'fix';
             }
             // Check for breaking changes
@@ -275,34 +276,37 @@ jobs:
           });
           
           console.log(`\n📈 Commit type analysis:`);
-          console.log(`   Features: ${hasFeat ? '✅' : '❌'}`);
-          console.log(`   Fixes: ${hasFix ? '✅' : '❌'}`);
+          console.log(`   Features: ${featCount} commit(s)`);
+          console.log(`   Fixes: ${fixCount} commit(s)`);
           console.log(`   Breaking: ${hasBreaking ? '✅' : '❌'}`);
           console.log(`   Types found: ${[...new Set(commitTypes)].join(', ')}`);
           
           // Determine bump type based on commit analysis
           // CRITICAL: Calculate bump from baseVersion (last tag), not current package.json
+          // PLAN B: Each feat/fix increments separately (cumulative bumping)
           let bump = 'build';
           const m = baseVersion.split('.').map(n => parseInt(n, 10) || 0);
           
           if (hasBreaking) {
-            // Breaking changes → major bump
+            // Breaking changes → major bump (resets minor/patch)
             m[0] += 1;
             m[1] = 0;
             m[2] = 0;
             bump = 'major';
             console.log('🚨 Breaking changes detected → major version bump');
-          } else if (hasFeat) {
-            // Features → minor bump
-            m[1] += 1;
+          } else if (featCount > 0) {
+            // Each feature → increment minor, reset patch
+            // If multiple features, bump minor by count (2.6.0 + 3 feats = 2.9.0)
+            m[1] += featCount;
             m[2] = 0;
             bump = 'minor';
-            console.log('✨ Features detected → minor version bump');
-          } else if (hasFix) {
-            // Fixes only → patch bump
-            m[2] += 1;
+            console.log(`✨ ${featCount} feature(s) detected → minor version bump by ${featCount}`);
+          } else if (fixCount > 0) {
+            // Each fix → increment patch
+            // Multiple fixes stack (2.6.0 + 3 fixes = 2.6.3)
+            m[2] += fixCount;
             bump = 'patch';
-            console.log('🐛 Fixes detected → patch version bump');
+            console.log(`🐛 ${fixCount} fix(es) detected → patch version bump by ${fixCount}`);
           } else {
             console.log('ℹ️  No feat/fix commits detected → build only (no version change)');
           }
