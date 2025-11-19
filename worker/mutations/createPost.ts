@@ -2,7 +2,7 @@ import { eq, sql } from 'drizzle-orm';
 import { getServerDB, posts, trips, tours, places, users, feedEvents, searchIndex } from '@database/server';
 import type { GraphQLContext } from '../types';
 import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
-import { enqueueEmbeddingJob } from '../utilities/embeddings';
+import { enqueueEmbeddingJob } from '../utilities/semantic/embeddings';
 
 interface CreatePostInput {
   content?: string;

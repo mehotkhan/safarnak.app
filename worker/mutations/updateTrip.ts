@@ -95,7 +95,7 @@ export const updateTrip = async (
     updateData.destination = input.destination;
     // Generate new waypoints when destination changes
     try {
-      const { geocodeDestinationCenter } = await import('../utilities/geocode');
+      const { geocodeDestinationCenter } = await import('../utilities/destination/geo');
       const center = await geocodeDestinationCenter(input.destination);
       const wp = center ? [{
         latitude: center.latitude,

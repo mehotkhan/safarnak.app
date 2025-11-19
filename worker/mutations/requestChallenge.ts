@@ -1,5 +1,5 @@
 import { getServerDB, challenges } from '@database/server';
-import { generateNonce } from '../utilities/crypto';
+import { generateNonce } from '../utilities/auth/crypto';
 import type { GraphQLContext } from '../types';
 
 const CHALLENGE_EXPIRY = 5 * 60; // 5 minutes in seconds

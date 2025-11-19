@@ -1,7 +1,7 @@
 import { getServerDB, users, challenges, devices } from '@database/server';
 import { eq, and } from 'drizzle-orm';
-import { verifySignature } from '../utilities/crypto';
-import { generateToken } from '../utilities/utils';
+import { verifySignature } from '../utilities/auth/crypto';
+import { generateToken } from '../utilities/auth/password';
 import type { GraphQLContext } from '../types';
 
 interface RegisterUserResult {

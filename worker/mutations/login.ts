@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm';
 import { getServerDB } from '@database/server';
 import { users } from '@database/server';
 import { ResolverContext } from '../types';
-import { verifyPassword, generateToken } from '../utilities/utils';
+import { verifyPassword, generateToken } from '../utilities/auth/password';
 
 interface LoginArgs {
   username: string;

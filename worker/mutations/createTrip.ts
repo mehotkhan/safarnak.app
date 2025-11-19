@@ -4,7 +4,7 @@ import type { GraphQLContext } from '../types';
 import { eq } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
-import { enqueueEmbeddingJob } from '../utilities/embeddings';
+import { enqueueEmbeddingJob } from '../utilities/semantic/embeddings';
 // Note: orchestrateTripPlanning is used by TripCreationWorkflow, not directly here
 
 interface CreateTripInput {

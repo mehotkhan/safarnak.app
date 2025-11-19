@@ -8,8 +8,8 @@
  * - User preferences achievability
  */
 
-import type { Env } from '../types';
-import type { DestinationData } from './destinationResearch';
+import type { Env } from '../../types';
+import type { DestinationData } from '../destination';
 
 export interface ValidationResult {
   feasible: boolean;
