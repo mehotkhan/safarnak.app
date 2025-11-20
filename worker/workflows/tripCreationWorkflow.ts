@@ -397,15 +397,16 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         lang
       );
 
-      // Convert back to days format
-      const translatedDays = (translatedItinerary.days || []).map((day: any) => ({
-        day: day.day || 1,
-        title: day.title || `Day ${day.day || 1}`,
-        activities: (day.activities || []).map((activity: any) => {
+      // Convert back to days format - preserve original string activities
+      const translatedDays = (translatedItinerary.days || []).map((day: any) => {
+        // If activities are already objects from previous step, keep them
+        // If they're strings (from translation), convert to objects for consistency
+        const activities = (day.activities || []).map((activity: any) => {
           if (typeof activity === 'string') {
+            // Preserve the original string format in the title field
             return {
               time: activity.match(/^(\d{2}:\d{2})/)?.[1] || '09:00',
-              title: activity,
+              title: activity, // Keep full string here - normalization will use it
               location: destination || 'City',
               coords: researchResult.destinationData.facts.coordinates,
               duration: 90,
@@ -414,10 +415,20 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
               description: activity,
             };
           }
+          // If already an object, preserve it but ensure title has the full string
+          if (activity.title && typeof activity.title === 'string' && activity.title.includes(':')) {
+            return activity; // Already has formatted title
+          }
           return activity;
-        }),
-        estimatedCost: day.estimatedCost || 0,
-      }));
+        });
+
+        return {
+          day: day.day || 1,
+          title: day.title || `Day ${day.day || 1}`,
+          activities,
+          estimatedCost: day.estimatedCost || 0,
+        };
+      });
 
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
@@ -460,16 +471,33 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       })), null, 2));
       
       // Normalize itinerary to match GraphQL schema (activities: [String!])
+      // Activities from AI are strings like "09:00: Visit Eiffel Tower - address"
+      // They get converted to objects for waypoint extraction, but we preserve the original string in title
+      // Here we convert back to strings, preserving the original format when possible
       const normalizedDays = (days as any[]).map((d: any) => ({
         day: d.day,
         title: d.title,
         activities: (Array.isArray(d.activities) ? d.activities : []).map((a: any) => {
+          // If already a string, return as-is (shouldn't happen here, but handle it)
           if (typeof a === 'string') return a;
+          
+          // If title already contains the full formatted activity string (e.g., "09:00: Visit Place - address"),
+          // use it directly instead of reconstructing to preserve original place names
+          if (a?.title && typeof a.title === 'string' && a.title.includes(':')) {
+            // Check if title looks like a formatted activity string (starts with time pattern like "09:00:")
+            const timePattern = /^\d{2}:\d{2}/;
+            if (timePattern.test(a.title.trim())) {
+              // This is the original AI-generated string with real place names - use it directly
+              return a.title;
+            }
+          }
+          
+          // Otherwise, reconstruct from parts (fallback for edge cases)
           const parts: string[] = [];
           if (a?.time) parts.push(String(a.time));
           if (a?.title) parts.push(String(a.title));
-          if (a?.location) parts.push(`@ ${String(a.location)}`);
-          return parts.length > 0 ? parts.join(' - ') : 'Activity';
+          if (a?.location && a.location !== destination) parts.push(`@ ${String(a.location)}`);
+          return parts.length > 0 ? parts.join(' - ') : (a?.title || 'Activity');
         }),
       }));
       
