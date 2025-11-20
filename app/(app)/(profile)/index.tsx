@@ -7,7 +7,7 @@ import { useRefresh } from '@hooks/useRefresh';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 
-import { useGetTripsQuery, useMeQuery, useUpdateUserMutation } from '@api';
+import { useGetTripsQuery, useMeQuery, useUpdateUserMutation, useGenerateAvatarMutation } from '@api';
 import { useTheme } from '@ui/context';
 import { CustomText } from '@ui/display';
 import { ListItem } from '@ui/display';
@@ -32,6 +32,8 @@ export default function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(params.edit === 'true');
   const [loading, setLoading] = useState(false);
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [avatarErrorCount, setAvatarErrorCount] = useState(0); // Track error count to prevent loops
+  const [avatarLoadFailed, setAvatarLoadFailed] = useState(false); // Track if avatar failed to load
   
   // Fetch real user data
   const { data: meData, loading: meLoading, refetch: refetchMe } = useMeQuery({
@@ -46,6 +48,7 @@ export default function ProfileScreen() {
   });
 
   const [updateUser, { loading: updateLoading }] = useUpdateUserMutation();
+  const [generateAvatar, { loading: generateAvatarLoading }] = useGenerateAvatarMutation();
   
   // Prioritize GraphQL user data over Redux (GraphQL has publicKey)
   const user = meData?.me || reduxUser;
@@ -79,8 +82,19 @@ export default function ProfileScreen() {
     }
     
     // Update avatar from server only when not editing (to avoid overwriting local selection)
-    if (typedUser.avatar && typedUser.avatar !== avatarUri && !avatarUri?.startsWith('data:')) {
+    if (typedUser.avatar && !avatarUri?.startsWith('data:')) {
+      // Check if URL actually changed (ignore query params for comparison)
+      const currentUrlBase = avatarUri?.split('?')[0];
+      const newUrlBase = typedUser.avatar.split('?')[0];
+      
+      if (currentUrlBase !== newUrlBase) {
+        // URL changed, add cache-busting parameter to force refresh
+        const separator = typedUser.avatar.includes('?') ? '&' : '?';
+        setAvatarUri(`${typedUser.avatar}${separator}t=${Date.now()}`);
+      } else if (!avatarUri) {
+        // First time setting avatar
       setAvatarUri(typedUser.avatar);
+      }
     } else if (!typedUser.avatar && avatarUri && !avatarUri.startsWith('data:')) {
       // Clear avatar if server doesn't have one (but keep local base64 selection)
       setAvatarUri(null);
@@ -182,6 +196,54 @@ export default function ProfileScreen() {
         t('common.error'),
         t('profile.edit.avatarError', {
           defaultValue: 'Failed to select image. Please try again.',
+        })
+      );
+    }
+  };
+
+  const handleGenerateAvatar = async () => {
+    try {
+      // Use the mutation's loading state, don't set local loading
+      const result = await generateAvatar({
+        variables: { style: 'professional' },
+        refetchQueries: ['Me'],
+        awaitRefetchQueries: true,
+      });
+
+      if (result.data?.generateAvatar) {
+        const updatedUser = result.data.generateAvatar;
+        
+        // Refetch user data to ensure everything is in sync
+        const refetchResult = await refetchMe();
+        
+        // Update avatarUri from server response with cache-busting parameter
+        // Add timestamp to force image refresh
+        const avatarUrl = refetchResult.data?.me?.avatar || updatedUser.avatar;
+        if (avatarUrl) {
+          // Reset error states when setting new avatar
+          setAvatarErrorCount(0);
+          setAvatarLoadFailed(false);
+          // Add cache-busting query parameter to force image refresh
+          const separator = avatarUrl.includes('?') ? '&' : '?';
+          const cacheBustedUrl = `${avatarUrl}${separator}t=${Date.now()}`;
+          setAvatarUri(cacheBustedUrl);
+        }
+        
+        Alert.alert(
+          t('common.success'),
+          t('profile.edit.avatarGenerated', {
+            defaultValue: 'Avatar generated successfully!',
+          }),
+          [{ text: t('common.ok') }]
+        );
+      }
+    } catch (error: any) {
+      console.error('Error generating avatar:', error);
+      
+      Alert.alert(
+        t('common.error'),
+        error.message || t('profile.edit.avatarGenerateError', {
+          defaultValue: 'Failed to generate avatar. Please try again.',
         })
       );
     }
@@ -412,20 +474,56 @@ export default function ProfileScreen() {
                     {t('profile.edit.avatar', { defaultValue: 'Profile Photo' })}
                   </CustomText>
                   <View className="items-center">
-                    <View className="w-24 h-24 rounded-full overflow-hidden bg-white dark:bg-neutral-800 border-2 border-primary mb-3">
+                    <View className="w-32 h-32 rounded-full overflow-hidden bg-white dark:bg-neutral-800 border-2 border-primary mb-4">
                       {avatarUri ? (
                         <Image
                           key={avatarUri}
                           source={{ uri: avatarUri }}
                           className="w-full h-full"
                           resizeMode="cover"
+                          onError={(e) => {
+                            console.error('[Profile] Avatar image load error:', e.nativeEvent.error, 'URI:', avatarUri);
+                            // Prevent infinite loop - only try fallback once
+                            if (avatarErrorCount < 1 && typedUser?.avatar) {
+                              const currentUrlBase = avatarUri?.split('?')[0];
+                              const fallbackUrlBase = typedUser.avatar.split('?')[0];
+                              // Only fallback if URLs are different
+                              if (currentUrlBase !== fallbackUrlBase) {
+                                setAvatarErrorCount(prev => prev + 1);
+                                const separator = typedUser.avatar.includes('?') ? '&' : '?';
+                                setAvatarUri(`${typedUser.avatar}${separator}t=${Date.now()}`);
+                              } else {
+                                // Same URL, just clear it to show default
+                                setAvatarUri(null);
+                              }
+                            } else {
+                              // Too many errors or no fallback, clear to show default
+                              setAvatarUri(null);
+                            }
+                          }}
+                          onLoad={() => {
+                            // Reset error states on successful load
+                            if (avatarErrorCount > 0) {
+                              setAvatarErrorCount(0);
+                            }
+                            setAvatarLoadFailed(false);
+                          }}
                         />
-                      ) : typedUser?.avatar ? (
+                      ) : typedUser?.avatar && !avatarLoadFailed ? (
                         <Image
                           key={typedUser.avatar}
                           source={{ uri: typedUser.avatar }}
                           className="w-full h-full"
                           resizeMode="cover"
+                          onError={(e) => {
+                            console.error('[Profile] User avatar image load error:', e.nativeEvent.error);
+                            // Mark as failed to prevent retry loop, will show default icon
+                            setAvatarLoadFailed(true);
+                          }}
+                          onLoad={() => {
+                            // Reset failed flag on successful load
+                            setAvatarLoadFailed(false);
+                          }}
                         />
                       ) : (
                         <Image
@@ -435,24 +533,69 @@ export default function ProfileScreen() {
                         />
                       )}
                     </View>
-                    <TouchableOpacity
-                      onPress={handleChangeAvatar}
-                      className="px-4 py-2 bg-primary/15 dark:bg-primary/25 rounded-full"
-                    >
-                      <CustomText className="text-primary text-sm" weight="medium">
-                        {avatarUri ? t('profile.edit.changePhoto', { defaultValue: 'Change Photo' }) : t('profile.edit.addPhoto', { defaultValue: 'Add Photo' })}
-                      </CustomText>
-                    </TouchableOpacity>
-                    {avatarUri && (
+                    <View className="flex-row gap-2 w-full justify-center">
                       <TouchableOpacity
-                        onPress={() => setAvatarUri(typedUser?.avatar || null)}
-                        className="mt-2 px-3 py-1"
+                        onPress={handleChangeAvatar}
+                        className="flex-1 px-3 py-2.5 bg-primary/15 dark:bg-primary/25 rounded-xl flex-row items-center justify-center"
                       >
-                        <CustomText className="text-red-600 dark:text-red-400 text-xs">
-                          {t('profile.edit.removePhoto', { defaultValue: 'Remove' })}
+                        <Ionicons 
+                          name="image-outline" 
+                          size={18} 
+                          color={isDark ? Colors.dark.primary : Colors.light.primary}
+                          style={{ marginRight: 6 }}
+                        />
+                        <CustomText className="text-primary text-xs" weight="medium" numberOfLines={1}>
+                          {avatarUri ? t('profile.edit.changePhoto', { defaultValue: 'Change' }) : t('profile.edit.addPhoto', { defaultValue: 'Add' })}
                         </CustomText>
                       </TouchableOpacity>
-                    )}
+                      <TouchableOpacity
+                        onPress={handleGenerateAvatar}
+                        disabled={generateAvatarLoading}
+                        className={`flex-1 px-3 py-2.5 rounded-xl flex-row items-center justify-center ${
+                          generateAvatarLoading 
+                            ? 'bg-purple-200 dark:bg-purple-800/50 opacity-60' 
+                            : 'bg-purple-100 dark:bg-purple-900/30'
+                        }`}
+                      >
+                        {generateAvatarLoading ? (
+                          <Ionicons 
+                            name="hourglass-outline" 
+                            size={18} 
+                            color={isDark ? '#a78bfa' : '#7c3aed'}
+                            style={{ marginRight: 6 }}
+                          />
+                        ) : (
+                          <Ionicons 
+                            name="sparkles" 
+                            size={18} 
+                            color={isDark ? '#a78bfa' : '#7c3aed'}
+                            style={{ marginRight: 6 }}
+                          />
+                        )}
+                        <CustomText className="text-purple-600 dark:text-purple-400 text-xs" weight="medium" numberOfLines={1}>
+                          {generateAvatarLoading 
+                            ? t('profile.edit.generating', { defaultValue: 'Generating...' })
+                            : t('profile.edit.generateAvatar', { defaultValue: 'AI Generate' })
+                          }
+                        </CustomText>
+                      </TouchableOpacity>
+                      {avatarUri && (
+                        <TouchableOpacity
+                          onPress={() => setAvatarUri(typedUser?.avatar || null)}
+                          className="flex-1 px-3 py-2.5 bg-red-100 dark:bg-red-900/30 rounded-xl flex-row items-center justify-center"
+                        >
+                          <Ionicons 
+                            name="trash-outline" 
+                            size={18} 
+                            color={isDark ? '#f87171' : '#ef4444'}
+                            style={{ marginRight: 6 }}
+                          />
+                          <CustomText className="text-red-600 dark:text-red-400 text-xs" weight="medium" numberOfLines={1}>
+                            {t('profile.edit.removePhoto', { defaultValue: 'Remove' })}
+                          </CustomText>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
                 </View>
               </View>

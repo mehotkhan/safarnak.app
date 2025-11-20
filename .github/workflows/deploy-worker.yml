@@ -33,9 +33,15 @@ jobs:
         run: yarn codegen
 
       - name: ⚡ Deploy Worker
-        run: yarn worker:deploy
+        run: |
+          # Deploy with GRAPHQL_URL environment variable
+          # This ensures avatar URLs use the correct base URL in production
+          # If GRAPHQL_URL secret is not set, defaults to https://safarnak.app/graphql
+          GRAPHQL_URL_VALUE="${GRAPHQL_URL:-https://safarnak.app/graphql}"
+          wrangler deploy --config wrangler.jsonc --var GRAPHQL_URL:"${GRAPHQL_URL_VALUE}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          GRAPHQL_URL: ${{ secrets.GRAPHQL_URL || 'https://safarnak.app/graphql' }}
 
       - name: 🔍 Verify deployment
         run: |

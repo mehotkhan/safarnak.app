@@ -38,7 +38,7 @@ export async function applyTripUpdateWithAI(
     
     // Step 2: Call Workers AI using model config
     const updateConfig = getModelConfig('TRIP_UPDATES');
-    const aiResponse: any = await env.AI.run(updateConfig.model, {
+    const aiResponse: any = await env.AI.run(updateConfig.model as any, {
       prompt,
       max_tokens: updateConfig.maxTokens,
       temperature: updateConfig.temperature,

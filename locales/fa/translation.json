@@ -745,9 +745,12 @@
     "subscriptionSubtitle": "مدیریت طرح اشتراک شما",
     "edit": {
       "title": "ویرایش پروفایل",
+      "avatar": "عکس پروفایل",
       "changeAvatar": "تغییر آواتار",
       "changeAvatarMessage": "انتخاب عکس به‌زودی اضافه می‌شود!",
-      "changePhoto": "تغییر عکس",
+      "changePhoto": "تغییر",
+      "addPhoto": "افزودن",
+      "removePhoto": "حذف",
       "nameLabel": "نام",
       "namePlaceholder": "نام کامل شما",
       "usernameLabel": "نام کاربری",
@@ -762,7 +765,13 @@
       "locationPlaceholder": "شهر، کشور",
       "websiteLabel": "وب‌سایت",
       "websitePlaceholder": "https://yourwebsite.com",
-      "successMessage": "پروفایل با موفقیت به‌روزرسانی شد!"
+      "successMessage": "پروفایل با موفقیت به‌روزرسانی شد!",
+      "generateAvatar": "تولید هوش مصنوعی",
+      "generating": "در حال تولید...",
+      "avatarGenerated": "آواتار با موفقیت تولید شد!",
+      "avatarGenerateError": "تولید آواتار ناموفق بود. لطفاً دوباره تلاش کنید.",
+      "permissionDenied": "برای تغییر آواتار، دسترسی به گالری تصاویر لازم است.",
+      "avatarError": "انتخاب عکس ناموفق بود. لطفاً دوباره تلاش کنید."
     },
     "preferences": {
       "feed": {

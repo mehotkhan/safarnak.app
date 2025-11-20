@@ -152,6 +152,15 @@ declare module '*/@graphql/followUser.graphql' {
 }
     
 
+declare module '*/@graphql/generateAvatar.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const GenerateAvatar: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/getAlerts.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;

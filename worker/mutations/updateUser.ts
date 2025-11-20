@@ -165,21 +165,62 @@ export const updateUser = async (
         }
 
         // Construct avatar URL using worker route
-        // The worker serves avatars at /avatars/{key}
-        // Use the request URL from context if available
+        // The R2 key already includes 'avatars/' prefix, so use it directly
+        // IMPORTANT: Use the same base URL as the GraphQL client to ensure mobile devices can access avatars
         let baseUrl = 'https://safarnak.app';
         try {
-          const request = (context as any).request;
-          if (request?.url) {
-            const requestUrl = new URL(request.url);
-            baseUrl = requestUrl.origin;
-          } else if ((context.env as any).WORKER_URL) {
+          // Priority 1: Extract base URL from GRAPHQL_URL environment variable (most reliable for mobile clients)
+          // This ensures avatar URLs use the same host/IP that the client is configured to use
+          if ((context.env as any).GRAPHQL_URL) {
+            try {
+              const graphqlUrl = new URL((context.env as any).GRAPHQL_URL);
+              // Remove /graphql path, keep just the origin (e.g., http://192.168.1.51:8787)
+              baseUrl = graphqlUrl.origin;
+            } catch (e) {
+              console.warn('[updateUser] Failed to parse GRAPHQL_URL:', e);
+            }
+          }
+          
+          // Priority 2: Try to get the Host header (only if not localhost/127.0.0.1)
+          // Skip localhost/127.0.0.1 as mobile devices can't access them
+          if (baseUrl === 'https://safarnak.app' && (context as any).request?.headers) {
+            const hostHeader = (context as any).request.headers.get('host');
+            if (hostHeader && 
+                hostHeader !== '0.0.0.0' && 
+                !hostHeader.includes('0.0.0.0') &&
+                hostHeader !== 'localhost' &&
+                !hostHeader.includes('localhost') &&
+                hostHeader !== '127.0.0.1' &&
+                !hostHeader.includes('127.0.0.1')) {
+              const protocol = (context as any).request.url?.startsWith('https://') ? 'https' : 'http';
+              baseUrl = `${protocol}://${hostHeader}`;
+            }
+          }
+          
+          // Priority 3: Extract from request URL (only if not localhost/127.0.0.1)
+          if (baseUrl === 'https://safarnak.app' && (context as any).request?.url) {
+            const requestUrl = new URL((context as any).request.url);
+            const hostname = requestUrl.hostname;
+            const port = requestUrl.port;
+            
+            // Skip localhost/127.0.0.1 as mobile devices can't access them
+            if (hostname && 
+                hostname !== '0.0.0.0' && 
+                hostname !== 'localhost' && 
+                hostname !== '127.0.0.1') {
+              baseUrl = `${requestUrl.protocol}//${hostname}${port ? `:${port}` : ''}`;
+            }
+          }
+          
+          // Priority 4: Fallback to WORKER_URL if available
+          if (baseUrl === 'https://safarnak.app' && (context.env as any).WORKER_URL) {
             baseUrl = (context.env as any).WORKER_URL;
           }
         } catch (error) {
           console.warn('[updateUser] Could not determine base URL, using default:', error);
         }
-        const avatarUrl = `${baseUrl}/avatars/${r2Key}`;
+        // r2Key already includes 'avatars/' prefix, so use it directly
+        const avatarUrl = `${baseUrl}/${r2Key}`;
 
         console.log('[updateUser] Avatar uploaded successfully:', {
           r2Key,

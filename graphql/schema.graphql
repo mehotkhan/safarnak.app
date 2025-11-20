@@ -45,6 +45,7 @@ type Mutation {
   bookmarkTour(tourId: ID!): Boolean!
   bookmarkPlace(placeId: ID!): Boolean!
   revokeDevice(deviceId: String!): Boolean!
+  generateAvatar(style: String): User!
 }
 
 type Subscription {

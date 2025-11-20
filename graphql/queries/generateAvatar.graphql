@@ -1,0 +1,11 @@
+mutation GenerateAvatar($style: String) {
+  generateAvatar(style: $style) {
+    id
+    name
+    username
+    avatar
+    publicKey
+    createdAt
+  }
+}
+

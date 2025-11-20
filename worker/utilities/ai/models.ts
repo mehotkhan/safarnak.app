@@ -1,57 +1,39 @@
 /**
- * AI Model Configuration
- * 
- * Optimized model selection for each trip planning task
- * Based on Cloudflare Workers AI capabilities and performance characteristics
+ * AI Model Configuration (2025)
+ * Tuned for Cloudflare Workers AI
  */
 
 export const AI_MODELS = {
   /**
+   * FAST TEXT GENERATION / CLASSIFICATION
+   * Llama 3.1 8B - fast variant
+   */
+  TEXT_GENERATION_FAST: '@cf/meta/llama-3.1-8b-instruct-fast',
+
+  /**
    * PRIMARY TEXT GENERATION
-   * Best for: Detailed itinerary generation, reasoning, structured outputs
-   * Speed: Fast (1-3s)
-   * Quality: High
-   * Context: 8K tokens
+   * Llama 3.1 8B FP8 – good balance of quality & cost
    */
   TEXT_GENERATION_PRIMARY: '@cf/meta/llama-3.1-8b-instruct-fp8',
 
   /**
    * ADVANCED TEXT GENERATION
-   * Best for: Complex reasoning, longer outputs, high-quality responses
-   * Speed: Moderate (3-6s)
-   * Quality: Very High
-   * Context: 32K tokens
-   * Use when: Quality > Speed (e.g., detailed multi-day itineraries)
+   * Llama 3.3 70B – high quality, long context, more expensive
    */
   TEXT_GENERATION_ADVANCED: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
 
   /**
-   * FAST TEXT GENERATION
-   * Best for: Quick analysis, simple classifications
-   * Speed: Very Fast (<1s)
-   * Quality: Good
-   * Use when: Speed > Quality (e.g., quick preference extraction)
-   */
-  TEXT_GENERATION_FAST: '@cf/meta/llama-3.1-8b-instruct-fp8',
-
-  /**
-   * EMBEDDINGS
-   * Best for: Semantic search, similarity matching
-   * Dimensions: 1024
-   * Use for: Finding similar trips, places, recommendations
+   * EMBEDDINGS (Vectorize)
    */
   EMBEDDINGS: '@cf/baai/bge-m3',
 
   /**
-   * IMAGE GENERATION (Future - Phase 2)
-   * Best for: Destination preview images
-   * Model: Stable Diffusion XL
+   * IMAGE GENERATION (Phase 2)
    */
   IMAGE_GENERATION: '@cf/stabilityai/stable-diffusion-xl-base-1.0',
-  
+
   /**
    * TRANSLATION
-   * Best for: Translating generated itinerary and reasoning to user language
    */
   TRANSLATION: '@cf/meta/m2m100-1.2b',
 } as const;
@@ -63,61 +45,42 @@ export const MODEL_STRATEGY = {
   // Step 1: Quick preference analysis
   PREFERENCE_ANALYSIS: {
     model: AI_MODELS.TEXT_GENERATION_FAST,
-    maxTokens: 512,
-    temperature: 0.7,
-    reason: 'Fast classification and extraction',
+    maxTokens: 384,
+    temperature: 0.3, // lower = more stable JSON
+    reason: 'Fast, cheap classification + extraction',
   },
 
   // Step 2: Main itinerary generation
   ITINERARY_GENERATION: {
-    model: AI_MODELS.TEXT_GENERATION_ADVANCED, // Use advanced model for quality
-    maxTokens: 2048, // Reduce to lower 504 risk and latency
-    temperature: 0.8, // Slightly higher for creativity
-    reason: 'High-quality detailed planning',
+    model: AI_MODELS.TEXT_GENERATION_ADVANCED,
+    maxTokens: 2300, // 70B, 24k ctx, safe margin
+    temperature: 0.7,
+    reason: 'High-quality multi-day itineraries with long context',
   },
 
-  // Step 3: Recommendations (can be fast)
+  // Step 3: Recommendations
   RECOMMENDATIONS: {
     model: AI_MODELS.TEXT_GENERATION_PRIMARY,
-    maxTokens: 1536,
-    temperature: 0.7,
-    reason: 'Balanced speed and quality for lists',
+    maxTokens: 1600,
+    temperature: 0.6,
+    reason: 'Balanced speed & quality for lists of venues',
   },
 
-  // Step 4: Quick updates and modifications
+  // Step 4: Trip updates / edits in chat
   TRIP_UPDATES: {
     model: AI_MODELS.TEXT_GENERATION_PRIMARY,
-    maxTokens: 3072,
-    temperature: 0.65,
-    reason: 'Detailed yet responsive updates for user changes',
+    maxTokens: 2200,
+    temperature: 0.55,
+    reason: 'Stable edits without rewriting everything',
   },
 
-  // Step 5: Geocoding (simple classification)
+  // Step 5: Geocoding (fallback when no external API)
   GEOCODING: {
     model: AI_MODELS.TEXT_GENERATION_FAST,
     maxTokens: 256,
-    temperature: 0.5, // Lower for more deterministic results
-    reason: 'Simple structured output',
+    temperature: 0.2,
+    reason: 'Deterministic coordinates + country/region',
   },
-} as const;
-
-/**
- * Performance Optimization Settings
- */
-export const OPTIMIZATION = {
-  // Enable parallel execution for independent tasks
-  ENABLE_PARALLEL: true,
-
-  // Timeout per AI request (ms)
-  AI_TIMEOUT: 30000,
-
-  // Retry failed requests (with exponential backoff)
-  MAX_RETRIES: 2,
-  RETRY_DELAY: 1000,
-
-  // Cache common results (destinations, etc.)
-  ENABLE_CACHE: true,
-  CACHE_TTL: 3600, // 1 hour
 } as const;
 
 /**
@@ -128,11 +91,10 @@ export function getModelConfig(task: keyof typeof MODEL_STRATEGY) {
 }
 
 /**
- * Helper: Should use advanced model?
- * Use advanced model for:
- * - Trips longer than 5 days
- * - Budget > $3000 (premium trips)
- * - Complex preferences (>200 chars)
+ * Helper: Should use advanced 70B model?
+ * Use advanced when:
+ * - Long or complex trips
+ * - Premium / complex preferences
  */
 export function shouldUseAdvancedModel(input: {
   duration?: number;
@@ -142,8 +104,8 @@ export function shouldUseAdvancedModel(input: {
   const { duration = 7, budget = 1000, preferencesLength = 0 } = input;
 
   return (
-    duration > 5 ||
-    budget > 3000 ||
+    duration > 5 ||        // long trips need more reasoning
+    budget > 3000 ||       // premium trips
     preferencesLength > 200
   );
 }
@@ -153,38 +115,14 @@ export function shouldUseAdvancedModel(input: {
  */
 export function getStepTimeout(step: string): number {
   const timeouts: Record<string, number> = {
-    'preference_analysis': 5000,
-    'itinerary_generation': 15000,
-    'recommendations': 8000,
+    'preference_analysis': 6000,
+    'itinerary_generation': 18000,
+    'recommendations': 9000,
     'geocoding': 3000,
-    'trip_update': 10000,
+    'trip_update': 11000,
   };
   return timeouts[step] || 10000;
 }
-
-/**
- * Model Performance Characteristics
- */
-export const MODEL_METRICS = {
-  [AI_MODELS.TEXT_GENERATION_PRIMARY]: {
-    avgLatency: 2500, // ms
-    maxTokensPerSecond: 50,
-    costPer1kNeurons: 0.011,
-    reliability: 0.98,
-  },
-  [AI_MODELS.TEXT_GENERATION_ADVANCED]: {
-    avgLatency: 4500, // ms
-    maxTokensPerSecond: 35,
-    costPer1kNeurons: 0.011,
-    reliability: 0.99,
-  },
-  [AI_MODELS.EMBEDDINGS]: {
-    avgLatency: 500, // ms
-    dimensions: 1024,
-    costPer1kNeurons: 0.011,
-    reliability: 0.99,
-  },
-} as const;
 
 /**
  * Fallback chain if primary model fails
@@ -193,4 +131,3 @@ export const FALLBACK_MODELS = {
   [AI_MODELS.TEXT_GENERATION_ADVANCED]: AI_MODELS.TEXT_GENERATION_PRIMARY,
   [AI_MODELS.TEXT_GENERATION_PRIMARY]: AI_MODELS.TEXT_GENERATION_FAST,
 } as const;
-

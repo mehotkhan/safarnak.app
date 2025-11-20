@@ -24,6 +24,14 @@
     "host": "0.0.0.0",
   },
 
+  // Environment variables (for local development)
+  // Set GRAPHQL_URL to match your client's configuration
+  // Example: wrangler dev --var GRAPHQL_URL:http://192.168.1.51:8787/graphql
+  // Or set via .dev.vars file or environment variable
+  "vars": {
+    "GRAPHQL_URL": "http://192.168.1.51:8787/graphql"
+  },
+
   // Cron Triggers (run DO trending compaction periodically)
   "triggers": {
     "crons": ["*/10 * * * *"]

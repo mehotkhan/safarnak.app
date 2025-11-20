@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -14,7 +14,8 @@ import { EmptyState } from '@ui/feedback';
 import { FeedItem } from '@ui/cards';
 import { useTheme } from '@ui/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
-import { useGetFeedQuery, useFeedNewEventsSubscription, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation } from '@api';
+import { useGetFeedQuery, useFeedNewEventsSubscription, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation, GetFeedDocument } from '@api';
+import { client } from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useRefresh } from '@hooks/useRefresh';
 import { Dropdown } from '@ui/forms';
@@ -62,40 +63,12 @@ export default function HomeScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimeFilter]);
 
-  const { data, loading, error, refetch, fetchMore } = useGetFeedQuery({
-    variables: {
-      first: limit,
-      after: undefined,
-      filter: {
-        entityTypes: ['POST'] as any,
-        createdAtAfter: filterBounds.after,
-        createdAtBefore: filterBounds.before,
-      },
-    },
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-  } as any);
+  // Track if we've loaded cached data on mount
+  const hasLoadedCachedData = useRef(false);
 
-  // Reset list when filter changes and refetch
-  useEffect(() => {
-    setItems([]);
-    setEndCursor(undefined);
-    setHasNextPage(false);
-    refetch({
-      first: limit,
-      after: undefined,
-      filter: {
-        entityTypes: ['POST'] as any,
-        createdAtAfter: filterBounds.after,
-        createdAtBefore: filterBounds.before,
-      },
-    } as any);
-  }, [filterBounds.after, filterBounds.before, refetch]);
-
-  // Initialize list from connection
-  useEffect(() => {
-    const edges = (data as any)?.getFeed?.edges || [];
-    const initial = edges
+  // Helper function to transform feed edges to items
+  const transformFeedEdgesToItems = useCallback((edges: any[]) => {
+    return edges
       .map((e: any) => e?.node)
       .filter(Boolean)
       .filter((n: any) => n.entityType === 'POST')
@@ -121,12 +94,121 @@ export default function HomeScreen() {
           },
         };
       });
-    if (initial.length || (data as any)?.getFeed) {
-      setItems(initial);
-      setEndCursor((data as any)?.getFeed?.pageInfo?.endCursor);
-      setHasNextPage(Boolean((data as any)?.getFeed?.pageInfo?.hasNextPage));
+  }, []);
+
+  // Load cached data from Apollo cache on mount (offline-first)
+  useEffect(() => {
+    if (hasLoadedCachedData.current) return;
+    
+    try {
+      // Try to read cached feed data from Apollo cache
+      const cachedData = client.readQuery({
+        query: GetFeedDocument,
+        variables: {
+          first: limit,
+          after: undefined,
+          filter: {
+            entityTypes: ['POST'] as any,
+            createdAtAfter: filterBounds.after,
+            createdAtBefore: filterBounds.before,
+          },
+        },
+      });
+
+      if (cachedData?.getFeed?.edges) {
+        const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
+        if (cachedItems.length > 0) {
+          setItems(cachedItems);
+          setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
+          setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
+          hasLoadedCachedData.current = true;
+        }
+      }
+    } catch (_error) {
+      // Cache miss - that's okay, we'll fetch from network
+      if (__DEV__) {
+        console.debug('[Feed] No cached data found, will fetch from network');
+      }
     }
-  }, [data]);
+  }, [limit, filterBounds.after, filterBounds.before, transformFeedEdgesToItems]);
+
+  const { data, loading, error, refetch, fetchMore } = useGetFeedQuery({
+    variables: {
+      first: limit,
+      after: undefined,
+      filter: {
+        entityTypes: ['POST'] as any,
+        createdAtAfter: filterBounds.after,
+        createdAtBefore: filterBounds.before,
+      },
+    },
+    fetchPolicy: 'cache-first', // Prioritize cached data, then fetch from network
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true, // Notify when network fetch completes
+  } as any);
+
+  // Reset list when filter changes and refetch
+  useEffect(() => {
+    hasLoadedCachedData.current = false; // Reset flag when filter changes
+    setItems([]);
+    setEndCursor(undefined);
+    setHasNextPage(false);
+    
+    // Try to load cached data for new filter
+    try {
+      const cachedData = client.readQuery({
+        query: GetFeedDocument,
+        variables: {
+          first: limit,
+          after: undefined,
+          filter: {
+            entityTypes: ['POST'] as any,
+            createdAtAfter: filterBounds.after,
+            createdAtBefore: filterBounds.before,
+          },
+        },
+      });
+
+      if (cachedData?.getFeed?.edges) {
+        const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
+        if (cachedItems.length > 0) {
+          setItems(cachedItems);
+          setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
+          setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
+          hasLoadedCachedData.current = true;
+        }
+      }
+    } catch {
+      // Cache miss - will fetch from network
+    }
+    
+    refetch({
+      first: limit,
+      after: undefined,
+      filter: {
+        entityTypes: ['POST'] as any,
+        createdAtAfter: filterBounds.after,
+        createdAtBefore: filterBounds.before,
+      },
+    } as any);
+  }, [filterBounds.after, filterBounds.before, refetch, limit, transformFeedEdgesToItems]);
+
+  // Update list from query data (merges with cached data if available)
+  useEffect(() => {
+    if (!data?.getFeed) return;
+    
+    const edges = data.getFeed.edges || [];
+    const newItems = transformFeedEdgesToItems(edges);
+    
+    // Replace with new items from network (fresh data)
+    // This will merge with cached data that was already shown
+    if (newItems.length > 0) {
+      setItems(newItems);
+    }
+    
+    setEndCursor(data.getFeed.pageInfo?.endCursor || undefined);
+    setHasNextPage(Boolean(data.getFeed.pageInfo?.hasNextPage));
+  }, [data, transformFeedEdgesToItems]);
 
   // Subscribe and queue up to 50 new events; cap banner at 9+
   useFeedNewEventsSubscription({

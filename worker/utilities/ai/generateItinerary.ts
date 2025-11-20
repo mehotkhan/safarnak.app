@@ -32,7 +32,7 @@ export async function generateItineraryFromPreferences(
   // Step 1: Preference analysis
   const analysisPrompt = buildPreferenceAnalysisPrompt(input);
   const analysisConfig = getModelConfig('PREFERENCE_ANALYSIS');
-  const analysisResponse: any = await env.AI.run(analysisConfig.model, {
+  const analysisResponse: any = await env.AI.run(analysisConfig.model as any, {
     prompt: analysisPrompt,
     max_tokens: analysisConfig.maxTokens,
     temperature: analysisConfig.temperature,
@@ -61,7 +61,7 @@ export async function generateItineraryFromPreferences(
   // Step 2: Itinerary generation
   const itineraryPrompt = buildItineraryGenerationPrompt(input, analysis);
   const itineraryConfig = getModelConfig('ITINERARY_GENERATION');
-  const itineraryResponse: any = await env.AI.run(itineraryConfig.model, {
+  const itineraryResponse: any = await env.AI.run(itineraryConfig.model as any, {
     prompt: itineraryPrompt,
     max_tokens: itineraryConfig.maxTokens,
     temperature: itineraryConfig.temperature,

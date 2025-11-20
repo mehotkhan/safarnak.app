@@ -135,6 +135,13 @@ export type FollowUserMutationVariables = Exact<{
 
 export type FollowUserMutation = { followUser: boolean };
 
+export type GenerateAvatarMutationVariables = Exact<{
+  style?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type GenerateAvatarMutation = { generateAvatar: { id: string, name: string, username: string, avatar?: string | null, publicKey?: string | null, createdAt: string } };
+
 export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -1242,6 +1249,43 @@ export function useFollowUserMutation(baseOptions?: Apollo.MutationHookOptions<F
 export type FollowUserMutationHookResult = ReturnType<typeof useFollowUserMutation>;
 export type FollowUserMutationResult = Apollo.MutationResult<FollowUserMutation>;
 export type FollowUserMutationOptions = Apollo.BaseMutationOptions<FollowUserMutation, FollowUserMutationVariables>;
+export const GenerateAvatarDocument = gql`
+    mutation GenerateAvatar($style: String) {
+  generateAvatar(style: $style) {
+    id
+    name
+    username
+    avatar
+    publicKey
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useGenerateAvatarMutation__
+ *
+ * To run a mutation, you first call `useGenerateAvatarMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useGenerateAvatarMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [generateAvatarMutation, { data, loading, error }] = useGenerateAvatarMutation({
+ *   variables: {
+ *      style: // value for 'style'
+ *   },
+ * });
+ */
+export function useGenerateAvatarMutation(baseOptions?: Apollo.MutationHookOptions<GenerateAvatarMutation, GenerateAvatarMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<GenerateAvatarMutation, GenerateAvatarMutationVariables>(GenerateAvatarDocument, options);
+      }
+export type GenerateAvatarMutationHookResult = ReturnType<typeof useGenerateAvatarMutation>;
+export type GenerateAvatarMutationResult = Apollo.MutationResult<GenerateAvatarMutation>;
+export type GenerateAvatarMutationOptions = Apollo.BaseMutationOptions<GenerateAvatarMutation, GenerateAvatarMutationVariables>;
 export const GetAlertsDocument = gql`
     query GetAlerts {
   getAlerts {

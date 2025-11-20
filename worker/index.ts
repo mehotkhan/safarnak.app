@@ -400,7 +400,7 @@ const fetch = async (
   // Serve R2 avatars
   if (url.pathname.startsWith('/avatars/')) {
     try {
-      const r2Key = url.pathname.substring(1); // Remove leading '/'
+      const r2Key = url.pathname.substring(1); // Remove leading '/' (e.g., "avatars/user-xxx.png")
       const object = await env.R2.get(r2Key);
       
       if (!object) {
@@ -408,12 +408,11 @@ const fetch = async (
       }
 
       const headers = new Headers();
-      if (object.httpMetadata?.contentType) {
-        headers.set('content-type', object.httpMetadata.contentType);
-      }
-      headers.set('cache-control', 'public, max-age=31536000, immutable'); // Cache for 1 year
-      
-      // Handle CORS if needed
+      // Set content type from R2 metadata or default to image/jpeg
+      headers.set('content-type', object.httpMetadata?.contentType || 'image/jpeg');
+      // Cache for 1 year (immutable)
+      headers.set('cache-control', 'public, max-age=31536000, immutable');
+      // Handle CORS for cross-origin requests
       headers.set('access-control-allow-origin', '*');
       
       return new Response(object.body, { headers });

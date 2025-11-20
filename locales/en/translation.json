@@ -803,9 +803,12 @@
     "subscriptionSubtitle": "Manage your subscription plan",
     "edit": {
       "title": "Edit Profile",
+      "avatar": "Profile Photo",
       "changeAvatar": "Change Avatar",
       "changeAvatarMessage": "Photo picker coming soon!",
-      "changePhoto": "Change Photo",
+      "changePhoto": "Change",
+      "addPhoto": "Add",
+      "removePhoto": "Remove",
       "nameLabel": "Name",
       "namePlaceholder": "Your full name",
       "usernameLabel": "Username",
@@ -820,7 +823,13 @@
       "locationPlaceholder": "City, Country",
       "websiteLabel": "Website",
       "websitePlaceholder": "https://yourwebsite.com",
-      "successMessage": "Profile updated successfully!"
+      "successMessage": "Profile updated successfully!",
+      "generateAvatar": "AI Generate",
+      "generating": "Generating...",
+      "avatarGenerated": "Avatar generated successfully!",
+      "avatarGenerateError": "Failed to generate avatar. Please try again.",
+      "permissionDenied": "Permission to access media library is required to change avatar.",
+      "avatarError": "Failed to select image. Please try again."
     },
     "preferences": {
       "feed": {
