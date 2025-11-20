@@ -65,6 +65,7 @@ export default function HomeScreen() {
 
   // Track if we've loaded cached data on mount
   const hasLoadedCachedData = useRef(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   // Helper function to transform feed edges to items
   const transformFeedEdgesToItems = useCallback((edges: any[]) => {
@@ -96,40 +97,61 @@ export default function HomeScreen() {
       });
   }, []);
 
-  // Load cached data from Apollo cache on mount (offline-first)
+  // Load cached data from Apollo cache immediately on mount (offline-first)
   useEffect(() => {
     if (hasLoadedCachedData.current) return;
     
-    try {
-      // Try to read cached feed data from Apollo cache
-      const cachedData = client.readQuery({
-        query: GetFeedDocument,
-        variables: {
-          first: limit,
-          after: undefined,
-          filter: {
-            entityTypes: ['POST'] as any,
-            createdAtAfter: filterBounds.after,
-            createdAtBefore: filterBounds.before,
+    // Try to read cached feed data from Apollo cache
+    // Try multiple times in case cache is still being restored
+    let attempts = 0;
+    const maxAttempts = 5;
+    const attemptInterval = 100; // 100ms between attempts
+    
+    const tryLoadCache = () => {
+      attempts++;
+      try {
+        const cachedData = client.readQuery({
+          query: GetFeedDocument,
+          variables: {
+            first: limit,
+            after: undefined,
+            filter: {
+              entityTypes: ['POST'] as any,
+              createdAtAfter: filterBounds.after,
+              createdAtBefore: filterBounds.before,
+            },
           },
-        },
-      });
+        });
 
-      if (cachedData?.getFeed?.edges) {
-        const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
-        if (cachedItems.length > 0) {
-          setItems(cachedItems);
-          setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
-          setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
-          hasLoadedCachedData.current = true;
+        if (cachedData?.getFeed?.edges) {
+          const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
+          if (cachedItems.length > 0) {
+            setItems(cachedItems);
+            setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
+            setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
+            hasLoadedCachedData.current = true;
+            setInitialLoading(false); // We have cached data, don't show loading
+            return;
+          }
+        }
+      } catch (_error) {
+        // Cache miss or not ready yet
+      }
+      
+      // If we haven't found cached data and haven't exceeded max attempts, try again
+      if (attempts < maxAttempts) {
+        setTimeout(tryLoadCache, attemptInterval);
+      } else {
+        // No cached data found after all attempts
+        setInitialLoading(false);
+        if (__DEV__) {
+          console.debug('[Feed] No cached data found after attempts, will fetch from network');
         }
       }
-    } catch (_error) {
-      // Cache miss - that's okay, we'll fetch from network
-      if (__DEV__) {
-        console.debug('[Feed] No cached data found, will fetch from network');
-      }
-    }
+    };
+    
+    // Start trying immediately
+    tryLoadCache();
   }, [limit, filterBounds.after, filterBounds.before, transformFeedEdgesToItems]);
 
   const { data, loading, error, refetch, fetchMore } = useGetFeedQuery({
@@ -142,7 +164,7 @@ export default function HomeScreen() {
         createdAtBefore: filterBounds.before,
       },
     },
-    fetchPolicy: 'cache-first', // Prioritize cached data, then fetch from network
+    fetchPolicy: 'cache-and-network', // Show cached data immediately, then fetch fresh data
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true, // Notify when network fetch completes
   } as any);
@@ -153,8 +175,9 @@ export default function HomeScreen() {
     setItems([]);
     setEndCursor(undefined);
     setHasNextPage(false);
+    setInitialLoading(true);
     
-    // Try to load cached data for new filter
+    // Try to load cached data for new filter immediately
     try {
       const cachedData = client.readQuery({
         query: GetFeedDocument,
@@ -176,10 +199,16 @@ export default function HomeScreen() {
           setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
           setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
           hasLoadedCachedData.current = true;
+          setInitialLoading(false); // We have cached data, don't show loading
+        } else {
+          setInitialLoading(false);
         }
+      } else {
+        setInitialLoading(false);
       }
     } catch {
       // Cache miss - will fetch from network
+      setInitialLoading(false);
     }
     
     refetch({
@@ -204,6 +233,7 @@ export default function HomeScreen() {
     // This will merge with cached data that was already shown
     if (newItems.length > 0) {
       setItems(newItems);
+      setInitialLoading(false); // We have data now, don't show loading
     }
     
     setEndCursor(data.getFeed.pageInfo?.endCursor || undefined);
@@ -535,21 +565,23 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 4 }}
         ListEmptyComponent={
-          loading ? (
+          // Only show loading if we don't have any items AND we're still loading
+          // If we have items (cached or fresh), don't show loading spinner
+          items.length === 0 && (initialLoading || loading) ? (
             <LoadingState message="Loading..." className="py-16" />
-          ) : error ? (
+          ) : items.length === 0 && error ? (
             <ErrorState
               title={t('common.error')}
               message={String((error as any)?.message || 'Failed to load posts')}
               onRetry={() => refetch()}
             />
-          ) : (
+          ) : items.length === 0 ? (
             <EmptyState
               icon="newspaper-outline"
               title={t('feed.emptyState') || 'No posts yet'}
               description={t('feed.emptyDescription') || 'Be the first to share something!'}
             />
-          )
+          ) : null
         }
       />
 

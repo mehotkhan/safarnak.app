@@ -42,7 +42,8 @@ export async function generateAvatarImage(
   { firstName, lastName, style = 'professional' }: GenerateAvatarOptions
 ): Promise<{ imageBase64: string; mimeType: string }> {
 
-  const fullName = lastName ? `${firstName} ${lastName}` : firstName;
+  // Note: fullName is available for future use (e.g., personalizing avatar)
+  const _fullName = lastName ? `${firstName} ${lastName}` : firstName;
 
   const randomAnimal = pick(ANIMALS);
   const randomProp = pick(TRAVEL_PROPS);
