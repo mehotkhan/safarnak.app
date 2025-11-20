@@ -10,6 +10,7 @@ import {
   extractJSON,
   validateItinerary,
 } from './prompts';
+import { getModelConfig } from './models';
 
 export interface TripUpdateResult {
   updatedItinerary: any; // structured itinerary as returned from AI
@@ -35,11 +36,12 @@ export async function applyTripUpdateWithAI(
     // Step 1: Build prompt using existing prompt builder
     const prompt = buildTripUpdatePrompt(input);
     
-    // Step 2: Call Workers AI
-    const aiResponse: any = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+    // Step 2: Call Workers AI using model config
+    const updateConfig = getModelConfig('TRIP_UPDATES');
+    const aiResponse: any = await env.AI.run(updateConfig.model, {
       prompt,
-      max_tokens: 2048,
-      temperature: 0.5,
+      max_tokens: updateConfig.maxTokens,
+      temperature: updateConfig.temperature,
     });
     
     // Step 3: Extract text from response

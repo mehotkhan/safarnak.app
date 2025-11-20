@@ -257,7 +257,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
 
       const _duration = calculateDuration(startDate, endDate);
 
-      // Generate itinerary using AI with preferences
+      // Generate itinerary using AI with preferences and matched attractions/restaurants
       const { itinerary, analysis } = await generateItineraryFromPreferences(this.env, {
         destination: destination || 'Unknown',
         preferences: preferences || '',
@@ -267,6 +267,18 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         endDate,
         accommodation: undefined,
         userLocation,
+        // Pass real attractions and restaurants so AI can use actual place names
+        attractions: matchingResult.matchedAttractions.map((a: any) => ({
+          name: a.name,
+          type: a.type,
+          address: a.address,
+          description: a.description,
+        })),
+        restaurants: researchResult.destinationData.restaurants.slice(0, 15).map((r: any) => ({
+          name: r.name,
+          cuisine: r.cuisine,
+          address: r.address,
+        })),
       });
 
       // Extract waypoints from itinerary days
@@ -274,13 +286,54 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       let order = 1;
 
       // Convert itinerary days to our format and extract waypoints
+      // Track which attractions have been used to avoid duplicates
+      const usedAttractions = new Set<string>();
+      let attractionIndex = 0;
+      
       const days = (itinerary.days || []).map((day: any) => {
         const activities = (day.activities || []).map((activity: any) => {
-          // Try to extract coordinates from matched attractions
+          // Get activity text
           const activityText = typeof activity === 'string' ? activity : activity.title || activity;
-          const matched = matchingResult.matchedAttractions.find((a: any) => 
-            activityText.toLowerCase().includes(a.name.toLowerCase())
+          
+          // Try to find matching attraction by name
+          let matched = matchingResult.matchedAttractions.find((a: any) => 
+            activityText.toLowerCase().includes(a.name.toLowerCase()) ||
+            a.name.toLowerCase().includes(activityText.toLowerCase().split(':')[1]?.trim() || '')
           );
+
+          // If no match found and activity looks generic, try to assign a real attraction
+          if (!matched && activityText) {
+            const isGeneric = /(visit|explore|see|check out|جاذبه|بازدید|کاوش|مکان)/i.test(activityText) &&
+                             !matchingResult.matchedAttractions.some((a: any) => 
+                               activityText.toLowerCase().includes(a.name.toLowerCase())
+                             );
+            
+            if (isGeneric && attractionIndex < matchingResult.matchedAttractions.length) {
+              // Find next unused attraction
+              while (attractionIndex < matchingResult.matchedAttractions.length && 
+                     usedAttractions.has(matchingResult.matchedAttractions[attractionIndex].name)) {
+                attractionIndex++;
+              }
+              
+              if (attractionIndex < matchingResult.matchedAttractions.length) {
+                matched = matchingResult.matchedAttractions[attractionIndex];
+                usedAttractions.add(matched.name);
+                attractionIndex++;
+                
+                // Replace generic text with real attraction name
+                const timeMatch = activityText.match(/^(\d{2}:\d{2})/);
+                const time = timeMatch ? timeMatch[1] : '09:00';
+                const newActivityText = `${time}: Visit ${matched.name}${matched.address ? ` - ${matched.address}` : ''}`;
+                
+                // Update activity text
+                if (typeof activity === 'string') {
+                  activity = newActivityText;
+                } else {
+                  activity.title = newActivityText;
+                }
+              }
+            }
+          }
 
           if (matched && matched.coords) {
             waypoints.push({
@@ -289,6 +342,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
               label: matched.name,
               order: order++,
             });
+            usedAttractions.add(matched.name);
           }
 
           // Return activity in our format

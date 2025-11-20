@@ -12,6 +12,7 @@ import {
   validateItinerary,
   generateFallbackItinerary,
 } from './prompts';
+import { getModelConfig } from './models';
 
 export interface ItineraryGenerationResult {
   itinerary: any;
@@ -21,6 +22,8 @@ export interface ItineraryGenerationResult {
 /**
  * Generate itinerary from preferences
  * Handles preference analysis, itinerary generation, validation, and fallback
+ * @param env - Cloudflare environment
+ * @param input - Trip analysis input including preferences, dates, and optional attractions/restaurants
  */
 export async function generateItineraryFromPreferences(
   env: Env,
@@ -28,10 +31,11 @@ export async function generateItineraryFromPreferences(
 ): Promise<ItineraryGenerationResult> {
   // Step 1: Preference analysis
   const analysisPrompt = buildPreferenceAnalysisPrompt(input);
-  const analysisResponse: any = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+  const analysisConfig = getModelConfig('PREFERENCE_ANALYSIS');
+  const analysisResponse: any = await env.AI.run(analysisConfig.model, {
     prompt: analysisPrompt,
-    max_tokens: 512,
-    temperature: 0.7,
+    max_tokens: analysisConfig.maxTokens,
+    temperature: analysisConfig.temperature,
   });
   
   const analysisText = typeof analysisResponse === 'string' ? analysisResponse :
@@ -56,10 +60,11 @@ export async function generateItineraryFromPreferences(
   
   // Step 2: Itinerary generation
   const itineraryPrompt = buildItineraryGenerationPrompt(input, analysis);
-  const itineraryResponse: any = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+  const itineraryConfig = getModelConfig('ITINERARY_GENERATION');
+  const itineraryResponse: any = await env.AI.run(itineraryConfig.model, {
     prompt: itineraryPrompt,
-    max_tokens: 2048,
-    temperature: 0.8,
+    max_tokens: itineraryConfig.maxTokens,
+    temperature: itineraryConfig.temperature,
   });
   
   const itineraryText = typeof itineraryResponse === 'string' ? itineraryResponse :

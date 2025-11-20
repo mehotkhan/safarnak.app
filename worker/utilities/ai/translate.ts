@@ -4,6 +4,7 @@
  */
 
 import type { Env } from '../../types';
+import { AI_MODELS } from './models';
 
 /**
  * Translate itinerary if needed
@@ -23,8 +24,8 @@ export async function translateItineraryIfNeeded(
     // Convert itinerary to JSON string for batch translation
     const itineraryJson = JSON.stringify(itinerary, null, 2);
     
-    // Translate the entire JSON string
-    const translationResponse: any = await env.AI.run('@cf/meta/m2m100-1.2b', {
+    // Translate the entire JSON string using translation model
+    const translationResponse: any = await env.AI.run(AI_MODELS.TRANSLATION, {
       text: itineraryJson,
       source_lang: 'en',
       target_lang: lang,

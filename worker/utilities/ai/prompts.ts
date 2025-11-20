@@ -14,6 +14,8 @@ export interface TripAnalysisInput {
   endDate?: string;
   accommodation?: string;
   userLocation?: string;
+  attractions?: Array<{ name: string; type?: string; address?: string; description?: string }>;
+  restaurants?: Array<{ name: string; cuisine?: string; address?: string }>;
 }
 
 export interface TripUpdateInput {
@@ -50,10 +52,10 @@ Analyze the preferences and respond ONLY with valid JSON (no markdown, no explan
   "interests": ["nature", "food", "history", "adventure", "art", "nightlife"],
   "pacePreference": "slow|moderate|fast",
   "budgetLevel": "budget|moderate|luxury",
-  "mustSeeAttractions": ["جاذبه اول", "جاذبه دوم"],
+  "mustSeeAttractions": ["attraction name 1", "attraction name 2"],
   "dietaryNeeds": ["vegetarian", "halal", "none"],
   "transportPreferences": ["walking", "public_transport", "car", "bike"],
-  "reasoning": "تحلیل کوتاه دو جمله‌ای از خواسته‌های مسافر به فارسی که شامل اشاره به موقعیت فعلی کاربر نیز باشد"
+  "reasoning": "Brief two-sentence analysis of traveler preferences and starting location"
 }`;
 }
 
@@ -64,6 +66,24 @@ Analyze the preferences and respond ONLY with valid JSON (no markdown, no explan
 export function buildItineraryGenerationPrompt(input: TripAnalysisInput, analysis: any): string {
   const duration = calculateTripDuration(input.startDate, input.endDate);
   const destination = input.destination || 'the chosen destination';
+  
+  // Build list of real attractions to use
+  let attractionsList = '';
+  if (input.attractions && input.attractions.length > 0) {
+    attractionsList = '\n\nREAL ATTRACTIONS AVAILABLE (USE THESE EXACT NAMES):\n';
+    input.attractions.slice(0, 20).forEach((attr, idx) => {
+      attractionsList += `${idx + 1}. ${attr.name}${attr.type ? ` (${attr.type})` : ''}${attr.address ? ` - ${attr.address}` : ''}\n`;
+    });
+  }
+  
+  // Build list of real restaurants to use
+  let restaurantsList = '';
+  if (input.restaurants && input.restaurants.length > 0) {
+    restaurantsList = '\n\nREAL RESTAURANTS AVAILABLE (USE THESE EXACT NAMES):\n';
+    input.restaurants.slice(0, 15).forEach((rest, idx) => {
+      restaurantsList += `${idx + 1}. ${rest.name}${rest.cuisine ? ` (${rest.cuisine})` : ''}${rest.address ? ` - ${rest.address}` : ''}\n`;
+    });
+  }
   
   return `You are an expert travel planner with deep knowledge of ${destination}. Create EXACTLY a ${duration}-day trip itinerary.
 
@@ -76,21 +96,18 @@ TRIP DETAILS:
 - Interests: ${analysis?.interests?.join(', ') || 'general sightseeing'}
 - Dates: ${input.startDate || 'Flexible'} to ${input.endDate || 'Flexible'}
 - User Starting Location: ${input.userLocation || 'Unknown (latitude, longitude or city)'}
+${attractionsList}${restaurantsList}
 
 CRITICAL REQUIREMENTS:
-1. Use ONLY REAL place names from ${destination} (actual restaurants, museums, landmarks, streets) - NO generic placeholders
+1. Use ONLY the REAL place names listed above - DO NOT invent or use generic placeholders
 2. Generate EXACTLY ${duration} days (days array must have ${duration} items, numbered 1 to ${duration})
-3. Include specific addresses and real locations that exist in ${destination}
-4. Mention actual restaurant names, hotel names, and attraction names from ${destination}
+3. Include specific addresses from the lists above when available
+4. Mention actual restaurant names and attraction names from the lists provided
 5. Provide at LEAST 4 detailed activities per day with exact times (e.g., 09:00, 12:30, 15:00, 20:00)
-6. Each activity MUST mention a specific real place name - do NOT use generic descriptions
-7. Tailor arrival/departure times based on the user's starting location when possible
-8. DO NOT generate mock or placeholder data - only use places that actually exist in ${destination}
-
-Example of REAL places (use actual places like these):
-- For Paris: "برج ایفل"، "موزه لوور"، "رستوران Le Jules Verne"
-- For Tokyo: "معبد سنسوجی"، "بازار تسوکیجی"، "رستوران Ichiran"  
-- For Istanbul: "مسجد آبی"، "کاخ توپکاپی"، "رستوران Hamdi"
+6. Each activity MUST mention a specific real place name from the lists above - do NOT use generic descriptions
+7. Distribute attractions and restaurants across all days evenly
+8. Tailor arrival/departure times based on the user's starting location when possible
+9. DO NOT generate mock or placeholder data - only use places from the lists provided above
 
 Respond ONLY with valid JSON (no markdown, no explanation). The values can be in any language; a separate step will translate for the user:
 {
@@ -134,7 +151,7 @@ Destination: ${destination}
 Itinerary: ${JSON.stringify(itinerary.days || [])}
 Travel Style: ${analysis?.travelStyle || 'balanced'}
 Interests: ${analysis?.interests?.join(', ') || 'general'}
-Traveler Starting Location: ${userLocation || 'نامشخص (مختصات یا شهر)'}
+Traveler Starting Location: ${userLocation || 'Unknown (coordinates or city name)'}
 
 CRITICAL REQUIREMENTS:
 1. Use ONLY REAL place names that actually exist in ${destination}
@@ -143,23 +160,23 @@ CRITICAL REQUIREMENTS:
 4. Provide 3-5 recommendations per category minimum
 
 Examples of REAL places format:
-- Restaurant: "رستوران Le Jules Verne" (Paris), "رستوران Nusr-Et" (Istanbul)
-- Cafe: "کافه Central Perk" (actual cafe name), "کافه فلور" (Cafe de Flore)
-- Hotel: "هتل Ritz" (real hotel), "هتل Four Seasons" (chain hotel)
+- Restaurant: "Le Jules Verne" (Paris), "Nusr-Et" (Istanbul)
+- Cafe: "Central Perk" (actual cafe name), "Cafe de Flore" (Paris)
+- Hotel: "Ritz Hotel" (real hotel), "Four Seasons" (chain hotel)
 
 Respond ONLY with valid JSON (no markdown):
 {
   "restaurants": [
-    {"name": "نام واقعی رستوران", "cuisine": "نوع غذا", "priceRange": "$$", "bestFor": "lunch|dinner", "reason": "دلیل توصیه - چرا این رستوران خوب است"},
-    {"name": "نام واقعی رستوران دوم", "cuisine": "نوع غذا", "priceRange": "$$$", "bestFor": "dinner", "reason": "دلیل توصیه"}
+    {"name": "Real restaurant name", "cuisine": "Cuisine type", "priceRange": "$$", "bestFor": "lunch|dinner", "reason": "Why this restaurant is recommended"},
+    {"name": "Second real restaurant name", "cuisine": "Cuisine type", "priceRange": "$$$", "bestFor": "dinner", "reason": "Recommendation reason"}
   ],
   "cafes": [
-    {"name": "نام واقعی کافه", "specialty": "قهوه/شیرینی معروف", "location": "نام واقعی محله", "bestTime": "morning|afternoon"},
-    {"name": "نام واقعی کافه دوم", "specialty": "تخصص", "location": "محله", "bestTime": "afternoon"}
+    {"name": "Real cafe name", "specialty": "Famous coffee/pastry", "location": "Real neighborhood name", "bestTime": "morning|afternoon"},
+    {"name": "Second real cafe name", "specialty": "Specialty", "location": "Neighborhood", "bestTime": "afternoon"}
   ],
   "accommodations": [
-    {"name": "نام واقعی هتل", "type": "hotel|hostel|airbnb", "pricePerNight": 100, "neighborhood": "نام واقعی محله", "reason": "دلیل توصیه"},
-    {"name": "نام واقعی هتل دوم", "type": "hotel", "pricePerNight": 150, "neighborhood": "محله", "reason": "دلیل"}
+    {"name": "Real hotel name", "type": "hotel|hostel|airbnb", "pricePerNight": 100, "neighborhood": "Real neighborhood name", "reason": "Why this accommodation is recommended"},
+    {"name": "Second real hotel name", "type": "hotel", "pricePerNight": 150, "neighborhood": "Neighborhood", "reason": "Reason"}
   ],
   "transportation": {
     "bestOption": "public_transport|taxi|walking|bike",
@@ -188,7 +205,7 @@ CURRENT TRIP DETAILS:
 - Travelers: ${input.currentTrip.travelers || 1}
 - Current Days: ${currentDays}
 - Preferences: ${input.currentTrip.preferences || 'None'}
-- User Location (starting point): ${input.userLocation || 'نامشخص (مختصات یا شهر)'}
+- User Location (starting point): ${input.userLocation || 'Unknown (coordinates or city name)'}
 - Current Itinerary: ${JSON.stringify(input.currentTrip.itinerary || [])}
 
 USER'S UPDATE REQUEST: "${input.userMessage}"
@@ -202,9 +219,9 @@ CRITICAL REQUIREMENTS:
 6. Suggest realistic transitions considering user's starting location when relevant
 
 Example of REAL places:
-- Paris: "برج ایفل"، "موزه لوور"، "رستوران Le Jules Verne"
-- Tokyo: "معبد سنسوجی"، "بازار تسوکیجی"، "رستوران Ichiran"  
-- Istanbul: "مسجد آبی"، "کاخ توپکاپی"، "رستوران Hamdi"
+- Paris: "Eiffel Tower", "Louvre Museum", "Le Jules Verne Restaurant"
+- Tokyo: "Senso-ji Temple", "Tsukiji Market", "Ichiran Restaurant"
+- Istanbul: "Blue Mosque", "Topkapi Palace", "Hamdi Restaurant"
 
 Respond ONLY with valid JSON (no markdown). The values can be in any language; a separate step will translate for the user:
 {
@@ -327,24 +344,24 @@ export function validateItinerary(data: any): boolean {
  * Generate fallback itinerary if AI fails
  */
 export function generateFallbackItinerary(input: TripAnalysisInput): any {
-  const destination = input.destination || 'مقصد شما';
+  const destination = input.destination || 'Your Destination';
   const duration = calculateTripDuration(input.startDate, input.endDate);
   
   const days = [];
   for (let i = 1; i <= Math.min(duration, 7); i++) {
     days.push({
       day: i,
-      title: i === 1 ? 'ورود و کاوش' : i === duration ? 'خروج' : `فعالیت‌های روز ${i}`,
+      title: i === 1 ? 'Arrival and Exploration' : i === duration ? 'Departure' : `Day ${i} Activities`,
       activities: [
-        `صبح: بازدید از جاذبه‌های اصلی ${destination}`,
-        `بعدازظهر: بازدید از بازارهای محلی و مکان‌های فرهنگی`,
-        `شب: لذت بردن از غذاهای محلی در رستوران‌های پیشنهادی`
+        `09:00: Visit main attractions in ${destination}`,
+        `14:00: Explore local markets and cultural sites`,
+        `19:00: Enjoy local cuisine at recommended restaurants`
       ]
     });
   }
   
   return {
-    title: `سفر به ${destination}`,
+    title: `Trip to ${destination}`,
     destination,
     days,
     estimatedBudget: {
@@ -354,9 +371,9 @@ export function generateFallbackItinerary(input: TripAnalysisInput): any {
       transport: Math.round((input.budget || 1000) * 0.1),
       total: input.budget || 1000
     },
-    aiReasoning: `یک برنامه سفر متعادل ${duration} روزه برای ${destination} بر اساس ترجیحات شما ایجاد شد.`,
-    highlights: ['غذاهای محلی', 'تجربیات فرهنگی', 'جاذبه‌های اصلی'],
-    tips: ['جاذبه‌ها را از قبل رزرو کنید', 'غذاهای محلی را امتحان کنید', 'عبارات ابتدایی محلی را یاد بگیرید']
+    aiReasoning: `A balanced ${duration}-day trip plan for ${destination} has been created based on your preferences.`,
+    highlights: ['Local cuisine', 'Cultural experiences', 'Main attractions'],
+    tips: ['Book attractions in advance', 'Try local foods', 'Learn basic local phrases']
   };
 }
 
