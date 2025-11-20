@@ -25,6 +25,14 @@ import { applyTripUpdateWithAI } from '../utilities/ai/updateTrip';
 import { translateItineraryIfNeeded } from '../utilities/ai/translate';
 import type { TripUpdateInput } from '../utilities/ai/prompts';
 import type { TripUpdateResult } from '../utilities/ai/updateTrip';
+import {
+  calculateDurationFromDates,
+  buildBaseDaysForTranslation,
+  normalizeDaysForDb,
+  extractWaypointsFromDays,
+  normalizeRawDaysToRich,
+} from '../utilities/trip/itineraryShared';
+import type { RichDay } from '../utilities/trip/types';
 
 type Modifications = TripUpdateResult['modifications'];
 
@@ -79,8 +87,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         id: `${tripId}-update-step-1`,
         tripId,
         type: 'workflow',
-        title: 'در حال پردازش درخواست شما',
-        message: `در حال بررسی درخواست شما: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"`,
+        title: 'Processing Your Request',
+        message: `Reviewing your request: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"`,
         step: 1,
         totalSteps: 7,
         status: 'processing',
@@ -104,8 +112,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           id: `${tripId}-update-step-2`,
           tripId,
           type: 'workflow',
-          title: 'ثبت بازخورد شما',
-          message: 'در حال ذخیره و آماده‌سازی داده‌ها برای بازطراحی برنامه...',
+          title: 'Saving Your Feedback',
+          message: 'Saving and preparing data for itinerary redesign...',
           step: 2,
           totalSteps: 7,
           status: 'processing',
@@ -136,8 +144,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           id: `${tripId}-update-step-3`,
           tripId,
           type: 'workflow',
-          title: 'تحقیق مجدد مقصد',
-          message: `در حال به‌روزرسانی اطلاعات مقصد: ${destination} ...`,
+          title: 'Re-researching Destination',
+          message: `Updating destination information: ${destination}...`,
           step: 3,
           totalSteps: 7,
           status: 'processing',
@@ -160,8 +168,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           id: `${tripId}-update-step-4`,
           tripId,
           type: 'workflow',
-          title: 'بازطراحی با هوش مصنوعی',
-          message: 'در حال بازطراحی برنامه سفر براساس بازخورد شما...',
+          title: 'AI Redesign',
+          message: 'Redesigning itinerary based on your feedback...',
           step: 4,
           totalSteps: 7,
           status: 'processing',
@@ -194,8 +202,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
             id: `${tripId}-update-step-4-fallback`,
             tripId,
             type: 'workflow',
-            title: 'توجه',
-            message: 'نتوانستیم تغییرات را به طور کامل اعمال کنیم. برنامه فعلی حفظ شد.',
+            title: 'Notice',
+            message: 'Could not apply changes completely. Current itinerary preserved.',
             step: 4,
             totalSteps: 7,
             status: 'processing',
@@ -204,21 +212,24 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           }
         }, this.ctx);
 
-      return {
-        success: false,
-        itinerary: ctxResult.itinerary,
-        modifications: {} as Modifications,
-        aiReasoning: `User feedback received but could not apply changes fully: ${userMessage.substring(0, 100)}`,
-      };
+        return {
+          success: false,
+          itinerary: ctxResult.itinerary,
+          modifications: {} as Modifications,
+          aiReasoning: `User feedback received but could not apply changes fully: ${userMessage.substring(0, 100)}`,
+        };
       }
+
+      // Ensure itinerary is RichDay[] format (robust normalizer)
+      const updatedDays: RichDay[] = normalizeRawDaysToRich(aiResult.updatedItinerary || []);
 
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
           id: `${tripId}-update-step-4-complete`,
           tripId,
           type: 'workflow',
-          title: 'بازطراحی انجام شد',
-          message: 'برنامه سفر براساس بازخورد شما به‌روزرسانی شد',
+          title: 'Redesign Complete',
+          message: 'Itinerary updated based on your feedback',
           step: 4,
           totalSteps: 7,
           status: 'processing',
@@ -229,7 +240,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
 
       return {
         success: true,
-        itinerary: aiResult.updatedItinerary,
+        itinerary: updatedDays,
         modifications: aiResult.modifications,
         aiReasoning: aiResult.aiReasoning,
         understood: aiResult.understood,
@@ -242,8 +253,11 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
     const _validationResult = await step.do('Step 5: Validate', async () => {
       const modifications: Modifications = updateResult.modifications || {};
       const destination = modifications.destination ?? ctxResult.trip.destination ?? 'Unknown';
-      const duration = Array.isArray(updateResult.itinerary) ? updateResult.itinerary.length : 
-                      (Array.isArray(ctxResult.itinerary) ? ctxResult.itinerary.length : 7);
+      // Use duration helper if dates available, otherwise use itinerary length
+      const duration = ctxResult.trip.startDate && ctxResult.trip.endDate
+        ? calculateDurationFromDates(ctxResult.trip.startDate, ctxResult.trip.endDate)
+        : (Array.isArray(updateResult.itinerary) ? updateResult.itinerary.length : 
+           (Array.isArray(ctxResult.itinerary) ? ctxResult.itinerary.length : 7));
       const budget = modifications.budget ?? ctxResult.trip.budget ?? undefined;
       const travelers = modifications.travelers ?? ctxResult.trip.travelers ?? 1;
       const preferences = modifications.preferences ?? 
@@ -264,7 +278,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
             id: `${tripId}-update-step-5-warn`,
             tripId,
             type: 'workflow',
-            title: 'هشدار اعتبارسنجی',
+            title: 'Validation Warning',
             message: validation.warnings.join(' • '),
             step: 5,
             totalSteps: 7,
@@ -282,14 +296,16 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
     // STEP 6: Translation (Batch)
     // ========================================================================
     const translationResult = await step.do('Step 6: Translation', async () => {
+      const baseDays = buildBaseDaysForTranslation(updateResult.itinerary as RichDay[]);
+
       if (!lang || lang === 'en') {
         await publishNotification(this.env, 'TRIP_UPDATE', {
           tripUpdates: {
             id: `${tripId}-update-step-6-skip`,
             tripId,
             type: 'workflow',
-            title: 'ترجمه نیاز نیست',
-            message: 'زبان انگلیسی - بدون ترجمه',
+            title: 'Translation Not Needed',
+            message: 'English language - no translation needed',
             step: 6,
             totalSteps: 7,
             status: 'processing',
@@ -297,7 +313,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
             createdAt: new Date().toISOString(),
           }
         }, this.ctx);
-        return { itinerary: updateResult.itinerary };
+        return { itinerary: baseDays };
       }
 
       await publishNotification(this.env, 'TRIP_UPDATE', {
@@ -305,8 +321,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           id: `${tripId}-update-step-6`,
           tripId,
           type: 'workflow',
-          title: 'ترجمه',
-          message: `ترجمه برنامه سفر به ${lang}...`,
+          title: 'Translation',
+          message: `Translating itinerary to ${lang}...`,
           step: 6,
           totalSteps: 7,
           status: 'processing',
@@ -315,20 +331,26 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         }
       }, this.ctx);
 
-      // Batch translate entire itinerary
-      const translatedItinerary = await translateItineraryIfNeeded(
+      const translated = await translateItineraryIfNeeded(
         this.env,
-        { days: updateResult.itinerary },
+        { days: baseDays },
         lang
       );
+
+      const translatedDays: RichDay[] = (translated.days || baseDays).map((day: any) => ({
+        day: day.day || 1,
+        title: day.title || `Day ${day.day || 1}`,
+        activities: day.activities || [],
+        estimatedCost: day.estimatedCost || 0,
+      }));
 
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
           id: `${tripId}-update-step-6-complete`,
           tripId,
           type: 'workflow',
-          title: 'ترجمه کامل شد',
-          message: 'برنامه سفر به زبان شما ترجمه شد',
+          title: 'Translation Complete',
+          message: 'Itinerary has been translated to your language',
           step: 6,
           totalSteps: 7,
           status: 'processing',
@@ -337,7 +359,7 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         }
       }, this.ctx);
 
-      return { itinerary: translatedItinerary.days || updateResult.itinerary };
+      return { itinerary: translatedDays };
     });
 
     // ========================================================================
@@ -348,55 +370,21 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
       const modifications: Modifications = updateResult.modifications || {};
       const destination = modifications.destination ?? ctxResult.trip.destination ?? 'Unknown';
 
-      // Normalize itinerary to DB format
-      const normalizedDays = (translationResult.itinerary || []).map((d: any) => {
-        // Handle both string and object activity formats
-        const activities = (d.activities || []).map((a: any) => {
-          if (typeof a === 'string') return a;
-          
-          const parts: string[] = [];
-          if (a?.time) parts.push(String(a.time));
-          if (a?.title) parts.push(String(a.title));
-          if (a?.location) parts.push(`@ ${String(a.location)}`);
-          
-          return parts.length > 0 ? parts.join(' - ') : 'Activity';
-        });
+      // Normalize itinerary to DB format using shared helper
+      const richDays: RichDay[] = (translationResult.itinerary || []).map((d: any) => ({
+        day: d.day || 1,
+        title: d.title || `Day ${d.day || 1}`,
+        activities: d.activities || [],
+        estimatedCost: d.estimatedCost || 0,
+      }));
 
-        return {
-          day: d.day || 1,
-          title: d.title || `Day ${d.day || 1}`,
-          activities,
-        };
-      });
+      const dbDays = normalizeDaysForDb(richDays);
 
       // Get coordinates (use destination center as fallback)
       const center = await geocodeDestinationCenter(destination) || { latitude: 0, longitude: 0 };
 
-      // Extract waypoints from itinerary
-      const waypoints: any[] = [];
-      let order = 1;
-      for (const day of translationResult.itinerary || []) {
-        for (const activity of day.activities || []) {
-          if (typeof activity === 'object' && activity.coords) {
-            waypoints.push({
-              latitude: activity.coords.lat,
-              longitude: activity.coords.lon,
-              label: activity.location || activity.title,
-              order: order++,
-            });
-          }
-        }
-      }
-
-      // If no waypoints, add destination center
-      if (waypoints.length === 0) {
-        waypoints.push({
-          latitude: center.latitude,
-          longitude: center.longitude,
-          label: destination,
-          order: 1,
-        });
-      }
+      // Extract waypoints using shared helper
+      const waypoints = extractWaypointsFromDays(richDays, center, destination);
 
       // Build update data
       const updateData: any = {
@@ -405,10 +393,10 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         travelers: modifications.travelers ?? ctxResult.trip.travelers,
         preferences: modifications.preferences ?? ctxResult.trip.preferences,
         aiReasoning: updateResult.aiReasoning || `User feedback applied: ${userMessage.substring(0, 120)}`,
-        itinerary: JSON.stringify(normalizedDays),
+        itinerary: JSON.stringify(dbDays),
         coordinates: JSON.stringify(center),
         waypoints: JSON.stringify(waypoints),
-        status: 'ready',
+        status: 'draft',
         updatedAt: new Date().toISOString(),
       };
 
@@ -444,14 +432,14 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
           id: `${tripId}-update-step-7`,
           tripId,
           type: 'workflow',
-          title: '✅ سفر به‌روزرسانی شد!',
-          message: `بازطراحی برنامه سفر براساس بازخورد شما انجام شد.`,
+          title: '✅ Trip Updated!',
+          message: `Itinerary redesigned based on your feedback.`,
           step: 7,
           totalSteps: 7,
           status: 'completed',
           data: JSON.stringify({
             status: 'completed',
-            days: normalizedDays.length,
+            days: dbDays.length,
             waypoints: waypoints.length,
             success: updateResult.success,
           }),
