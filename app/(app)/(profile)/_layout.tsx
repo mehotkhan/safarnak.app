@@ -15,6 +15,12 @@ export default function ProfileLayout() {
           headerShown: false,
         }}
       />
+      <Stack.Screen
+        name="edit"
+        options={{
+          title: t('profile.edit.title'),
+        }}
+      />
       <Stack.Screen 
         name="saved" 
         options={{

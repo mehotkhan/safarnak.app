@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
   View,
-  ScrollView,
   TouchableOpacity,
   Image,
   FlatList,
@@ -12,6 +11,7 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
 import { useTheme } from '@ui/context';
+import { ShareableTabs } from '@ui/layout/ShareableTabs';
 import Colors from '@constants/Colors';
 import { useGetBookmarksQuery } from '@api';
 import { useAppSelector } from '@state/hooks';
@@ -69,94 +69,15 @@ export default function BookmarksScreen() {
       />
 
       {/* Tabs */}
-      <View className="px-4 pt-4 pb-2">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row">
-          <TouchableOpacity
-            onPress={() => setSelectedTab('posts')}
-            className={`px-4 py-2.5 rounded-full mr-2 ${
-              selectedTab === 'posts'
-                ? 'bg-primary'
-                : 'bg-gray-100 dark:bg-neutral-800'
-            }`}
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center">
-              <Ionicons
-                name="document-text-outline"
-                size={16}
-                color={selectedTab === 'posts' ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
-                style={{ marginRight: 6 }}
-              />
-              <CustomText
-                weight="medium"
-                className={`text-sm ${
-                  selectedTab === 'posts'
-                    ? 'text-white'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {t('profile.bookmarks.posts', { defaultValue: 'Posts' })}
-              </CustomText>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedTab('tours')}
-            className={`px-4 py-2.5 rounded-full mr-2 ${
-              selectedTab === 'tours'
-                ? 'bg-primary'
-                : 'bg-gray-100 dark:bg-neutral-800'
-            }`}
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center">
-              <Ionicons
-                name="map-outline"
-                size={16}
-                color={selectedTab === 'tours' ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
-                style={{ marginRight: 6 }}
-              />
-              <CustomText
-                weight="medium"
-                className={`text-sm ${
-                  selectedTab === 'tours'
-                    ? 'text-white'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {t('profile.bookmarks.tours', { defaultValue: 'Tours' })}
-              </CustomText>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setSelectedTab('places')}
-            className={`px-4 py-2.5 rounded-full ${
-              selectedTab === 'places'
-                ? 'bg-primary'
-                : 'bg-gray-100 dark:bg-neutral-800'
-            }`}
-            activeOpacity={0.7}
-          >
-            <View className="flex-row items-center">
-              <Ionicons
-                name="location-outline"
-                size={16}
-                color={selectedTab === 'places' ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
-                style={{ marginRight: 6 }}
-              />
-              <CustomText
-                weight="medium"
-                className={`text-sm ${
-                  selectedTab === 'places'
-                    ? 'text-white'
-                    : 'text-gray-600 dark:text-gray-400'
-                }`}
-              >
-                {t('profile.bookmarks.places', { defaultValue: 'Places' })}
-              </CustomText>
-            </View>
-          </TouchableOpacity>
-        </ScrollView>
-      </View>
+      <ShareableTabs
+        tabs={[
+          { id: 'posts', label: 'Posts', translationKey: 'profile.bookmarks.posts' },
+          { id: 'tours', label: 'Tours', translationKey: 'profile.bookmarks.tours' },
+          { id: 'places', label: 'Places', translationKey: 'profile.bookmarks.places' },
+        ]}
+        activeTab={selectedTab}
+        onTabChange={(tabId) => setSelectedTab(tabId as 'posts' | 'tours' | 'places')}
+      />
 
       {/* Content */}
       {loading ? (

@@ -12,6 +12,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useAppSelector } from '@state/hooks';
 import Colors from '@constants/Colors';
 import { CustomText } from '@ui/display';
+import { ShareableTabs } from '@ui/layout/ShareableTabs';
 
 type TravelHistoryType = 'trip' | 'tour';
 
@@ -107,10 +108,10 @@ export default function HistoryScreen() {
       ? mockTravelHistory
       : mockTravelHistory.filter(item => item.type === selectedFilter);
 
-  const filters = [
-    { id: 'all' as const, icon: 'time-outline', label: t('explore.categories.all') },
-    { id: 'trip' as const, icon: 'airplane-outline', label: t('explore.categories.trips') },
-    { id: 'tour' as const, icon: 'flag-outline', label: t('explore.categories.tours') },
+  const filterTabs = [
+    { id: 'all', label: 'All', translationKey: 'explore.categories.all' },
+    { id: 'trip', label: 'Trips', translationKey: 'explore.categories.trips' },
+    { id: 'tour', label: 'Tours', translationKey: 'explore.categories.tours' },
   ];
 
   const handleOpenItem = (item: TravelHistoryItem) => {
@@ -131,47 +132,11 @@ export default function HistoryScreen() {
       />
 
       {/* Filter tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className='border-b'
-        style={{
-          borderBottomColor: isDark ? '#333' : '#e5e7eb',
-          maxHeight: 56,
-        }}
-      >
-        <View className='flex-row px-4 py-2 gap-2'>
-          {filters.map(filter => {
-            const isActive = selectedFilter === filter.id;
-            return (
-              <TouchableOpacity
-                key={filter.id}
-                onPress={() => setSelectedFilter(filter.id)}
-                className='px-4 py-2 rounded-full flex-row items-center'
-                style={{
-                  backgroundColor: isActive ? colors.primary : isDark ? '#374151' : '#f3f4f6',
-                }}
-                activeOpacity={0.7}
-              >
-                <Ionicons
-                  name={filter.icon as any}
-                  size={16}
-                  color={isActive ? '#fff' : isDark ? '#9ca3af' : '#6b7280'}
-                />
-                <CustomText
-                  weight='medium'
-                  className='text-sm ml-2'
-                  style={{
-                    color: isActive ? '#fff' : colors.text,
-                  }}
-                >
-                  {filter.label}
-                </CustomText>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </ScrollView>
+      <ShareableTabs
+        tabs={filterTabs}
+        activeTab={selectedFilter}
+        onTabChange={(tabId) => setSelectedFilter(tabId as 'all' | TravelHistoryType)}
+      />
 
       {/* History list */}
       <ScrollView

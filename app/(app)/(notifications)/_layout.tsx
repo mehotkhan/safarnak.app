@@ -24,6 +24,18 @@ export default function NotificationsLayout() {
           presentation: 'modal',
         }}
       />
+      <Stack.Screen
+        name='messages'
+        options={{
+          title: t('messages.title', { defaultValue: 'Messages' }),
+        }}
+      />
+      <Stack.Screen
+        name='messages/[id]'
+        options={{
+          title: t('messages.conversationTitle', { defaultValue: 'Conversation' }),
+        }}
+      />
     </Stack>
   );
 }

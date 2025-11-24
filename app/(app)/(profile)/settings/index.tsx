@@ -57,12 +57,12 @@ export default function GeneralSettingsScreen() {
           <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
             {/* Language */}
             <View className="flex-row items-center justify-between py-3 border-b border-gray-200 dark:border-neutral-800">
-              <View className="flex-row items-center">
+                    <View className="flex-row items-center">
                 <View
                   className="w-9 h-9 rounded-full items-center justify-center mr-3"
                   style={{ backgroundColor: isDark ? '#f59e0b20' : '#f59e0b20' }}
                 >
-                  <Ionicons name="language-outline" size={18} color={isDark ? '#fbbf24' : '#f59e0b'} />
+                        <Ionicons name="language-outline" size={18} color={isDark ? '#fbbf24' : '#f59e0b'} />
                 </View>
                 <CustomText weight="medium" className="text-sm text-black dark:text-white">
                   {t('profile.language', { defaultValue: 'Language' })}
@@ -73,18 +73,18 @@ export default function GeneralSettingsScreen() {
 
             {/* Theme */}
             <View className="flex-row items-center justify-between py-3">
-              <View className="flex-row items-center">
+                    <View className="flex-row items-center">
                 <View
                   className="w-9 h-9 rounded-full items-center justify-center mr-3"
                   style={{ backgroundColor: isDark ? '#10b98120' : '#10b98120' }}
                 >
-                  <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? '#10b981' : '#f59e0b'} />
-                </View>
-                <CustomText weight="medium" className="text-sm text-black dark:text-white">
-                  {t('profile.theme')}
-                </CustomText>
-              </View>
-              <ThemeToggle showLabel={false} />
+                        <Ionicons name={isDark ? 'moon' : 'sunny'} size={18} color={isDark ? '#10b981' : '#f59e0b'} />
+                      </View>
+                      <CustomText weight="medium" className="text-sm text-black dark:text-white">
+                        {t('profile.theme')}
+                      </CustomText>
+                    </View>
+                    <ThemeToggle showLabel={false} />
             </View>
           </View>
         </View>

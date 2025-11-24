@@ -5,15 +5,17 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Image,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAppSelector } from '@state/hooks';
+import { ShareableTabs } from '@ui/layout/ShareableTabs';
 import Colors from '@constants/Colors';
 
-// Mock notification types
-type NotificationType = 'social' | 'trip' | 'tour' | 'system';
+// Notification types including messages
+type NotificationType = 'social' | 'trip' | 'tour' | 'system' | 'message';
 
 interface Notification {
   id: string;
@@ -22,58 +24,88 @@ interface Notification {
   message: string;
   timestamp: Date;
   read: boolean;
+  avatar?: string;
+  unreadCount?: number;
   actionData?: any;
 }
 
-// Mock data for notifications
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    type: 'social',
-    title: 'Sarah Johnson used your trip',
-    message: 'Your Tokyo Adventure trip was used for planning',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    read: false,
-  },
-  {
-    id: '2',
-    type: 'social',
-    title: 'Mike Chen commented on your post',
-    message: 'Great photos from your mountain trip!',
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    read: false,
-  },
-  {
-    id: '3',
-    type: 'tour',
-    title: 'New member joined your tour',
-    message: 'Emma Wilson joined "Swiss Alps Adventure"',
-    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    read: true,
-  },
-  {
-    id: '4',
-    type: 'trip',
-    title: 'AI has a suggestion for your trip',
-    message: 'Better route found for your Paris trip',
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    read: true,
-  },
-  {
-    id: '5',
-    type: 'system',
-    title: 'Weather alert',
-    message: 'Rain expected during your Barcelona trip dates',
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-    read: true,
-  },
-];
+// Create unified mock data (notifications + messages)
+const createMockData = (t: any): Notification[] => {
+  const notifications: Notification[] = [
+    {
+      id: '1',
+      type: 'social',
+      title: 'Sarah Johnson used your trip',
+      message: 'Your Tokyo Adventure trip was used for planning',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      read: false,
+    },
+    {
+      id: '2',
+      type: 'social',
+      title: 'Mike Chen commented on your post',
+      message: 'Great photos from your mountain trip!',
+      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+      read: false,
+    },
+    {
+      id: '3',
+      type: 'tour',
+      title: 'New member joined your tour',
+      message: 'Emma Wilson joined "Swiss Alps Adventure"',
+      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      read: true,
+    },
+    {
+      id: '4',
+      type: 'trip',
+      title: 'AI has a suggestion for your trip',
+      message: 'Better route found for your Paris trip',
+      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      read: true,
+    },
+    {
+      id: '5',
+      type: 'system',
+      title: 'Weather alert',
+      message: 'Rain expected during your Barcelona trip dates',
+      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      read: true,
+    },
+  ];
+
+  // Convert messages to notification format
+  const messages: Notification[] = [
+    {
+      id: 'msg-1',
+      type: 'message',
+      title: t('messages.mockUsers.sarah.name', { defaultValue: 'Sarah Johnson' }),
+      message: t('messages.mockChat1.lastMessage', { defaultValue: 'Hey! How was your trip to Tokyo?' }),
+      timestamp: new Date('2025-11-20T10:30:00Z'),
+      read: false,
+      avatar: 'https://picsum.photos/seed/sarah-chat/100/100',
+      unreadCount: 2,
+    },
+    {
+      id: 'msg-2',
+      type: 'message',
+      title: t('messages.mockUsers.mike.name', { defaultValue: 'Mike Chen' }),
+      message: t('messages.mockChat2.lastMessage', { defaultValue: 'Great photos from your mountain trip!' }),
+      timestamp: new Date('2025-11-20T09:15:00Z'),
+      read: true,
+      avatar: 'https://picsum.photos/seed/mike-chat/100/100',
+      unreadCount: 0,
+    },
+  ];
+
+  return [...messages, ...notifications].sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+};
 
 export default function NotificationsScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const isDark = useAppSelector(state => state.theme.isDark);
-  const [notifications, setNotifications] = useState(mockNotifications);
+  const [allItems, setAllItems] = useState(() => createMockData(t));
   const [refreshing, setRefreshing] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<NotificationType | 'all'>('all');
 
@@ -97,6 +129,8 @@ export default function NotificationsScreen() {
         return 'flag';
       case 'system':
         return 'settings';
+      case 'message':
+        return 'chatbubble';
       default:
         return 'notifications';
     }
@@ -112,6 +146,8 @@ export default function NotificationsScreen() {
         return '#f59e0b';
       case 'system':
         return '#6366f1';
+      case 'message':
+        return '#8b5cf6';
       default:
         return colors.primary;
     }
@@ -132,68 +168,37 @@ export default function NotificationsScreen() {
     }
   };
 
-  const filteredNotifications = selectedFilter === 'all' 
-    ? notifications 
-    : notifications.filter(n => n.type === selectedFilter);
+  const filteredItems = selectedFilter === 'all' 
+    ? allItems 
+    : allItems.filter(item => item.type === selectedFilter);
 
-  const filters: Array<{ key: NotificationType | 'all'; label: string }> = [
-    { key: 'all', label: t('explore.categories.all') },
-    { key: 'social', label: t('notifications.categories.social') },
-    { key: 'trip', label: t('notifications.categories.trip') },
-    { key: 'tour', label: t('notifications.categories.tour') },
-    { key: 'system', label: t('notifications.categories.system') },
+  const filterTabs = [
+    { id: 'all', label: 'All', translationKey: 'explore.categories.all' },
+    { id: 'message', label: 'Messages', translationKey: 'notifications.categories.messages' },
+    { id: 'social', label: 'Social', translationKey: 'notifications.categories.social' },
+    { id: 'trip', label: 'Trip', translationKey: 'notifications.categories.trip' },
+    { id: 'tour', label: 'Tour', translationKey: 'notifications.categories.tour' },
+    { id: 'system', label: 'System', translationKey: 'notifications.categories.system' },
   ];
 
   return (
     <View className='flex-1' style={{ backgroundColor: colors.background }}>
       {/* Filter tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className='border-b'
-        style={{ 
-          borderBottomColor: isDark ? '#333' : '#e5e7eb',
-          maxHeight: 50,
-        }}
-      >
-        <View className='flex-row px-4 py-2 gap-2'>
-          {filters.map((filter) => (
-            <TouchableOpacity
-              key={filter.key}
-              onPress={() => setSelectedFilter(filter.key)}
-              className='px-4 py-2 rounded-full'
-              style={{
-                backgroundColor:
-                  selectedFilter === filter.key
-                    ? colors.primary
-                    : isDark ? '#374151' : '#f3f4f6',
-              }}
-            >
-              <Text
-                className='font-medium'
-                style={{
-                  color:
-                    selectedFilter === filter.key
-                      ? '#fff'
-                      : colors.text,
-                }}
-              >
-                {filter.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </ScrollView>
+      <ShareableTabs
+        tabs={filterTabs}
+        activeTab={selectedFilter}
+        onTabChange={(tabId) => setSelectedFilter(tabId as NotificationType | 'all')}
+      />
 
-      {/* Notifications list */}
+      {/* Unified list */}
       <ScrollView
         className='flex-1'
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {filteredNotifications.length === 0 ? (
-          <View className='flex-1 items-center justify-center py-20'>
+        {filteredItems.length === 0 ? (
+          <View className='items-center justify-center py-20'>
             <Ionicons
               name='notifications-off-outline'
               size={64}
@@ -208,42 +213,55 @@ export default function NotificationsScreen() {
           </View>
         ) : (
           <View className='py-2'>
-            {filteredNotifications.map((notification) => (
+            {filteredItems.map((item) => (
               <TouchableOpacity
-                key={notification.id}
+                key={item.id}
                 onPress={() => {
-                  // Mark as read
-                  setNotifications(prev =>
+                  setAllItems(prev =>
                     prev.map(n =>
-                      n.id === notification.id ? { ...n, read: true } : n
+                      n.id === item.id ? { ...n, read: true } : n
                     )
                   );
-                  // Navigate to detail page
-                  router.push(`/(app)/(notifications)/${notification.id}` as any);
+                  if (item.type === 'message' && item.id.startsWith('msg-')) {
+                    const userId = item.id.replace('msg-', '');
+                    if (userId) {
+                      router.push(`/(app)/(notifications)/messages/${userId}` as any);
+                    }
+                  } else if (item.type !== 'message') {
+                    router.push(`/(app)/(notifications)/${item.id}` as any);
+                  }
                 }}
                 className='flex-row items-start px-4 py-4 border-b'
                 style={{
-                  backgroundColor: notification.read
+                  backgroundColor: item.read
                     ? 'transparent'
                     : isDark ? '#1f2937' : '#eff6ff',
                   borderBottomColor: isDark ? '#333' : '#e5e7eb',
                 }}
               >
-                {/* Icon */}
-                <View
-                  className='w-12 h-12 rounded-full items-center justify-center mr-3'
-                  style={{
-                    backgroundColor: isDark ? '#374151' : '#f3f4f6',
-                  }}
-                >
-                  <Ionicons
-                    name={getTypeIcon(notification.type) as any}
-                    size={24}
-                    color={getTypeColor(notification.type)}
-                  />
-                </View>
-
-                {/* Content */}
+                {/* Avatar for messages, icon for others */}
+                {item.type === 'message' && item.avatar ? (
+                  <View className='w-12 h-12 rounded-full overflow-hidden mr-3 bg-gray-200 dark:bg-neutral-800'>
+                    <Image
+                      source={{ uri: item.avatar }}
+                      className='w-full h-full'
+                      resizeMode='cover'
+                    />
+                  </View>
+                ) : (
+                  <View
+                    className='w-12 h-12 rounded-full items-center justify-center mr-3'
+                    style={{
+                      backgroundColor: isDark ? '#374151' : '#f3f4f6',
+                    }}
+                  >
+                    <Ionicons
+                      name={getTypeIcon(item.type) as any}
+                      size={24}
+                      color={getTypeColor(item.type)}
+                    />
+                  </View>
+                )}
                 <View className='flex-1'>
                   <View className='flex-row items-center justify-between'>
                     <Text
@@ -251,27 +269,39 @@ export default function NotificationsScreen() {
                       style={{ color: colors.text }}
                       numberOfLines={1}
                     >
-                      {notification.title}
+                      {item.title}
                     </Text>
-                    {!notification.read && (
-                      <View
-                        className='w-2 h-2 rounded-full ml-2'
-                        style={{ backgroundColor: colors.primary }}
-                      />
-                    )}
+                    <View className='flex-row items-center'>
+                      {item.unreadCount !== undefined && item.unreadCount > 0 && (
+                        <View
+                          className='px-2 py-0.5 rounded-full mr-2'
+                          style={{ backgroundColor: colors.primary }}
+                        >
+                          <Text className='text-xs text-white font-bold'>
+                            {item.unreadCount > 9 ? '9+' : item.unreadCount}
+                          </Text>
+                        </View>
+                      )}
+                      {!item.read && (
+                        <View
+                          className='w-2 h-2 rounded-full'
+                          style={{ backgroundColor: colors.primary }}
+                        />
+                      )}
+                    </View>
                   </View>
                   <Text
                     className='text-sm mt-1'
                     style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
                     numberOfLines={2}
                   >
-                    {notification.message}
+                    {item.message}
                   </Text>
                   <Text
                     className='text-xs mt-1'
                     style={{ color: isDark ? '#6b7280' : '#9ca3af' }}
                   >
-                    {formatTime(notification.timestamp)}
+                    {formatTime(item.timestamp)}
                   </Text>
                 </View>
               </TouchableOpacity>

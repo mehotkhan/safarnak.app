@@ -497,8 +497,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               className="w-9 h-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 relative"
               onPress={() => {
-                // TODO: Messages feature will be added to Notifications tab
-                router.push('/(app)/(notifications)' as any);
+                router.push('/(app)/(notifications)/messages' as any);
               }}
               activeOpacity={0.7}
             >

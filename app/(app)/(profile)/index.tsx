@@ -33,7 +33,7 @@ export default function ProfileScreen() {
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
-
+  
   // Fetch trips for stats
   const { data: tripsData } = useGetTripsQuery({
     fetchPolicy: 'cache-and-network',
@@ -42,7 +42,7 @@ export default function ProfileScreen() {
 
   const user = meData?.me || reduxUser;
   const trips = useMemo(() => tripsData?.getTrips ?? [], [tripsData]);
-
+  
   // Calculate stats
   const activeTripsCount = useMemo(() => {
     return trips.filter(trip => 
@@ -50,7 +50,7 @@ export default function ProfileScreen() {
       (trip.startDate && isFuture(trip.startDate))
     ).length;
   }, [trips, isFuture]);
-
+  
   const memberSince = user?.createdAt 
     ? new Date(user.createdAt).getFullYear()
     : new Date().getFullYear();
@@ -90,7 +90,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View className='px-6 pt-6 pb-4'>
           {/* Avatar & Name */}
-          <View className='items-center mb-6'>
+          <View className='items-center mb-4'>
             <View
               className='w-24 h-24 rounded-full items-center justify-center mb-3'
               style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
@@ -107,9 +107,26 @@ export default function ProfileScreen() {
             <CustomText className='text-base mb-2' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
               @{user?.username || 'guest'}
             </CustomText>
-            <CustomText className='text-sm' style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
+            <CustomText className='text-sm mb-3' style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
               {t('profile.memberSince')} {memberSince} · {activeTripsCount} {t('me.tripsList.inProgress')}
             </CustomText>
+
+            {/* Edit profile button */}
+            <TouchableOpacity
+              onPress={() => router.push('/(app)/(profile)/edit' as any)}
+              className='px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-800 flex-row items-center'
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name='create-outline'
+                size={18}
+                color={isDark ? '#e5e7eb' : '#374151'}
+                style={{ marginRight: 6 }}
+              />
+              <CustomText className='text-sm' style={{ color: isDark ? '#e5e7eb' : '#374151' }}>
+                {t('profile.edit.title', { defaultValue: 'Edit Profile' })}
+              </CustomText>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -127,7 +144,7 @@ export default function ProfileScreen() {
             style={{ backgroundColor: isDark ? '#1f2937' : '#fff' }}
           >
             {/* Saved */}
-            <TouchableOpacity
+                  <TouchableOpacity
               onPress={() => router.push('/(app)/(profile)/saved' as any)}
               className='flex-row items-center p-4 border-b'
               style={{ borderBottomColor: isDark ? '#374151' : '#f3f4f6' }}
@@ -136,8 +153,8 @@ export default function ProfileScreen() {
               <View
                 className='w-10 h-10 rounded-full items-center justify-center mr-3'
                 style={{ backgroundColor: isDark ? '#374151' : '#f3f4f6' }}
-              >
-                <Ionicons
+                  >
+                    <Ionicons
                   name='bookmark'
                   size={22}
                   color={colors.primary}
@@ -146,10 +163,10 @@ export default function ProfileScreen() {
               <View className='flex-1'>
                 <CustomText weight='bold' className='text-base' style={{ color: colors.text }}>
                   {t('me.saved')}
-                </CustomText>
+                  </CustomText>
                 <CustomText className='text-sm' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
                   {t('me.savedSubtitle')}
-                </CustomText>
+                          </CustomText>
               </View>
               <Ionicons
                 name='chevron-forward'
@@ -169,7 +186,7 @@ export default function ProfileScreen() {
                 className='w-10 h-10 rounded-full items-center justify-center mr-3'
                 style={{ backgroundColor: isDark ? '#374151' : '#f3f4f6' }}
               >
-                <Ionicons
+                    <Ionicons
                   name='time'
                   size={22}
                   color={colors.primary}
@@ -182,7 +199,7 @@ export default function ProfileScreen() {
                 <CustomText className='text-sm' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
                   {t('me.historySubtitle')}
                 </CustomText>
-              </View>
+            </View>
               <Ionicons
                 name='chevron-forward'
                 size={20}
@@ -191,7 +208,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             {/* Subscription & Billing */}
-            <TouchableOpacity
+            <TouchableOpacity 
               onPress={() => router.push('/(app)/(profile)/subscription' as any)}
               className='flex-row items-center p-4'
               activeOpacity={0.7}
@@ -205,7 +222,7 @@ export default function ProfileScreen() {
                   size={22}
                   color={colors.primary}
                 />
-              </View>
+            </View>
               <View className='flex-1'>
                 <CustomText weight='bold' className='text-base' style={{ color: colors.text }}>
                   {t('me.subscription')}
@@ -232,10 +249,7 @@ export default function ProfileScreen() {
           >
             {t('profile.sections.appSecurity', { defaultValue: 'App & Security' })}
           </CustomText>
-          <View
-            className='rounded-2xl overflow-hidden'
-            style={{ backgroundColor: isDark ? '#1f2937' : '#fff' }}
-          >
+          <View className='rounded-2xl overflow-hidden' style={{ backgroundColor: isDark ? '#1f2937' : '#fff' }}>
             {/* Settings */}
             <TouchableOpacity
               onPress={() => router.push('/(app)/(profile)/settings' as any)}
@@ -256,7 +270,7 @@ export default function ProfileScreen() {
               <View className='flex-1'>
                 <CustomText weight='bold' className='text-base' style={{ color: colors.text }}>
                   {t('profile.settings')}
-                </CustomText>
+              </CustomText>
                 <CustomText className='text-sm' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
                   {t('settings.subtitle')}
                 </CustomText>
@@ -269,11 +283,11 @@ export default function ProfileScreen() {
             </TouchableOpacity>
 
             {/* Devices & Security */}
-            <TouchableOpacity
+                <TouchableOpacity
               onPress={() => router.push('/(app)/(profile)/settings/devices' as any)}
               className='flex-row items-center p-4 border-b'
               style={{ borderBottomColor: isDark ? '#374151' : '#f3f4f6' }}
-              activeOpacity={0.7}
+                  activeOpacity={0.7}
             >
               <View
                 className='w-10 h-10 rounded-full items-center justify-center mr-3'
@@ -288,11 +302,11 @@ export default function ProfileScreen() {
               <View className='flex-1'>
                 <CustomText weight='bold' className='text-base' style={{ color: colors.text }}>
                   {t('settings.devices')}
-                </CustomText>
+                  </CustomText>
                 <CustomText className='text-sm' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
                   {t('settings.devicesInfoTitle')}
-                </CustomText>
-              </View>
+                  </CustomText>
+                </View>
               <Ionicons
                 name='chevron-forward'
                 size={20}
@@ -315,12 +329,12 @@ export default function ProfileScreen() {
                   size={22}
                   color='#ef4444'
                 />
-              </View>
+            </View>
               <View className='flex-1'>
                 <CustomText weight='bold' className='text-base' style={{ color: '#ef4444' }}>
                   {t('profile.logout')}
                 </CustomText>
-              </View>
+          </View>
             </TouchableOpacity>
           </View>
         </View>

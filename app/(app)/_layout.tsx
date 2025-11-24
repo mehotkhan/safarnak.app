@@ -76,8 +76,8 @@ export default function AppLayout() {
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? 'add-circle' : 'add-circle-outline'}
-              size={size + 6}
+              name={focused ? 'compass' : 'compass-outline'}
+              size={size + 4}
               color={color}
             />
           ),

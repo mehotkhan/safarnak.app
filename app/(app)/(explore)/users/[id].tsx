@@ -143,9 +143,7 @@ export default function UserProfileScreen() {
   };
 
   const handleMessage = () => {
-    // TODO: Messages feature will be added to Notifications tab
-    // router.push(`/(app)/(notifications)/messages/${userId}` as any);
-    console.log('Message feature coming soon');
+    router.push(`/(app)/(notifications)/messages/${userId}` as any);
   };
 
   if (loading) {

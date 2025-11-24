@@ -121,10 +121,10 @@ export default function PaymentsScreen() {
           borderBottomColor: isDark ? '#333' : '#e5e7eb',
           maxHeight: 50,
         }}
-      >
+          >
         <View className='flex-row px-4 py-2 gap-2'>
           {filters.map((filter) => (
-            <TouchableOpacity
+          <TouchableOpacity
               key={filter.id}
               onPress={() => setSelectedFilter(filter.id)}
               className='px-4 py-2 rounded-full'
@@ -134,7 +134,7 @@ export default function PaymentsScreen() {
                     ? colors.primary
                     : isDark ? '#374151' : '#f3f4f6',
               }}
-            >
+          >
               <Text
                 className='font-medium'
                 style={{
@@ -143,10 +143,10 @@ export default function PaymentsScreen() {
                       ? '#fff'
                       : colors.text,
                 }}
-              >
+            >
                 {filter.label}
               </Text>
-            </TouchableOpacity>
+          </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
@@ -160,19 +160,19 @@ export default function PaymentsScreen() {
       >
         {filteredInvoices.length === 0 ? (
           <View className='items-center justify-center py-20'>
-            <Ionicons
+          <Ionicons
               name='receipt-outline'
               size={64}
               color={isDark ? '#6b7280' : '#9ca3af'}
-            />
+          />
             <Text
               className='text-lg font-semibold mt-4'
               style={{ color: colors.text }}
-            >
-              {t('payments.emptyState')}
+          >
+            {t('payments.emptyState')}
             </Text>
-          </View>
-        ) : (
+        </View>
+      ) : (
           <View className='p-4 gap-3'>
             {filteredInvoices.map((invoice) => (
               <TouchableOpacity
@@ -237,10 +237,10 @@ export default function PaymentsScreen() {
                   </View>
                 </View>
               </TouchableOpacity>
-            ))}
+          ))}
           </View>
         )}
-      </ScrollView>
+        </ScrollView>
     </View>
   );
 }
