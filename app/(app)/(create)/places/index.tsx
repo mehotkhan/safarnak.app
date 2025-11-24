@@ -49,7 +49,7 @@ export default function PlacesManagementScreen() {
   }, [router]);
 
   const handleCreatePlace = useCallback(() => {
-    router.push('/(app)/(trips)/places/new' as any);
+    router.push('/(app)/(create)/places/new' as any);
   }, [router]);
 
   return (

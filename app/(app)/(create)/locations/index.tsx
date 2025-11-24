@@ -43,7 +43,7 @@ export default function LocationsManagementScreen() {
   }, [router]);
 
   const handleCreateLocation = useCallback(() => {
-    router.push('/(app)/(trips)/locations/new' as any);
+    router.push('/(app)/(create)/locations/new' as any);
   }, [router]);
 
   if (loading) {

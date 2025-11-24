@@ -47,7 +47,7 @@ export default function ToursManagementScreen() {
   }, [router]);
 
   const handleCreateTour = useCallback(() => {
-    router.push('/(app)/(trips)/tours/new' as any);
+    router.push('/(app)/(create)/tours/new' as any);
   }, [router]);
 
   return (

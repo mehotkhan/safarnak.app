@@ -143,7 +143,9 @@ export default function UserProfileScreen() {
   };
 
   const handleMessage = () => {
-    router.push(`/(app)/(profile)/messages/${userId}` as any);
+    // TODO: Messages feature will be added to Notifications tab
+    // router.push(`/(app)/(notifications)/messages/${userId}` as any);
+    console.log('Message feature coming soon');
   };
 
   if (loading) {
@@ -372,7 +374,7 @@ export default function UserProfileScreen() {
               {userTrips.map((trip: any) => (
                 <TouchableOpacity
                   key={trip.id}
-                  onPress={() => router.push(`/(app)/(trips)/${trip.id}` as any)}
+                  onPress={() => router.push(`/(app)/(create)/${trip.id}` as any)}
                   className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
                 >
                   <CustomText weight="bold" className="text-lg text-black dark:text-white mb-1">

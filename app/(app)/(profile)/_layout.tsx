@@ -9,23 +9,22 @@ export default function ProfileLayout() {
         headerShown: true,
       }}
     >
-      <Stack.Screen name="index" />
       <Stack.Screen 
-        name="trips" 
+        name="index"
         options={{
-          title: t('me.myTrips'),
+          headerShown: false,
         }}
       />
       <Stack.Screen 
-        name="messages" 
+        name="saved" 
         options={{
-          title: t('me.inbox.title'),
+          title: t('me.saved'),
         }}
       />
       <Stack.Screen 
-        name="settings" 
+        name="history" 
         options={{
-          title: t('profile.settings'),
+          title: t('me.history'),
         }}
       />
       <Stack.Screen 
@@ -41,21 +40,10 @@ export default function ProfileLayout() {
         }}
       />
       <Stack.Screen 
-        name="bookmarks" 
+        name="settings" 
         options={{
-          title: t('profile.bookmarksTitle'),
-        }}
-      />
-      <Stack.Screen 
-        name="notifications/[id]" 
-        options={{
-          title: t('notifications.details', { defaultValue: 'Notification Details' }),
-        }}
-      />
-      <Stack.Screen 
-        name="messages/[id]" 
-        options={{
-          title: t('messages.chat', { defaultValue: 'Chat' }),
+          title: t('profile.settings'),
+          headerShown: false,
         }}
       />
     </Stack>

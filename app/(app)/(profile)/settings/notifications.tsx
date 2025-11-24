@@ -66,6 +66,12 @@ export default function NotificationsScreen() {
     <ScrollView className="flex-1 bg-white dark:bg-black">
       <View className="px-4 py-4">
         <View className="mb-4">
+          <CustomText
+            weight="bold"
+            className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
+          >
+            {t('settings.notifications', { defaultValue: 'Notifications' })}
+          </CustomText>
           <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
             <ToggleRow
               icon="notifications-outline"

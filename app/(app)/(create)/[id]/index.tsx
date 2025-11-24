@@ -138,7 +138,7 @@ export default function TripDetailScreen() {
 
   const handleMapPress = useCallback(() => {
     if (tripId) {
-      router.push(`/(app)/(trips)/${tripId}/map`);
+      router.push(`/(app)/(create)/${tripId}/map`);
     }
   }, [router, tripId]);
 

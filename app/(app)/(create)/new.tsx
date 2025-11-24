@@ -209,7 +209,7 @@ export default function CreateTripScreen() {
         // Smooth redirect to trip details page - no alert interruption
         // Use setTimeout to ensure keyboard dismissal completes
         setTimeout(() => {
-          router.replace(`/(app)/(trips)/${trip.id}` as any);
+          router.replace(`/(app)/(create)/${trip.id}` as any);
         }, 100);
       } else {
         console.log('No trip returned in response');

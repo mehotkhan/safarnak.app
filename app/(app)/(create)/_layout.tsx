@@ -42,6 +42,15 @@ export default function TripsLayout() {
           presentation: 'card',
         }}
       />
+      {/* My Shareable Trips */}
+      <Stack.Screen 
+        name="my-shareable-trips" 
+        options={{
+          headerShown: true,
+          title: t('create.myShareableTrips'),
+          presentation: 'card',
+        }}
+      />
       {/* Tours Management */}
       <Stack.Screen 
         name="tours/index" 
@@ -56,6 +65,22 @@ export default function TripsLayout() {
           headerShown: true,
           title: t('tours.new') || 'Create Tour',
           presentation: 'modal',
+        }}
+      />
+      <Stack.Screen 
+        name="tours/[id]/group" 
+        options={{
+          headerShown: true,
+          title: t('create.tourGroup'),
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="tours/[id]/chat" 
+        options={{
+          headerShown: true,
+          title: t('create.tourChat'),
+          presentation: 'card',
         }}
       />
       {/* Places Management */}

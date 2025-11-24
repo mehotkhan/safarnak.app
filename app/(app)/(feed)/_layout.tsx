@@ -18,6 +18,22 @@ export default function FeedLayout() {
           presentation: 'card',
         }}
       />
+      <Stack.Screen 
+        name="inspirations" 
+        options={{
+          headerShown: true,
+          title: t('feed.inspirations'),
+          presentation: 'card',
+        }}
+      />
+      <Stack.Screen 
+        name="new" 
+        options={{
+          headerShown: true,
+          title: t('feed.create.title'),
+          presentation: 'modal',
+        }}
+      />
     </Stack>
   );
 }

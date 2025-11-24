@@ -7,6 +7,8 @@
     "plan": "Plan",
     "explore": "Explore",
     "me": "Me",
+    "create": "Create",
+    "notifications": "Notifications",
     "loading": "Loading...",
     "error": "Error",
     "save": "Save",
@@ -17,7 +19,6 @@
     "edit": "Edit",
     "share": "Share",
     "search": "Search",
-    "create": "Create",
     "post": "Post",
     "comments": "Comments",
     "addComment": "Add a comment...",
@@ -33,7 +34,27 @@
     "add": "Add",
     "reset": "Reset",
     "saved": "Saved",
-    "resetDefaults": "Reset to defaults"
+    "resetDefaults": "Reset to defaults",
+    "view": "View",
+    "viewAll": "View All",
+    "viewDetails": "View Details",
+    "seeMore": "See More",
+    "seeLess": "See Less",
+    "filter": "Filter",
+    "sort": "Sort",
+    "apply": "Apply",
+    "close": "Close",
+    "done": "Done",
+    "continue": "Continue",
+    "skip": "Skip",
+    "next": "Next",
+    "previous": "Previous",
+    "confirm": "Confirm",
+    "download": "Download",
+    "upload": "Upload",
+    "remove": "Remove",
+    "update": "Update",
+    "refresh": "Refresh"
   },
   "language": {
     "en": "English",
@@ -44,7 +65,11 @@
   "home": {
     "title": "Home",
     "welcome": "Welcome to SafarNak",
-    "description": "Explore the world with our interactive map"
+    "description": "Explore the world with our interactive map",
+    "feed": "Social Feed",
+    "stories": "Travel Stories",
+    "experiences": "Experiences",
+    "posts": "Posts"
   },
   "tour": {
     "title": "Tour",
@@ -270,6 +295,42 @@
       "posts": "Posts"
     }
   },
+  "create": {
+    "title": "Create",
+    "myTrips": "My Trips",
+    "myShareableTrips": "My Shareable Trips",
+    "myTours": "My Tours",
+    "myPlaces": "My Places",
+    "myLocations": "My Locations",
+    "usageStats": "{{count}} people used this trip",
+    "makePublic": "Make Public",
+    "makePrivate": "Make Private",
+    "convertToTour": "Convert to Tour",
+    "aiOptimize": "AI Optimize",
+    "tourGroup": "Tour Group",
+    "tourChat": "Tour Chat",
+    "members": "Members",
+    "member": "Member",
+    "host": "Host",
+    "joinedDate": "Joined {{date}}",
+    "fabOptions": {
+      "newTrip": "New Trip",
+      "newTripAI": "AI Trip Builder",
+      "newTour": "New Tour",
+      "newPlace": "New Place",
+      "newShareable": "Shareable Trip"
+    },
+    "shareableTrips": {
+      "title": "My Shareable Trips",
+      "description": "Trips you've shared with the community",
+      "emptyState": "No shareable trips yet",
+      "emptyDescription": "Make your trips public to share with others",
+      "visibility": "Visibility",
+      "public": "Public",
+      "private": "Private",
+      "stats": "Stats"
+    }
+  },
   "plan.notFound": "Trip Not Found",
   "plan.tripNotFound": "The trip you're looking for doesn't exist or was deleted.",
   "plan.form.errors": {
@@ -307,6 +368,14 @@
     "browsePlacesDescription": "Discover interesting locations",
     "browseTrips": "Browse Trips",
     "browseTripsDescription": "Explore community trips and itineraries",
+    "shareableTrips": "Shareable Trips",
+    "shareableTripsDescription": "Community-created travel itineraries",
+    "inspirationalTrips": "Travel Inspirations",
+    "useTrip": "Use This Trip",
+    "copyTrip": "Copy to My Trips",
+    "tripDetails": "Trip Details",
+    "itinerary": "Itinerary",
+    "routeMap": "Route Map",
     "mapComparison": "Map Comparison",
     "mapComparisonDescription": "Compare different map views",
     "untitled": "Untitled",
@@ -373,6 +442,10 @@
       "maxPrice": "Max Price",
       "minRating": "Minimum Rating",
       "difficulty": "Difficulty",
+      "duration": "Duration",
+      "budget": "Budget",
+      "style": "Travel Style",
+      "season": "Season",
       "sortBy": "Sort By",
       "openNow": "Open Now",
       "apply": "Apply",
@@ -577,7 +650,10 @@
     "tabs": {
       "all": "All",
       "tours": "Tours",
-      "places": "Places"
+      "places": "Places",
+      "trips": "Trips",
+      "inspirations": "Inspirations",
+      "moments": "Moments"
     },
     "timeFilters": {
       "allTime": "All Time",
@@ -585,6 +661,13 @@
       "thisWeek": "This Week",
       "thisMonth": "This Month"
     },
+    "inspirations": "Travel Inspirations",
+    "useThisTrip": "Use This Trip for Me",
+    "checkIn": "Check In",
+    "moments": "Moments",
+    "travelStories": "Travel Stories",
+    "popularTrips": "Popular Trips",
+    "trending": "Trending Now",
     "create": {
       "title": "Create",
       "tour": "Tour",
@@ -798,7 +881,9 @@
       "account": "Account & Preferences",
       "preferences": "Preferences & Settings",
       "payments": "Payments",
-      "system": "System"
+      "system": "System",
+      "mySafarnak": "My Safarnak",
+      "appSecurity": "App & Security"
     },
     "subscriptionSubtitle": "Manage your subscription plan",
     "edit": {
@@ -1052,7 +1137,23 @@
     "joined": "Joined"
   },
   "notifications": {
+    "title": "Notifications",
     "details": "Notification",
+    "categories": {
+      "social": "Social",
+      "trip": "Trip",
+      "tour": "Tour",
+      "system": "System"
+    },
+    "types": {
+      "tripUsed": "{{username}} used your trip",
+      "newComment": "{{username}} commented on your post",
+      "tourSaved": "{{username}} saved your tour",
+      "tourMember": "{{username}} joined your tour",
+      "newMessage": "New message in {{tourName}}",
+      "aiSuggestion": "AI has a new suggestion for your trip",
+      "weatherAlert": "Weather alert for {{tripName}}"
+    },
     "deleteTitle": "Delete Notification",
     "deleteMessage": "Are you sure you want to delete this notification?",
     "deleteNotification": "Delete Notification",
@@ -1067,6 +1168,15 @@
   "map": {
     "map": "Map",
     "loading": "Loading Map..."
+  },
+  "stats": {
+    "totalUses": "Total Uses",
+    "totalViews": "Total Views",
+    "used": "used",
+    "saved": "saved",
+    "views": "views",
+    "online": "Online",
+    "offline": "Offline"
   },
   "systemStatus": {
     "title": "System Status",

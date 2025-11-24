@@ -7,6 +7,8 @@
     "plan": "برنامه",
     "explore": "کاوش",
     "me": "من",
+    "create": "ایجاد",
+    "notifications": "اعلان‌ها",
     "loading": "در حال بارگذاری...",
     "error": "خطا",
     "save": "ذخیره",
@@ -17,7 +19,6 @@
     "edit": "ویرایش",
     "share": "اشتراک‌گذاری",
     "search": "جستجو",
-    "create": "ایجاد",
     "post": "پست",
     "comments": "دیدگاه‌ها",
     "addComment": "افزودن دیدگاه...",
@@ -33,7 +34,27 @@
     "add": "افزودن",
     "reset": "بازنشانی",
     "saved": "ذخیره شد",
-    "resetDefaults": "بازنشانی به حالت پیش‌فرض"
+    "resetDefaults": "بازنشانی به حالت پیش‌فرض",
+    "view": "مشاهده",
+    "viewAll": "مشاهده همه",
+    "viewDetails": "مشاهده جزئیات",
+    "seeMore": "بیشتر",
+    "seeLess": "کمتر",
+    "filter": "فیلتر",
+    "sort": "مرتب‌سازی",
+    "apply": "اعمال",
+    "close": "بستن",
+    "done": "انجام شد",
+    "continue": "ادامه",
+    "skip": "رد شدن",
+    "next": "بعدی",
+    "previous": "قبلی",
+    "confirm": "تایید",
+    "download": "دانلود",
+    "upload": "آپلود",
+    "remove": "حذف",
+    "update": "به‌روزرسانی",
+    "refresh": "به‌روزرسانی"
   },
   "language": {
     "en": "انگلیسی",
@@ -44,7 +65,11 @@
   "home": {
     "title": "خانه",
     "welcome": "به سفرناک خوش آمدید",
-    "description": "جهان را با نقشه تعاملی ما کاوش کنید"
+    "description": "جهان را با نقشه تعاملی ما کاوش کنید",
+    "feed": "فید اجتماعی",
+    "stories": "داستان‌های سفر",
+    "experiences": "تجربیات",
+    "posts": "پست‌ها"
   },
   "tour": {
     "title": "تور",
@@ -274,6 +299,42 @@
       "posts": "پست‌ها"
     }
   },
+  "create": {
+    "title": "ایجاد",
+    "myTrips": "سفرهای من",
+    "myShareableTrips": "سفرهای قابل اشتراک من",
+    "myTours": "تورهای من",
+    "myPlaces": "مکان‌های من",
+    "myLocations": "موقعیت‌های من",
+    "usageStats": "{{count}} نفر از این سفر استفاده کردند",
+    "makePublic": "عمومی کردن",
+    "makePrivate": "خصوصی کردن",
+    "convertToTour": "تبدیل به تور",
+    "aiOptimize": "بهینه‌سازی هوشمند",
+    "tourGroup": "گروه تور",
+    "tourChat": "چت تور",
+    "members": "اعضا",
+    "member": "عضو",
+    "host": "میزبان",
+    "joinedDate": "عضو شده {{date}}",
+    "fabOptions": {
+      "newTrip": "سفر جدید",
+      "newTripAI": "سفر هوشمند",
+      "newTour": "تور جدید",
+      "newPlace": "مکان جدید",
+      "newShareable": "سفر قابل اشتراک"
+    },
+    "shareableTrips": {
+      "title": "سفرهای قابل اشتراک من",
+      "description": "سفرهایی که با جامعه به اشتراک گذاشته‌اید",
+      "emptyState": "هنوز سفر قابل اشتراکی ندارید",
+      "emptyDescription": "سفرهای خود را عمومی کنید تا با دیگران به اشتراک بگذارید",
+      "visibility": "قابلیت مشاهده",
+      "public": "عمومی",
+      "private": "خصوصی",
+      "stats": "آمار"
+    }
+  },
   "explore": {
     "title": "کاوش",
     "description": "تورها، مکان‌ها و جامعه را کشف کنید",
@@ -295,6 +356,14 @@
     "browsePlacesDescription": "مکان‌های جالب را کشف کنید",
     "browseTrips": "مرور سفرها",
     "browseTripsDescription": "سفرها و برنامه‌های سفر جامعه را کاوش کنید",
+    "shareableTrips": "سفرهای قابل اشتراک",
+    "shareableTripsDescription": "برنامه‌های سفر ساخته شده توسط جامعه",
+    "inspirationalTrips": "سفرهای الهام‌بخش",
+    "useTrip": "استفاده از این سفر",
+    "copyTrip": "کپی به سفرهای من",
+    "tripDetails": "جزئیات سفر",
+    "itinerary": "برنامه سفر",
+    "routeMap": "نقشه مسیر",
     "mapComparison": "مقایسه نقشه",
     "mapComparisonDescription": "نماهای مختلف نقشه را مقایسه کنید",
     "untitled": "بدون عنوان",
@@ -360,6 +429,10 @@
       "maxPrice": "حداکثر قیمت",
       "minRating": "حداقل امتیاز",
       "difficulty": "سختی",
+      "duration": "مدت زمان",
+      "budget": "بودجه",
+      "style": "سبک سفر",
+      "season": "فصل",
       "sortBy": "مرتب‌سازی بر اساس",
       "openNow": "هم‌اکنون باز",
       "apply": "اعمال",
@@ -519,7 +592,10 @@
     "tabs": {
       "all": "همه",
       "tours": "تورها",
-      "places": "مکان‌ها"
+      "places": "مکان‌ها",
+      "trips": "سفرها",
+      "inspirations": "الهام‌بخش",
+      "moments": "لحظه‌ها"
     },
     "timeFilters": {
       "allTime": "همه زمان‌ها",
@@ -527,6 +603,13 @@
       "thisWeek": "این هفته",
       "thisMonth": "این ماه"
     },
+    "inspirations": "سفرهای الهام‌بخش",
+    "useThisTrip": "استفاده از این سفر",
+    "checkIn": "چک‌این",
+    "moments": "لحظه‌ها",
+    "travelStories": "داستان‌های سفر",
+    "popularTrips": "سفرهای محبوب",
+    "trending": "در حال ترند",
     "create": {
       "title": "ایجاد",
       "tour": "تور",
@@ -740,7 +823,9 @@
       "account": "حساب و ترجیحات",
       "preferences": "ترجیحات و تنظیمات",
       "payments": "پرداخت‌ها",
-      "system": "سیستم"
+      "system": "سیستم",
+      "mySafarnak": "سفرنک من",
+      "appSecurity": "برنامه و امنیت"
     },
     "subscriptionSubtitle": "مدیریت طرح اشتراک شما",
     "edit": {
@@ -1051,7 +1136,23 @@
     "joined": "عضو شده"
   },
   "notifications": {
+    "title": "اعلان‌ها",
     "details": "اعلان",
+    "categories": {
+      "social": "اجتماعی",
+      "trip": "سفر",
+      "tour": "تور",
+      "system": "سیستم"
+    },
+    "types": {
+      "tripUsed": "{{username}} از سفر شما استفاده کرد",
+      "newComment": "{{username}} روی پست شما نظر گذاشت",
+      "tourSaved": "{{username}} تور شما را ذخیره کرد",
+      "tourMember": "{{username}} به تور شما پیوست",
+      "newMessage": "پیام جدید در {{tourName}}",
+      "aiSuggestion": "هوش مصنوعی پیشنهاد جدیدی برای سفر شما دارد",
+      "weatherAlert": "هشدار آب‌وهوا برای {{tripName}}"
+    },
     "deleteTitle": "حذف اعلان",
     "deleteMessage": "آیا مطمئن هستید که می‌خواهید این اعلان را حذف کنید؟",
     "deleteNotification": "حذف اعلان",
@@ -1066,6 +1167,15 @@
   "map": {
     "map": "نقشه",
     "loading": "در حال بارگذاری نقشه..."
+  },
+  "stats": {
+    "totalUses": "مجموع استفاده",
+    "totalViews": "مجموع بازدید",
+    "used": "استفاده شده",
+    "saved": "ذخیره شده",
+    "views": "بازدید",
+    "online": "آنلاین",
+    "offline": "آفلاین"
   },
   "systemStatus": {
     "title": "وضعیت سیستم",

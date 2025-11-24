@@ -82,7 +82,7 @@ export default function ExploreScreen() {
     if (entityType === 'POST') {
       router.push(`/(app)/(feed)/${entityId}` as any);
     } else if (entityType === 'TRIP') {
-      router.push(`/(app)/(trips)/${entityId}` as any);
+      router.push(`/(app)/(create)/${entityId}` as any);
     } else if (entityType === 'TOUR') {
       router.push(`/(app)/(explore)/tours/${entityId}` as any);
     } else if (entityType === 'PLACE') {
@@ -105,7 +105,7 @@ export default function ExploreScreen() {
   }, [router]);
 
   const handleTripPress = useCallback((tripId: string) => {
-    router.push(`/(app)/(trips)/${tripId}` as any);
+    router.push(`/(app)/(create)/${tripId}` as any);
   }, [router]);
 
   const renderSearchResult = useCallback(({ item }: { item: any }) => {
@@ -392,6 +392,30 @@ export default function ExploreScreen() {
           <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100 mb-4">
             {t('explore.discover')}
           </CustomText>
+          
+          {/* Shareable Trips - Featured */}
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/(explore)/shareable-trips' as any)}
+            className="flex-row items-center p-4 mb-3 rounded-xl border-2"
+            style={{ 
+              backgroundColor: isDark ? '#1e3a5f' : '#eff6ff',
+              borderColor: isDark ? '#3b82f6' : '#60a5fa'
+            }}
+            activeOpacity={0.7}
+          >
+            <View className="w-12 h-12 rounded-full items-center justify-center mr-4" style={{ backgroundColor: '#3b82f6' }}>
+              <Ionicons name="compass" size={24} color="#fff" />
+            </View>
+            <View className="flex-1">
+              <CustomText weight="bold" className="text-base mb-0.5" style={{ color: isDark ? '#60a5fa' : '#1e40af' }}>
+                {t('explore.shareableTrips')}
+              </CustomText>
+              <CustomText className="text-sm" style={{ color: isDark ? '#93c5fd' : '#3b82f6' }}>
+                {t('explore.shareableTripsDescription')}
+              </CustomText>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={isDark ? '#60a5fa' : '#3b82f6'} />
+          </TouchableOpacity>
           
           <TouchableOpacity
             onPress={() => setActiveTab('tours')}

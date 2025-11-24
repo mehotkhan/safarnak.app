@@ -449,7 +449,7 @@ export default function HomeScreen() {
     if (!post) return;
 
     if (post.type === 'trip') {
-      router.push(`/(app)/(trips)/${post.relatedId}` as any);
+      router.push(`/(app)/(create)/${post.relatedId}` as any);
     } else if (post.type === 'tour') {
       router.push(`/(app)/(explore)/tours/${post.relatedId}` as any);
     } else if (post.type === 'place') {
@@ -496,7 +496,10 @@ export default function HomeScreen() {
             {/* Messages Icon */}
             <TouchableOpacity
               className="w-9 h-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 relative"
-              onPress={() => router.push('/(app)/(profile)/messages' as any)}
+              onPress={() => {
+                // TODO: Messages feature will be added to Notifications tab
+                router.push('/(app)/(notifications)' as any);
+              }}
               activeOpacity={0.7}
             >
               <Ionicons
@@ -514,7 +517,39 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Clean header - removed custom tabs and categories */}
+        {/* Travel Inspirations Button */}
+        <TouchableOpacity
+          onPress={() => router.push('/(app)/(feed)/inspirations' as any)}
+          className="mt-2 mb-2 p-3 rounded-xl flex-row items-center justify-between"
+          style={{ backgroundColor: isDark ? '#1f2937' : '#f3f4f6' }}
+          activeOpacity={0.7}
+        >
+          <View className="flex-row items-center gap-3">
+            <View
+              className="w-10 h-10 rounded-full items-center justify-center"
+              style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
+            >
+              <Ionicons
+                name="compass"
+                size={24}
+                color={isDark ? '#fbbf24' : '#f59e0b'}
+              />
+            </View>
+            <View>
+              <CustomText weight="bold" className="text-base" style={{ color: isDark ? '#fff' : '#000' }}>
+                {t('feed.inspirations')}
+              </CustomText>
+              <CustomText className="text-xs" style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
+                {t('feed.popularTrips')}
+              </CustomText>
+            </View>
+          </View>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={isDark ? '#9ca3af' : '#6b7280'}
+          />
+        </TouchableOpacity>
       </View>
 
       {/* New items banner */}

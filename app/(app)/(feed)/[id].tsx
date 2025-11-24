@@ -142,7 +142,7 @@ export default function PostDetailScreen() {
     if (!entityInfo || !entityInfo.type || !entityInfo.id) return;
 
     if (entityInfo.type === 'trip') {
-      router.push(`/(app)/(trips)/${entityInfo.id}` as any);
+      router.push(`/(app)/(create)/${entityInfo.id}` as any);
     } else if (entityInfo.type === 'tour') {
       router.push(`/(app)/(explore)/tours/${entityInfo.id}` as any);
     } else if (entityInfo.type === 'place') {

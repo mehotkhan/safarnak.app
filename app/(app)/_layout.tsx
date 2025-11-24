@@ -72,16 +72,29 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name='(trips)'
+        name='(create)'
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? 'compass' : 'compass-outline'}
+              name={focused ? 'add-circle' : 'add-circle-outline'}
+              size={size + 6}
+              color={color}
+            />
+          ),
+          tabBarAccessibilityLabel: t('common.create'),
+        }}
+      />
+      <Tabs.Screen
+        name='(notifications)'
+        options={{
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons
+              name={focused ? 'notifications' : 'notifications-outline'}
               size={size + 4}
               color={color}
             />
           ),
-          tabBarAccessibilityLabel: t('common.plan'),
+          tabBarAccessibilityLabel: t('common.notifications'),
         }}
       />
       <Tabs.Screen
@@ -94,7 +107,7 @@ export default function AppLayout() {
               color={color}
             />
           ),
-          tabBarAccessibilityLabel: t('common.profile'),
+          tabBarAccessibilityLabel: t('common.me'),
         }}
       />
     </Tabs>

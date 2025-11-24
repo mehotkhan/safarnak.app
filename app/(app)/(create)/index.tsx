@@ -148,7 +148,7 @@ export default function PlanScreen() {
 
 
   const handleTripPress = useCallback((tripId: string) => {
-    router.push(`/(app)/(trips)/${tripId}` as any);
+    router.push(`/(app)/(create)/${tripId}` as any);
   }, [router]);
 
   const handleTourPress = useCallback((tourId: string) => {
@@ -369,7 +369,7 @@ export default function PlanScreen() {
               <TouchableOpacity
                 onPress={() => {
                   setFabExpanded(false);
-                  router.push('/(app)/(trips)/locations/new' as any);
+                  router.push('/(app)/(create)/locations/new' as any);
                 }}
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
@@ -393,7 +393,7 @@ export default function PlanScreen() {
               <TouchableOpacity
                 onPress={() => {
                   setFabExpanded(false);
-                  router.push('/(app)/(trips)/places/new' as any);
+                  router.push('/(app)/(create)/places/new' as any);
                 }}
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
@@ -417,7 +417,7 @@ export default function PlanScreen() {
               <TouchableOpacity
                 onPress={() => {
                   setFabExpanded(false);
-                  router.push('/(app)/(trips)/tours/new' as any);
+                  router.push('/(app)/(create)/tours/new' as any);
                 }}
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
@@ -441,7 +441,7 @@ export default function PlanScreen() {
               <TouchableOpacity
                 onPress={() => {
                   setFabExpanded(false);
-                  router.push('/(app)/(trips)/new' as any);
+                  router.push('/(app)/(create)/new' as any);
                 }}
                 className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
                 activeOpacity={0.8}
