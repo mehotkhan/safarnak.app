@@ -1143,7 +1143,8 @@
       "social": "Social",
       "trip": "Trip",
       "tour": "Tour",
-      "system": "System"
+      "system": "System",
+      "messages": "Messages"
     },
     "types": {
       "tripUsed": "{{username}} used your trip",
