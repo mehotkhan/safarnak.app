@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سفرناک | شبکه خلق سفر و برنامه‌ریز هوشمند سفر</title>
-    <meta name="description" content="سفرناک یک «شبکه خلق سفر» است؛ با کمک هوش مصنوعی، تجربه‌ی مسافران واقعی و قالب‌های آماده، سفر بعدی‌ات را طراحی کن، با دیگران هماهنگ شو و تجربه‌ات را به قالبی برای بقیه تبدیل کن.">
-    <meta property="og:title" content="سفرناک | شبکه خلق سفر و برنامه‌ریز هوشمند سفر">
-    <meta property="og:description" content="سفرناک به تو کمک می‌کند سفر بسازی، سفر دیگران را کپی و شخصی‌سازی کنی و با تورها و گروه‌های سفر هماهنگ شوی – بدون دردسر رزرو درون‌برنامه‌ای.">
+    <title>سفرناک | شبکه اجتماعی سفر و برنامه‌ریز هوشمند، آف‌لاین‌فرست</title>
+    <meta name="description" content="سفرناک یک «شبکه اجتماعی سفر» با برنامه‌ریز هوشمند است؛ با کمک هوش مصنوعی، سفرهای قابل‌اشتراک‌گذاری و تجربه‌ی مسافران واقعی، سفر بعدی‌ات را بساز، روی نقشه ببین و با هم‌سفرها هماهنگ شو – حتی در حالت آفلاین.">
+    <meta property="og:title" content="سفرناک | شبکه اجتماعی سفر و برنامه‌ریز هوشمند، آف‌لاین‌فرست">
+    <meta property="og:description" content="سفرناک به تو کمک می‌کند از ایده‌ی خام سفر تا برنامه‌ی روزبه‌روز، نقشه، هم‌سفر و تور گروهی همه‌چیز را در یک اپ واحد مدیریت کنی.">
     <meta property="og:type" content="website">
     <meta property="og:locale" content="fa_IR">
     <meta property="og:url" content="https://safarnak.app">
@@ -199,27 +199,32 @@
                     </span>
                 </div>
 
-                <!-- Navigation Links -->
+                <!-- Navigation Links (updated) -->
                 <div class="hidden md:flex items-center space-x-reverse space-x-1">
-                    <a href="/" class="nav-link text-gray-700 dark:text-gray-300">
-                        خانه
+                    <a href="#app" class="nav-link text-gray-700 dark:text-gray-300">
+                        اپ سفرناک
                     </a>
-                    <a href="#about" class="nav-link text-gray-700 dark:text-gray-300">
-                        سفرناک چیست
+                    <a href="#ai-planner" class="nav-link text-gray-700 dark:text-gray-300">
+                        برنامه‌ریز هوشمند
                     </a>
-                    <a href="#features" class="nav-link text-gray-700 dark:text-gray-300">
-                        برای چه کسانی
+                    <a href="#social" class="nav-link text-gray-700 dark:text-gray-300">
+                        شبکه اجتماعی سفر
                     </a>
-                    <a href="#how-it-works" class="nav-link text-gray-700 dark:text-gray-300">
-                        چطور کار می‌کند
+                    <a href="#tech" class="nav-link text-gray-700 dark:text-gray-300">
+                        آف‌لاین و متن‌باز
                     </a>
                     <a href="#download" class="nav-link text-gray-700 dark:text-gray-300">
-                        نسخه بتا و کد منبع
+                        دانلود اپ
                     </a>
                 </div>
 
                 <!-- Actions -->
                 <div class="flex items-center space-x-reverse space-x-3">
+                    <!-- Primary CTA in navbar -->
+                    <a href="#ai-planner" class="hidden sm:inline-flex items-center px-4 py-2 rounded-xl bg-primary text-white text-sm font-semibold hover:bg-primary/90 shadow-md hover:shadow-lg transition-all">
+                        شروع با سفر هوشمند
+                    </a>
+
                     <!-- Mobile Menu Button -->
                     <button id="mobileMenuToggle" class="md:hidden p-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,23 +243,23 @@
                 </div>
             </div>
 
-            <!-- Mobile Menu -->
+            <!-- Mobile Menu (updated) -->
             <div id="mobileMenu" class="hidden md:hidden pb-4 border-t border-gray-200 dark:border-gray-700 mt-2 pt-4">
                 <div class="flex flex-col space-y-1">
-                    <a href="/" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                        خانه
+                    <a href="#app" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        اپ سفرناک
                     </a>
-                    <a href="#about" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                        سفرناک چیست
+                    <a href="#ai-planner" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        برنامه‌ریز هوشمند
                     </a>
-                    <a href="#features" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                        برای چه کسانی
+                    <a href="#social" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        شبکه اجتماعی سفر
                     </a>
-                    <a href="#how-it-works" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                        چطور کار می‌کند
+                    <a href="#tech" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                        آف‌لاین و متن‌باز
                     </a>
                     <a href="#download" class="nav-link text-gray-700 dark:text-gray-300 py-2.5 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                        نسخه بتا و کد منبع
+                        دانلود اپ
                     </a>
                 </div>
             </div>
@@ -262,35 +267,42 @@
     </nav>
 
     <!-- Hero Section -->
-    <section class="pt-40 pb-20 gradient-bg gradient-bg-dark">
+    <section id="app" class="pt-40 pb-20 gradient-bg gradient-bg-dark">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center text-white">
                 <h2 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-[2.3] md:leading-[1.4] lg:leading-[1.5] px-4">
-                    سفرناک؛ شبکه خلق سفر برای مسافران و برگزارکنندگان تور
+                    سفرناک؛ شبکه اجتماعی سفر<br class="hidden sm:block">
+                    با برنامه‌ریز هوشمند و آف‌لاین‌فرست
                 </h2>
                 <p class="text-base sm:text-lg md:text-xl lg:text-2xl mb-10 text-white/90 max-w-3xl mx-auto leading-relaxed px-4">
-                    با سفرناک، از سفرهای واقعی الهام بگیر، قالب‌های آماده‌ی سفر را کپی و شخصی‌سازی کن، با کمک هوش مصنوعی برنامه‌ی دقیق بچین و با گروه‌ها و تورها هماهنگ شو؛ بدون این‌که درگیر سیستم‌های پیچیده‌ی رزرو و پرداخت درون‌برنامه‌ای شوی.
+                    در سفرناک، هم‌زمان یک برنامه‌ریز سفر با هوش مصنوعی، یک فید اجتماعی شبیه توییتر/اینستاگرام
+                    برای سفر و یک مرکز مدیریت سفرها و تورهای گروهی در اختیار داری – همه‌ی این‌ها روی
+                    زیرساخت Cloudflare و با طراحی آف‌لاین‌فرست.
                 </p>
                 <div class="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
-                    <a href="#download" class="bg-white text-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                        شروع ساخت اولین برنامه سفر
+                    <a href="#ai-planner" class="bg-white text-primary px-10 py-4 rounded-xl font-bold text-lg hover:bg-gray-100 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
+                        شروع ساخت سفر با هوش مصنوعی
                     </a>
-                    <a href="#about" class="bg-primary/20 backdrop-blur-sm text-white border-2 border-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary/30 transition-all">
-                        آشنایی با سفرناک
+                    <a href="#social" class="bg-primary/20 backdrop-blur-sm text-white border-2 border-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary/30 transition-all">
+                        دیدن تجربه‌ی اجتماعی سفرناک
                     </a>
                 </div>
-                <p class="text-sm text-white/80">نسخه بتا • مناسب مسافران، رهبران تور و سازندگان محتوا</p>
+                <p class="text-sm text-white/80">
+                    نسخه بتا اندروید • مناسب مسافران، میزبان‌ها، برگزارکنندگان تور و توسعه‌دهندگان کنجکاو
+                </p>
             </div>
         </div>
     </section>
 
-    <!-- What is Safarnak -->
-    <section id="about" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+    <!-- What is Safarnak – new angle -->
+    <section id="social" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">سفرناک چیست؟</h3>
+                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">سفرناک دقیقا چیست؟</h3>
                 <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
-                    سفرناک «شبکه خلق سفر» است؛ جایی که سفرها فقط یک برنامه‌ی ثابت نیستند، بلکه به قالب‌هایی تبدیل می‌شوند که می‌توانی آن‌ها را کشف کنی، کپی کنی، شخصی‌سازی کنی، به تور گروهی تبدیلشان کنی و دوباره با دیگران به‌اشتراک بگذاری.
+                    سفرناک «شبکه اجتماعی سفر» است؛ جایی که سفرها فقط یک برنامه‌ی ثابت نیستند، بلکه
+                    به سفرهای قابل‌اشتراک‌گذاری تبدیل می‌شوند که می‌توانی آن‌ها را کشف کنی، برای خودت
+                    کپی و شخصی‌سازی کنی، به تور گروهی تبدیل‌شان کنی و دوباره با دیگران به اشتراک بگذاری.
                 </p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -300,9 +312,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
                         </svg>
                     </div>
-                    <h4 class="font-bold text-2xl mb-3 text-gray-900 dark:text-white">برنامه‌ریز هوشمند و قالب‌های سفر</h4>
+                    <h4 class="font-bold text-2xl mb-3 text-gray-900 dark:text-white">فید سفر؛ خانه‌ی سفرهای تو</h4>
                     <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        مقصد، تاریخ، سبک و بودجه‌ات را بگو؛ سفرناک با ترکیب هوش مصنوعی و قالب‌های سفر واقعی، برایت یک برنامه‌ی روزبه‌روز می‌سازد که هر لحظه قابل ویرایش و شخصی‌سازی است.
+                        یک تایم‌لاین واحد با سفرها، تورهای میزبانی‌شده، مکان‌ها و پست‌های سفر؛
+                        کارت سفر فعلی و بعدی، همراهان سفر و پیشنهادهای الهام‌بخش همیشه جلوی چشم تو هستند.
                     </p>
                 </div>
                 <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-8 text-center border border-purple-100 dark:border-purple-800">
@@ -311,9 +324,10 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                     </div>
-                    <h4 class="font-bold text-2xl mb-3 text-gray-900 dark:text-white">شبکه‌ی اجتماعی سفر و تجربه</h4>
+                    <h4 class="font-bold text-2xl mb-3 text-gray-900 dark:text-white">اکسپلور؛ کشف سفرها، مکان‌ها و آدم‌ها</h4>
                     <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        سفرهایت را ثبت کن، احساس و عکس و لحظه‌های مهم را به اشتراک بگذار و ببین دیگران چه سفرهایی را خلق کرده‌اند، کجا رفته‌اند و چه پیشنهادهایی دارند.
+                        مقصد، نوع سفر یا حال‌وهوایی که دوست داری را جست‌وجو کن؛ سفرهای قابل‌اشتراک‌گذاری،
+                        تورهای میزبانی‌شده، مکان‌های لوکال و پروفایل میزبان‌ها و مسافران را پیدا کن.
                     </p>
                 </div>
                 <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-8 text-center border border-green-100 dark:border-green-800">
@@ -322,148 +336,79 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <h4 class="font-bold text-2xl mb-3 text-gray-900 dark:text-white">تورهای گروهی و هماهنگی سفر</h4>
+                    <h4 class="font-bold text-2xl mb-3 text-gray-900 dark:text-white">اینباکس و پروفایل؛ مرکز کنترل سفرهای تو</h4>
                     <p class="text-gray-700 dark:text-gray-300 leading-relaxed">
-                        از دورهمی‌های کوچک تا تورهای چندروزه؛ تورها و گروه‌های سفر را کشف کن، به آن‌ها بپیوند و در فضای گفت‌وگو و برنامه‌ی مشترک هماهنگ شو. رزرو و پرداخت هرجا که خودتان ترجیح می‌دهید انجام می‌شود.
+                        اینباکس واحد برای نوتیف‌ها و پیام‌ها، و تب «من» برای پروفایل، سفرهای ذخیره‌شده،
+                        تاریخچه سفر، تنظیمات و استودیوی ساخت و مدیریت سفرها و تورهای میزبانی‌شده.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Main Features Section -->
-    <section id="features" class="py-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+    <!-- AI Trip Planner Section -->
+    <section id="ai-planner" class="py-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">سفرناک برای چه کسانی است؟</h3>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                <!-- Block 1: For Travelers -->
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-                    <div class="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-xl sm:text-2xl font-bold mb-6 text-gray-900 dark:text-white">برای مسافران کنجکاو</h4>
-                    <ul class="space-y-3 text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>برنامه‌ی روزبه‌روز بر اساس سلیقه، بودجه، سبک سفر و زمان در دسترس.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>الهام از سفرهای واقعی، نه فقط متن‌های عمومی اینترنت.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>امکان اصلاح سریع برنامه هنگام سفر و ثبت لحظه‌ها و احساسات.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Block 2: For Tour Leaders -->
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-xl sm:text-2xl font-bold mb-6 text-gray-900 dark:text-white">برای راهنمایان و برگزارکنندگان تور</h4>
-                    <ul class="space-y-3 text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>تبدیل یک برنامه‌ی سفر شخصی به تور گروهی با چند کلیک.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>ساخت «پکیج» با چند سفر ترکیبی و نمایش آن به جامعه‌ی مسافران.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>هماهنگی گروه، گفت‌وگو، ارسال به‌روزرسانی‌ها و لینک‌های رزرو در یک فضا.</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <!-- Block 3: For Creators & Locals -->
-                <div class="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700">
-                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                    </div>
-                    <h4 class="text-xl sm:text-2xl font-bold mb-6 text-gray-900 dark:text-white">برای سازندگان محتوا و میزبان‌های محلی</h4>
-                    <ul class="space-y-3 text-base text-gray-700 dark:text-gray-300 leading-relaxed">
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>ساخت قالب‌های سفر از تجربه‌های شخصی و دیده‌شدن در میان مسافران.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>اضافه کردن مکان‌های کوچک و لوکال؛ از کافه تا کلبه‌ای در جنگل.</span>
-                        </li>
-                        <li class="flex items-start">
-                            <span class="text-primary ml-3 mt-1">•</span>
-                            <span>اتصال سفرها و تورها به این مکان‌ها و تبدیلشان به نقطه‌ی شروع تجربه‌های جدید.</span>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section id="how-it-works" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">سفر در سفرناک چطور ساخته می‌شود؟</h3>
+                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">برنامه‌ریز هوشمند سفرناک چطور کار می‌کند؟</h3>
+                <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
+                    هسته‌ی سفرناک یک برنامه‌ریز هوش مصنوعی است که با کمک داده‌های واقعی سفر و
+                    موتور مسیریابی، برایت یک سفر روزبه‌روز روی نقشه می‌سازد؛ طوری که هم در مرحله‌ی
+                    ایده‌پردازی و هم وسط سفر بتوانی آن را تغییر دهی.
+                </p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 max-w-5xl mx-auto">
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold shadow-lg">
                         ۱
                     </div>
-                    <h4 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">الهام بگیر و قالب سفر انتخاب کن</h4>
+                    <h4 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">ایده‌ات را توصیف کن</h4>
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                        در فید و بخش اکسپلور، سفرهای واقعی، قالب‌های آماده و تورهای گروهی را ببین و نزدیک‌ترین چیزی که به سبک توست انتخاب کن.
+                        مقصد، تاریخ حدودی، بودجه، سبک سفر (کوله‌گردی، خانوادگی، لاکچری...) و چیزهایی
+                        که دوست داری ببینی و تجربه کنی را وارد کن. نسخه‌های بعدی حتی به‌صورت چت‌محور
+                        این داده‌ها را از تو می‌گیرد.
                     </p>
                 </div>
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold shadow-lg">
                         ۲
                     </div>
-                    <h4 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">با هوش مصنوعی شخصی‌سازی کن</h4>
+                    <h4 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">برنامه‌ی روزبه‌روز روی نقشه</h4>
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                        مقصد، تاریخ، بودجه و علاقه‌مندی‌هایت را بده؛ سفرناک با کمک هوش مصنوعی و داده‌های واقعی، قالب انتخابی را برای تو بازطراحی می‌کند.
+                        سفرناک مقصد و مسیرهای اصلی را روی نقشه تحلیل می‌کند، مکان‌ها و لوکیشن‌های
+                        مناسب را پیدا می‌کند و یک itinerary روزبه‌روز با زمان‌بندی، جابه‌جایی‌ها و
+                        پیشنهاد فعالیت‌ها می‌سازد؛ همه‌ی این‌ها قابل ادیت و شخصی‌سازی کامل هستند.
                     </p>
                 </div>
                 <div class="text-center">
                     <div class="w-20 h-20 bg-gradient-to-br from-primary to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl font-bold shadow-lg">
                         ۳
                     </div>
-                    <h4 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">سفر کن، هماهنگ شو و تجربه‌ات را به اشتراک بگذار</h4>
+                    <h4 class="text-2xl font-bold mb-4 text-gray-900 dark:text-white">سفر کن، آفلاین ادامه بده و سفر را قابل‌اشتراک کن</h4>
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed">
-                        حین سفر برنامه‌ات را به‌روز کن، به گروه‌ها و تورها بپیوند، احساس و عکس اضافه کن و در نهایت سفر تکمیل‌شده‌ات را به قالبی برای دیگران تبدیل کن.
+                        برنامه‌ی سفر روی موبایل و آفلاین هم در دسترس است؛ در طول مسیر ادیت می‌کنی،
+                        چک‌لیست و یادداشت اضافه می‌کنی و در نهایت می‌توانی سفر تکمیل‌شده‌ات را
+                        به یک سفر قابل‌اشتراک‌گذاری برای دیگران تبدیل کنی.
                     </p>
                 </div>
             </div>
             <div class="text-center mt-12">
                 <a href="#download" class="inline-flex items-center bg-primary text-white px-10 py-4 rounded-xl font-bold text-lg hover:bg-primary/90 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1">
-                    شروع ساخت سفر در سفرناک
+                    نصب نسخه بتا و تست برنامه‌ریز هوشمند
                 </a>
             </div>
         </div>
     </section>
 
-    <!-- Community Section -->
+    <!-- Community Section (kept idea, refined text) -->
     <section class="py-20 bg-gradient-to-br from-primary/10 to-blue-600/10 dark:from-primary/20 dark:to-blue-600/20 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
-                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">به جامعه‌ی خلق‌کنندگان سفر بپیوند</h3>
+                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-6 px-4">به نسل اول کاربران و سازندگان سفر بپیوند</h3>
                 <p class="text-base sm:text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed px-4">
-                    سفرناک هنوز در مرحله‌ی بتاست؛ یعنی دقیقا زمانی که نظر و تجربه‌ی تو می‌تواند آینده‌ی این شبکه را شکل بدهد. اگر همیشه در حال فکر کردن به مقصد بعدی، طراحی سفر برای خودت یا دیگران هستی، اینجا جای توست.
+                    سفرناک هنوز در مرحله‌ی بتاست؛ یعنی دقیقا زمانی که می‌توانی روی شکل‌گیری تجربه‌ی
+                    سفر در این شبکه تاثیر مستقیم بگذاری. اگر از آن آدم‌هایی هستی که برای خودت، دوستان
+                    و گروه‌ها همیشه برنامه‌ی سفر می‌چینی، اینجا خانه‌ی دوم توست.
                 </p>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center max-w-5xl mx-auto">
@@ -471,35 +416,92 @@
                     <svg class="w-16 h-16 text-primary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
                     </svg>
-                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">اولین کاربران و سازندگان قالب</h4>
+                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">سازندگان اولین سفرهای قابل‌اشتراک‌گذاری</h4>
                     <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                        به عنوان اولین گروه از کاربران و سازندگان قالب، زودتر از بقیه به قابلیت‌های جدید دسترسی داری و می‌توانی روی شکل‌گیری محصول تاثیر مستقیم بگذاری.
+                        سفرهایت را به سفرهای قابل‌اشتراک‌گذاری تبدیل کن، بازخورد بگیر و ببین دیگران
+                        چطور نسخه‌ی خودشان را از روی سفر تو می‌سازند. نام تو همیشه به‌عنوان منبع
+                        الهام آن سفر دیده می‌شود.
                     </p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
                     <svg class="w-16 h-16 text-primary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
                     </svg>
-                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">بازخورد حرفه‌ای، مزایای ویژه</h4>
+                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">بازخورد حرفه‌ای، مزایای نسخه‌های بعدی</h4>
                     <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                        با گزارش باگ‌ها، ایده‌ها و پیشنهادهای جدی، در لیست کاربران فعال ثبت می‌شوی و مزایا و دسترسی‌های ویژه‌ی نسخه‌های بعدی را دریافت می‌کنی.
+                        با گزارش باگ، پیشنهادهای عمیق و ایده‌های محصولی، در لیست کاربران فعال ثبت می‌شوی
+                        و در نسخه‌های بعدی به قابلیت‌ها و مزایای ویژه دسترسی خواهی داشت.
                     </p>
                 </div>
                 <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-lg">
                     <svg class="w-16 h-16 text-primary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path>
                     </svg>
                     <h4 class="text-lg sm:text-xl font-bold text-gray-900 dark:text-white mb-3">جامعه‌ی کوچک، تمرکز بالا</h4>
                     <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400 leading-relaxed">
-                        از همین حالا در کنار مسافرها، راهنماها و توسعه‌دهندگانی قرار می‌گیری که مثل تو جدی، پیگیر و عاشق سفر و ساختن ابزارهای بهتر برای سفر هستند.
+                        فعلا جامعه کوچک است؛ یعنی می‌توانیم روی کیفیت رابطه‌ها و شکل‌دادن هسته‌ی محصول
+                        تمرکز کنیم. از همین حالا کنار راهنماها، مسافران حرفه‌ای و توسعه‌دهندگان قرار می‌گیری.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- Tech / Open Source Section -->
+    <section id="tech" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 px-4">زیرساخت آف‌لاین‌فرست و متن‌باز روی Cloudflare</h3>
+                <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed px-4">
+                    سفرناک از روز اول با فرض اینترنت ناپایدار، سفرهای جاده‌ای و روستاهای دور طراحی شده است.
+                    دیتابیس لوکال روی موبایل، سینک با Cloudflare Workers و گراف‌کیوال واحد، ترکیبِ «شبکه‌ی اجتماعی سفر»
+                    و «برنامه‌ریز سفر» را ممکن کرده است.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">آف‌لاین‌فرست واقعی</h4>
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                        اپ اندروید با دیتابیس لوکال (SQLite/Drizzle) کار می‌کند؛ سفرها، پیام‌ها و حضورها
+                        ابتدا روی دستگاه ثبت می‌شوند و بعد با سرور سینک می‌شوند. برای تورهای طبیعت‌گردی
+                        و سفرهای خارج از پوشش ایده‌آل است.
+                    </p>
+                    <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                        <li>• دسترسی به برنامه‌ی سفر بدون اینترنت</li>
+                        <li>• ذخیره‌ی محلی پیام‌ها و نوتیف‌ها</li>
+                        <li>• سینک خودکار بعد از اتصال مجدد</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">معماری Cloudflare-محور</h4>
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                        Workers، D1، KV، Vectorize، R2 و Durable Objects هسته‌ی بک‌اند سفرناک را می‌سازند.
+                        همه‌چیز روی یک GraphQL API واحد سوار شده تا توسعه‌ی کلاینت‌های جدید ساده باشد.
+                    </p>
+                    <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                        <li>• GraphQL Yoga + Drizzle ORM</li>
+                        <li>• Vector search برای تطبیق سلیقه و مقصد</li>
+                        <li>• Durable Objects برای چت و حضورهای بلادرنگ</li>
+                    </ul>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">متن‌باز و قابل مشارکت</h4>
+                    <p class="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                        کد سفرناک با مجوز MIT منتشر می‌شود؛ یعنی می‌توانی از آن استفاده کنی، روی آن
+                        فورک بزنی، برایش پلاگین و ابزار بسازی یا در هسته‌ی «شبکه خلق سفر» مشارکت کنی.
+                    </p>
+                    <ul class="text-sm text-gray-500 dark:text-gray-400 space-y-2">
+                        <li>• مخزن عمومی GitHub</li>
+                        <li>• راهنمای مشارکت و Issues فعال</li>
+                        <li>• ابزار مناسب برای تیم‌های سفر و استارتاپ‌های وابسته</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Download & Developer Section -->
-    <section id="download" class="py-20 bg-white dark:bg-gray-800 transition-colors duration-300">
+    <section id="download" class="py-20 bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-12">
                 <div class="inline-flex items-center justify-center w-20 h-20 bg-green-600 dark:bg-green-500 rounded-full mb-6 shadow-lg">
@@ -507,9 +509,11 @@
                         <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
                     </svg>
                 </div>
-                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 px-4">سفرناک یک پروژه‌ی متن‌باز در مقیاس جهانی است</h3>
+                <h3 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 px-4">سفرناک؛ یک پروژه‌ی متن‌باز برای نسل بعدی شبکه‌های سفر</h3>
                 <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed mb-8 px-4">
-                    زیرساخت سفرناک روی Cloudflare و با معماری سرورلس و آف‌لاین‌فرست ساخته شده و کد آن با مجوز MIT منتشر می‌شود. اگر توسعه‌دهنده‌ای و به شبکه‌های اجتماعی، سفر و هوش مصنوعی علاقه داری، می‌توانی مستقیماً در تکامل هسته‌ی «شبکه خلق سفر» مشارکت کنی.
+                    زیرساخت سفرناک روی Cloudflare و با معماری سرورلس و آف‌لاین‌فرست ساخته شده و کد آن
+                    با مجوز MIT منتشر می‌شود. اگر توسعه‌دهنده‌ای و به شبکه‌های اجتماعی، سفر و هوش مصنوعی
+                    علاقه داری، می‌توانی مستقیماً در تکامل این هسته مشارکت کنی.
                 </p>
                 
                 <!-- Quick Links -->
@@ -528,7 +532,7 @@
                     </a>
                     <a href="https://github.com/mehotkhan/safarnak.app/blob/master/CONTRIBUTING.md" target="_blank" class="inline-flex items-center px-6 py-3 bg-green-600 dark:bg-green-500 text-white rounded-lg font-semibold hover:bg-green-700 dark:hover:bg-green-600 transition-all shadow-lg hover:shadow-xl">
                         <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                         راهنمای مشارکت
                     </a>
@@ -538,120 +542,124 @@
                     <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
-                    <span class="text-yellow-800 dark:text-yellow-300 font-semibold">نسخه بتا - فقط برای تست و توسعه</span>
+                    <span class="text-yellow-800 dark:text-yellow-300 font-semibold">نسخه بتا - فقط برای تست و بازخورد حرفه‌ای</span>
                 </div>
             </div>
 
             <!-- Download Button -->
             <div class="text-center mb-16">
                 <a href="https://github.com/mehotkhan/safarnak.app/releases" target="_blank" class="inline-flex items-center justify-center bg-green-600 dark:bg-green-500 text-white px-6 sm:px-10 py-3 sm:py-4 rounded-xl font-bold text-base sm:text-lg hover:bg-green-700 dark:hover:bg-green-600 transition-all shadow-xl hover:shadow-2xl transform hover:-translate-y-1 mb-4">
-                    <svg class="w-7 h-7 ml-3" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg class="w-7 h-7 ml-3" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M6 18c0 .55.45 1 1 1h1v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h2v3.5c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5V19h1c.55 0 1-.45 1-1V8H6v10zM3.5 8C2.67 8 2 8.67 2 9.5v7c0 .83.67 1.5 1.5 1.5S5 17.33 5 16.5v-7C5 8.67 4.33 8 3.5 8zm17 0c-.83 0-1.5.67-1.5 1.5v7c0 .83.67 1.5 1.5 1.5s1.5-.67 1.5-1.5v-7C22 8.67 21.33 8 20.5 8zM15.53 2.16l1.3-1.3c.2-.2.2-.51 0-.71-.2-.2-.51-.2-.71 0l-1.48 1.48C13.85 1.23 12.95 1 12 1c-.96 0-1.86.23-2.66.63L7.85.15c-.2-.2-.51-.2-.71 0-.2.2-.2.51 0 .71l1.31 1.31C6.97 3.26 6 5.01 6 7h12c0-1.99-.97-3.74-2.47-4.84zM10 5H9V4h1v1zm5 0h-1V4h1v1z"/>
                     </svg>
                     دانلود نسخه اندروید (بتا)
                 </a>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                    ✓ فقط اندروید • ✓ رایگان • ✓ بدون تبلیغات • ⚠️ نسخه‌ی آزمایشی برای تست و بازخورد حرفه‌ای
+                    ✓ فقط اندروید • ✓ رایگان • ✓ بدون تبلیغات • ⚠️ نسخه‌ی آزمایشی برای تست و بازخورد
                 </p>
             </div>
 
-            <!-- Developer Resources -->
+            <!-- Developer Resources (همان ساختار، متن تریم شده) -->
             <div class="mb-12">
                 <h4 class="text-2xl font-bold text-center mb-8 text-gray-900 dark:text-white">منابع توسعه‌دهندگان</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <!-- GraphQL API -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
-                    <div class="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
-                        </svg>
+                    <!-- GraphQL API -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+                        <div class="w-14 h-14 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">GraphQL API</h4>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                            دسترسی کامل به API قدرتمند GraphQL با مستندات تعاملی و GraphiQL برای تست و توسعه‌ی سریع کلاینت‌های جدید.
+                        </p>
+                        <a href="/graphql" class="inline-flex items-center text-primary font-semibold hover:underline">
+                            دسترسی به GraphQL
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </a>
                     </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">GraphQL API</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        دسترسی کامل به API قدرتمند GraphQL با مستندات تعاملی و GraphiQL برای تست.
-                    </p>
-                    <a href="/graphql" class="inline-flex items-center text-primary font-semibold hover:underline">
-                        دسترسی به GraphQL
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </a>
-                </div>
 
-                <!-- GitHub Repository -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
-                    <div class="w-14 h-14 bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
-                        </svg>
+                    <!-- GitHub Repository -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+                        <div class="w-14 h-14 bg-gradient-to-br from-gray-700 to-gray-900 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">کد منبع</h4>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                            مشاهده کد منبع، مشارکت در توسعه و گزارش باگ‌ها در مخزن GitHub.
+                        </p>
+                        <a href="https://github.com/mehotkhan/safarnak.app" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
+                            مشاهده در GitHub
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </a>
                     </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">کد منبع</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        مشاهده کد منبع، مشارکت در توسعه و گزارش باگ‌ها در مخزن GitHub.
-                    </p>
-                    <a href="https://github.com/mehotkhan/safarnak.app" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
-                        مشاهده در GitHub
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </a>
-                </div>
 
-                <!-- Documentation -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
-                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                        </svg>
+                    <!-- Documentation -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">مستندات</h4>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                            راهنمای نصب، راه‌اندازی و معماری در README پروژه؛ مناسب برای تیم‌هایی که می‌خواهند
+                            از سفرناک به‌عنوان پایه‌ی یک محصول جدید استفاده کنند.
+                        </p>
+                        <a href="https://github.com/mehotkhan/safarnak.app#readme" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
+                            مطالعه مستندات
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </a>
                     </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">مستندات</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        راهنمای کامل نصب، راه‌اندازی و توسعه با سفرناک در README پروژه.
-                    </p>
-                    <a href="https://github.com/mehotkhan/safarnak.app#readme" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
-                        مطالعه مستندات
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </a>
-                </div>
 
-                <!-- Technology Stack -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
-                    <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
+                    <!-- Technology Stack -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+                        <div class="w-14 h-14 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path>
                         </svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">تکنولوژی‌ها</h4>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                            React Native، TypeScript، Cloudflare Workers، GraphQL Yoga، Drizzle ORM، Vectorize
+                            و معماری آف‌لاین‌فرست سمت کلاینت.
+                        </p>
+                        <div class="flex flex-wrap gap-2 mt-4">
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">React Native</span>
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">TypeScript</span>
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">GraphQL</span>
+                            <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">Cloudflare Workers</span>
+                        </div>
                     </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">تکنولوژی‌ها</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        React Native، TypeScript، Cloudflare Workers، GraphQL Yoga، Drizzle ORM و بیشتر.
-                    </p>
-                    <div class="flex flex-wrap gap-2 mt-4">
-                        <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">React Native</span>
-                        <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">TypeScript</span>
-                        <span class="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">GraphQL</span>
-                    </div>
-                </div>
 
-                <!-- Contributing -->
-                <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
-                    <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-6">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
+                    <!-- Contributing -->
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl p-8 border border-gray-200 dark:border-gray-600">
+                        <div class="w-14 h-14 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center mb-6">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">مشارکت</h4>
+                        <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
+                            اگر روی Cloudflare، معماری آف‌لاین‌فرست، چت E2E یا موتورهای توصیه‌گر برای سفر کار می‌کنی،
+                            سفرناک یک آزمایشگاه متن‌باز عالی برایت است.
+                        </p>
+                        <a href="https://github.com/mehotkhan/safarnak.app/blob/master/CONTRIBUTING.md" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
+                            راهنمای مشارکت
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </a>
                     </div>
-                    <h4 class="text-xl font-bold mb-3 text-gray-900 dark:text-white">مشارکت</h4>
-                    <p class="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
-                        به پروژه کمک کنید! Pull Request، گزارش باگ و پیشنهاد ویژگی‌های جدید را بفرستید.
-                    </p>
-                    <a href="https://github.com/mehotkhan/safarnak.app/blob/master/CONTRIBUTING.md" target="_blank" class="inline-flex items-center text-primary font-semibold hover:underline">
-                        راهنمای مشارکت
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </a>
-                </div>
 
                 </div>
             </div>
@@ -667,15 +675,19 @@
                         <h4 class="text-2xl font-bold gradient-text hover:opacity-80 transition-opacity">سفرناک</h4>
                         <img src="/assets/logo-64.png" alt="سفرناک" class="w-8 h-8" />
                     </a>
-                    <p class="text-gray-400 mb-4 leading-relaxed">شبکه خلق سفر؛ برای برنامه‌ریزی، الهام گرفتن، هماهنگی گروهی و به‌اشتراک‌گذاری تجربه‌ی سفر.</p>
+                    <p class="text-gray-400 mb-4 leading-relaxed">
+                        شبکه اجتماعی سفر و برنامه‌ریز هوشمند؛ برای برنامه‌ریزی، الهام گرفتن، هماهنگی گروهی
+                        و ساخت سفرهای قابل‌اشتراک‌گذاری.
+                    </p>
                     <p class="text-sm text-gray-500">نسخه {{VERSION_PLAIN}}</p>
                 </div>
                 <div>
                     <h5 class="text-lg font-bold mb-4">دسترسی سریع</h5>
                     <ul class="space-y-2">
-                        <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">امکانات</a></li>
-                        <li><a href="#download" class="text-gray-400 hover:text-white transition-colors">دانلود</a></li>
-                        <li><a href="#about" class="text-gray-400 hover:text-white transition-colors">درباره ما</a></li>
+                        <li><a href="#ai-planner" class="text-gray-400 hover:text-white transition-colors">برنامه‌ریز هوشمند</a></li>
+                        <li><a href="#social" class="text-gray-400 hover:text-white transition-colors">شبکه اجتماعی سفر</a></li>
+                        <li><a href="#tech" class="text-gray-400 hover:text-white transition-colors">زیرساخت و معماری</a></li>
+                        <li><a href="#download" class="text-gray-400 hover:text-white transition-colors">دانلود اپ</a></li>
                     </ul>
                 </div>
                 <div>
@@ -698,7 +710,10 @@
             </div>
             <div class="border-t border-gray-800 pt-8 text-center text-gray-400">
                 <p>&copy; ۱۴۰۴ سفرناک. تمام حقوق محفوظ است.</p>
-                <p class="mt-2 text-sm">Crafted with ❤️ by <a href="https://mohet.ir" target="_blank" class="underline hover:text-white">mohet</a></p>
+                <p class="mt-2 text-sm">
+                    Crafted with ❤️ by
+                    <a href="https://mohet.ir" target="_blank" class="underline hover:text-white">mohet</a>
+                </p>
             </div>
         </div>
     </footer>
@@ -713,7 +728,7 @@
             html.classList.add('dark');
         }
         
-        themeToggle.addEventListener('click', () => {
+        themeToggle?.addEventListener('click', () => {
             html.classList.toggle('dark');
             const newTheme = html.classList.contains('dark') ? 'dark' : 'light';
             localStorage.setItem('theme', newTheme);
@@ -726,7 +741,6 @@
         if (mobileMenuToggle && mobileMenu) {
             mobileMenuToggle.addEventListener('click', () => {
                 mobileMenu.classList.toggle('hidden');
-                // Toggle hamburger icon to X
                 const icon = mobileMenuToggle.querySelector('svg');
                 if (icon) {
                     icon.classList.toggle('rotate-90');
@@ -745,15 +759,19 @@
         // Smooth scrolling for anchor links
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    const offset = 80; // Account for fixed navbar
-                    const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
-                    window.scrollTo({
-                        top: targetPosition,
-                        behavior: 'smooth'
-                    });
+                const href = this.getAttribute('href');
+                if (!href || href === '#') return;
+                if (href.startsWith('#')) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        const offset = 80;
+                        const targetPosition = target.getBoundingClientRect().top + window.pageYOffset - offset;
+                        window.scrollTo({
+                            top: targetPosition,
+                            behavior: 'smooth'
+                        });
+                    }
                 }
             });
         });

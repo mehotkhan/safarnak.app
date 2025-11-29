@@ -22,6 +22,8 @@ import {
   cachedTrips,
   cachedPlaces,
   cachedMessages,
+  cachedConversations,
+  cachedChatMessages,
   pendingMutations,
   syncMetadata,
   apolloCacheEntries,
@@ -185,7 +187,7 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         title TEXT NOT NULL,
         description TEXT,
         metadata TEXT,
-        order INTEGER DEFAULT 0,
+        "order" INTEGER DEFAULT 0,
         created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         cached_at INTEGER DEFAULT (strftime('%s', 'now')),
@@ -225,6 +227,54 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         cached_at INTEGER DEFAULT (strftime('%s', 'now')),
         last_sync_at INTEGER,
         pending INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS cached_conversations (
+        id TEXT PRIMARY KEY NOT NULL,
+        kind TEXT NOT NULL,
+        trip_id TEXT,
+        title TEXT,
+        last_message_preview TEXT,
+        last_message_at TEXT,
+        created_at TEXT,
+        updated_at TEXT,
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS cached_conversation_members (
+        id TEXT PRIMARY KEY NOT NULL,
+        conversation_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'MEMBER',
+        joined_at TEXT,
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS cached_chat_messages (
+        id TEXT PRIMARY KEY NOT NULL,
+        conversation_id TEXT NOT NULL,
+        sender_user_id TEXT NOT NULL,
+        sender_device_id TEXT NOT NULL,
+        ciphertext TEXT NOT NULL,
+        ciphertext_meta TEXT,
+        type TEXT DEFAULT 'text',
+        metadata TEXT,
+        created_at TEXT,
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS local_conversation_keys (
+        conversation_id TEXT PRIMARY KEY NOT NULL,
+        key_id TEXT,
+        encrypted_key TEXT NOT NULL,
+        created_at INTEGER,
+        updated_at INTEGER
       );
 
       CREATE TABLE IF NOT EXISTS pending_mutations (
@@ -274,9 +324,15 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
       CREATE INDEX IF NOT EXISTS idx_cached_trip_days_trip_id ON cached_trip_days(trip_id);
       CREATE INDEX IF NOT EXISTS idx_cached_trip_days_day_index ON cached_trip_days(trip_id, day_index);
       CREATE INDEX IF NOT EXISTS idx_cached_trip_items_trip_day_id ON cached_trip_items(trip_day_id);
-      CREATE INDEX IF NOT EXISTS idx_cached_trip_items_order ON cached_trip_items(trip_day_id, order);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_items_order ON cached_trip_items(trip_day_id, "order");
       CREATE INDEX IF NOT EXISTS idx_cached_places_type ON cached_places(type);
       CREATE INDEX IF NOT EXISTS idx_cached_places_location ON cached_places(location);
+      CREATE INDEX IF NOT EXISTS idx_cached_conversations_kind ON cached_conversations(kind);
+      CREATE INDEX IF NOT EXISTS idx_cached_conversations_last_message ON cached_conversations(last_message_at);
+      CREATE INDEX IF NOT EXISTS idx_cached_conversation_members_conversation ON cached_conversation_members(conversation_id);
+      CREATE INDEX IF NOT EXISTS idx_cached_conversation_members_user ON cached_conversation_members(user_id);
+      CREATE INDEX IF NOT EXISTS idx_cached_chat_messages_conversation ON cached_chat_messages(conversation_id, created_at);
+      CREATE INDEX IF NOT EXISTS idx_cached_chat_messages_sender ON cached_chat_messages(sender_user_id);
       CREATE INDEX IF NOT EXISTS idx_pending_mutations_queued_at ON pending_mutations(queued_at);
       CREATE INDEX IF NOT EXISTS idx_apollo_cache_entity ON apollo_cache_entries(entity_type, entity_id);
       CREATE INDEX IF NOT EXISTS idx_apollo_cache_updated_at ON apollo_cache_entries(updated_at);
@@ -307,6 +363,8 @@ const ENTITY_TYPE_TO_TABLE = {
   // Tour removed - unified into Trip with isHosted flag
   Place: cachedPlaces,
   Message: cachedMessages,
+  Conversation: cachedConversations,
+  ChatMessage: cachedChatMessages,
   // TripParticipant, TripDay, TripItem are not directly cached via Apollo cache
   // They are nested within Trip entities and handled separately
 } as const;
@@ -456,6 +514,29 @@ function transformEntity(entityType: EntityType, data: any): Record<string, any>
           isRead: data.isRead === true,
           createdAt: data.createdAt || new Date().toISOString(),
         };
+      case 'Conversation':
+        return {
+          id: String(data.id || ''),
+          kind: data.kind || 'DM',
+          tripId: data.tripId ? String(data.tripId) : null,
+          title: data.title || null,
+          lastMessagePreview: data.lastMessagePreview || null,
+          lastMessageAt: data.lastMessageAt || null,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+        };
+      case 'ChatMessage':
+        return {
+          id: String(data.id || ''),
+          conversationId: String(data.conversationId || ''),
+          senderUserId: String(data.senderUserId || ''),
+          senderDeviceId: String(data.senderDeviceId || ''),
+          ciphertext: data.ciphertext || '',
+          ciphertextMeta: data.ciphertextMeta ? JSON.stringify(data.ciphertextMeta) : null,
+          type: data.type || 'text',
+          metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+          createdAt: data.createdAt || new Date().toISOString(),
+        };
       default:
         return null;
     }
@@ -521,6 +602,8 @@ export interface DatabaseStats {
     users: EntityStats;
     messages: EntityStats;
     places: EntityStats;
+    conversations: EntityStats;
+    chatMessages: EntityStats;
   };
   totalEntities: number;
   apolloCache: ApolloCacheStats;
@@ -581,11 +664,13 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
       };
     };
 
-    const [trips, users, messages, places] = await Promise.all([
+    const [trips, users, messages, places, conversationsStats, chatMessagesStats] = await Promise.all([
       getEntityStats(cachedTrips, true, true),
       getEntityStats(cachedUsers, true, false),
       getEntityStats(cachedMessages, true, false),
       getEntityStats(cachedPlaces, false, false),
+      getEntityStats(cachedConversations, true, false),
+      getEntityStats(cachedChatMessages, true, false),
     ]);
 
     const [pendingTotal] = await db.select({ count: sql<number>`count(*)` }).from(pendingMutations);
@@ -634,8 +719,16 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
     const structuredDataSize = apolloCacheStats.totalSize; // For now, use same as cache size
 
     return {
-      entities: { trips, users, messages, places },
-      totalEntities: trips.count + users.count + messages.count + places.count,
+      entities: {
+        trips,
+        users,
+        messages,
+        places,
+        conversations: conversationsStats,
+        chatMessages: chatMessagesStats,
+      },
+      totalEntities:
+        trips.count + users.count + messages.count + places.count + conversationsStats.count + chatMessagesStats.count,
       apolloCache: apolloCacheStats,
       pendingMutations: {
         total: pendingTotal?.count || 0,
@@ -657,7 +750,7 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
     console.error('Failed to get database stats:', error);
     const empty = { count: 0, pendingCount: 0, deletedCount: 0, lastSyncAt: null, oldestCachedAt: null, newestCachedAt: null };
     return {
-      entities: { trips: empty, users: empty, messages: empty, places: empty },
+      entities: { trips: empty, users: empty, messages: empty, places: empty, conversations: empty, chatMessages: empty },
       totalEntities: 0,
       pendingMutations: { total: 0, withErrors: 0, oldestQueuedAt: null },
       syncStatus: [],

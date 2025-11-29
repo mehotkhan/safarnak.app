@@ -1,94 +1,31 @@
-import React from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, Stack, useLocalSearchParams } from 'expo-router';
 import { useAppSelector } from '@state/hooks';
 import Colors from '@constants/Colors';
-
-// Mock notification data
-const mockNotifications: Record<string, any> = {
-  '1': {
-    id: '1',
-    type: 'social',
-    title: 'Sarah Johnson used your trip',
-    message: 'Your Tokyo Adventure trip was used for planning',
-    fullMessage: 'Sarah Johnson has used your "Tokyo Adventure" trip as a template for their upcoming journey. Your detailed itinerary and recommendations have helped another traveler plan their perfect trip!',
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    read: false,
-    actionable: true,
-    actionData: {
-      type: 'trip',
-      id: '123',
-      userName: 'Sarah Johnson',
-      userAvatar: null,
-    },
-  },
-  '2': {
-    id: '2',
-    type: 'social',
-    title: 'Mike Chen commented on your post',
-    message: 'Great photos from your mountain trip!',
-    fullMessage: 'Mike Chen commented: "These are absolutely stunning photos! The mountain landscapes look incredible. How was the weather during your trek? I\'m planning a similar trip next month and would love to know more about your experience."',
-    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-    read: false,
-    actionable: true,
-    actionData: {
-      type: 'post',
-      id: '456',
-      userName: 'Mike Chen',
-    },
-  },
-  '3': {
-    id: '3',
-    type: 'tour',
-    title: 'New member joined your tour',
-    message: 'Emma Wilson joined "Swiss Alps Adventure"',
-    fullMessage: 'Good news! Emma Wilson has joined your "Swiss Alps Adventure" tour. You now have 8 members in the group. Emma is an experienced hiker and photographer based in Zurich.',
-    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    read: true,
-    actionable: true,
-    actionData: {
-      type: 'tour',
-      id: '789',
-      tourName: 'Swiss Alps Adventure',
-      userName: 'Emma Wilson',
-    },
-  },
-};
+import { useGetAlertsQuery } from '@api';
+import { CustomText } from '@ui/display';
 
 export default function NotificationDetailScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams();
-  const isDark = useAppSelector(state => state.theme.isDark);
-
+  const isDark = useAppSelector((state) => state.theme.isDark);
   const colors = isDark ? Colors.dark : Colors.light;
-  const notification = mockNotifications[id as string];
+  const { data, loading, refetch } = useGetAlertsQuery({
+    fetchPolicy: 'cache-and-network',
+  });
 
-  if (!notification) {
-    return (
-      <View className='flex-1 items-center justify-center' style={{ backgroundColor: colors.background }}>
-        <Ionicons
-          name='alert-circle-outline'
-          size={64}
-          color={isDark ? '#6b7280' : '#9ca3af'}
-        />
-        <Text
-          className='text-lg font-semibold mt-4'
-          style={{ color: colors.text }}
-        >
-          Notification not found
-        </Text>
-      </View>
-    );
-  }
+  const alerts = data?.getAlerts;
+
+  const notification = useMemo(() => {
+    if (!alerts) return undefined;
+    return alerts.find((alert) => alert.id === id);
+  }, [alerts, id]);
+
+  const parsedCreatedAt = notification ? new Date(notification.createdAt) : null;
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -135,36 +72,42 @@ export default function NotificationDetailScreen() {
     }
   };
 
-  const handleAction = () => {
-    const { actionData } = notification;
-    
-    if (actionData.type === 'trip') {
-      router.push(`/(app)/(trips)/${actionData.id}` as any);
-    } else if (actionData.type === 'post') {
-      router.push(`/(app)/(home)/${actionData.id}` as any);
-    } else if (actionData.type === 'tour') {
-      // Tour is now unified into Trip with isHosted flag - navigate to trip detail
-      router.push(`/(app)/(trips)/${actionData.id}` as any);
+  const handleNavigate = () => {
+    if (!notification?.targetType || !notification.targetId) return;
+    switch (notification.targetType) {
+      case 'TRIP':
+      case 'tour':
+        router.push(`/(app)/(trips)/${notification.targetId}` as any);
+        break;
+      case 'POST':
+        router.push(`/(app)/(home)/${notification.targetId}` as any);
+        break;
+      default:
+        break;
     }
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      t('notifications.deleteTitle'),
-      t('notifications.deleteMessage'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('notifications.deleteNotification'),
-          style: 'destructive',
-          onPress: () => {
-            // In real app, delete notification
-            router.back();
-          },
-        },
-      ]
+  if (loading && !notification) {
+    return (
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.background }}>
+        <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+      </View>
     );
-  };
+  }
+
+  if (!notification) {
+    return (
+      <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.background }}>
+        <Ionicons name="alert-circle-outline" size={64} color={isDark ? '#6b7280' : '#9ca3af'} />
+        <CustomText weight="bold" className="text-lg mt-4" style={{ color: colors.text }}>
+          {t('inbox.notFound') || 'Notification not found'}
+        </CustomText>
+        <TouchableOpacity onPress={() => refetch()} className="mt-4 px-4 py-2 rounded-full bg-primary">
+          <Text className="text-white font-semibold">{t('common.retry') || 'Retry'}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   return (
     <View className='flex-1' style={{ backgroundColor: colors.background }}>
@@ -173,11 +116,6 @@ export default function NotificationDetailScreen() {
           title: t('notifications.details'),
           headerShown: true,
           headerLargeTitle: false,
-          headerRight: () => (
-            <TouchableOpacity onPress={handleDelete} className='mr-2'>
-              <Ionicons name='trash-outline' size={22} color='#ef4444' />
-            </TouchableOpacity>
-          ),
         }}
       />
 
@@ -207,12 +145,14 @@ export default function NotificationDetailScreen() {
                   {notification.type}
                 </Text>
               </View>
-              <Text
-                className='text-xs'
-                style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
-              >
-                {formatTime(notification.timestamp)}
-              </Text>
+              {parsedCreatedAt && (
+                <Text
+                  className="text-xs"
+                  style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
+                >
+                  {formatTime(parsedCreatedAt)}
+                </Text>
+              )}
             </View>
           </View>
 
@@ -226,95 +166,33 @@ export default function NotificationDetailScreen() {
 
         {/* Content */}
         <View className='p-6'>
-          <Text
-            className='text-base leading-7'
-            style={{ color: isDark ? '#d1d5db' : '#374151' }}
-          >
-            {notification.fullMessage}
+          <Text className="text-base leading-7" style={{ color: isDark ? '#d1d5db' : '#374151' }}>
+            {notification.message}
           </Text>
 
-          {/* Action Data Card */}
-          {notification.actionData && (
-            <View
-              className='mt-6 p-4 rounded-xl'
-              style={{ backgroundColor: isDark ? '#1f2937' : '#f9fafb' }}
-            >
-              <Text
-                className='text-sm font-semibold mb-2'
-                style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
-              >
-                Related Information
+          {notification.step && notification.totalSteps ? (
+            <View className="mt-4">
+              <Text className="text-sm text-gray-500 dark:text-gray-400">
+                {t('notifications.progress', {
+                  defaultValue: 'Step {{current}} of {{total}}',
+                  current: notification.step,
+                  total: notification.totalSteps,
+                })}
               </Text>
-              {notification.actionData.userName && (
-                <View className='flex-row items-center gap-2 mb-2'>
-                  <Ionicons
-                    name='person'
-                    size={16}
-                    color={isDark ? '#9ca3af' : '#6b7280'}
-                  />
-                  <Text
-                    className='text-sm'
-                    style={{ color: colors.text }}
-                  >
-                    {notification.actionData.userName}
-                  </Text>
-                </View>
-              )}
-              {notification.actionData.tourName && (
-                <View className='flex-row items-center gap-2'>
-                  <Ionicons
-                    name='flag'
-                    size={16}
-                    color={isDark ? '#9ca3af' : '#6b7280'}
-                  />
-                  <Text
-                    className='text-sm'
-                    style={{ color: colors.text }}
-                  >
-                    {notification.actionData.tourName}
-                  </Text>
-                </View>
-              )}
             </View>
-          )}
+          ) : null}
 
-          {/* Action Buttons */}
-          {notification.actionable && (
-            <View className='mt-6 gap-3'>
+          {notification.targetType && notification.targetId && (
+            <View className="mt-6 gap-3">
               <TouchableOpacity
-                onPress={handleAction}
-                className='py-4 rounded-xl flex-row items-center justify-center gap-2'
+                onPress={handleNavigate}
+                className="py-4 rounded-xl flex-row items-center justify-center gap-2"
                 style={{ backgroundColor: colors.primary }}
                 activeOpacity={0.8}
               >
-                <Ionicons name='arrow-forward' size={20} color='#fff' />
-                <Text className='text-base font-semibold text-white'>
-                  View Details
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  Alert.alert(
-                    t('notifications.markAsRead'),
-                    t('notifications.markedAsRead')
-                  );
-                  router.back();
-                }}
-                className='py-4 rounded-xl flex-row items-center justify-center gap-2'
-                style={{ backgroundColor: isDark ? '#374151' : '#f3f4f6' }}
-                activeOpacity={0.8}
-              >
-                <Ionicons
-                  name='checkmark-circle'
-                  size={20}
-                  color={isDark ? '#9ca3af' : '#6b7280'}
-                />
-                <Text
-                  className='text-base font-semibold'
-                  style={{ color: isDark ? '#d1d5db' : '#374151' }}
-                >
-                  {t('notifications.markAsRead')}
+                <Ionicons name="arrow-forward" size={20} color="#fff" />
+                <Text className="text-base font-semibold text-white">
+                  {t('inbox.viewDetails') || 'View details'}
                 </Text>
               </TouchableOpacity>
             </View>

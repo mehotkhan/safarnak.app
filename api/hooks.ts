@@ -3,12 +3,13 @@ import { Exact, Scalars, CoordinatesInput, CreateLocationInput, CreatePlaceInput
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
 const defaultOptions = {} as const;
-export type AddMessageMutationVariables = Exact<{
-  content: Scalars['String']['input'];
+export type AckChatInviteMutationVariables = Exact<{
+  inviteId: Scalars['ID']['input'];
+  acceptCiphertext: Scalars['String']['input'];
 }>;
 
 
-export type AddMessageMutation = { addMessage: { id: string, content: string, createdAt: string } };
+export type AckChatInviteMutation = { ackChatInvite: boolean };
 
 export type BookmarkPostMutationVariables = Exact<{
   postId: Scalars['ID']['input'];
@@ -24,6 +25,31 @@ export type CheckUsernameQueryVariables = Exact<{
 
 export type CheckUsernameQuery = { checkUsernameAvailability: boolean };
 
+export type ConversationMessagesSubscriptionVariables = Exact<{
+  conversationId: Scalars['ID']['input'];
+}>;
+
+
+export type ConversationMessagesSubscription = { conversationMessages: { id: string, conversationId: string, senderUserId: string, senderDeviceId: string, type: string, ciphertext: string, ciphertextMeta?: any | null, metadata?: any | null, createdAt: string } };
+
+export type ConversationMessagesPageQueryVariables = Exact<{
+  conversationId: Scalars['ID']['input'];
+  cursor?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+
+export type ConversationMessagesPageQuery = { conversationMessagesPage: { edges: Array<{ cursor: string, node: { id: string, conversationId: string, senderUserId: string, senderDeviceId: string, type: string, ciphertext: string, ciphertextMeta?: any | null, metadata?: any | null, createdAt: string } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
+
+export type CreateChatInviteMutationVariables = Exact<{
+  conversationId: Scalars['ID']['input'];
+  toUserId: Scalars['ID']['input'];
+  inviteCiphertext: Scalars['String']['input'];
+}>;
+
+
+export type CreateChatInviteMutation = { createChatInvite: boolean };
+
 export type CreateCommentMutationVariables = Exact<{
   postId: Scalars['ID']['input'];
   content: Scalars['String']['input'];
@@ -31,6 +57,15 @@ export type CreateCommentMutationVariables = Exact<{
 
 
 export type CreateCommentMutation = { createComment: { id: string, postId: string, userId: string, content: string, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null } } };
+
+export type CreateConversationMutationVariables = Exact<{
+  dmWithUserId?: InputMaybe<Scalars['ID']['input']>;
+  tripId?: InputMaybe<Scalars['ID']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CreateConversationMutation = { createConversation: { id: string, kind: string, tripId?: string | null, title?: string | null, lastMessageAt?: string | null, createdAt: string, updatedAt: string, members: Array<{ id: string, username: string, name: string, avatar?: string | null, publicKey?: string | null, status: string }> } };
 
 export type CreateLocationMutationVariables = Exact<{
   input: CreateLocationInput;
@@ -122,7 +157,7 @@ export type GenerateAvatarMutation = { generateAvatar: { id: string, name: strin
 export type GetAlertsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type GetAlertsQuery = { getAlerts: Array<{ id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, read?: boolean | null, createdAt: string }> };
+export type GetAlertsQuery = { getAlerts: Array<{ id: string, type: string, title: string, message: string, step?: number | null, totalSteps?: number | null, tripId?: string | null, userId: string, actorId?: string | null, targetType?: string | null, targetId?: string | null, read?: boolean | null, createdAt: string }> };
 
 export type GetBookmarksQueryVariables = Exact<{
   type?: InputMaybe<Scalars['String']['input']>;
@@ -180,11 +215,6 @@ export type GetLocationsQueryVariables = Exact<{
 
 
 export type GetLocationsQuery = { getLocations: Array<{ id: string, name: string, country: string, description?: string | null, popularActivities: Array<string>, averageCost?: number | null, bestTimeToVisit?: string | null, population?: string | null, createdAt: string, updatedAt: string, coordinates: { latitude: number, longitude: number } }> };
-
-export type GetMessagesQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type GetMessagesQuery = { getMessages: Array<{ id: string, content: string, createdAt: string }> };
 
 export type GetMyDevicesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -245,7 +275,7 @@ export type GetTripQueryVariables = Exact<{
 }>;
 
 
-export type GetTripQuery = { getTrip?: { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ day: number, title: string, activities: Array<string> }> | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } | null };
+export type GetTripQuery = { getTrip?: { id: string, userId: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, isHosted: boolean, title?: string | null, location?: string | null, price?: number | null, currency?: string | null, rating?: number | null, reviews?: number | null, duration?: number | null, durationType?: string | null, category?: string | null, difficulty?: string | null, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants?: number | null, hostIntro?: string | null, joinPolicy?: TripJoinPolicy | null, bookingInstructions?: string | null, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive?: boolean | null, isFeatured?: boolean | null, externalBookingUrl?: string | null, viewerJoinStatus?: TripJoinStatus | null, createdAt: string, updatedAt: string, itinerary?: Array<{ day: number, title: string, activities: Array<string> }> | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } | null };
 
 export type GetTripsQueryVariables = Exact<{
   status?: InputMaybe<Scalars['String']['input']>;
@@ -253,7 +283,7 @@ export type GetTripsQueryVariables = Exact<{
 }>;
 
 
-export type GetTripsQuery = { getTrips: Array<{ id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, budget?: number | null, accommodation?: string | null, createdAt: string, updatedAt: string }> };
+export type GetTripsQuery = { getTrips: Array<{ id: string, userId: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, budget?: number | null, accommodation?: string | null, isHosted: boolean, createdAt: string, updatedAt: string }> };
 
 export type GetUserQueryVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -292,7 +322,12 @@ export type LoginUserMutation = { loginUser: { token: string, user: { id: string
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me?: { id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, status: string, createdAt: string } | null };
+export type MeQuery = { me?: { id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, status: string, createdAt: string, emailVerified?: boolean | null, phoneVerified?: boolean | null, hasActiveSubscription?: boolean | null, subscriptionExpiresAt?: string | null } | null };
+
+export type MyConversationsQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type MyConversationsQuery = { myConversations: Array<{ id: string, kind: string, tripId?: string | null, title?: string | null, lastMessageAt?: string | null, createdAt: string, updatedAt: string, members: Array<{ id: string, username: string, name: string, avatar?: string | null, publicKey?: string | null, status: string }> }> };
 
 export type NewAlertsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -326,6 +361,20 @@ export type RequestChallengeMutationVariables = Exact<{
 
 
 export type RequestChallengeMutation = { requestChallenge: string };
+
+export type RequestEmailVerificationMutationVariables = Exact<{
+  email: Scalars['String']['input'];
+}>;
+
+
+export type RequestEmailVerificationMutation = { requestEmailVerification: boolean };
+
+export type RequestPhoneVerificationMutationVariables = Exact<{
+  phone: Scalars['String']['input'];
+}>;
+
+
+export type RequestPhoneVerificationMutation = { requestPhoneVerification: boolean };
 
 export type RevokeDeviceMutationVariables = Exact<{
   deviceId: Scalars['String']['input'];
@@ -373,6 +422,17 @@ export type SearchSuggestQueryVariables = Exact<{
 
 export type SearchSuggestQuery = { searchSuggest: Array<string> };
 
+export type SendMessageMutationVariables = Exact<{
+  conversationId: Scalars['ID']['input'];
+  ciphertext: Scalars['String']['input'];
+  ciphertextMeta?: InputMaybe<Scalars['JSON']['input']>;
+  type?: InputMaybe<Scalars['String']['input']>;
+  metadata?: InputMaybe<Scalars['JSON']['input']>;
+}>;
+
+
+export type SendMessageMutation = { sendMessage: { id: string, conversationId: string, senderUserId: string, senderDeviceId: string, type: string, ciphertext: string, ciphertextMeta?: any | null, metadata?: any | null, createdAt: string } };
+
 export type TripUpdatesSubscriptionVariables = Exact<{
   tripId: Scalars['ID']['input'];
 }>;
@@ -416,7 +476,7 @@ export type UpdateTripMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTripMutation = { updateTrip: { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ day: number, title: string, activities: Array<string> }> | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } };
+export type UpdateTripMutation = { updateTrip: { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, status: string, travelers: number, preferences?: string | null, accommodation?: string | null, aiReasoning?: string | null, isHosted: boolean, title?: string | null, location?: string | null, price?: number | null, currency?: string | null, createdAt: string, updatedAt: string, itinerary?: Array<{ day: number, title: string, activities: Array<string> }> | null, coordinates?: { latitude: number, longitude: number } | null, waypoints?: Array<{ latitude: number, longitude: number, label?: string | null }> | null } };
 
 export type UpdateUserMutationVariables = Exact<{
   input: UpdateUserInput;
@@ -425,41 +485,52 @@ export type UpdateUserMutationVariables = Exact<{
 
 export type UpdateUserMutation = { updateUser: { id: string, name: string, username: string, avatar?: string | null, publicKey?: string | null, createdAt: string } };
 
+export type VerifyEmailMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
 
-export const AddMessageDocument = gql`
-    mutation AddMessage($content: String!) {
-  addMessage(content: $content) {
-    id
-    content
-    createdAt
-  }
+
+export type VerifyEmailMutation = { verifyEmail: boolean };
+
+export type VerifyPhoneMutationVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type VerifyPhoneMutation = { verifyPhone: boolean };
+
+
+export const AckChatInviteDocument = gql`
+    mutation AckChatInvite($inviteId: ID!, $acceptCiphertext: String!) {
+  ackChatInvite(inviteId: $inviteId, acceptCiphertext: $acceptCiphertext)
 }
     `;
 
 /**
- * __useAddMessageMutation__
+ * __useAckChatInviteMutation__
  *
- * To run a mutation, you first call `useAddMessageMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useAddMessageMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useAckChatInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useAckChatInviteMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [addMessageMutation, { data, loading, error }] = useAddMessageMutation({
+ * const [ackChatInviteMutation, { data, loading, error }] = useAckChatInviteMutation({
  *   variables: {
- *      content: // value for 'content'
+ *      inviteId: // value for 'inviteId'
+ *      acceptCiphertext: // value for 'acceptCiphertext'
  *   },
  * });
  */
-export function useAddMessageMutation(baseOptions?: Apollo.MutationHookOptions<AddMessageMutation, AddMessageMutationVariables>) {
+export function useAckChatInviteMutation(baseOptions?: Apollo.MutationHookOptions<AckChatInviteMutation, AckChatInviteMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<AddMessageMutation, AddMessageMutationVariables>(AddMessageDocument, options);
+        return Apollo.useMutation<AckChatInviteMutation, AckChatInviteMutationVariables>(AckChatInviteDocument, options);
       }
-export type AddMessageMutationHookResult = ReturnType<typeof useAddMessageMutation>;
-export type AddMessageMutationResult = Apollo.MutationResult<AddMessageMutation>;
-export type AddMessageMutationOptions = Apollo.BaseMutationOptions<AddMessageMutation, AddMessageMutationVariables>;
+export type AckChatInviteMutationHookResult = ReturnType<typeof useAckChatInviteMutation>;
+export type AckChatInviteMutationResult = Apollo.MutationResult<AckChatInviteMutation>;
+export type AckChatInviteMutationOptions = Apollo.BaseMutationOptions<AckChatInviteMutation, AckChatInviteMutationVariables>;
 export const BookmarkPostDocument = gql`
     mutation BookmarkPost($postId: ID!) {
   bookmarkPost(postId: $postId)
@@ -528,6 +599,143 @@ export type CheckUsernameQueryHookResult = ReturnType<typeof useCheckUsernameQue
 export type CheckUsernameLazyQueryHookResult = ReturnType<typeof useCheckUsernameLazyQuery>;
 export type CheckUsernameSuspenseQueryHookResult = ReturnType<typeof useCheckUsernameSuspenseQuery>;
 export type CheckUsernameQueryResult = Apollo.QueryResult<CheckUsernameQuery, CheckUsernameQueryVariables>;
+export const ConversationMessagesDocument = gql`
+    subscription ConversationMessages($conversationId: ID!) {
+  conversationMessages(conversationId: $conversationId) {
+    id
+    conversationId
+    senderUserId
+    senderDeviceId
+    type
+    ciphertext
+    ciphertextMeta
+    metadata
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useConversationMessagesSubscription__
+ *
+ * To run a query within a React component, call `useConversationMessagesSubscription` and pass it any options that fit your needs.
+ * When your component renders, `useConversationMessagesSubscription` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the subscription, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConversationMessagesSubscription({
+ *   variables: {
+ *      conversationId: // value for 'conversationId'
+ *   },
+ * });
+ */
+export function useConversationMessagesSubscription(baseOptions: Apollo.SubscriptionHookOptions<ConversationMessagesSubscription, ConversationMessagesSubscriptionVariables> & ({ variables: ConversationMessagesSubscriptionVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useSubscription<ConversationMessagesSubscription, ConversationMessagesSubscriptionVariables>(ConversationMessagesDocument, options);
+      }
+export type ConversationMessagesSubscriptionHookResult = ReturnType<typeof useConversationMessagesSubscription>;
+export type ConversationMessagesSubscriptionResult = Apollo.SubscriptionResult<ConversationMessagesSubscription>;
+export const ConversationMessagesPageDocument = gql`
+    query ConversationMessagesPage($conversationId: ID!, $cursor: String, $limit: Int = 50) {
+  conversationMessagesPage(
+    conversationId: $conversationId
+    cursor: $cursor
+    limit: $limit
+  ) {
+    edges {
+      cursor
+      node {
+        id
+        conversationId
+        senderUserId
+        senderDeviceId
+        type
+        ciphertext
+        ciphertextMeta
+        metadata
+        createdAt
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __useConversationMessagesPageQuery__
+ *
+ * To run a query within a React component, call `useConversationMessagesPageQuery` and pass it any options that fit your needs.
+ * When your component renders, `useConversationMessagesPageQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useConversationMessagesPageQuery({
+ *   variables: {
+ *      conversationId: // value for 'conversationId'
+ *      cursor: // value for 'cursor'
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useConversationMessagesPageQuery(baseOptions: Apollo.QueryHookOptions<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables> & ({ variables: ConversationMessagesPageQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables>(ConversationMessagesPageDocument, options);
+      }
+export function useConversationMessagesPageLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables>(ConversationMessagesPageDocument, options);
+        }
+export function useConversationMessagesPageSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables>(ConversationMessagesPageDocument, options);
+        }
+export type ConversationMessagesPageQueryHookResult = ReturnType<typeof useConversationMessagesPageQuery>;
+export type ConversationMessagesPageLazyQueryHookResult = ReturnType<typeof useConversationMessagesPageLazyQuery>;
+export type ConversationMessagesPageSuspenseQueryHookResult = ReturnType<typeof useConversationMessagesPageSuspenseQuery>;
+export type ConversationMessagesPageQueryResult = Apollo.QueryResult<ConversationMessagesPageQuery, ConversationMessagesPageQueryVariables>;
+export const CreateChatInviteDocument = gql`
+    mutation CreateChatInvite($conversationId: ID!, $toUserId: ID!, $inviteCiphertext: String!) {
+  createChatInvite(
+    conversationId: $conversationId
+    toUserId: $toUserId
+    inviteCiphertext: $inviteCiphertext
+  )
+}
+    `;
+
+/**
+ * __useCreateChatInviteMutation__
+ *
+ * To run a mutation, you first call `useCreateChatInviteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateChatInviteMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createChatInviteMutation, { data, loading, error }] = useCreateChatInviteMutation({
+ *   variables: {
+ *      conversationId: // value for 'conversationId'
+ *      toUserId: // value for 'toUserId'
+ *      inviteCiphertext: // value for 'inviteCiphertext'
+ *   },
+ * });
+ */
+export function useCreateChatInviteMutation(baseOptions?: Apollo.MutationHookOptions<CreateChatInviteMutation, CreateChatInviteMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateChatInviteMutation, CreateChatInviteMutationVariables>(CreateChatInviteDocument, options);
+      }
+export type CreateChatInviteMutationHookResult = ReturnType<typeof useCreateChatInviteMutation>;
+export type CreateChatInviteMutationResult = Apollo.MutationResult<CreateChatInviteMutation>;
+export type CreateChatInviteMutationOptions = Apollo.BaseMutationOptions<CreateChatInviteMutation, CreateChatInviteMutationVariables>;
 export const CreateCommentDocument = gql`
     mutation CreateComment($postId: ID!, $content: String!) {
   createComment(postId: $postId, content: $content) {
@@ -571,6 +779,54 @@ export function useCreateCommentMutation(baseOptions?: Apollo.MutationHookOption
 export type CreateCommentMutationHookResult = ReturnType<typeof useCreateCommentMutation>;
 export type CreateCommentMutationResult = Apollo.MutationResult<CreateCommentMutation>;
 export type CreateCommentMutationOptions = Apollo.BaseMutationOptions<CreateCommentMutation, CreateCommentMutationVariables>;
+export const CreateConversationDocument = gql`
+    mutation CreateConversation($dmWithUserId: ID, $tripId: ID, $title: String) {
+  createConversation(dmWithUserId: $dmWithUserId, tripId: $tripId, title: $title) {
+    id
+    kind
+    tripId
+    title
+    lastMessageAt
+    createdAt
+    updatedAt
+    members {
+      id
+      username
+      name
+      avatar
+      publicKey
+      status
+    }
+  }
+}
+    `;
+
+/**
+ * __useCreateConversationMutation__
+ *
+ * To run a mutation, you first call `useCreateConversationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCreateConversationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [createConversationMutation, { data, loading, error }] = useCreateConversationMutation({
+ *   variables: {
+ *      dmWithUserId: // value for 'dmWithUserId'
+ *      tripId: // value for 'tripId'
+ *      title: // value for 'title'
+ *   },
+ * });
+ */
+export function useCreateConversationMutation(baseOptions?: Apollo.MutationHookOptions<CreateConversationMutation, CreateConversationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CreateConversationMutation, CreateConversationMutationVariables>(CreateConversationDocument, options);
+      }
+export type CreateConversationMutationHookResult = ReturnType<typeof useCreateConversationMutation>;
+export type CreateConversationMutationResult = Apollo.MutationResult<CreateConversationMutation>;
+export type CreateConversationMutationOptions = Apollo.BaseMutationOptions<CreateConversationMutation, CreateConversationMutationVariables>;
 export const CreateLocationDocument = gql`
     mutation CreateLocation($input: CreateLocationInput!) {
   createLocation(input: $input) {
@@ -1118,6 +1374,9 @@ export const GetAlertsDocument = gql`
     totalSteps
     tripId
     userId
+    actorId
+    targetType
+    targetId
     read
     createdAt
   }
@@ -1629,47 +1888,6 @@ export type GetLocationsQueryHookResult = ReturnType<typeof useGetLocationsQuery
 export type GetLocationsLazyQueryHookResult = ReturnType<typeof useGetLocationsLazyQuery>;
 export type GetLocationsSuspenseQueryHookResult = ReturnType<typeof useGetLocationsSuspenseQuery>;
 export type GetLocationsQueryResult = Apollo.QueryResult<GetLocationsQuery, GetLocationsQueryVariables>;
-export const GetMessagesDocument = gql`
-    query GetMessages {
-  getMessages {
-    id
-    content
-    createdAt
-  }
-}
-    `;
-
-/**
- * __useGetMessagesQuery__
- *
- * To run a query within a React component, call `useGetMessagesQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetMessagesQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetMessagesQuery({
- *   variables: {
- *   },
- * });
- */
-export function useGetMessagesQuery(baseOptions?: Apollo.QueryHookOptions<GetMessagesQuery, GetMessagesQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetMessagesQuery, GetMessagesQueryVariables>(GetMessagesDocument, options);
-      }
-export function useGetMessagesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetMessagesQuery, GetMessagesQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetMessagesQuery, GetMessagesQueryVariables>(GetMessagesDocument, options);
-        }
-export function useGetMessagesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetMessagesQuery, GetMessagesQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetMessagesQuery, GetMessagesQueryVariables>(GetMessagesDocument, options);
-        }
-export type GetMessagesQueryHookResult = ReturnType<typeof useGetMessagesQuery>;
-export type GetMessagesLazyQueryHookResult = ReturnType<typeof useGetMessagesLazyQuery>;
-export type GetMessagesSuspenseQueryHookResult = ReturnType<typeof useGetMessagesSuspenseQuery>;
-export type GetMessagesQueryResult = Apollo.QueryResult<GetMessagesQuery, GetMessagesQueryVariables>;
 export const GetMyDevicesDocument = gql`
     query GetMyDevices {
   getMyDevices {
@@ -2131,6 +2349,7 @@ export const GetTripDocument = gql`
     query GetTrip($id: ID!) {
   getTrip(id: $id) {
     id
+    userId
     destination
     startDate
     endDate
@@ -2153,6 +2372,33 @@ export const GetTripDocument = gql`
       longitude
       label
     }
+    isHosted
+    title
+    location
+    price
+    currency
+    rating
+    reviews
+    duration
+    durationType
+    category
+    difficulty
+    description
+    shortDescription
+    highlights
+    inclusions
+    maxParticipants
+    minParticipants
+    hostIntro
+    joinPolicy
+    bookingInstructions
+    imageUrl
+    gallery
+    tags
+    isActive
+    isFeatured
+    externalBookingUrl
+    viewerJoinStatus
     createdAt
     updatedAt
   }
@@ -2195,6 +2441,7 @@ export const GetTripsDocument = gql`
     query GetTrips($status: String, $isHosted: Boolean) {
   getTrips(status: $status, isHosted: $isHosted) {
     id
+    userId
     destination
     startDate
     endDate
@@ -2203,6 +2450,7 @@ export const GetTripsDocument = gql`
     preferences
     budget
     accommodation
+    isHosted
     createdAt
     updatedAt
   }
@@ -2430,6 +2678,10 @@ export const MeDocument = gql`
     publicKey
     status
     createdAt
+    emailVerified
+    phoneVerified
+    hasActiveSubscription
+    subscriptionExpiresAt
   }
 }
     `;
@@ -2465,6 +2717,59 @@ export type MeQueryHookResult = ReturnType<typeof useMeQuery>;
 export type MeLazyQueryHookResult = ReturnType<typeof useMeLazyQuery>;
 export type MeSuspenseQueryHookResult = ReturnType<typeof useMeSuspenseQuery>;
 export type MeQueryResult = Apollo.QueryResult<MeQuery, MeQueryVariables>;
+export const MyConversationsDocument = gql`
+    query MyConversations {
+  myConversations {
+    id
+    kind
+    tripId
+    title
+    lastMessageAt
+    createdAt
+    updatedAt
+    members {
+      id
+      username
+      name
+      avatar
+      publicKey
+      status
+    }
+  }
+}
+    `;
+
+/**
+ * __useMyConversationsQuery__
+ *
+ * To run a query within a React component, call `useMyConversationsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useMyConversationsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useMyConversationsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useMyConversationsQuery(baseOptions?: Apollo.QueryHookOptions<MyConversationsQuery, MyConversationsQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<MyConversationsQuery, MyConversationsQueryVariables>(MyConversationsDocument, options);
+      }
+export function useMyConversationsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<MyConversationsQuery, MyConversationsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<MyConversationsQuery, MyConversationsQueryVariables>(MyConversationsDocument, options);
+        }
+export function useMyConversationsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<MyConversationsQuery, MyConversationsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<MyConversationsQuery, MyConversationsQueryVariables>(MyConversationsDocument, options);
+        }
+export type MyConversationsQueryHookResult = ReturnType<typeof useMyConversationsQuery>;
+export type MyConversationsLazyQueryHookResult = ReturnType<typeof useMyConversationsLazyQuery>;
+export type MyConversationsSuspenseQueryHookResult = ReturnType<typeof useMyConversationsSuspenseQuery>;
+export type MyConversationsQueryResult = Apollo.QueryResult<MyConversationsQuery, MyConversationsQueryVariables>;
 export const NewAlertsDocument = gql`
     subscription NewAlerts {
   newAlerts {
@@ -2628,6 +2933,66 @@ export function useRequestChallengeMutation(baseOptions?: Apollo.MutationHookOpt
 export type RequestChallengeMutationHookResult = ReturnType<typeof useRequestChallengeMutation>;
 export type RequestChallengeMutationResult = Apollo.MutationResult<RequestChallengeMutation>;
 export type RequestChallengeMutationOptions = Apollo.BaseMutationOptions<RequestChallengeMutation, RequestChallengeMutationVariables>;
+export const RequestEmailVerificationDocument = gql`
+    mutation RequestEmailVerification($email: String!) {
+  requestEmailVerification(email: $email)
+}
+    `;
+
+/**
+ * __useRequestEmailVerificationMutation__
+ *
+ * To run a mutation, you first call `useRequestEmailVerificationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestEmailVerificationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestEmailVerificationMutation, { data, loading, error }] = useRequestEmailVerificationMutation({
+ *   variables: {
+ *      email: // value for 'email'
+ *   },
+ * });
+ */
+export function useRequestEmailVerificationMutation(baseOptions?: Apollo.MutationHookOptions<RequestEmailVerificationMutation, RequestEmailVerificationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestEmailVerificationMutation, RequestEmailVerificationMutationVariables>(RequestEmailVerificationDocument, options);
+      }
+export type RequestEmailVerificationMutationHookResult = ReturnType<typeof useRequestEmailVerificationMutation>;
+export type RequestEmailVerificationMutationResult = Apollo.MutationResult<RequestEmailVerificationMutation>;
+export type RequestEmailVerificationMutationOptions = Apollo.BaseMutationOptions<RequestEmailVerificationMutation, RequestEmailVerificationMutationVariables>;
+export const RequestPhoneVerificationDocument = gql`
+    mutation RequestPhoneVerification($phone: String!) {
+  requestPhoneVerification(phone: $phone)
+}
+    `;
+
+/**
+ * __useRequestPhoneVerificationMutation__
+ *
+ * To run a mutation, you first call `useRequestPhoneVerificationMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useRequestPhoneVerificationMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [requestPhoneVerificationMutation, { data, loading, error }] = useRequestPhoneVerificationMutation({
+ *   variables: {
+ *      phone: // value for 'phone'
+ *   },
+ * });
+ */
+export function useRequestPhoneVerificationMutation(baseOptions?: Apollo.MutationHookOptions<RequestPhoneVerificationMutation, RequestPhoneVerificationMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<RequestPhoneVerificationMutation, RequestPhoneVerificationMutationVariables>(RequestPhoneVerificationDocument, options);
+      }
+export type RequestPhoneVerificationMutationHookResult = ReturnType<typeof useRequestPhoneVerificationMutation>;
+export type RequestPhoneVerificationMutationResult = Apollo.MutationResult<RequestPhoneVerificationMutation>;
+export type RequestPhoneVerificationMutationOptions = Apollo.BaseMutationOptions<RequestPhoneVerificationMutation, RequestPhoneVerificationMutationVariables>;
 export const RevokeDeviceDocument = gql`
     mutation RevokeDevice($deviceId: String!) {
   revokeDevice(deviceId: $deviceId)
@@ -2913,6 +3278,56 @@ export type SearchSuggestQueryHookResult = ReturnType<typeof useSearchSuggestQue
 export type SearchSuggestLazyQueryHookResult = ReturnType<typeof useSearchSuggestLazyQuery>;
 export type SearchSuggestSuspenseQueryHookResult = ReturnType<typeof useSearchSuggestSuspenseQuery>;
 export type SearchSuggestQueryResult = Apollo.QueryResult<SearchSuggestQuery, SearchSuggestQueryVariables>;
+export const SendMessageDocument = gql`
+    mutation SendMessage($conversationId: ID!, $ciphertext: String!, $ciphertextMeta: JSON, $type: String, $metadata: JSON) {
+  sendMessage(
+    conversationId: $conversationId
+    ciphertext: $ciphertext
+    ciphertextMeta: $ciphertextMeta
+    type: $type
+    metadata: $metadata
+  ) {
+    id
+    conversationId
+    senderUserId
+    senderDeviceId
+    type
+    ciphertext
+    ciphertextMeta
+    metadata
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useSendMessageMutation__
+ *
+ * To run a mutation, you first call `useSendMessageMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useSendMessageMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [sendMessageMutation, { data, loading, error }] = useSendMessageMutation({
+ *   variables: {
+ *      conversationId: // value for 'conversationId'
+ *      ciphertext: // value for 'ciphertext'
+ *      ciphertextMeta: // value for 'ciphertextMeta'
+ *      type: // value for 'type'
+ *      metadata: // value for 'metadata'
+ *   },
+ * });
+ */
+export function useSendMessageMutation(baseOptions?: Apollo.MutationHookOptions<SendMessageMutation, SendMessageMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<SendMessageMutation, SendMessageMutationVariables>(SendMessageDocument, options);
+      }
+export type SendMessageMutationHookResult = ReturnType<typeof useSendMessageMutation>;
+export type SendMessageMutationResult = Apollo.MutationResult<SendMessageMutation>;
+export type SendMessageMutationOptions = Apollo.BaseMutationOptions<SendMessageMutation, SendMessageMutationVariables>;
 export const TripUpdatesDocument = gql`
     subscription TripUpdates($tripId: ID!) {
   tripUpdates(tripId: $tripId) {
@@ -3144,6 +3559,11 @@ export const UpdateTripDocument = gql`
       longitude
       label
     }
+    isHosted
+    title
+    location
+    price
+    currency
     createdAt
     updatedAt
   }
@@ -3212,3 +3632,63 @@ export function useUpdateUserMutation(baseOptions?: Apollo.MutationHookOptions<U
 export type UpdateUserMutationHookResult = ReturnType<typeof useUpdateUserMutation>;
 export type UpdateUserMutationResult = Apollo.MutationResult<UpdateUserMutation>;
 export type UpdateUserMutationOptions = Apollo.BaseMutationOptions<UpdateUserMutation, UpdateUserMutationVariables>;
+export const VerifyEmailDocument = gql`
+    mutation VerifyEmail($code: String!) {
+  verifyEmail(code: $code)
+}
+    `;
+
+/**
+ * __useVerifyEmailMutation__
+ *
+ * To run a mutation, you first call `useVerifyEmailMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyEmailMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [verifyEmailMutation, { data, loading, error }] = useVerifyEmailMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useVerifyEmailMutation(baseOptions?: Apollo.MutationHookOptions<VerifyEmailMutation, VerifyEmailMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VerifyEmailMutation, VerifyEmailMutationVariables>(VerifyEmailDocument, options);
+      }
+export type VerifyEmailMutationHookResult = ReturnType<typeof useVerifyEmailMutation>;
+export type VerifyEmailMutationResult = Apollo.MutationResult<VerifyEmailMutation>;
+export type VerifyEmailMutationOptions = Apollo.BaseMutationOptions<VerifyEmailMutation, VerifyEmailMutationVariables>;
+export const VerifyPhoneDocument = gql`
+    mutation VerifyPhone($code: String!) {
+  verifyPhone(code: $code)
+}
+    `;
+
+/**
+ * __useVerifyPhoneMutation__
+ *
+ * To run a mutation, you first call `useVerifyPhoneMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useVerifyPhoneMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [verifyPhoneMutation, { data, loading, error }] = useVerifyPhoneMutation({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useVerifyPhoneMutation(baseOptions?: Apollo.MutationHookOptions<VerifyPhoneMutation, VerifyPhoneMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<VerifyPhoneMutation, VerifyPhoneMutationVariables>(VerifyPhoneDocument, options);
+      }
+export type VerifyPhoneMutationHookResult = ReturnType<typeof useVerifyPhoneMutation>;
+export type VerifyPhoneMutationResult = Apollo.MutationResult<VerifyPhoneMutation>;
+export type VerifyPhoneMutationOptions = Apollo.BaseMutationOptions<VerifyPhoneMutation, VerifyPhoneMutationVariables>;

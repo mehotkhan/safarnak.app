@@ -407,7 +407,7 @@ async webSocketMessage(ws: WebSocket, message: string) {
 ```
 
 ### Use Cases
-- GraphQL subscription connections (`newMessages`, `tripUpdates`)
+- GraphQL subscription connections (`conversationMessages`, `tripUpdates`)
 - Real-time tour group chat
 - Live trip plan collaboration
 - Push notification distribution

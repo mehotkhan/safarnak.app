@@ -1,6 +1,7 @@
 query GetTrip($id: ID!) {
   getTrip(id: $id) {
     id
+    userId
     destination
     startDate
     endDate
@@ -23,6 +24,33 @@ query GetTrip($id: ID!) {
       longitude
       label
     }
+    isHosted
+    title
+    location
+    price
+    currency
+    rating
+    reviews
+    duration
+    durationType
+    category
+    difficulty
+    description
+    shortDescription
+    highlights
+    inclusions
+    maxParticipants
+    minParticipants
+    hostIntro
+    joinPolicy
+    bookingInstructions
+    imageUrl
+    gallery
+    tags
+    isActive
+    isFeatured
+    externalBookingUrl
+    viewerJoinStatus
     createdAt
     updatedAt
   }

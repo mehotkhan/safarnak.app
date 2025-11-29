@@ -23,6 +23,11 @@ mutation UpdateTrip($id: ID!, $input: UpdateTripInput!) {
       longitude
       label
     }
+    isHosted
+    title
+    location
+    price
+    currency
     createdAt
     updatedAt
   }

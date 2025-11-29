@@ -1,17 +1,17 @@
 // Subscription resolvers index
 // Exports all subscription resolvers
 
-import { newMessages } from './newMessages';
+import { conversationMessages } from './conversationMessages';
 import { newAlerts } from './newAlerts';
 import { tripUpdates } from './tripUpdates';
 import { feedNewEvents } from './feedNewEvents';
 
 export const Subscription = {
-  newMessages,
+  conversationMessages,
   newAlerts,
   tripUpdates,
   feedNewEvents,
 };
 
 // Re-export individual resolvers
-export { newMessages, newAlerts, tripUpdates, feedNewEvents };
+export { conversationMessages, newAlerts, tripUpdates, feedNewEvents };

@@ -7,6 +7,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -98,14 +99,14 @@ export default function ShareModal({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <View className="flex-1 bg-black/50 justify-end">
+        <View className="flex-1 bg-black/50">
           <TouchableOpacity
-            className="flex-1"
+            className="absolute inset-0"
             activeOpacity={1}
             onPress={onClose}
           />
           <View
-            className={`bg-white dark:bg-neutral-900 rounded-t-3xl ${
+            className={`bg-white dark:bg-neutral-900 ${
               Platform.OS === 'ios' ? 'pb-8' : 'pb-6'
             }`}
             style={{
@@ -114,6 +115,8 @@ export default function ShareModal({
               shadowOpacity: 0.1,
               shadowRadius: 8,
               elevation: 10,
+              height: '100%',
+              width: '100%',
             }}
           >
             {/* Header */}
@@ -137,7 +140,16 @@ export default function ShareModal({
             </View>
 
             {/* Content */}
-            <View className="px-6 pt-4">
+            <ScrollView 
+              className="flex-1"
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{
+                flexGrow: 1,
+                paddingHorizontal: 24,
+                paddingTop: 16,
+                paddingBottom: 24,
+              }}
+            >
               {entityTitle && type && relatedId && (
                 <View className="mb-4 p-4 bg-gray-50 dark:bg-neutral-800/50 rounded-xl border border-gray-200 dark:border-neutral-700">
                   <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
@@ -159,12 +171,12 @@ export default function ShareModal({
                   placeholder={t('feed.share.placeholder') || 'What\'s on your mind?'}
                   placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
                   multiline
-                  numberOfLines={5}
+                  numberOfLines={8}
                   className="bg-gray-50 dark:bg-neutral-800 rounded-xl p-4 text-base"
                   style={{
                     textAlignVertical: 'top',
                     color: isDark ? '#fff' : '#000',
-                    minHeight: 120,
+                    minHeight: 200,
                     borderWidth: 1,
                     borderColor: isDark ? '#374151' : '#e5e7eb',
                   }}
@@ -188,7 +200,7 @@ export default function ShareModal({
                   loading={loading}
                 />
               </View>
-            </View>
+            </ScrollView>
           </View>
         </View>
       </KeyboardAvoidingView>

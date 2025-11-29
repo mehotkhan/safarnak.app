@@ -1,7 +1,7 @@
 // Query resolvers index
 // Exports all query resolvers
 
-import { getMessages } from './getMessages';
+import { myConversationsResolver, conversationMessagesPageResolver } from '../resolvers/messaging';
 import { me } from './me';
 import { getUser } from './getUser';
 import { getTrips, getTrip } from './getTrips';
@@ -24,7 +24,8 @@ import { getFollowing } from './getFollowing';
 import { searchSemantic } from './searchSemantic';
 
 export const Query = {
-  getMessages,
+  myConversations: myConversationsResolver,
+  conversationMessagesPage: conversationMessagesPageResolver,
   me,
   getUser,
   getTrips,
@@ -52,4 +53,30 @@ export const Query = {
 };
 
 // Re-export individual resolvers
-export { getMessages, me, getUser, getTrips, getTrip, getPlaces, getPlace, getLocations, getLocation, getPosts, getPost, getBookmarks, getAlerts, checkUsernameAvailability, getMyDevices, getFeed, getFeedPreferences, search, searchSuggest, getTrending, isFollowing, getFollowers, getFollowing, searchSemantic };
+export {
+  myConversationsResolver as myConversations,
+  conversationMessagesPageResolver as conversationMessagesPage,
+  me,
+  getUser,
+  getTrips,
+  getTrip,
+  getPlaces,
+  getPlace,
+  getLocations,
+  getLocation,
+  getPosts,
+  getPost,
+  getBookmarks,
+  getAlerts,
+  checkUsernameAvailability,
+  getMyDevices,
+  getFeed,
+  getFeedPreferences,
+  search,
+  searchSuggest,
+  getTrending,
+  isFollowing,
+  getFollowers,
+  getFollowing,
+  searchSemantic,
+};

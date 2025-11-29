@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 
 import { restoreUser, setLoading } from '@state/slices/authSlice';
@@ -17,6 +17,7 @@ export default function AuthWrapper({
 }) {
   const dispatch = useAppDispatch();
   const { isAuthenticated, isLoading, user } = useAppSelector(state => state.auth);
+  const hasRedirected = useRef(false);
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -56,11 +57,14 @@ export default function AuthWrapper({
     checkAuthStatus();
   }, [checkAuthStatus]);
 
+  // Only redirect on initial auth check, not when user data updates
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && !hasRedirected.current) {
+      hasRedirected.current = true;
+      
       // Check if user is authenticated AND active
       if (isAuthenticated && user && user.status === 'active') {
-        // Navigate to main app (home)
+        // Navigate to main app (home) - only on initial load
         router.replace('/(app)/(home)' as any);
       } else {
         // Check if user has stored username
@@ -73,7 +77,7 @@ export default function AuthWrapper({
         });
       }
     }
-  }, [isAuthenticated, isLoading, user]);
+  }, [isLoading, isAuthenticated, user]); // Include dependencies but only redirect once
 
   if (isLoading) {
     return (

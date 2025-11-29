@@ -16,12 +16,15 @@ import { CustomText } from '@ui/display';
 import { ProgressBar } from '@ui/feedback';
 import { CustomButton } from '@ui/forms';
 import { useTheme } from '@ui/context';
+import { TabBar } from '@ui/layout';
 import { MapView } from '@ui/maps';
 import { useGetTripQuery, useTripUpdatesSubscription, useUpdateTripMutation } from '@api';
 import Colors from '@constants/Colors';
 import { FloatingChatInput } from '@ui/chat';
-import { ShareModal } from '@ui/modals';
+import { ShareModal, ConvertToHostedModal } from '@ui/modals';
 import { useKeyboardInsets } from '@hooks/useKeyboardInsets';
+import { useMessagingActions } from '@hooks/useMessagingActions';
+import { useAppSelector } from '@state/hooks';
 
 export default function TripDetailScreen() {
   const { t } = useTranslation();
@@ -32,6 +35,8 @@ export default function TripDetailScreen() {
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [refreshing, setRefreshing] = useState(false);
   const { keyboardHeight, keyboardHeightState, keyboardVisible } = useKeyboardInsets();
+  const { openTripChat } = useMessagingActions();
+  const { user } = useAppSelector(state => state.auth);
   
   // Use cache-first for offline support, with skip if no tripId
   const { data, loading, error, refetch } = useGetTripQuery({
@@ -52,6 +57,8 @@ export default function TripDetailScreen() {
   const [workflowTitle, setWorkflowTitle] = useState<string | null>(null);
   const [workflowStatus, setWorkflowStatus] = useState<string | null>(null);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showConvertToHostedModal, setShowConvertToHostedModal] = useState(false);
+  const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'host'>('overview');
 
   const { data: tripUpdateData } = useTripUpdatesSubscription({
     variables: { tripId },
@@ -141,6 +148,11 @@ export default function TripDetailScreen() {
       router.push(`/(app)/(trips)/${tripId}/map`);
     }
   }, [router, tripId]);
+
+  const handleGroupChat = useCallback(() => {
+    if (!tripId) return;
+    openTripChat(tripId);
+  }, [openTripChat, tripId]);
 
   // Prepare waypoints for the map preview (safely handle null/undefined/empty)
   // MUST be before early returns to follow Rules of Hooks
@@ -300,7 +312,325 @@ export default function TripDetailScreen() {
     );
   };
 
+  const handleMakePublic = () => {
+    setShowConvertToHostedModal(true);
+  };
+
+  const handleConvertToHosted = async (data: {
+    price?: number;
+    currency: string;
+    maxParticipants?: number;
+    minParticipants: number;
+    joinPolicy: 'OPEN' | 'REQUEST' | 'INVITE_ONLY';
+    description?: string;
+    hostIntro?: string;
+  }) => {
+    try {
+      await updateTrip({
+        variables: {
+          id: tripId,
+          input: {
+            isHosted: true,
+            location: trip?.location || trip?.destination || undefined,
+            price: data.price,
+            currency: data.currency,
+            maxParticipants: data.maxParticipants,
+            minParticipants: data.minParticipants,
+            joinPolicy: data.joinPolicy,
+            description: data.description,
+            hostIntro: data.hostIntro,
+            isActive: true,
+          },
+        },
+      });
+      setShowConvertToHostedModal(false);
+      // Show success message
+      Alert.alert(
+        t('common.success'),
+        t('tripDetail.convertToTourSuccess', { defaultValue: 'Your trip has been converted to a public hosted trip!' })
+      );
+    } catch (error: any) {
+      console.error('Error converting trip to hosted:', error);
+      Alert.alert(
+        t('common.error'),
+        error?.message || t('tripDetail.convertToTourError', { defaultValue: 'Failed to convert trip. Please try again.' })
+      );
+      throw error; // Re-throw so modal can handle it
+    }
+  };
+
   const location = trip?.coordinates ? { coords: trip.coordinates } : undefined;
+
+  // Render content based on active tab for hosted trips
+  const renderTabContent = () => {
+    if (!trip?.isHosted || isPending) {
+      // Show default content for non-hosted trips or pending trips
+      return null;
+    }
+
+    if (activeTab === 'overview') {
+      // Overview tab - show basic trip info, itinerary, AI reasoning
+      return null; // Will be rendered in default flow
+    }
+
+    if (activeTab === 'details') {
+      // Details tab - show hosted trip specific details
+      return (
+        <>
+          {/* Price & Capacity */}
+          <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
+            <View className="flex-row items-center mb-3">
+              <Ionicons
+                name="cash-outline"
+                size={20}
+                color={isDark ? Colors.dark.primary : Colors.light.primary}
+              />
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white ml-2"
+              >
+                {t('tripDetail.hosted.priceAndCapacity', { defaultValue: 'Price & Capacity' })}
+              </CustomText>
+            </View>
+            {trip.price && (
+              <View className="flex-row items-center mb-2">
+                <Ionicons
+                  name="wallet-outline"
+                  size={16}
+                  color={isDark ? '#9ca3af' : '#6b7280'}
+                />
+                <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                  {trip.price} {trip.currency || 'USD'} {t('tripDetail.hosted.perPerson', { defaultValue: 'per person' })}
+                </CustomText>
+              </View>
+            )}
+            <View className="flex-row items-center mb-2">
+              <Ionicons
+                name="people-outline"
+                size={16}
+                color={isDark ? '#9ca3af' : '#6b7280'}
+              />
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                {trip.minParticipants || 1} - {trip.maxParticipants || t('tripDetail.hosted.unlimited', { defaultValue: 'Unlimited' })} {t('tripDetail.hosted.participants', { defaultValue: 'participants' })}
+              </CustomText>
+            </View>
+            {trip.duration && (
+              <View className="flex-row items-center">
+                <Ionicons
+                  name="time-outline"
+                  size={16}
+                  color={isDark ? '#9ca3af' : '#6b7280'}
+                />
+                <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                  {trip.duration} {trip.durationType || 'days'}
+                </CustomText>
+              </View>
+            )}
+          </View>
+
+          {/* Description */}
+          {trip.description && (
+            <View className="mb-4">
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white mb-2"
+              >
+                {t('tripDetail.hosted.description', { defaultValue: 'Description' })}
+              </CustomText>
+              <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+                {trip.description}
+              </CustomText>
+            </View>
+          )}
+
+          {/* Highlights */}
+          {trip.highlights && Array.isArray(trip.highlights) && trip.highlights.length > 0 && (
+            <View className="mb-4">
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white mb-2"
+              >
+                {t('tripDetail.hosted.highlights', { defaultValue: 'Highlights' })}
+              </CustomText>
+              {trip.highlights.map((highlight: string, index: number) => (
+                <View key={index} className="flex-row items-start mb-2">
+                  <Ionicons
+                    name="star"
+                    size={16}
+                    color={isDark ? Colors.dark.primary : Colors.light.primary}
+                    style={{ marginTop: 2, marginRight: 8 }}
+                  />
+                  <CustomText className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                    {highlight}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Inclusions */}
+          {trip.inclusions && Array.isArray(trip.inclusions) && trip.inclusions.length > 0 && (
+            <View className="mb-4">
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white mb-2"
+              >
+                {t('tripDetail.hosted.inclusions', { defaultValue: 'What\'s Included' })}
+              </CustomText>
+              {trip.inclusions.map((inclusion: string, index: number) => (
+                <View key={index} className="flex-row items-start mb-2">
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={16}
+                    color={isDark ? Colors.dark.primary : Colors.light.primary}
+                    style={{ marginTop: 2, marginRight: 8 }}
+                  />
+                  <CustomText className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                    {inclusion}
+                  </CustomText>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Category & Difficulty */}
+          {(trip.category || trip.difficulty) && (
+            <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
+              <View className="flex-row items-center mb-3">
+                <Ionicons
+                  name="information-circle-outline"
+                  size={20}
+                  color={isDark ? Colors.dark.primary : Colors.light.primary}
+                />
+                <CustomText
+                  weight="bold"
+                  className="text-base text-black dark:text-white ml-2"
+                >
+                  {t('tripDetail.hosted.tripInfo', { defaultValue: 'Trip Information' })}
+                </CustomText>
+              </View>
+              {trip.category && (
+                <View className="flex-row items-center mb-2">
+                  <Ionicons
+                    name="pricetag-outline"
+                    size={16}
+                    color={isDark ? '#9ca3af' : '#6b7280'}
+                  />
+                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                    {t('tripDetail.hosted.category', { defaultValue: 'Category' })}: {trip.category}
+                  </CustomText>
+                </View>
+              )}
+              {trip.difficulty && (
+                <View className="flex-row items-center">
+                  <Ionicons
+                    name="fitness-outline"
+                    size={16}
+                    color={isDark ? '#9ca3af' : '#6b7280'}
+                  />
+                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                    {t('tripDetail.hosted.difficulty', { defaultValue: 'Difficulty' })}: {trip.difficulty}
+                  </CustomText>
+                </View>
+              )}
+            </View>
+          )}
+        </>
+      );
+    }
+
+    if (activeTab === 'host') {
+      // Host tab - show host intro, join policy, booking instructions
+      return (
+        <>
+          {/* Host Introduction */}
+          {trip.hostIntro && (
+            <View className="mb-4">
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white mb-2"
+              >
+                {t('tripDetail.hosted.hostIntro', { defaultValue: 'About the Host' })}
+              </CustomText>
+              <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+                {trip.hostIntro}
+              </CustomText>
+            </View>
+          )}
+
+          {/* Join Policy */}
+          <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
+            <View className="flex-row items-center mb-3">
+              <Ionicons
+                name="people-circle-outline"
+                size={20}
+                color={isDark ? Colors.dark.primary : Colors.light.primary}
+              />
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white ml-2"
+              >
+                {t('tripDetail.hosted.joinPolicy', { defaultValue: 'Join Policy' })}
+              </CustomText>
+            </View>
+            <View className="flex-row items-center">
+              <Ionicons
+                name={trip.joinPolicy === 'OPEN' ? 'lock-open-outline' : trip.joinPolicy === 'REQUEST' ? 'mail-outline' : 'lock-closed-outline'}
+                size={16}
+                color={isDark ? '#9ca3af' : '#6b7280'}
+              />
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                {trip.joinPolicy === 'OPEN' 
+                  ? t('tripDetail.hosted.joinPolicy.open', { defaultValue: 'Open - Anyone can join' })
+                  : trip.joinPolicy === 'REQUEST'
+                  ? t('tripDetail.hosted.joinPolicy.request', { defaultValue: 'Request - Users must request to join' })
+                  : t('tripDetail.hosted.joinPolicy.invite_only', { defaultValue: 'Invite Only - Only invited users can join' })
+                }
+              </CustomText>
+            </View>
+          </View>
+
+          {/* Booking Instructions */}
+          {trip.bookingInstructions && (
+            <View className="mb-4">
+              <CustomText
+                weight="bold"
+                className="text-base text-black dark:text-white mb-2"
+              >
+                {t('tripDetail.hosted.bookingInstructions', { defaultValue: 'Booking Instructions' })}
+              </CustomText>
+              <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+                {trip.bookingInstructions}
+              </CustomText>
+            </View>
+          )}
+
+          {/* External Booking URL */}
+          {trip.externalBookingUrl && (
+            <View className="mb-4">
+              <CustomButton
+                title={t('tripDetail.hosted.bookNow', { defaultValue: 'Book Now' })}
+                onPress={() => {
+                  // Open external booking URL
+                  // You might want to use Linking.openURL here
+                }}
+                IconLeft={() => (
+                  <Ionicons
+                    name="calendar-outline"
+                    size={16}
+                    color="#fff"
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+              />
+            </View>
+          )}
+        </>
+      );
+    }
+
+    return null;
+  };
 
   return (
     <View className="flex-1 bg-white dark:bg-black">
@@ -313,6 +643,12 @@ export default function TripDetailScreen() {
               {showMap && (
                 <TouchableOpacity onPress={handleMapPress} className="p-2">
                   <Ionicons name="map-outline" size={22} color={isDark ? '#fff' : '#000'} />
+                </TouchableOpacity>
+              )}
+              {/* Make Public / Convert to Tour button - only show if trip is not already hosted and user owns the trip */}
+              {trip && !trip.isHosted && user?.id && trip.userId === user.id && (
+                <TouchableOpacity onPress={handleMakePublic} className="p-2">
+                  <Ionicons name="globe-outline" size={22} color={isDark ? '#fff' : '#000'} />
                 </TouchableOpacity>
               )}
               <TouchableOpacity onPress={handleShare} className="p-2">
@@ -346,6 +682,22 @@ export default function TripDetailScreen() {
         )}
 
         <View className="px-6 py-4">
+          {/* Tabs for Hosted Trips */}
+          {trip?.isHosted && !isPending && (
+            <View className="mb-4">
+              <TabBar
+                tabs={[
+                  { id: 'overview', label: t('tripDetail.tabs.overview', { defaultValue: 'Overview' }), translationKey: 'tripDetail.tabs.overview' },
+                  { id: 'details', label: t('tripDetail.tabs.details', { defaultValue: 'Details' }), translationKey: 'tripDetail.tabs.details' },
+                  { id: 'host', label: t('tripDetail.tabs.host', { defaultValue: 'Host' }), translationKey: 'tripDetail.tabs.host' },
+                ]}
+                activeTab={activeTab}
+                onTabChange={(tabId) => setActiveTab(tabId as 'overview' | 'details' | 'host')}
+                variant="segmented"
+              />
+            </View>
+          )}
+
           {/* Pending Status Banner with Workflow Progress - Show when pending OR when we have subscription data */}
           {(trip?.status === 'pending' || (workflowStatus && currentStep !== null)) && (
             <View className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-4">
@@ -395,7 +747,15 @@ export default function TripDetailScreen() {
             </View>
           )}
 
-          {/* Trip Info */}
+          {/* Tab Content for Hosted Trips */}
+          {trip?.isHosted && !isPending && activeTab !== 'overview' && (
+            <View className="mb-4">
+              {renderTabContent()}
+            </View>
+          )}
+
+          {/* Trip Info - Show in overview tab for hosted trips, always for non-hosted */}
+          {(!trip?.isHosted || activeTab === 'overview' || isPending) && (
           <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
             <View className="flex-row items-center mb-3">
               <Ionicons
@@ -461,8 +821,27 @@ export default function TripDetailScreen() {
               </>
             )}
           </View>
+          )}
 
-          {/* AI Reasoning */}
+          {tripId && (
+            <View className="mb-4">
+              <CustomButton
+                title={t('messages.groupChatButton') || 'Group chat'}
+                onPress={handleGroupChat}
+                IconLeft={() => (
+                  <Ionicons
+                    name="chatbubble-ellipses-outline"
+                    size={16}
+                    color="#fff"
+                    style={{ marginRight: 8 }}
+                  />
+                )}
+              />
+            </View>
+          )}
+
+          {/* AI Reasoning - Show in overview tab for hosted trips, always for non-hosted */}
+          {(!trip?.isHosted || activeTab === 'overview' || isPending) && (
           <View className="mb-4">
             <View className="flex-row items-center mb-3">
               <Ionicons
@@ -491,9 +870,11 @@ export default function TripDetailScreen() {
             </CustomText>
             )}
           </View>
+          )}
 
-          {/* Itinerary Timeline */}
-          {isPending ? (
+          {/* Itinerary Timeline - Show in overview tab for hosted trips, always for non-hosted */}
+          {(!trip?.isHosted || activeTab === 'overview' || isPending) && (
+            isPending ? (
             // Placeholder for itinerary when pending (workflow is running)
             <View className="mb-4">
               <CustomText
@@ -628,7 +1009,8 @@ export default function TripDetailScreen() {
                 ))}
               </View>
             </View>
-          ) : null}
+          ) : null
+          )}
           
         </View>
       </ScrollView>
@@ -660,6 +1042,19 @@ export default function TripDetailScreen() {
         type="trip"
         relatedId={tripId}
         entityTitle={trip?.destination as string}
+      />
+
+      {/* Convert to Hosted Modal */}
+      <ConvertToHostedModal
+        visible={showConvertToHostedModal}
+        onClose={() => setShowConvertToHostedModal(false)}
+        onSubmit={handleConvertToHosted}
+        initialData={{
+          destination: trip?.destination,
+          price: trip?.price,
+          currency: trip?.currency,
+        }}
+        loading={updatingTrip}
       />
     </View>
   );

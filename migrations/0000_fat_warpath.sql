@@ -39,22 +39,80 @@ CREATE TABLE `challenges` (
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP)
 );
 --> statement-breakpoint
+CREATE TABLE `chat_invites` (
+	`id` text PRIMARY KEY NOT NULL,
+	`conversation_id` text,
+	`from_user_id` text NOT NULL,
+	`to_user_id` text NOT NULL,
+	`status` text DEFAULT 'PENDING' NOT NULL,
+	`invite_ciphertext` text NOT NULL,
+	`accept_ciphertext` text,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`expires_at` text,
+	FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`from_user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`to_user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `chat_messages` (
+	`id` text PRIMARY KEY NOT NULL,
+	`conversation_id` text NOT NULL,
+	`sender_user_id` text NOT NULL,
+	`sender_device_id` text NOT NULL,
+	`ciphertext` text NOT NULL,
+	`ciphertext_meta` text,
+	`type` text DEFAULT 'text',
+	`metadata` text,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`sender_user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`sender_device_id`) REFERENCES `devices`(`device_id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
 CREATE TABLE `close_friends` (
 	`user_id` text NOT NULL,
 	`friend_id` text NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	PRIMARY KEY(`user_id`, `friend_id`),
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`friend_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `comments` (
 	`id` text PRIMARY KEY NOT NULL,
-	`post_id` text NOT NULL,
+	`target_type` text NOT NULL,
+	`target_id` text NOT NULL,
+	`post_id` text,
 	`user_id` text NOT NULL,
 	`content` text NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	FOREIGN KEY (`post_id`) REFERENCES `posts`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+);
+--> statement-breakpoint
+CREATE TABLE `conversation_members` (
+	`id` text PRIMARY KEY NOT NULL,
+	`conversation_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`role` text DEFAULT 'MEMBER' NOT NULL,
+	`joined_at` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`conversation_id`) REFERENCES `conversations`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `conversation_members_conversation_id_user_id_unique` ON `conversation_members` (`conversation_id`,`user_id`);--> statement-breakpoint
+CREATE TABLE `conversations` (
+	`id` text PRIMARY KEY NOT NULL,
+	`kind` text NOT NULL,
+	`trip_id` text,
+	`title` text,
+	`created_by` text NOT NULL,
+	`last_message_at` text,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`trip_id`) REFERENCES `trips`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`created_by`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `devices` (
@@ -108,6 +166,7 @@ CREATE TABLE `follow_edges` (
 	`follower_id` text NOT NULL,
 	`followee_id` text NOT NULL,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	PRIMARY KEY(`follower_id`, `followee_id`),
 	FOREIGN KEY (`follower_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`followee_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
@@ -143,6 +202,15 @@ CREATE TABLE `locations` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `locations_name_unique` ON `locations` (`name`);--> statement-breakpoint
+CREATE TABLE `message_receipts` (
+	`id` text PRIMARY KEY NOT NULL,
+	`message_id` text NOT NULL,
+	`user_id` text NOT NULL,
+	`read_at` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`message_id`) REFERENCES `chat_messages`(`id`) ON UPDATE no action ON DELETE cascade,
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
 CREATE TABLE `messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`content` text NOT NULL,
@@ -157,11 +225,15 @@ CREATE TABLE `messages` (
 CREATE TABLE `notifications` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
+	`actor_id` text,
 	`type` text NOT NULL,
+	`target_type` text,
+	`target_id` text,
 	`data` text,
 	`read` integer DEFAULT false,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
-	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action,
+	FOREIGN KEY (`actor_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
 CREATE TABLE `payments` (
@@ -184,7 +256,7 @@ CREATE TABLE `places` (
 	`name` text NOT NULL,
 	`location` text NOT NULL,
 	`distance` real,
-	`rating` integer DEFAULT 0,
+	`rating` real DEFAULT 0,
 	`reviews` integer DEFAULT 0,
 	`type` text NOT NULL,
 	`is_open` integer DEFAULT true,
@@ -225,8 +297,27 @@ CREATE TABLE `posts` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE TABLE `profiles` (
+	`id` text PRIMARY KEY NOT NULL,
+	`user_id` text NOT NULL,
+	`display_name` text,
+	`bio` text,
+	`avatar_url` text,
+	`phone` text,
+	`home_base` text,
+	`travel_style` text,
+	`languages` text,
+	`is_active` integer DEFAULT true,
+	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
+	`updated_at` text DEFAULT (CURRENT_TIMESTAMP),
+	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
+);
+--> statement-breakpoint
+CREATE UNIQUE INDEX `profiles_user_id_unique` ON `profiles` (`user_id`);--> statement-breakpoint
 CREATE TABLE `reactions` (
 	`id` text PRIMARY KEY NOT NULL,
+	`target_type` text NOT NULL,
+	`target_id` text NOT NULL,
 	`post_id` text,
 	`comment_id` text,
 	`user_id` text NOT NULL,
@@ -375,14 +466,11 @@ CREATE TABLE `user_subscriptions` (
 --> statement-breakpoint
 CREATE TABLE `users` (
 	`id` text PRIMARY KEY NOT NULL,
-	`name` text NOT NULL,
 	`username` text NOT NULL,
 	`email` text,
-	`phone` text,
-	`avatar` text,
-	`is_active` integer DEFAULT true,
 	`password_hash` text,
 	`public_key` text,
+	`status` text DEFAULT 'active',
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP)
 );

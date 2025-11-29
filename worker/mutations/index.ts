@@ -1,7 +1,12 @@
 // Mutation resolvers index
 // Exports all mutation resolvers
 
-import { addMessage } from './addMessage';
+import {
+  createConversationResolver,
+  sendMessageResolver,
+  createChatInviteResolver,
+  ackChatInviteResolver,
+} from '../resolvers/messaging';
 // Legacy password-based register/login removed in favor of biometric auth
 import { requestChallenge } from './requestChallenge';
 import { registerUser } from './registerUser';
@@ -30,12 +35,19 @@ import { unfollowUser } from './unfollowUser';
 import { addToCloseFriends } from './addToCloseFriends';
 import { removeFromCloseFriends } from './removeFromCloseFriends';
 import { generateAvatar } from './generateAvatar';
+import { requestPhoneVerification } from './requestPhoneVerification';
+import { verifyPhone } from './verifyPhone';
+import { requestEmailVerification } from './requestEmailVerification';
+import { verifyEmail } from './verifyEmail';
 
 // Placeholder resolver for bookmarkPlace
 const bookmarkPlace = async () => true;
 
 export const Mutation = {
-  addMessage,
+  createConversation: createConversationResolver,
+  sendMessage: sendMessageResolver,
+  createChatInvite: createChatInviteResolver,
+  ackChatInvite: ackChatInviteResolver,
   requestChallenge,
   registerUser,
   loginUser,
@@ -67,7 +79,50 @@ export const Mutation = {
   addToCloseFriends,
   removeFromCloseFriends,
   generateAvatar,
+  requestPhoneVerification,
+  verifyPhone,
+  requestEmailVerification,
+  verifyEmail,
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, updateUser, createTrip, updateTrip, deleteTrip, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, joinTrip, cancelTripJoin, respondTripJoinRequest, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTrip, bookmarkPlace, revokeDevice, updateFeedPreferences, followUser, unfollowUser, addToCloseFriends, removeFromCloseFriends, generateAvatar };
+export {
+  createConversationResolver as createConversation,
+  sendMessageResolver as sendMessage,
+  createChatInviteResolver as createChatInvite,
+  ackChatInviteResolver as ackChatInvite,
+  requestChallenge,
+  registerUser,
+  loginUser,
+  updateUser,
+  createTrip,
+  updateTrip,
+  deleteTrip,
+  createPlace,
+  updatePlace,
+  deletePlace,
+  createLocation,
+  updateLocation,
+  deleteLocation,
+  joinTrip,
+  cancelTripJoin,
+  respondTripJoinRequest,
+  createPost,
+  createComment,
+  createReaction,
+  deleteReaction,
+  bookmarkPost,
+  bookmarkTrip,
+  bookmarkPlace,
+  revokeDevice,
+  updateFeedPreferences,
+  followUser,
+  unfollowUser,
+  addToCloseFriends,
+  removeFromCloseFriends,
+  generateAvatar,
+  requestPhoneVerification,
+  verifyPhone,
+  requestEmailVerification,
+  verifyEmail,
+};

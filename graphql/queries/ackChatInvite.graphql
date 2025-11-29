@@ -1,0 +1,4 @@
+mutation AckChatInvite($inviteId: ID!, $acceptCiphertext: String!) {
+  ackChatInvite(inviteId: $inviteId, acceptCiphertext: $acceptCiphertext)
+}
+

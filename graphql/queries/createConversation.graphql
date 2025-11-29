@@ -1,0 +1,20 @@
+mutation CreateConversation($dmWithUserId: ID, $tripId: ID, $title: String) {
+  createConversation(dmWithUserId: $dmWithUserId, tripId: $tripId, title: $title) {
+    id
+    kind
+    tripId
+    title
+    lastMessageAt
+    createdAt
+    updatedAt
+    members {
+      id
+      username
+      name
+      avatar
+      publicKey
+      status
+    }
+  }
+}
+

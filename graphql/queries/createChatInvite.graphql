@@ -1,0 +1,8 @@
+mutation CreateChatInvite($conversationId: ID!, $toUserId: ID!, $inviteCiphertext: String!) {
+  createChatInvite(
+    conversationId: $conversationId
+    toUserId: $toUserId
+    inviteCiphertext: $inviteCiphertext
+  )
+}
+

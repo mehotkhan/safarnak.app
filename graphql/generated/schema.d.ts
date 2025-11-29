@@ -1,8 +1,8 @@
 
-declare module '*/@graphql/addMessage.graphql' {
+declare module '*/@graphql/ackChatInvite.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
-  export const AddMessage: DocumentNode;
+  export const AckChatInvite: DocumentNode;
 
   export default defaultDocument;
 }
@@ -26,10 +26,46 @@ declare module '*/@graphql/checkUsernameAvailability.graphql' {
 }
     
 
+declare module '*/@graphql/conversationMessages.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ConversationMessages: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/conversationMessagesPage.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const ConversationMessagesPage: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createChatInvite.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreateChatInvite: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/createComment.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const CreateComment: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/createConversation.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const CreateConversation: DocumentNode;
 
   export default defaultDocument;
 }
@@ -206,15 +242,6 @@ declare module '*/@graphql/getLocations.graphql' {
 }
     
 
-declare module '*/@graphql/getMessages.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const GetMessages: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
 declare module '*/@graphql/getMyDevices.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -332,6 +359,15 @@ declare module '*/@graphql/me.graphql' {
 }
     
 
+declare module '*/@graphql/myConversations.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const MyConversations: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/newAlerts.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -368,6 +404,24 @@ declare module '*/@graphql/requestChallenge.graphql' {
 }
     
 
+declare module '*/@graphql/requestEmailVerification.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const RequestEmailVerification: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/requestPhoneVerification.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const RequestPhoneVerification: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
 declare module '*/@graphql/revokeDevice.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -399,6 +453,15 @@ declare module '*/@graphql/searchSuggest.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const SearchSuggest: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/sendMessage.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const SendMessage: DocumentNode;
 
   export default defaultDocument;
 }
@@ -462,6 +525,24 @@ declare module '*/@graphql/updateUser.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const UpdateUser: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/verifyEmail.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const VerifyEmail: DocumentNode;
+
+  export default defaultDocument;
+}
+    
+
+declare module '*/@graphql/verifyPhone.graphql' {
+  import { DocumentNode } from 'graphql';
+  const defaultDocument: DocumentNode;
+  export const VerifyPhone: DocumentNode;
 
   export default defaultDocument;
 }

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import {
   View,
   ScrollView,
@@ -10,7 +10,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useAppSelector } from '@state/hooks';
+import { useAppSelector, useAppDispatch } from '@state/hooks';
 import { useMeQuery, useGetTripsQuery } from '@api';
 import { CustomText } from '@ui/display';
 import { TabBar } from '@ui/layout';
@@ -19,6 +19,8 @@ import Colors from '@constants/Colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FAB } from '@ui/components';
 import { useUserLevel } from '@hooks/useUserLevel';
+import { updateUser } from '@state/slices/authSlice';
+import { useMessagingActions } from '@hooks/useMessagingActions';
 
 type MeTab = 'feed' | 'about' | 'saved';
 
@@ -26,7 +28,9 @@ export default function MeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { isDark } = useTheme();
+  const dispatch = useAppDispatch();
   const { user: reduxUser } = useAppSelector(state => state.auth);
+  const { openOrCreateDm } = useMessagingActions();
   const userLevel = useUserLevel();
   const [activeTab, setActiveTab] = useState<MeTab>('feed');
   const [refreshing, setRefreshing] = useState(false);
@@ -36,6 +40,20 @@ export default function MeScreen() {
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
+
+  // Sync Redux with Apollo cache when user data changes
+  useEffect(() => {
+    if (meData?.me) {
+      const user = meData.me as any;
+      // Use nullish coalescing to preserve false values (don't use || which treats false as falsy)
+      dispatch(updateUser({
+        emailVerified: user.emailVerified ?? false,
+        phoneVerified: user.phoneVerified ?? false,
+        hasActiveSubscription: user.hasActiveSubscription ?? false,
+      }));
+      console.log('[Profile] Synced Redux - emailVerified:', user.emailVerified, 'phoneVerified:', user.phoneVerified);
+    }
+  }, [meData?.me, dispatch]);
   
   // Fetch trips for stats
   const { data: tripsData } = useGetTripsQuery({
@@ -198,6 +216,11 @@ export default function MeScreen() {
     }
   };
 
+  const handleSelfMessage = useCallback(() => {
+    if (!user?.id) return;
+    openOrCreateDm(user.id);
+  }, [openOrCreateDm, user?.id]);
+
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-black">
       {/* Settings Icon in Header */}
@@ -335,6 +358,22 @@ export default function MeScreen() {
                 </CustomText>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            onPress={handleSelfMessage}
+            activeOpacity={0.8}
+            className="mt-4 w-full flex-row items-center justify-center rounded-2xl border border-dashed border-primary/40 px-4 py-3 bg-primary/5 dark:bg-primary/10"
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={18} color={isDark ? '#fbbf24' : '#d97706'} style={{ marginRight: 8 }} />
+            <View className="flex-1">
+              <CustomText weight="bold" className="text-sm text-primary dark:text-yellow-300">
+                {t('userProfile.selfMessageButton') || 'Message yourself'}
+              </CustomText>
+              <CustomText className="text-xs text-gray-600 dark:text-gray-400">
+                {t('userProfile.selfMessageDescription') || 'Send yourself a DM to test Safarnak Messaging.'}
+              </CustomText>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Upgrade Cards */}

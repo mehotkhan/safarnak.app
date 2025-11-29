@@ -97,26 +97,37 @@ function parseTripResult(result: any): any {
     waypoints: result.waypoints ? JSON.parse(result.waypoints) : null,
   };
   
-  // Parse hosted trip JSON fields
+  // Parse hosted trip JSON fields - ensure non-nullable arrays always return arrays
   if (result.highlights) {
     parsedResult.highlights = typeof result.highlights === 'string' 
       ? JSON.parse(result.highlights) 
       : result.highlights;
+  } else {
+    parsedResult.highlights = []; // Ensure non-nullable field always returns array
   }
+  
   if (result.inclusions) {
     parsedResult.inclusions = typeof result.inclusions === 'string'
       ? JSON.parse(result.inclusions)
       : result.inclusions;
+  } else {
+    parsedResult.inclusions = []; // Ensure non-nullable field always returns array
   }
+  
   if (result.gallery) {
     parsedResult.gallery = typeof result.gallery === 'string'
       ? JSON.parse(result.gallery)
       : result.gallery;
+  } else {
+    parsedResult.gallery = []; // Ensure non-nullable field always returns array
   }
+  
   if (result.tags) {
     parsedResult.tags = typeof result.tags === 'string'
       ? JSON.parse(result.tags)
       : result.tags;
+  } else {
+    parsedResult.tags = []; // Ensure non-nullable field always returns array
   }
   
   // Convert price from cents to dollars and rating from integer to float

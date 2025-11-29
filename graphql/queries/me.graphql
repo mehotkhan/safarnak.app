@@ -9,5 +9,9 @@ query Me {
     publicKey
     status
     createdAt
+    emailVerified
+    phoneVerified
+    hasActiveSubscription
+    subscriptionExpiresAt
   }
 }

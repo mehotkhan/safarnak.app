@@ -1,7 +1,0 @@
-query GetMessages {
-  getMessages {
-    id
-    content
-    createdAt
-  }
-}

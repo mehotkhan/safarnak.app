@@ -42,10 +42,18 @@ export const useUserLevel = (): UserLevel => {
   }
   
   // Check for verified email and phone (member tier)
-  if (
-    userWithTiers?.emailVerified === true &&
-    userWithTiers?.phoneVerified === true
-  ) {
+  // Use strict === true check to ensure both are explicitly true
+  const emailVerified = userWithTiers?.emailVerified === true;
+  const phoneVerified = userWithTiers?.phoneVerified === true;
+  
+  console.log('[useUserLevel] Verification status:', {
+    emailVerified,
+    phoneVerified,
+    emailVerifiedValue: userWithTiers?.emailVerified,
+    phoneVerifiedValue: userWithTiers?.phoneVerified,
+  });
+  
+  if (emailVerified && phoneVerified) {
     return 'member';
   }
   

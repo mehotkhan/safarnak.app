@@ -1,0 +1,4 @@
+mutation VerifyEmail($code: String!) {
+  verifyEmail(code: $code)
+}
+

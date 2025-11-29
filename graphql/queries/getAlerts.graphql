@@ -8,6 +8,9 @@ query GetAlerts {
     totalSteps
     tripId
     userId
+    actorId
+    targetType
+    targetId
     read
     createdAt
   }

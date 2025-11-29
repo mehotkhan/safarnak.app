@@ -11,7 +11,7 @@ const queueKey = 'offlineMutations';
  * Mutations are stored in AsyncStorage and processed when connection is restored
  * Apollo's SQLite cache handles data persistence automatically
  */
-async function queueMutation(mutation: any) {
+export async function enqueueOfflineMutation(mutation: any) {
   try {
     const queue = JSON.parse((await AsyncStorage.getItem(queueKey)) || '[]');
     queue.push({
@@ -136,7 +136,7 @@ export const offlineMiddleware =
       isBackendAvailable().then(available => {
         if (!available) {
           // Queue mutation for later processing when backend becomes available
-          queueMutation(action.payload);
+          enqueueOfflineMutation(action.payload);
           // Still dispatch action for optimistic UI updates
           // Apollo cache will persist the optimistic update to SQLite
           next(action);

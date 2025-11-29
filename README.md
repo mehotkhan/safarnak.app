@@ -678,9 +678,9 @@ metro.config.js              # 📦 Metro bundler config (path aliases, NativeWi
 
 ```
 worker/                 # ⚡ Cloudflare Worker
-├── queries/           # Query resolvers (getMessages, me)
+├── queries/           # Query resolvers (myConversations, me)
 ├── mutations/        # Mutation resolvers (register, login)
-└── subscriptions/    # Subscription resolvers (newMessages)
+└── subscriptions/    # Subscription resolvers (conversationMessages, tripUpdates)
 
 graphql/               # 📡 Shared GraphQL
 ├── schema.graphql    # GraphQL schema (shared)

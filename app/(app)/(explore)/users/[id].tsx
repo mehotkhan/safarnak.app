@@ -25,6 +25,7 @@ import {
 } from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
+import { useMessagingActions } from '@hooks/useMessagingActions';
 import Colors from '@constants/Colors';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -36,7 +37,8 @@ export default function UserProfileScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const userId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
-  const { user: currentUser } = useAppSelector(state => state.auth);
+  const { user: currentUser } = useAppSelector((state) => state.auth);
+  const { openOrCreateDm } = useMessagingActions();
   const [selectedTab, setSelectedTab] = useState<'posts' | 'trips'>('posts');
   const [isFollowing, setIsFollowing] = useState(false);
   const { formatDate } = useDateTime();
@@ -142,9 +144,10 @@ export default function UserProfileScreen() {
     }
   };
 
-  const handleMessage = () => {
-    router.push(`/(app)/(inbox)/messages/${userId}` as any);
-  };
+  const handleMessage = useCallback(() => {
+    if (!userId) return;
+    openOrCreateDm(userId);
+  }, [openOrCreateDm, userId]);
 
   if (loading) {
     return (

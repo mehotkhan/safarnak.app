@@ -1,5 +1,10 @@
 type Query {
-  getMessages: [Message!]!
+  myConversations: [Conversation!]!
+  conversationMessagesPage(
+    conversationId: ID!
+    cursor: String
+    limit: Int = 50
+  ): ChatMessageConnection!
   me: User
   getUser(id: ID!): User
   getTrips(status: String, isHosted: Boolean): [Trip!]!
@@ -17,7 +22,16 @@ type Query {
 }
 
 type Mutation {
-  addMessage(content: String!): Message!
+  createConversation(dmWithUserId: ID, tripId: ID, title: String): Conversation!
+  sendMessage(
+    conversationId: ID!
+    ciphertext: String!
+    ciphertextMeta: JSON
+    type: String = "text"
+    metadata: JSON
+  ): ChatMessage!
+  createChatInvite(conversationId: ID!, toUserId: ID!, inviteCiphertext: String!): Boolean!
+  ackChatInvite(inviteId: ID!, acceptCiphertext: String!): Boolean!
   requestChallenge(username: String!, isRegister: Boolean!): String!
   registerUser(username: String!, publicKey: String!, signature: String!, deviceId: String!): AuthPayload!
   loginUser(username: String!, signature: String!, deviceId: String!, publicKey: String): AuthPayload!
@@ -52,16 +66,45 @@ type Mutation {
 }
 
 type Subscription {
-  newMessages: Message!
+  conversationMessages(conversationId: ID!): ChatMessage!
   newAlerts: Alert!
   tripUpdates(tripId: ID!): TripUpdate!
   feedNewEvents(filter: FeedFilter): [FeedEvent!]!
 }
 
-type Message {
+scalar JSON
+
+type Conversation {
   id: ID!
-  content: String!
+  kind: String!
+  tripId: ID
+  title: String
+  lastMessageAt: String
+  members: [User!]!
   createdAt: String!
+  updatedAt: String!
+}
+
+type ChatMessage {
+  id: ID!
+  conversationId: ID!
+  senderUserId: ID!
+  senderDeviceId: ID!
+  type: String!
+  ciphertext: String!
+  ciphertextMeta: JSON
+  metadata: JSON
+  createdAt: String!
+}
+
+type ChatMessageEdge {
+  cursor: String!
+  node: ChatMessage!
+}
+
+type ChatMessageConnection {
+  edges: [ChatMessageEdge!]!
+  pageInfo: PageInfo!
 }
 
 type User {

@@ -1,0 +1,26 @@
+mutation SendMessage(
+  $conversationId: ID!
+  $ciphertext: String!
+  $ciphertextMeta: JSON
+  $type: String
+  $metadata: JSON
+) {
+  sendMessage(
+    conversationId: $conversationId
+    ciphertext: $ciphertext
+    ciphertextMeta: $ciphertextMeta
+    type: $type
+    metadata: $metadata
+  ) {
+    id
+    conversationId
+    senderUserId
+    senderDeviceId
+    type
+    ciphertext
+    ciphertextMeta
+    metadata
+    createdAt
+  }
+}
+

@@ -27,6 +27,8 @@ const onboardingImage1 = require('@assets/images/welcome-onboarding1.webp');
 const onboardingImage2 = require('@assets/images/welcome-onboarding2.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage3 = require('@assets/images/welcome-onboarding3.webp');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const onboardingImage4 = require('@assets/images/welcome-onboarding4.webp');
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -41,19 +43,19 @@ const SLIDES = [
   },
   {
     key: 'ai',
-    image: onboardingImage1,
+    image: onboardingImage2,
     titleKey: 'onboarding.slides.ai.title',
     subtitleKey: 'onboarding.slides.ai.subtitle',
   },
   {
     key: 'social',
-    image: onboardingImage2,
+    image: onboardingImage3,
     titleKey: 'onboarding.slides.social.title',
     subtitleKey: 'onboarding.slides.social.subtitle',
   },
   {
     key: 'offline',
-    image: onboardingImage3,
+    image: onboardingImage4,
     titleKey: 'onboarding.slides.offline.title',
     subtitleKey: 'onboarding.slides.offline.subtitle',
   },

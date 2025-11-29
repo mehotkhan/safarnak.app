@@ -6,6 +6,9 @@ interface User {
   username: string;
   status: string; // active, suspended, deleted
   createdAt: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
+  hasActiveSubscription?: boolean;
 }
 
 /**
@@ -14,7 +17,7 @@ interface User {
  * - privateKey: Stored only on client (Redux + AsyncStorage), never sent to server
  * - deviceId: Unique identifier for this device
  */
-interface DeviceKeyPair {
+export interface DeviceKeyPair {
   publicKey: string;
   privateKey: string;
   deviceId: string;
@@ -85,9 +88,14 @@ const authSlice = createSlice({
     setDeviceKeyPair: (state, action: PayloadAction<DeviceKeyPair>) => {
       state.deviceKeyPair = action.payload;
     },
+    updateUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (state.user) {
+        state.user = { ...state.user, ...action.payload };
+      }
+    },
   },
 });
 
-export const { login, logout, setLoading, restoreUser, setDeviceKeyPair } =
+export const { login, logout, setLoading, restoreUser, setDeviceKeyPair, updateUser } =
   authSlice.actions;
 export default authSlice.reducer;

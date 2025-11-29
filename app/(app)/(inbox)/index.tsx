@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
+  ActivityIndicator,
   View,
   TouchableOpacity,
-  RefreshControl,
   Image,
   FlatList,
+  RefreshControl,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,122 +15,47 @@ import { CustomText } from '@ui/display';
 import { useTheme } from '@ui/context';
 import Colors from '@constants/Colors';
 import { useDateTime } from '@hooks/useDateTime';
-
-// Notification types (Activity tab)
-type NotificationType = 'social' | 'trip' | 'tour' | 'system';
-
-interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
-  message: string;
-  timestamp: Date;
-  read: boolean;
-  actionData?: any;
-}
-
-interface Conversation {
-  id: string;
-  userId: string;
-  userName: string;
-  userAvatar?: string;
-  lastMessage: string;
-  timestamp: Date;
-  unreadCount: number;
-  isOnline?: boolean;
-}
+import { useMyConversations } from '@hooks/useConversations';
+import { useAppSelector } from '@state/hooks';
+import { useGetAlertsQuery } from '@api';
 
 type InboxTab = 'activity' | 'messages';
-
-// Create mock notifications (Activity)
-const createMockNotifications = (): Notification[] => [
-    {
-      id: '1',
-      type: 'social',
-      title: 'Sarah Johnson used your trip',
-      message: 'Your Tokyo Adventure trip was used for planning',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      read: false,
-    },
-    {
-      id: '2',
-      type: 'social',
-      title: 'Mike Chen commented on your post',
-      message: 'Great photos from your mountain trip!',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      read: false,
-    },
-    {
-      id: '3',
-      type: 'tour',
-      title: 'New member joined your tour',
-      message: 'Emma Wilson joined "Swiss Alps Adventure"',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      read: true,
-    },
-    {
-      id: '4',
-      type: 'trip',
-      title: 'AI has a suggestion for your trip',
-      message: 'Better route found for your Paris trip',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      read: true,
-    },
-    {
-      id: '5',
-      type: 'system',
-      title: 'Weather alert',
-      message: 'Rain expected during your Barcelona trip dates',
-      timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      read: true,
-    },
-  ];
-
-// Create mock conversations (Messages)
-const createMockConversations = (t: any): Conversation[] => [
-    {
-    id: '2',
-    userId: '2',
-    userName: t('messages.mockUsers.sarah.name', { defaultValue: 'Sarah Johnson' }),
-    userAvatar: 'https://picsum.photos/seed/sarah-chat/100/100',
-    lastMessage: t('messages.mockChat1.lastMessage', { defaultValue: 'Hey! How was your trip to Tokyo?' }),
-      timestamp: new Date('2025-11-20T10:30:00Z'),
-      unreadCount: 2,
-    isOnline: true,
-    },
-    {
-    id: '3',
-    userId: '3',
-    userName: t('messages.mockUsers.mike.name', { defaultValue: 'Mike Chen' }),
-    userAvatar: 'https://picsum.photos/seed/mike-chat/100/100',
-    lastMessage: t('messages.mockChat2.lastMessage', { defaultValue: 'Great photos from your mountain trip!' }),
-      timestamp: new Date('2025-11-20T09:15:00Z'),
-      unreadCount: 0,
-    isOnline: false,
-    },
-  ];
 
 export default function InboxScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { isDark } = useTheme();
   const { formatRelativeTime } = useDateTime();
+  const auth = useAppSelector((state) => state.auth);
   const [activeTab, setActiveTab] = useState<InboxTab>('activity');
-  const [refreshing, setRefreshing] = useState(false);
+  const [activityRefreshing, setActivityRefreshing] = useState(false);
 
-  // Mock data
-  const [notifications, setNotifications] = useState(() => createMockNotifications());
-  const [conversations] = useState(() => createMockConversations(t));
+  const {
+    data: alertsData,
+    loading: alertsLoading,
+    refetch: refetchAlerts,
+  } = useGetAlertsQuery({
+    fetchPolicy: 'cache-and-network',
+  });
+  const {
+    conversations,
+    loading: conversationsLoading,
+    refreshing: conversationsRefreshing,
+    refetch: refetchConversations,
+  } = useMyConversations();
 
-  const onRefresh = () => {
-    setRefreshing(true);
-    // Simulate refresh
-    setTimeout(() => {
-      setRefreshing(false);
-    }, 1000);
-  };
+  const alerts = alertsData?.getAlerts ?? [];
 
-  const getNotificationIcon = (type: NotificationType) => {
+  const handleActivityRefresh = useCallback(async () => {
+    setActivityRefreshing(true);
+    try {
+      await refetchAlerts();
+    } finally {
+      setActivityRefreshing(false);
+    }
+  }, [refetchAlerts]);
+
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'social':
         return 'people';
@@ -144,7 +70,7 @@ export default function InboxScreen() {
     }
   };
 
-  const getNotificationColor = (type: NotificationType) => {
+  const getNotificationColor = (type: string) => {
     switch (type) {
       case 'social':
         return '#3b82f6';
@@ -159,23 +85,88 @@ export default function InboxScreen() {
     }
   };
 
-  const handleNotificationPress = (notification: Notification) => {
-    // Mark as read
-    setNotifications(prev =>
-      prev.map(n => (n.id === notification.id ? { ...n, read: true } : n))
-    );
-    // Navigate to detail
-    router.push(`/(app)/(inbox)/${notification.id}` as any);
-  };
+  const handleNotificationPress = useCallback(
+    (notificationId: string) => {
+      router.push(`/(app)/(inbox)/${notificationId}` as any);
+    },
+    [router],
+  );
 
-  const handleConversationPress = (conversation: Conversation) => {
-    router.push(`/(app)/(inbox)/messages/${conversation.userId}` as any);
-  };
+  const handleConversationPress = useCallback(
+    (conversationId: string) => {
+      router.push(`/(app)/(inbox)/messages/${conversationId}` as any);
+    },
+    [router],
+  );
+
+  const getConversationTitle = useCallback(
+    (conversation: ReturnType<typeof useMyConversations>['conversations'][number]) => {
+      if (conversation.title) return conversation.title;
+      const otherMember =
+        conversation.members.find((member) => member.id !== auth.user?.id) ?? conversation.members[0];
+      return otherMember?.name || otherMember?.username || t('messages.untitledConversation');
+    },
+    [auth.user?.id, t],
+  );
+
+  const renderConversationItem = useCallback(
+    ({ item }: { item: ReturnType<typeof useMyConversations>['conversations'][number] }) => (
+      <TouchableOpacity
+        onPress={() => handleConversationPress(item.id)}
+        className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-neutral-800"
+        activeOpacity={0.7}
+      >
+        <View className="relative mr-3">
+          <View className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800">
+            {item.members[0]?.avatar ? (
+              <Image source={{ uri: item.members[0].avatar || undefined }} className="w-full h-full" resizeMode="cover" />
+            ) : (
+              <View className="w-full h-full items-center justify-center">
+                <Ionicons name="person" size={24} color={isDark ? '#9ca3af' : '#6b7280'} />
+              </View>
+            )}
+          </View>
+        </View>
+        <View className="flex-1">
+          <View className="flex-row items-center justify-between mb-1">
+            <CustomText weight="bold" className="text-base text-black dark:text-white" numberOfLines={1}>
+              {getConversationTitle(item)}
+            </CustomText>
+            {item.lastMessageAt ? (
+              <CustomText className="text-xs text-gray-500 dark:text-gray-400">
+                {formatRelativeTime(item.lastMessageAt)}
+              </CustomText>
+            ) : null}
+          </View>
+          <CustomText className="text-sm text-gray-600 dark:text-gray-400" numberOfLines={1}>
+            {item.lastMessagePreview || t('messages.noMessagesYet')}
+          </CustomText>
+        </View>
+      </TouchableOpacity>
+    ),
+    [formatRelativeTime, getConversationTitle, handleConversationPress, isDark, t],
+  );
 
   // Render Activity (Notifications)
+  const sortedAlerts = useMemo(
+    () =>
+      alerts.slice().sort((a, b) => {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }),
+    [alerts],
+  );
+
   const renderActivity = () => {
-    if (notifications.length === 0) {
-  return (
+    if (alertsLoading && sortedAlerts.length === 0) {
+      return (
+        <View className="flex-1 items-center justify-center py-20">
+          <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+        </View>
+      );
+    }
+
+    if (sortedAlerts.length === 0) {
+      return (
         <View className="flex-1 items-center justify-center py-20">
             <Ionicons
             name="notifications-off-outline"
@@ -194,11 +185,11 @@ export default function InboxScreen() {
 
     return (
       <FlatList
-        data={notifications}
+        data={sortedAlerts}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => handleNotificationPress(item)}
+            onPress={() => handleNotificationPress(item.id)}
             className="flex-row items-start px-4 py-4 border-b border-gray-200 dark:border-neutral-800"
                 style={{
                   backgroundColor: item.read
@@ -241,18 +232,28 @@ export default function InboxScreen() {
                     {item.message}
               </CustomText>
               <CustomText className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                {formatRelativeTime(item.timestamp.toISOString())}
+                {formatRelativeTime(item.createdAt)}
               </CustomText>
                 </View>
               </TouchableOpacity>
         )}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={
+          <RefreshControl refreshing={activityRefreshing} onRefresh={handleActivityRefresh} />
+        }
       />
     );
   };
 
   // Render Messages (Conversations)
   const renderMessages = () => {
+    if (conversationsLoading && conversations.length === 0) {
+      return (
+        <View className="flex-1 items-center justify-center py-20">
+          <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
+        </View>
+      );
+    }
+
     if (conversations.length === 0) {
       return (
         <View className="flex-1 items-center justify-center py-20">
@@ -275,60 +276,13 @@ export default function InboxScreen() {
       <FlatList
         data={conversations}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => handleConversationPress(item)}
-            className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-neutral-800"
-            activeOpacity={0.7}
-          >
-            <View className="relative">
-              <View className="w-12 h-12 rounded-full overflow-hidden mr-3 bg-gray-200 dark:bg-neutral-800">
-                {item.userAvatar ? (
-                  <Image
-                    source={{ uri: item.userAvatar }}
-                    className="w-full h-full"
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View className="w-full h-full items-center justify-center">
-                    <Ionicons
-                      name="person"
-                      size={24}
-                      color={isDark ? '#9ca3af' : '#6b7280'}
-                    />
-                  </View>
-                )}
-              </View>
-              {item.isOnline && (
-                <View className="absolute bottom-0 right-3 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-black" />
-              )}
-            </View>
-            <View className="flex-1">
-              <View className="flex-row items-center justify-between mb-1">
-                <CustomText weight="bold" className="text-base text-black dark:text-white" numberOfLines={1}>
-                  {item.userName}
-                </CustomText>
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400">
-                  {formatRelativeTime(item.timestamp.toISOString())}
-                </CustomText>
-              </View>
-              <CustomText
-                className="text-sm text-gray-600 dark:text-gray-400"
-                numberOfLines={1}
-              >
-                {item.lastMessage}
-              </CustomText>
-            </View>
-            {item.unreadCount > 0 && (
-              <View className="ml-2 px-2 py-1 rounded-full bg-primary">
-                <CustomText className="text-xs text-white" weight="bold">
-                  {item.unreadCount > 9 ? '9+' : item.unreadCount}
-                </CustomText>
-          </View>
-        )}
-          </TouchableOpacity>
-        )}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        renderItem={renderConversationItem}
+        refreshControl={
+          <RefreshControl
+            refreshing={conversationsRefreshing || conversationsLoading}
+            onRefresh={refetchConversations}
+          />
+        }
       />
     );
   };

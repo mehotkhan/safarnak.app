@@ -1,0 +1,14 @@
+subscription ConversationMessages($conversationId: ID!) {
+  conversationMessages(conversationId: $conversationId) {
+    id
+    conversationId
+    senderUserId
+    senderDeviceId
+    type
+    ciphertext
+    ciphertextMeta
+    metadata
+    createdAt
+  }
+}
+

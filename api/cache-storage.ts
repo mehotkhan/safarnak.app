@@ -16,7 +16,16 @@
 import { Platform } from 'react-native';
 import type { PersistentStorage } from 'apollo3-cache-persist';
 import { getLocalDB } from '@database/client';
-import { apolloCacheEntries, cachedUsers, cachedProfiles, cachedTrips, cachedPlaces, cachedMessages } from '@database/schema';
+import {
+  apolloCacheEntries,
+  cachedUsers,
+  cachedProfiles,
+  cachedTrips,
+  cachedPlaces,
+  cachedMessages,
+  cachedConversations,
+  cachedChatMessages,
+} from '@database/schema';
 import { eq, sql } from 'drizzle-orm';
 
 // Entity type mapping for structured tables
@@ -26,6 +35,8 @@ const ENTITY_TYPE_TO_TABLE = {
   Trip: cachedTrips,
   Place: cachedPlaces,
   Message: cachedMessages,
+  Conversation: cachedConversations,
+  ChatMessage: cachedChatMessages,
 } as const;
 
 type EntityType = keyof typeof ENTITY_TYPE_TO_TABLE;
@@ -152,6 +163,29 @@ function transformEntity(entityType: EntityType, data: any): Record<string, any>
           type: data.type || 'text',
           metadata: data.metadata ? JSON.stringify(data.metadata) : null,
           isRead: data.isRead === true,
+          createdAt: data.createdAt || new Date().toISOString(),
+        };
+      case 'Conversation':
+        return {
+          id: String(data.id || ''),
+          kind: data.kind || 'DM',
+          tripId: data.tripId ? String(data.tripId) : null,
+          title: data.title || null,
+          lastMessagePreview: data.lastMessagePreview || null,
+          lastMessageAt: data.lastMessageAt || null,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+        };
+      case 'ChatMessage':
+        return {
+          id: String(data.id || ''),
+          conversationId: String(data.conversationId || ''),
+          senderUserId: String(data.senderUserId || ''),
+          senderDeviceId: String(data.senderDeviceId || ''),
+          ciphertext: data.ciphertext || '',
+          ciphertextMeta: data.ciphertextMeta ? JSON.stringify(data.ciphertextMeta) : null,
+          type: data.type || 'text',
+          metadata: data.metadata ? JSON.stringify(data.metadata) : null,
           createdAt: data.createdAt || new Date().toISOString(),
         };
       default:

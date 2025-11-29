@@ -2,18 +2,34 @@ import { useState } from 'react';
 import { View, ScrollView, Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { useMeQuery } from '@api';
+import { 
+  useMeQuery,
+  useRequestPhoneVerificationMutation,
+  useVerifyPhoneMutation,
+  useRequestEmailVerificationMutation,
+  useVerifyEmailMutation,
+  MeDocument,
+} from '@api';
 import { CustomText } from '@ui/display';
-import { CustomButton } from '@ui/forms';
-import { InputField } from '@ui/forms';
+import { CustomButton, InputField, PinInput } from '@ui/forms';
 import { Ionicons } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
+import { useAppDispatch } from '@state/hooks';
+import { updateUser } from '@state/slices/authSlice';
 
 type VerificationStep = 'phone' | 'email' | 'complete';
 
 export default function CompleteAccountScreen() {
   const { t } = useTranslation();
-  const { refetch: refetchMe } = useMeQuery();
+  const dispatch = useAppDispatch();
+  const { refetch: refetchMe } = useMeQuery({
+    fetchPolicy: 'cache-and-network',
+  });
+  
+  const [requestPhoneVerification] = useRequestPhoneVerificationMutation();
+  const [verifyPhone] = useVerifyPhoneMutation();
+  const [requestEmailVerification] = useRequestEmailVerificationMutation();
+  const [verifyEmail] = useVerifyEmailMutation();
   
   const [step, setStep] = useState<VerificationStep>('phone');
   const [phone, setPhone] = useState('');
@@ -23,13 +39,6 @@ export default function CompleteAccountScreen() {
   const [phoneCodeSent, setPhoneCodeSent] = useState(false);
   const [emailCodeSent, setEmailCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // TODO: Replace with actual GraphQL mutations after schema update and codegen
-  // These mutations are defined in graphql/schema.graphql:
-  // - requestPhoneVerification(phone: String!): Boolean!
-  // - verifyPhone(code: String!): Boolean!
-  // - requestEmailVerification(email: String!): Boolean!
-  // - verifyEmail(code: String!): Boolean!
   const handleSendPhoneCode = async () => {
     if (!phone.trim()) {
       Alert.alert(
@@ -40,19 +49,18 @@ export default function CompleteAccountScreen() {
     }
     setLoading(true);
     try {
-      // TODO: Call requestPhoneVerification mutation
-      // const { data } = await requestPhoneVerificationMutation({ variables: { phone: phone.trim() } });
-      // if (!data?.requestPhoneVerification) {
-      //   throw new Error('Failed to send verification code');
-      // }
+      const { data } = await requestPhoneVerification({ 
+        variables: { phone: phone.trim() } 
+      });
       
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!data?.requestPhoneVerification) {
+        throw new Error(t('profile.completeAccount.sendCodeFailed') || 'Failed to send verification code');
+      }
       
       setPhoneCodeSent(true);
       Alert.alert(
         t('profile.completeAccount.success') || 'Success',
-        t('profile.completeAccount.phoneCodeSent') || 'Verification code sent to your phone'
+        t('profile.completeAccount.phoneCodeSent') || 'Verification code sent to your phone. Use code: 111111'
       );
     } catch (error: any) {
       Alert.alert(
@@ -74,20 +82,30 @@ export default function CompleteAccountScreen() {
     }
     setLoading(true);
     try {
-      // Static validation for testing: accept "111111" as valid code
-      const isValidCode = phoneCode.trim() === '111111';
+      const { data } = await verifyPhone({ 
+        variables: { code: phoneCode.trim() },
+        refetchQueries: [{ query: MeDocument }],
+        awaitRefetchQueries: true,
+      });
       
-      if (!isValidCode) {
-        // TODO: Call verifyPhone mutation when backend is ready
-        // const { data } = await verifyPhoneMutation({ variables: { code: phoneCode.trim() } });
-        // if (!data?.verifyPhone) {
-        //   throw new Error('Invalid verification code');
-        // }
+      if (!data?.verifyPhone) {
         throw new Error(t('profile.completeAccount.invalidCode') || 'Invalid verification code');
       }
       
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Refetch user data from Apollo to get fresh data
+      const { data: updatedData } = await refetchMe();
+      
+      console.log('[CompleteAccount] Phone verified, updated user data:', updatedData?.me);
+      
+      // Update Redux state with new verification status
+      if (updatedData?.me) {
+        const user = updatedData.me as any;
+        dispatch(updateUser({
+          phoneVerified: user.phoneVerified ?? true, // Use nullish coalescing to preserve false values
+          emailVerified: user.emailVerified ?? false,
+        }));
+        console.log('[CompleteAccount] Redux updated - phoneVerified:', user.phoneVerified, 'emailVerified:', user.emailVerified);
+      }
       
       setStep('email');
       Alert.alert(
@@ -114,19 +132,18 @@ export default function CompleteAccountScreen() {
     }
     setLoading(true);
     try {
-      // TODO: Call requestEmailVerification mutation
-      // const { data } = await requestEmailVerificationMutation({ variables: { email: email.trim() } });
-      // if (!data?.requestEmailVerification) {
-      //   throw new Error('Failed to send verification code');
-      // }
+      const { data } = await requestEmailVerification({ 
+        variables: { email: email.trim() } 
+      });
       
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (!data?.requestEmailVerification) {
+        throw new Error(t('profile.completeAccount.sendCodeFailed') || 'Failed to send verification code');
+      }
       
       setEmailCodeSent(true);
       Alert.alert(
         t('profile.completeAccount.success') || 'Success',
-        t('profile.completeAccount.emailCodeSent') || 'Verification code sent to your email'
+        t('profile.completeAccount.emailCodeSent') || 'Verification code sent to your email. Use code: 111111'
       );
     } catch (error: any) {
       Alert.alert(
@@ -148,23 +165,32 @@ export default function CompleteAccountScreen() {
     }
     setLoading(true);
     try {
-      // Static validation for testing: accept "111111" as valid code
-      const isValidCode = emailCode.trim() === '111111';
+      const { data } = await verifyEmail({ 
+        variables: { code: emailCode.trim() },
+        refetchQueries: [{ query: MeDocument }],
+        awaitRefetchQueries: true,
+      });
       
-      if (!isValidCode) {
-        // TODO: Call verifyEmail mutation when backend is ready
-        // const { data } = await verifyEmailMutation({ variables: { code: emailCode.trim() } });
-        // if (!data?.verifyEmail) {
-        //   throw new Error('Invalid verification code');
-        // }
+      if (!data?.verifyEmail) {
         throw new Error(t('profile.completeAccount.invalidCode') || 'Invalid verification code');
       }
       
-      // Simulate API call for now
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Refetch user data from Apollo to get fresh data
+      const { data: updatedData } = await refetchMe();
+      
+      console.log('[CompleteAccount] Email verified, updated user data:', updatedData?.me);
+      
+      // Update Redux state with new verification status
+      if (updatedData?.me) {
+        const user = updatedData.me as any;
+        dispatch(updateUser({
+          emailVerified: user.emailVerified ?? true, // Use nullish coalescing to preserve false values
+          phoneVerified: user.phoneVerified ?? false,
+        }));
+        console.log('[CompleteAccount] Redux updated - emailVerified:', user.emailVerified, 'phoneVerified:', user.phoneVerified);
+      }
       
       setStep('complete');
-      await refetchMe(); // Update Redux/Apollo cache
       Alert.alert(
         t('profile.completeAccount.success') || 'Success',
         t('profile.completeAccount.allVerified') || 'Account complete! You are now a Member.',
@@ -241,20 +267,19 @@ export default function CompleteAccountScreen() {
               />
             ) : (
               <>
-                <InputField
+                <PinInput
                   label={t('profile.completeAccount.phoneCodeLabel') || 'Verification Code'}
                   value={phoneCode}
                   onChangeText={setPhoneCode}
-                  placeholder={t('profile.completeAccount.codePlaceholder') || 'Enter code'}
-                  keyboardType="number-pad"
-                  editable={!loading}
+                  disabled={loading}
+                  autoFocus={phoneCodeSent}
                   className="mt-4"
-                  icon="keypad-outline"
                 />
                 <CustomButton
                   title={t('profile.completeAccount.verifyPhone') || 'Verify Phone'}
                   onPress={handleVerifyPhone}
                   loading={loading}
+                  disabled={phoneCode.length !== 6}
                   className="mt-4"
                 />
                 <CustomButton
@@ -294,20 +319,19 @@ export default function CompleteAccountScreen() {
               />
             ) : (
               <>
-                <InputField
+                <PinInput
                   label={t('profile.completeAccount.emailCodeLabel') || 'Verification Code'}
                   value={emailCode}
                   onChangeText={setEmailCode}
-                  placeholder={t('profile.completeAccount.codePlaceholder') || 'Enter code'}
-                  keyboardType="default"
-                  editable={!loading}
+                  disabled={loading}
+                  autoFocus={emailCodeSent}
                   className="mt-4"
-                  icon="keypad-outline"
                 />
                 <CustomButton
                   title={t('profile.completeAccount.verifyEmail') || 'Verify Email'}
                   onPress={handleVerifyEmail}
                   loading={loading}
+                  disabled={emailCode.length !== 6}
                   className="mt-4"
                 />
                 <CustomButton

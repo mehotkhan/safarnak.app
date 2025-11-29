@@ -29,6 +29,7 @@ export type ResolverContext = DefaultPublishableContext<Env>;
  */
 export type GraphQLContext = ResolverContext & {
   userId?: string; // Optional user ID (UUID) from auth token
+  deviceId?: string; // Optional device ID derived from token
 };
 
 /**

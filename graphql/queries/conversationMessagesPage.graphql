@@ -1,0 +1,22 @@
+query ConversationMessagesPage($conversationId: ID!, $cursor: String, $limit: Int = 50) {
+  conversationMessagesPage(conversationId: $conversationId, cursor: $cursor, limit: $limit) {
+    edges {
+      cursor
+      node {
+        id
+        conversationId
+        senderUserId
+        senderDeviceId
+        type
+        ciphertext
+        ciphertextMeta
+        metadata
+        createdAt
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}

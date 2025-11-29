@@ -182,67 +182,43 @@
       "alreadyRegisteredMessage": "User \"{{username}}\" is already registered. Please clear data first to register a new user."
     }
   },
-  "welcome": {
-    "skip": "Skip",
-    "next": "Next",
-    "getStarted": "Get Started",
-    "onboarding1": {
-      "title": "Smart Trip Planning",
-      "description": "Plan your trips easily with AI. Enter your destination, dates, budget and preferences to get a complete daily itinerary with activities, accommodation and special recommendations."
-    },
-    "onboarding2": {
-      "title": "Find Travel Companions",
-      "description": "Connect with other travelers, join tours and create group trips. You no longer need to travel alone. Search for existing tours or publish your trip for others to join."
-    },
-    "onboarding3": {
-      "title": "Share Your Experiences",
-      "description": "Share your trips, beautiful places and experiences with the community. Learn from others and help others plan their trips. Inspire and be inspired."
-    },
-    "onboarding4": {
-      "title": "Discover Tours & Places",
-      "description": "Explore thousands of organized tours and discover amazing places. Find restaurants, markets, hotels and attractions at your destination with real reviews and ratings."
-    },
-    "onboarding5": {
-      "title": "Ready to Start Your Journey?",
-      "description": "Join thousands of Iranian travelers planning amazing trips. Sign in or create your account to start planning, sharing and discovering."
-    }
-  },
   "onboarding": {
     "welcome": {
       "title": "Welcome to Safarnak",
-      "subtitle": "Travel together. Plan with AI.",
-      "heroTitle": "AI-Powered Trip Planning",
-      "heroDescription": "Tell us about your trip and Safarnak's AI will design the best route for you.",
+      "subtitle": "Plan smarter. Travel together.",
+      "heroTitle": "Your AI Co-pilot for Every Trip",
+      "heroDescription": "Say where, when, and how you like to travel — Safarnak’s AI designs a trip that fits you and your friends.",
       "ai": "Smart AI",
-      "aiDesc": "Smart itineraries",
+      "aiDesc": "Personalized day-by-day plans",
       "social": "Travel together",
-      "socialDesc": "Share trips",
+      "socialDesc": "Share trips and go with friends",
       "offline": "Offline ready",
-      "offlineDesc": "Works offline",
+      "offlineDesc": "Your plans work even without internet",
       "startAITrip": "Start with AI Trip",
       "justLookAround": "Just look around",
       "haveUsername": "I already have a username",
       "createAccount": "Create account",
       "chooseUsername": "Choose Username",
-      "chooseUsernameMessage": "How would you like to proceed?",
+      "chooseUsernameMessage": "How would you like to continue?",
       "autoGenerate": "Let Safarnak choose",
       "chooseMyself": "Let me pick"
     },
     "slides": {
       "ai": {
         "title": "Build your trip with AI",
-        "subtitle": "Tell us your destination and travel style, and Safarnak will create your itinerary."
+        "subtitle": "Tell us your destination, dates, and style — Safarnak creates a smart itinerary you can edit anytime."
       },
       "social": {
-        "title": "Travel together",
-        "subtitle": "Find travel companions, join tours, and share experiences with the community."
+        "title": "Travel is better together",
+        "subtitle": "Share trips, invite friends, join tours, and keep everyone on the same plan."
       },
       "offline": {
-        "title": "Ready for offline travel",
-        "subtitle": "Your trip plan and chats are available even without internet."
+        "title": "Ready when you’re offline",
+        "subtitle": "Your trip plan, map, and chats stay available even with weak or no internet."
       }
     }
   },
+
   "oauth": {
     "or": "Or",
     "loginWithGoogle": "Log In with Google"
@@ -608,30 +584,32 @@
       "inProgress": "In Progress",
       "unnamedTrip": "Unnamed Trip",
       "emptyState": "No trips yet"
-    },
-    "inbox": {
-      "title": "Inbox",
-      "activity": "Activity",
-      "messages": "Messages",
-      "notifications": "Notifications",
-      "chats": "Chats",
-      "emptyState": "No messages yet",
-      "emptyActivity": "No activity yet",
-      "emptyActivityDescription": "Your notifications will appear here",
-      "emptyMessages": "No messages yet",
-      "emptyMessagesDescription": "Start a conversation with someone",
-      "markRead": "Mark read",
-      "planReady": "Trip Plan Ready",
-      "planReadyMessage": "Your Tokyo trip plan has been generated",
-      "newTour": "New Tour Available",
-      "newTourMessage": "Cherry Blossom Tour is now available for booking",
-      "support": "Message from Support",
-      "supportMessage": "Your subscription has been upgraded",
-      "time": {
-        "2h": "2 hours ago",
-        "1d": "1 day ago",
-        "3d": "3 days ago"
-      }
+    }
+  },
+  "inbox": {
+    "title": "Inbox",
+    "activity": "Activity",
+    "messages": "Messages",
+    "notifications": "Notifications",
+    "chats": "Chats",
+    "emptyState": "No messages yet",
+    "emptyActivity": "No activity yet",
+    "emptyActivityDescription": "Your notifications will appear here",
+    "emptyMessages": "No messages yet",
+    "emptyMessagesDescription": "Start a conversation with someone",
+    "markRead": "Mark read",
+    "planReady": "Trip Plan Ready",
+    "planReadyMessage": "Your Tokyo trip plan has been generated",
+    "newTour": "New Tour Available",
+    "newTourMessage": "Cherry Blossom Tour is now available for booking",
+    "support": "Message from Support",
+    "supportMessage": "Your subscription has been upgraded",
+    "notFound": "Notification not found",
+    "viewDetails": "View details",
+    "time": {
+      "2h": "2 hours ago",
+      "1d": "1 day ago",
+      "3d": "3 days ago"
     }
   },
   "messages": {
@@ -647,6 +625,11 @@
     "unarchive": "Unarchive",
     "deleteChat": "Delete Chat",
     "deleteChatConfirm": "Are you sure you want to delete this chat? This action cannot be undone.",
+    "members": "members",
+    "loadEarlier": "Load earlier messages",
+    "groupChatButton": "Group chat",
+    "openConversationErrorTitle": "Unable to open chat",
+    "openConversationErrorMessage": "Please try again later.",
     "mockUsers": {
       "sarah": {
         "name": "Sarah Johnson",
@@ -698,7 +681,36 @@
     "travelers": "travelers",
     "traveler": "traveler",
     "budget": "budget",
-    "day": "Day"
+    "day": "Day",
+    "convertToTourConfirm": "This will convert your personal trip into a public hosted trip. Other users will be able to discover and join it. You can set pricing and other details later.",
+    "convertToTourSuccess": "Your trip has been converted to a public hosted trip!",
+    "convertToTourError": "Failed to convert trip. Please try again.",
+    "convertToHosted": {
+      "title": "Convert to Hosted Trip",
+      "description": "Make your trip discoverable by others. Set pricing, capacity, and join settings.",
+      "price": "Price",
+      "pricePlaceholder": "0.00",
+      "currency": "Currency",
+      "participants": "Participants",
+      "minParticipants": "Min",
+      "maxParticipants": "Max (optional)",
+      "maxParticipantsPlaceholder": "Unlimited",
+      "minParticipantsRequired": "Minimum participants must be at least 1",
+      "maxParticipantsError": "Maximum participants must be greater than or equal to minimum participants",
+      "joinPolicy": "Join Policy",
+      "joinPolicy.open": "Open - Anyone can join",
+      "joinPolicy.openDescription": "Anyone can join immediately",
+      "joinPolicy.request": "Request - Users must request to join",
+      "joinPolicy.requestDescription": "Users request, you approve",
+      "joinPolicy.invite_only": "Invite Only - Only invited users can join",
+      "joinPolicy.invite_onlyDescription": "You invite specific users",
+      "descriptionLabel": "Description (optional)",
+      "description": "Make your trip discoverable by others. Set pricing, capacity, and join settings.",
+      "descriptionPlaceholder": "Describe your hosted trip...",
+      "hostIntro": "Host Introduction (optional)",
+      "hostIntroPlaceholder": "Tell participants about yourself...",
+      "submit": "Convert to Hosted Trip"
+    }
   },
   "tourDetail": {
     "aboutTour": "About This Tour",
@@ -990,8 +1002,8 @@
       "verifyPhone": "Verify Phone",
       "verifyEmail": "Verify Email",
       "resendCode": "Resend code",
-      "phoneCodeSent": "Verification code sent to your phone",
-      "emailCodeSent": "Verification code sent to your email",
+      "phoneCodeSent": "Verification code sent to your phone. Use code: 111111",
+      "emailCodeSent": "Verification code sent to your email. Use code: 111111",
       "phoneVerified": "Phone verified! Now verify your email.",
       "allVerified": "Account complete! You are now a Member.",
       "completeTitle": "Account Complete!",
@@ -1296,7 +1308,9 @@
     "following": "Following",
     "follow": "Follow",
     "message": "Message",
-    "joined": "Joined"
+    "joined": "Joined",
+    "selfMessageButton": "Message yourself",
+    "selfMessageDescription": "Send yourself a DM to test Safarnak Messaging."
   },
   "notifications": {
     "title": "Notifications",
@@ -1391,5 +1405,34 @@
     "structuredData": "Structured",
     "structuredDataStorage": "Structured Data",
     "connection": "Connection"
+  },
+  "me": {
+    "editProfile": "Edit Profile",
+    "openStudio": "Open Studio",
+    "feed": {
+      "empty": "No posts yet",
+      "emptyDescription": "Your public content will appear here"
+    },
+    "about": {
+      "bio": "Bio",
+      "noBio": "No bio yet",
+      "travelStyle": "Travel Style",
+      "noTravelStyle": "No travel style set",
+      "languages": "Languages",
+      "noLanguages": "No languages set",
+      "links": "Links"
+    },
+    "stats": {
+      "tripsCreated": "Trips",
+      "hostedTrips": "Hosted",
+      "placesAdded": "Places",
+      "followers": "Followers",
+      "following": "Following"
+    },
+    "tabs": {
+      "feed": "Feed",
+      "about": "About",
+      "saved": "Saved"
+    }
   }
 }

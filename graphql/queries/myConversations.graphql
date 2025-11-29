@@ -1,0 +1,20 @@
+query MyConversations {
+  myConversations {
+    id
+    kind
+    tripId
+    title
+    lastMessageAt
+    createdAt
+    updatedAt
+    members {
+      id
+      username
+      name
+      avatar
+      publicKey
+      status
+    }
+  }
+}
+

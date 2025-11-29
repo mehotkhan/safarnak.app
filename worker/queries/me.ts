@@ -58,6 +58,8 @@ export const me = async (
       publicKey: user.publicKey,
       status: user.status || 'active',
       createdAt: user.createdAt || new Date().toISOString(),
+      emailVerified: user.emailVerified ?? false, // Use nullish coalescing to preserve false values
+      phoneVerified: user.phoneVerified ?? false, // Use nullish coalescing to preserve false values
     };
   } catch (error) {
     console.error('[me] Error:', error);

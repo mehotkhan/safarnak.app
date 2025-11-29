@@ -1,7 +1,0 @@
-mutation AddMessage($content: String!) {
-  addMessage(content: $content) {
-    id
-    content
-    createdAt
-  }
-}

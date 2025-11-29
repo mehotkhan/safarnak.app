@@ -43,10 +43,12 @@ export default function PlanScreen() {
   }, [tripsData]);
 
   // Filter trips by tab type
+  // Note: Backend already filters by userId, so all trips returned are for the current user
   const myTrips = useMemo(() => {
     if (!user?.id) return [];
-    // Trips owned by user
-    return allTrips.filter((trip: any) => trip.userId === user.id);
+    // Backend already filters by userId, but we keep this check for safety
+    // Filter out any trips that don't match (shouldn't happen, but defensive)
+    return allTrips.filter((trip: any) => !trip.userId || trip.userId === user.id);
   }, [allTrips, user?.id]);
 
   const joinedTrips = useMemo(() => {
@@ -59,8 +61,9 @@ export default function PlanScreen() {
   const draftTrips = useMemo(() => {
     if (!user?.id) return [];
     // Trips with draft status or incomplete
+    // Backend already filters by userId, so we just need to check status
     return allTrips.filter((trip: any) => 
-      trip.userId === user.id && 
+      (!trip.userId || trip.userId === user.id) && 
       (trip.status === 'draft' || !trip.startDate || !trip.destination)
     );
   }, [allTrips, user?.id]);
@@ -118,9 +121,14 @@ export default function PlanScreen() {
           <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
             {t('common.error')}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-2">
             {String((currentError as any)?.message || t('common.error'))}
           </CustomText>
+          {!user?.id && (
+            <CustomText className="text-sm text-gray-500 dark:text-gray-500 text-center mt-2">
+              {t('trips.error.notAuthenticated', { defaultValue: 'Please log in to view your trips' })}
+            </CustomText>
+          )}
         </View>
       );
     }
@@ -204,20 +212,7 @@ export default function PlanScreen() {
             >
             {t('trips.myTravelPlans') || t('trips.title') || 'My Travel Plans'}
           </CustomText>
-          <TouchableOpacity
-            onPress={() => {
-              checkActivation(() => {
-                router.push('/(app)/(trips)/new' as any);
-              });
-            }}
-            className="bg-primary px-4 py-2 rounded-lg flex-row items-center"
-            activeOpacity={0.8}
-          >
-            <Ionicons name="sparkles" size={18} color="#fff" style={{ marginRight: 6 }} />
-            <CustomText className="text-white" weight="medium">
-              {t('trips.planWithAI')}
-            </CustomText>
-          </TouchableOpacity>
+       
         </View>
 
         {/* Tabs */}

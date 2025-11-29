@@ -10,7 +10,7 @@
  * All IDs are UUIDs (text) - no more integer/string conversions!
  */
 
-import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, primaryKey, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 import { createId } from './utils';
 
@@ -127,6 +127,8 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash'), // Server-only - optional for biometric users
   publicKey: text('public_key'), // For biometric authentication (wallet address or PEM)
   status: text('status').default('active'), // active, suspended, deleted
+  emailVerified: integer('email_verified', { mode: 'boolean' }).default(false),
+  phoneVerified: integer('phone_verified', { mode: 'boolean' }).default(false),
   ...timestampColumns,
 });
 
@@ -167,14 +169,109 @@ export const trips = sqliteTable('trips', {
 
 // tours table removed - unified into trips table with isHosted flag
 
-// TODO(v3): Replace simple messages with E2E conversation-based schema:
-// conversations, conversation_members, messages with conversationId + ciphertext + senderDeviceId.
 export const messages = sqliteTable('messages', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   ...messageFields,
   userId: text('user_id').references(() => users.id),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
+
+export const conversations = sqliteTable('conversations', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  kind: text('kind').notNull(), // DM | GROUP | TRIP
+  tripId: text('trip_id').references(() => trips.id),
+  title: text('title'),
+  createdBy: text('created_by').references(() => users.id).notNull(),
+  lastMessageAt: text('last_message_at'),
+  ...timestampColumns,
+});
+
+export const conversationMembers = sqliteTable(
+  'conversation_members',
+  {
+    id: text('id').primaryKey().$defaultFn(() => createId()),
+    conversationId: text('conversation_id')
+      .references(() => conversations.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: text('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    role: text('role').notNull().default('MEMBER'), // MEMBER | ADMIN | OWNER
+    joinedAt: text('joined_at').default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    conversationUserUnique: uniqueIndex('conversation_members_conversation_id_user_id_unique').on(
+      table.conversationId,
+      table.userId,
+    ),
+    conversationIdx: index('conversation_members_conversation_id_idx').on(table.conversationId),
+    userIdx: index('conversation_members_user_id_idx').on(table.userId),
+  }),
+);
+
+export const chatMessages = sqliteTable(
+  'chat_messages',
+  {
+    id: text('id').primaryKey().$defaultFn(() => createId()),
+    conversationId: text('conversation_id')
+      .references(() => conversations.id, { onDelete: 'cascade' })
+      .notNull(),
+    senderUserId: text('sender_user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    senderDeviceId: text('sender_device_id')
+      .references(() => devices.deviceId)
+      .notNull(),
+    ciphertext: text('ciphertext').notNull(),
+    ciphertextMeta: text('ciphertext_meta'),
+    type: text('type').default('text'),
+    metadata: text('metadata'),
+    createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    conversationCreatedIdx: index('chat_messages_conversation_id_created_at_idx').on(
+      table.conversationId,
+      table.createdAt,
+    ),
+  }),
+);
+
+export const messageReceipts = sqliteTable(
+  'message_receipts',
+  {
+    id: text('id').primaryKey().$defaultFn(() => createId()),
+    messageId: text('message_id')
+      .references(() => chatMessages.id, { onDelete: 'cascade' })
+      .notNull(),
+    userId: text('user_id')
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    readAt: text('read_at').default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    messageIdx: index('message_receipts_message_id_idx').on(table.messageId),
+  }),
+);
+
+export const chatInvites = sqliteTable(
+  'chat_invites',
+  {
+    id: text('id').primaryKey().$defaultFn(() => createId()),
+    conversationId: text('conversation_id').references(() => conversations.id),
+    fromUserId: text('from_user_id').references(() => users.id).notNull(),
+    toUserId: text('to_user_id').references(() => users.id).notNull(),
+    status: text('status').notNull().default('PENDING'),
+    inviteCiphertext: text('invite_ciphertext').notNull(),
+    acceptCiphertext: text('accept_ciphertext'),
+    createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`),
+    expiresAt: text('expires_at'),
+  },
+  (table) => ({
+    conversationIdx: index('chat_invites_conversation_id_idx').on(table.conversationId),
+    toUserIdx: index('chat_invites_to_user_id_idx').on(table.toUserId),
+  }),
+);
 
 export const subscriptions = sqliteTable('subscriptions', {
   id: text('id').primaryKey(), // No default - graphql-workers-subscriptions provides its own IDs
@@ -592,6 +689,51 @@ export const cachedMessages = sqliteTable('cached_messages', {
   ...pendingColumn,
 });
 
+export const cachedConversations = sqliteTable('cached_conversations', {
+  id: text('id').primaryKey(),
+  kind: text('kind').notNull(),
+  tripId: text('trip_id'),
+  title: text('title'),
+  lastMessagePreview: text('last_message_preview'),
+  lastMessageAt: text('last_message_at'),
+  createdAt: text('created_at'),
+  updatedAt: text('updated_at'),
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+export const cachedConversationMembers = sqliteTable('cached_conversation_members', {
+  id: text('id').primaryKey(),
+  conversationId: text('conversation_id').notNull(),
+  userId: text('user_id').notNull(),
+  role: text('role').notNull().default('MEMBER'),
+  joinedAt: text('joined_at'),
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+export const cachedChatMessages = sqliteTable('cached_chat_messages', {
+  id: text('id').primaryKey(),
+  conversationId: text('conversation_id').notNull(),
+  senderUserId: text('sender_user_id').notNull(),
+  senderDeviceId: text('sender_device_id').notNull(),
+  ciphertext: text('ciphertext').notNull(),
+  ciphertextMeta: text('ciphertext_meta'),
+  type: text('type').default('text'),
+  metadata: text('metadata'),
+  createdAt: text('created_at'),
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+export const localConversationKeys = sqliteTable('local_conversation_keys', {
+  conversationId: text('conversation_id').primaryKey(),
+  keyId: text('key_id'),
+  encryptedKey: text('encrypted_key').notNull(),
+  createdAt: integer('created_at'),
+  updatedAt: integer('updated_at'),
+});
+
 export const pendingMutations = sqliteTable('pending_mutations', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   operationName: text('operation_name').notNull(),
@@ -748,6 +890,10 @@ export const clientSchema = {
   cachedTripItems,
   cachedPlaces,
   cachedMessages,
+  cachedConversations,
+  cachedConversationMembers,
+  cachedChatMessages,
+  localConversationKeys,
   pendingMutations,
   syncMetadata,
   apolloCacheEntries,

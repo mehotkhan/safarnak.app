@@ -4,6 +4,8 @@
  */
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
+import { GraphQLScalarType } from 'graphql/type/definition';
+import { Kind, ValueNode } from 'graphql/language';
 import {
   handleSubscriptions,
   createWsConnectionPoolClass,
@@ -36,7 +38,41 @@ import logo200 from './assets/logo-200.png';
 // Resolver Exports
 // ============================================================================
 
+const parseLiteralValue = (ast: ValueNode): any => {
+  switch (ast.kind) {
+    case Kind.STRING:
+    case Kind.BOOLEAN:
+      return ast.value;
+    case Kind.INT:
+      return parseInt(ast.value, 10);
+    case Kind.FLOAT:
+      return parseFloat(ast.value);
+    case Kind.NULL:
+      return null;
+    case Kind.OBJECT: {
+      const value: Record<string, unknown> = {};
+      ast.fields.forEach((field) => {
+        value[field.name.value] = parseLiteralValue(field.value);
+      });
+      return value;
+    }
+    case Kind.LIST:
+      return ast.values.map((node) => parseLiteralValue(node));
+    default:
+      return null;
+  }
+};
+
+const JSONScalar = new GraphQLScalarType({
+  name: 'JSON',
+  description: 'Arbitrary JSON value',
+  serialize: (value: unknown) => value,
+  parseValue: (value: unknown) => value,
+  parseLiteral: (ast: ValueNode) => parseLiteralValue(ast),
+});
+
 export const resolvers = {
+  JSON: JSONScalar,
   Query,
   Mutation,
   Subscription,
@@ -221,6 +257,7 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
   maskedErrors: false, // Show actual error messages instead of "Unexpected error"
   context: async ({ request, env, executionCtx }) => {
     let userId: string | undefined;
+    let deviceId: string | undefined;
 
     // Try to get userId from Authorization Bearer token
     const authHeader = request.headers.get('authorization');
@@ -239,6 +276,9 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
           } else {
             console.warn('Invalid token format: missing userId');
           }
+          if (parsed && typeof parsed.deviceId === 'string') {
+            deviceId = parsed.deviceId;
+          }
         }
       } catch (error) {
         // Token not found or invalid JSON format - authentication fails
@@ -251,7 +291,7 @@ const yoga = createYoga<DefaultPublishableContext<Env> & { userId?: string }>({
 
     // Compose default publishable context and add userId and request
     const base = createDefaultPublishableContext({ env, executionCtx, ...settings });
-    return { ...base, userId, request }; // Include request for URL construction
+    return { ...base, userId, deviceId, request }; // Include auth context + request
   },
 });
 

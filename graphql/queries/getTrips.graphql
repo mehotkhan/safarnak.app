@@ -1,6 +1,7 @@
 query GetTrips($status: String, $isHosted: Boolean) {
   getTrips(status: $status, isHosted: $isHosted) {
     id
+    userId
     destination
     startDate
     endDate
@@ -9,6 +10,7 @@ query GetTrips($status: String, $isHosted: Boolean) {
     preferences
     budget
     accommodation
+    isHosted
     createdAt
     updatedAt
   }
