@@ -24,15 +24,17 @@ mutation CreatePost($input: CreatePostInput!) {
           longitude
         }
       }
-      ... on Tour {
+      ... on Trip {
         id
+        isHosted
         title
-        location
+        tripLocation: location
+        destination
         price
         rating
-        tourDescription: description
+        description
         imageUrl
-        tourCoordinates: coordinates {
+        coordinates {
           latitude
           longitude
         }
@@ -40,7 +42,7 @@ mutation CreatePost($input: CreatePostInput!) {
       ... on Place {
         id
         name
-        location
+        placeLocation: location
         placeDescription: description
         imageUrl
         placeCoordinates: coordinates {

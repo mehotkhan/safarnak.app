@@ -9,6 +9,8 @@
     "me": "Me",
     "create": "Create",
     "notifications": "Notifications",
+    "trips": "Trips",
+    "inbox": "Inbox",
     "loading": "Loading...",
     "error": "Error",
     "save": "Save",
@@ -68,6 +70,11 @@
     "description": "Explore the world with our interactive map",
     "feed": "Social Feed",
     "stories": "Travel Stories",
+    "noUpcomingTrip": "You don't have an upcoming trip yet",
+    "planWithAI": "Plan a trip with AI",
+    "nextTrip": "Next trip",
+    "unknownDestination": "Unknown destination",
+    "dayOfTrip": "Day {{current}} of {{total}}",
     "experiences": "Experiences",
     "posts": "Posts"
   },
@@ -76,7 +83,8 @@
     "description": "Discover amazing tours and experiences around the world. Plan your next adventure with our curated tour recommendations.",
     "featured": "Featured Tours",
     "popular": "Popular Destinations",
-    "bookNow": "Book Now"
+    "bookNow": "Book Now",
+    "create": "Create Tour"
   },
   "placeDetail": {
     "title": "Place Details",
@@ -158,6 +166,15 @@
       "registerSuccess": "Account created successfully!",
       "usernameLabel": "Username"
     },
+    "username": {
+      "title": "Login with your Safarnak username",
+      "subtitle": "Enter your username to continue",
+      "label": "Username",
+      "placeholder": "Enter your username",
+      "continue": "Continue",
+      "error": "Error",
+      "usernameRequired": "Username is required"
+    },
     "alerts": {
       "ok": "OK",
       "cancel": "Cancel",
@@ -188,6 +205,42 @@
     "onboarding5": {
       "title": "Ready to Start Your Journey?",
       "description": "Join thousands of Iranian travelers planning amazing trips. Sign in or create your account to start planning, sharing and discovering."
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Safarnak",
+      "subtitle": "Travel together. Plan with AI.",
+      "heroTitle": "AI-Powered Trip Planning",
+      "heroDescription": "Tell us about your trip and Safarnak's AI will design the best route for you.",
+      "ai": "Smart AI",
+      "aiDesc": "Smart itineraries",
+      "social": "Travel together",
+      "socialDesc": "Share trips",
+      "offline": "Offline ready",
+      "offlineDesc": "Works offline",
+      "startAITrip": "Start with AI Trip",
+      "justLookAround": "Just look around",
+      "haveUsername": "I already have a username",
+      "createAccount": "Create account",
+      "chooseUsername": "Choose Username",
+      "chooseUsernameMessage": "How would you like to proceed?",
+      "autoGenerate": "Let Safarnak choose",
+      "chooseMyself": "Let me pick"
+    },
+    "slides": {
+      "ai": {
+        "title": "Build your trip with AI",
+        "subtitle": "Tell us your destination and travel style, and Safarnak will create your itinerary."
+      },
+      "social": {
+        "title": "Travel together",
+        "subtitle": "Find travel companions, join tours, and share experiences with the community."
+      },
+      "offline": {
+        "title": "Ready for offline travel",
+        "subtitle": "Your trip plan and chats are available even without internet."
+      }
     }
   },
   "oauth": {
@@ -275,7 +328,13 @@
   },
   "trips": {
     "title": "Trips",
+    "myTravelPlans": "My Travel Plans",
+    "planWithAI": "Plan with AI",
+    "hostedBadge": "Hosted",
     "tabs": {
+      "myTrips": "My Trips",
+      "joined": "Joined",
+      "drafts": "Drafts",
       "trips": "Trips",
       "tours": "Tours",
       "places": "Places",
@@ -293,6 +352,14 @@
       "locationsDescription": "Manage locations archive",
       "locationsCreate": "Create Location",
       "posts": "Posts"
+    },
+    "empty": {
+      "myTrips": "No trips yet",
+      "myTripsDescription": "Create your first trip",
+      "joined": "No joined trips",
+      "joinedDescription": "Join trips from the explore tab",
+      "drafts": "No drafts",
+      "draftsDescription": "Continue planning your trip"
     }
   },
   "create": {
@@ -375,6 +442,7 @@
     "copyTrip": "Copy to My Trips",
     "tripDetails": "Trip Details",
     "itinerary": "Itinerary",
+    "route": "Route",
     "routeMap": "Route Map",
     "mapComparison": "Map Comparison",
     "mapComparisonDescription": "Compare different map views",
@@ -494,7 +562,43 @@
     "tabs": {
       "trips": "My Trips",
       "tours": "My Tours",
-      "saved": "Saved"
+      "saved": "Saved",
+      "feed": "Feed",
+      "about": "About"
+    },
+    "stats": {
+      "tripsCreated": "Trips",
+      "hostedTrips": "Hosted",
+      "placesAdded": "Places",
+      "followers": "Followers",
+      "following": "Following"
+    },
+    "feed": {
+      "empty": "No posts yet",
+      "emptyDescription": "Your public content will appear here"
+    },
+    "about": {
+      "bio": "Bio",
+      "noBio": "No bio yet",
+      "travelStyle": "Travel Style",
+      "noTravelStyle": "Not specified",
+      "languages": "Languages",
+      "noLanguages": "Not specified",
+      "links": "Links"
+    },
+    "editProfile": "Edit Profile",
+    "openStudio": "Open Studio",
+    "studio": {
+      "title": "Studio",
+      "description": "Manage all your content in one place",
+      "trips": "My Trips",
+      "tripsDescription": "Manage your trips",
+      "hosted": "Hosted Trips",
+      "hostedDescription": "Manage your hosted trips",
+      "places": "My Places",
+      "placesDescription": "Manage your places",
+      "posts": "My Posts",
+      "postsDescription": "Manage your posts"
     },
     "system": "System",
     "tripsList": {
@@ -507,9 +611,16 @@
     },
     "inbox": {
       "title": "Inbox",
+      "activity": "Activity",
+      "messages": "Messages",
       "notifications": "Notifications",
       "chats": "Chats",
       "emptyState": "No messages yet",
+      "emptyActivity": "No activity yet",
+      "emptyActivityDescription": "Your notifications will appear here",
+      "emptyMessages": "No messages yet",
+      "emptyMessagesDescription": "Start a conversation with someone",
+      "markRead": "Mark read",
       "planReady": "Trip Plan Ready",
       "planReadyMessage": "Your Tokyo trip plan has been generated",
       "newTour": "New Tour Available",
@@ -668,6 +779,8 @@
     "travelStories": "Travel Stories",
     "popularTrips": "Popular Trips",
     "trending": "Trending Now",
+    "showNewItem": "Show {{count}} new",
+    "showNewItems": "Show {{count}} new ({{total}})",
     "create": {
       "title": "Create",
       "tour": "Tour",
@@ -794,6 +907,7 @@
     "title": "Places",
     "description": "Discover amazing places",
     "new": "Create Place",
+    "addPlace": "Add Place",
     "detail": "Place Details",
     "emptyState": "No places yet",
     "emptyDescription": "Create your first place",
@@ -842,6 +956,54 @@
     "title": "Profile",
     "description": "Manage your account settings, preferences, and personal information. View your travel history and saved locations.",
     "guest": "Guest",
+    "tiers": {
+      "guest": "Guest",
+      "member": "Member",
+      "pro": "Pro"
+    },
+    "upgrade": {
+      "guestToMember": {
+        "title": "Complete your account",
+        "description": "Add phone and email to protect your trips and enable notifications.",
+        "button": "Complete profile"
+      },
+      "memberToPro": {
+        "title": "Upgrade to Safarnak Pro",
+        "description": "Get more AI planning, priority features, and more.",
+        "button": "See plans"
+      }
+    },
+    "completeAccount": {
+      "title": "Complete your Safarnak account",
+      "subtitle": "Add and verify your phone and email to secure your account and enable notifications.",
+      "step1": "Step 1: Verify Phone",
+      "step2": "Step 2: Verify Email",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "+1 (555) 123-4567",
+      "phoneCodeLabel": "Verification Code",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your@email.com",
+      "emailCodeLabel": "Verification Code",
+      "codePlaceholder": "Enter code",
+      "sendPhoneCode": "Send verification code",
+      "sendEmailCode": "Send verification code",
+      "verifyPhone": "Verify Phone",
+      "verifyEmail": "Verify Email",
+      "resendCode": "Resend code",
+      "phoneCodeSent": "Verification code sent to your phone",
+      "emailCodeSent": "Verification code sent to your email",
+      "phoneVerified": "Phone verified! Now verify your email.",
+      "allVerified": "Account complete! You are now a Member.",
+      "completeTitle": "Account Complete!",
+      "completeMessage": "You are now a Safarnak Member. Enjoy enhanced features!",
+      "error": "Error",
+      "phoneRequired": "Phone number is required",
+      "emailRequired": "Email is required",
+      "codeRequired": "Verification code is required",
+      "success": "Success",
+      "sendCodeFailed": "Failed to send verification code",
+      "invalidCode": "Invalid verification code"
+    },
     "trips": "Trips",
     "posts": "Posts",
     "followers": "Followers",

@@ -89,15 +89,17 @@ export const FeedItem = React.memo<FeedItemProps>(({
 
   // Get connected item type icon and label
   const connectedItemInfo = useMemo(() => {
-    if (item.type === 'trip') {
-      return { icon: 'airplane-outline', label: 'Trip', color: '#3b82f6' };
-    } else if (item.type === 'tour') {
-      return { icon: 'map-outline', label: 'Tour', color: '#10b981' };
+    if (item.type === 'trip' || item.type === 'tour') {
+      // Unified Trip model: tour is now trip with isHosted = true
+      const isHosted = item.relatedEntity?.isHosted || item.type === 'tour';
+      return isHosted
+        ? { icon: 'map-outline', label: t('explore.tour'), color: '#10b981' }
+        : { icon: 'airplane-outline', label: t('explore.trip'), color: '#3b82f6' };
     } else if (item.type === 'place') {
-      return { icon: 'location-outline', label: 'Place', color: '#f59e0b' };
+      return { icon: 'location-outline', label: t('explore.place'), color: '#f59e0b' };
     }
     return null;
-  }, [item.type]);
+  }, [item.type, item.relatedEntity?.isHosted, t]);
 
   // Check if current user has already reacted with ❤️
   const hasLiked = useMemo(() => {

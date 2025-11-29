@@ -18,8 +18,8 @@ import { eq, sql, isNotNull, desc } from 'drizzle-orm';
 import {
   clientSchema,
   cachedUsers,
+  cachedProfiles,
   cachedTrips,
-  cachedTours,
   cachedPlaces,
   cachedMessages,
   pendingMutations,
@@ -83,6 +83,24 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         pending INTEGER DEFAULT 0
       );
 
+      CREATE TABLE IF NOT EXISTS cached_profiles (
+        id TEXT PRIMARY KEY NOT NULL,
+        user_id TEXT NOT NULL,
+        display_name TEXT,
+        bio TEXT,
+        avatar_url TEXT,
+        phone TEXT,
+        home_base TEXT,
+        travel_style TEXT,
+        languages TEXT,
+        is_active INTEGER DEFAULT 1,
+        created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
+        updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
+      );
+
       CREATE TABLE IF NOT EXISTS cached_trips (
         id TEXT PRIMARY KEY NOT NULL,
         user_id TEXT NOT NULL,
@@ -90,7 +108,7 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         destination TEXT,
         start_date TEXT,
         end_date TEXT,
-        budget REAL,
+        budget INTEGER,
         travelers INTEGER NOT NULL DEFAULT 1,
         preferences TEXT,
         accommodation TEXT,
@@ -98,6 +116,32 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         ai_reasoning TEXT,
         itinerary TEXT,
         coordinates TEXT,
+        waypoints TEXT,
+        is_hosted INTEGER DEFAULT 0,
+        location TEXT,
+        price REAL,
+        currency TEXT DEFAULT 'USD',
+        rating REAL DEFAULT 0,
+        reviews INTEGER DEFAULT 0,
+        duration INTEGER,
+        duration_type TEXT DEFAULT 'days',
+        category TEXT,
+        difficulty TEXT,
+        description TEXT,
+        short_description TEXT,
+        highlights TEXT,
+        inclusions TEXT,
+        max_participants INTEGER,
+        min_participants INTEGER DEFAULT 1,
+        host_intro TEXT,
+        join_policy TEXT DEFAULT 'open',
+        booking_instructions TEXT,
+        image_url TEXT,
+        gallery TEXT,
+        tags TEXT,
+        is_active INTEGER DEFAULT 1,
+        is_featured INTEGER DEFAULT 0,
+        external_booking_url TEXT,
         created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         cached_at INTEGER DEFAULT (strftime('%s', 'now')),
@@ -106,34 +150,47 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         deleted_at INTEGER
       );
 
-      CREATE TABLE IF NOT EXISTS cached_tours (
+      CREATE TABLE IF NOT EXISTS cached_trip_participants (
         id TEXT PRIMARY KEY NOT NULL,
-        title TEXT NOT NULL,
-        location TEXT NOT NULL,
-        price REAL NOT NULL,
-        rating REAL NOT NULL DEFAULT 0,
-        reviews INTEGER NOT NULL DEFAULT 0,
-        duration INTEGER NOT NULL,
-        category TEXT NOT NULL,
-        description TEXT,
-        short_description TEXT,
-        currency TEXT DEFAULT 'USD',
-        duration_type TEXT DEFAULT 'days',
-        coordinates TEXT,
-        difficulty TEXT DEFAULT 'easy',
-        highlights TEXT,
-        inclusions TEXT,
-        max_participants INTEGER,
-        min_participants INTEGER DEFAULT 1,
-        image_url TEXT,
-        gallery TEXT,
-        tags TEXT,
-        is_active INTEGER DEFAULT 1,
-        is_featured INTEGER DEFAULT 0,
+        trip_id TEXT NOT NULL,
+        user_id TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'MEMBER',
+        join_status TEXT NOT NULL DEFAULT 'REQUESTED',
+        notes TEXT,
         created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
         cached_at INTEGER DEFAULT (strftime('%s', 'now')),
-        last_sync_at INTEGER
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS cached_trip_days (
+        id TEXT PRIMARY KEY NOT NULL,
+        trip_id TEXT NOT NULL,
+        day_index INTEGER NOT NULL,
+        date TEXT,
+        title TEXT,
+        created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
+        updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
+      );
+
+      CREATE TABLE IF NOT EXISTS cached_trip_items (
+        id TEXT PRIMARY KEY NOT NULL,
+        trip_day_id TEXT NOT NULL,
+        place_id TEXT,
+        time TEXT,
+        title TEXT NOT NULL,
+        description TEXT,
+        metadata TEXT,
+        order INTEGER DEFAULT 0,
+        created_at TEXT DEFAULT (CURRENT_TIMESTAMP),
+        updated_at TEXT DEFAULT (CURRENT_TIMESTAMP),
+        cached_at INTEGER DEFAULT (strftime('%s', 'now')),
+        last_sync_at INTEGER,
+        pending INTEGER DEFAULT 0
       );
 
       CREATE TABLE IF NOT EXISTS cached_places (
@@ -206,11 +263,18 @@ async function runMigrations(sqlite: SQLite.SQLiteDatabase): Promise<void> {
         last_accessed INTEGER DEFAULT (strftime('%s', 'now'))
       );
 
+      CREATE INDEX IF NOT EXISTS idx_cached_profiles_user_id ON cached_profiles(user_id);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_user_id ON cached_trips(user_id);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_destination ON cached_trips(destination);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_status ON cached_trips(status);
+      CREATE INDEX IF NOT EXISTS idx_cached_trips_is_hosted ON cached_trips(is_hosted);
       CREATE INDEX IF NOT EXISTS idx_cached_trips_cached_at ON cached_trips(cached_at);
-      CREATE INDEX IF NOT EXISTS idx_cached_tours_category ON cached_tours(category);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_participants_trip_id ON cached_trip_participants(trip_id);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_participants_user_id ON cached_trip_participants(user_id);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_days_trip_id ON cached_trip_days(trip_id);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_days_day_index ON cached_trip_days(trip_id, day_index);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_items_trip_day_id ON cached_trip_items(trip_day_id);
+      CREATE INDEX IF NOT EXISTS idx_cached_trip_items_order ON cached_trip_items(trip_day_id, order);
       CREATE INDEX IF NOT EXISTS idx_cached_places_type ON cached_places(type);
       CREATE INDEX IF NOT EXISTS idx_cached_places_location ON cached_places(location);
       CREATE INDEX IF NOT EXISTS idx_pending_mutations_queued_at ON pending_mutations(queued_at);
@@ -238,10 +302,13 @@ export const schema = clientSchema;
 
 const ENTITY_TYPE_TO_TABLE = {
   User: cachedUsers,
+  Profile: cachedProfiles, // Added Profile support
   Trip: cachedTrips,
-  Tour: cachedTours,
+  // Tour removed - unified into Trip with isHosted flag
   Place: cachedPlaces,
   Message: cachedMessages,
+  // TripParticipant, TripDay, TripItem are not directly cached via Apollo cache
+  // They are nested within Trip entities and handled separately
 } as const;
 
 type EntityType = keyof typeof ENTITY_TYPE_TO_TABLE;
@@ -306,7 +373,7 @@ function transformEntity(entityType: EntityType, data: any): Record<string, any>
           destination: data.destination || null,
           startDate: data.startDate || null,
           endDate: data.endDate || null,
-          budget: data.budget ? parseFloat(String(data.budget)) : null,
+          budget: data.budget ? parseInt(String(data.budget), 10) : null, // Integer for minor units
           travelers: data.travelers || 1,
           preferences: data.preferences || null,
           accommodation: data.accommodation || null,
@@ -314,27 +381,52 @@ function transformEntity(entityType: EntityType, data: any): Record<string, any>
           aiReasoning: data.aiReasoning || null,
           itinerary: data.itinerary ? JSON.stringify(data.itinerary) : null,
           coordinates: data.coordinates ? JSON.stringify(data.coordinates) : null,
-          createdAt: data.createdAt || new Date().toISOString(),
-          updatedAt: data.updatedAt || new Date().toISOString(),
-        };
-      case 'Tour':
-        return {
-          id: String(data.id || ''),
-          title: data.title || '',
-          location: data.location || '',
-          price: parseFloat(String(data.price || 0)),
-          rating: parseFloat(String(data.rating || 0)),
+          waypoints: data.waypoints ? JSON.stringify(data.waypoints) : null,
+          // Hosted trip fields
+          isHosted: data.isHosted === true,
+          location: data.location || null,
+          price: data.price ? parseFloat(String(data.price)) : null,
+          currency: data.currency || 'USD',
+          rating: data.rating ? parseFloat(String(data.rating)) : 0,
           reviews: parseInt(String(data.reviews || 0), 10),
-          duration: parseInt(String(data.duration || 0), 10),
-          category: data.category || '',
-          description: data.description || '',
+          duration: data.duration ? parseInt(String(data.duration), 10) : null,
+          durationType: data.durationType || 'days',
+          category: data.category || null,
+          difficulty: data.difficulty || null,
+          description: data.description || null,
+          shortDescription: data.shortDescription || null,
           highlights: data.highlights ? JSON.stringify(data.highlights) : null,
           inclusions: data.inclusions ? JSON.stringify(data.inclusions) : null,
           maxParticipants: data.maxParticipants ? parseInt(String(data.maxParticipants), 10) : null,
-          difficulty: data.difficulty || 'easy',
+          minParticipants: parseInt(String(data.minParticipants || 1), 10),
+          hostIntro: data.hostIntro || null,
+          joinPolicy: data.joinPolicy || 'open',
+          bookingInstructions: data.bookingInstructions || null,
+          imageUrl: data.imageUrl || null,
+          gallery: data.gallery ? JSON.stringify(data.gallery) : null,
+          tags: data.tags ? JSON.stringify(data.tags) : null,
+          isActive: data.isActive !== false,
+          isFeatured: data.isFeatured === true,
+          externalBookingUrl: data.externalBookingUrl || null,
           createdAt: data.createdAt || new Date().toISOString(),
           updatedAt: data.updatedAt || new Date().toISOString(),
         };
+      case 'Profile':
+        return {
+          id: String(data.id || ''),
+          userId: String(data.userId || ''),
+          displayName: data.displayName || null,
+          bio: data.bio || null,
+          avatarUrl: data.avatarUrl || null,
+          phone: data.phone || null,
+          homeBase: data.homeBase || null,
+          travelStyle: data.travelStyle || null,
+          languages: data.languages ? JSON.stringify(data.languages) : null,
+          isActive: data.isActive !== false,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+        };
+      // Tour removed - unified into Trip with isHosted flag
       case 'Place':
         return {
           id: String(data.id || ''),
@@ -428,7 +520,6 @@ export interface DatabaseStats {
     trips: EntityStats;
     users: EntityStats;
     messages: EntityStats;
-    tours: EntityStats;
     places: EntityStats;
   };
   totalEntities: number;
@@ -490,11 +581,10 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
       };
     };
 
-    const [trips, users, messages, tours, places] = await Promise.all([
+    const [trips, users, messages, places] = await Promise.all([
       getEntityStats(cachedTrips, true, true),
       getEntityStats(cachedUsers, true, false),
       getEntityStats(cachedMessages, true, false),
-      getEntityStats(cachedTours, false, false),
       getEntityStats(cachedPlaces, false, false),
     ]);
 
@@ -544,8 +634,8 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
     const structuredDataSize = apolloCacheStats.totalSize; // For now, use same as cache size
 
     return {
-      entities: { trips, users, messages, tours, places },
-      totalEntities: trips.count + users.count + messages.count + tours.count + places.count,
+      entities: { trips, users, messages, places },
+      totalEntities: trips.count + users.count + messages.count + places.count,
       apolloCache: apolloCacheStats,
       pendingMutations: {
         total: pendingTotal?.count || 0,
@@ -567,7 +657,7 @@ export async function getDatabaseStats(): Promise<DatabaseStats> {
     console.error('Failed to get database stats:', error);
     const empty = { count: 0, pendingCount: 0, deletedCount: 0, lastSyncAt: null, oldestCachedAt: null, newestCachedAt: null };
     return {
-      entities: { trips: empty, users: empty, messages: empty, tours: empty, places: empty },
+      entities: { trips: empty, users: empty, messages: empty, places: empty },
       totalEntities: 0,
       pendingMutations: { total: 0, withErrors: 0, oldestQueuedAt: null },
       syncStatus: [],

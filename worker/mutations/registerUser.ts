@@ -1,4 +1,4 @@
-import { getServerDB, users, challenges, devices } from '@database/server';
+import { getServerDB, users, profiles, challenges, devices } from '@database/server';
 import { eq, and } from 'drizzle-orm';
 import { verifySignature } from '../utilities/auth/crypto';
 import { generateToken } from '../utilities/auth/password';
@@ -9,6 +9,7 @@ interface RegisterUserResult {
     id: string;
     name: string;
     username: string;
+    status: string;
     createdAt: string;
   };
   token: string;
@@ -98,11 +99,20 @@ export const registerUser = async (
       .insert(users)
       .values({
         username: trimmedUsername,
-        name: trimmedUsername, // Use username as default name
         passwordHash: null, // No password for biometric users
+        status: 'active',
       })
       .returning()
       .get();
+
+    // Create default profile
+    await db.insert(profiles).values({
+      userId: newUser.id,
+      displayName: trimmedUsername,
+      isActive: true,
+    });
+
+    const userProfile = await db.select().from(profiles).where(eq(profiles.userId, newUser.id)).get();
 
     // Create device entry with public key
     await db.insert(devices).values({
@@ -144,8 +154,9 @@ export const registerUser = async (
     return {
       user: {
         id: newUser.id,
-        name: newUser.name,
+        name: userProfile?.displayName || newUser.username,
         username: newUser.username,
+        status: newUser.status || 'active',
         createdAt: newUser.createdAt || new Date().toISOString(),
       },
       token,

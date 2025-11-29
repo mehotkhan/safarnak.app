@@ -4,6 +4,7 @@ mutation LoginUser($username: String!, $signature: String!, $deviceId: String!, 
       id
       name
       username
+      status
       createdAt
     }
     token

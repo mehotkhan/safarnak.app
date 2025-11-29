@@ -3,7 +3,7 @@
 
 import { eq } from 'drizzle-orm';
 import { getServerDB } from '@database/server';
-import { users } from '@database/server';
+import { users, profiles } from '@database/server';
 import { ResolverContext } from '../types';
 import { verifyPassword, generateToken } from '../utilities/auth/password';
 
@@ -48,6 +48,9 @@ export const login = async (
       throw new Error('Invalid username or password');
     }
 
+    // Get user profile
+    const userProfile = await db.select().from(profiles).where(eq(profiles.userId, user.id)).get();
+
     // Generate secure token
     const token = await generateToken(user.id, username);
 
@@ -65,8 +68,9 @@ export const login = async (
     return {
       user: {
         id: user.id, // Already a UUID string
-        name: user.name,
+        name: userProfile?.displayName || user.username,
         username: user.username,
+        status: user.status || 'active',
         createdAt: user.createdAt,
       },
       token,

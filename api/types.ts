@@ -14,16 +14,6 @@ export type Scalars = {
   Float: { input: number; output: number; }
 };
 
-export type BookTourInput = {
-  email: Scalars['String']['input'];
-  fullName: Scalars['String']['input'];
-  participants: Scalars['Int']['input'];
-  phone?: InputMaybe<Scalars['String']['input']>;
-  selectedDate: Scalars['String']['input'];
-  specialRequests?: InputMaybe<Scalars['String']['input']>;
-  tourId: Scalars['ID']['input'];
-};
-
 export type CoordinatesInput = {
   latitude: Scalars['Float']['input'];
   longitude: Scalars['Float']['input'];
@@ -63,38 +53,41 @@ export type CreatePostInput = {
   type?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CreateTourInput = {
-  category: Scalars['String']['input'];
+export type CreateTripInput = {
+  accommodation?: InputMaybe<Scalars['String']['input']>;
+  bookingInstructions?: InputMaybe<Scalars['String']['input']>;
+  budget?: InputMaybe<Scalars['Float']['input']>;
+  category?: InputMaybe<Scalars['String']['input']>;
   coordinates?: InputMaybe<CoordinatesInput>;
   currency?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  destination?: InputMaybe<Scalars['String']['input']>;
   difficulty?: InputMaybe<Scalars['String']['input']>;
-  duration: Scalars['Int']['input'];
+  duration?: InputMaybe<Scalars['Int']['input']>;
   durationType?: InputMaybe<Scalars['String']['input']>;
+  endDate?: InputMaybe<Scalars['String']['input']>;
+  externalBookingUrl?: InputMaybe<Scalars['String']['input']>;
   gallery?: InputMaybe<Array<Scalars['String']['input']>>;
   highlights?: InputMaybe<Array<Scalars['String']['input']>>;
+  hostIntro?: InputMaybe<Scalars['String']['input']>;
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   inclusions?: InputMaybe<Array<Scalars['String']['input']>>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
   isFeatured?: InputMaybe<Scalars['Boolean']['input']>;
-  location: Scalars['String']['input'];
+  isHosted?: InputMaybe<Scalars['Boolean']['input']>;
+  joinPolicy?: InputMaybe<TripJoinPolicy>;
+  lang?: InputMaybe<Scalars['String']['input']>;
+  location?: InputMaybe<Scalars['String']['input']>;
   maxParticipants?: InputMaybe<Scalars['Int']['input']>;
   minParticipants?: InputMaybe<Scalars['Int']['input']>;
-  price: Scalars['Float']['input'];
-  shortDescription?: InputMaybe<Scalars['String']['input']>;
-  tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  title: Scalars['String']['input'];
-};
-
-export type CreateTripInput = {
-  accommodation?: InputMaybe<Scalars['String']['input']>;
-  budget?: InputMaybe<Scalars['Float']['input']>;
-  destination?: InputMaybe<Scalars['String']['input']>;
-  endDate?: InputMaybe<Scalars['String']['input']>;
-  lang?: InputMaybe<Scalars['String']['input']>;
   preferences?: InputMaybe<Scalars['String']['input']>;
+  price?: InputMaybe<Scalars['Float']['input']>;
+  shortDescription?: InputMaybe<Scalars['String']['input']>;
   startDate?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
   travelers: Scalars['Int']['input'];
+  waypoints?: InputMaybe<Array<WaypointInput>>;
 };
 
 /** Feed types and connections for home stream */
@@ -102,7 +95,6 @@ export type EntityType =
   | 'LOCATION'
   | 'PLACE'
   | 'POST'
-  | 'TOUR'
   | 'TRIP';
 
 export type FeedFilter = {
@@ -132,6 +124,28 @@ export type TrendingType =
   | 'TOPIC'
   | 'USER';
 
+export type TripJoinDecision =
+  | 'ACCEPT'
+  | 'REJECT';
+
+export type TripJoinPolicy =
+  | 'INVITE_ONLY'
+  | 'OPEN'
+  | 'REQUEST';
+
+export type TripJoinStatus =
+  | 'ACCEPTED'
+  | 'CANCELLED_BY_HOST'
+  | 'CANCELLED_BY_USER'
+  | 'NONE'
+  | 'REJECTED'
+  | 'REQUESTED';
+
+export type TripParticipantRole =
+  | 'CO_HOST'
+  | 'HOST'
+  | 'MEMBER';
+
 export type UpdateLocationInput = {
   averageCost?: InputMaybe<Scalars['Float']['input']>;
   bestTimeToVisit?: InputMaybe<Scalars['String']['input']>;
@@ -160,40 +174,41 @@ export type UpdatePlaceInput = {
   website?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateTourInput = {
+export type UpdateTripInput = {
+  accommodation?: InputMaybe<Scalars['String']['input']>;
+  aiReasoning?: InputMaybe<Scalars['String']['input']>;
+  bookingInstructions?: InputMaybe<Scalars['String']['input']>;
+  budget?: InputMaybe<Scalars['Float']['input']>;
   category?: InputMaybe<Scalars['String']['input']>;
-  coordinates?: InputMaybe<CoordinatesInput>;
   currency?: InputMaybe<Scalars['String']['input']>;
   description?: InputMaybe<Scalars['String']['input']>;
+  destination?: InputMaybe<Scalars['String']['input']>;
   difficulty?: InputMaybe<Scalars['String']['input']>;
   duration?: InputMaybe<Scalars['Int']['input']>;
   durationType?: InputMaybe<Scalars['String']['input']>;
+  endDate?: InputMaybe<Scalars['String']['input']>;
+  externalBookingUrl?: InputMaybe<Scalars['String']['input']>;
   gallery?: InputMaybe<Array<Scalars['String']['input']>>;
   highlights?: InputMaybe<Array<Scalars['String']['input']>>;
+  hostIntro?: InputMaybe<Scalars['String']['input']>;
   imageUrl?: InputMaybe<Scalars['String']['input']>;
   inclusions?: InputMaybe<Array<Scalars['String']['input']>>;
   isActive?: InputMaybe<Scalars['Boolean']['input']>;
   isFeatured?: InputMaybe<Scalars['Boolean']['input']>;
+  isHosted?: InputMaybe<Scalars['Boolean']['input']>;
+  itinerary?: InputMaybe<Scalars['String']['input']>;
+  joinPolicy?: InputMaybe<TripJoinPolicy>;
+  lang?: InputMaybe<Scalars['String']['input']>;
   location?: InputMaybe<Scalars['String']['input']>;
   maxParticipants?: InputMaybe<Scalars['Int']['input']>;
   minParticipants?: InputMaybe<Scalars['Int']['input']>;
+  preferences?: InputMaybe<Scalars['String']['input']>;
   price?: InputMaybe<Scalars['Float']['input']>;
   shortDescription?: InputMaybe<Scalars['String']['input']>;
-  tags?: InputMaybe<Array<Scalars['String']['input']>>;
-  title?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateTripInput = {
-  accommodation?: InputMaybe<Scalars['String']['input']>;
-  aiReasoning?: InputMaybe<Scalars['String']['input']>;
-  budget?: InputMaybe<Scalars['Float']['input']>;
-  destination?: InputMaybe<Scalars['String']['input']>;
-  endDate?: InputMaybe<Scalars['String']['input']>;
-  itinerary?: InputMaybe<Scalars['String']['input']>;
-  lang?: InputMaybe<Scalars['String']['input']>;
-  preferences?: InputMaybe<Scalars['String']['input']>;
   startDate?: InputMaybe<Scalars['String']['input']>;
   status?: InputMaybe<Scalars['String']['input']>;
+  tags?: InputMaybe<Array<Scalars['String']['input']>>;
+  title?: InputMaybe<Scalars['String']['input']>;
   travelers?: InputMaybe<Scalars['Int']['input']>;
   userMessage?: InputMaybe<Scalars['String']['input']>;
 };
@@ -211,3 +226,9 @@ export type Visibility =
   | 'CIRCLE'
   | 'FOLLOWERS'
   | 'PUBLIC';
+
+export type WaypointInput = {
+  label?: InputMaybe<Scalars['String']['input']>;
+  latitude: Scalars['Float']['input'];
+  longitude: Scalars['Float']['input'];
+};

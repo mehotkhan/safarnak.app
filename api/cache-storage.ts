@@ -16,14 +16,14 @@
 import { Platform } from 'react-native';
 import type { PersistentStorage } from 'apollo3-cache-persist';
 import { getLocalDB } from '@database/client';
-import { apolloCacheEntries, cachedUsers, cachedTrips, cachedTours, cachedPlaces, cachedMessages } from '@database/schema';
+import { apolloCacheEntries, cachedUsers, cachedProfiles, cachedTrips, cachedPlaces, cachedMessages } from '@database/schema';
 import { eq, sql } from 'drizzle-orm';
 
 // Entity type mapping for structured tables
 const ENTITY_TYPE_TO_TABLE = {
   User: cachedUsers,
+  Profile: cachedProfiles,
   Trip: cachedTrips,
-  Tour: cachedTours,
   Place: cachedPlaces,
   Message: cachedMessages,
 } as const;
@@ -79,27 +79,52 @@ function transformEntity(entityType: EntityType, data: any): Record<string, any>
           aiReasoning: data.aiReasoning || null,
           itinerary: data.itinerary ? JSON.stringify(data.itinerary) : null,
           coordinates: data.coordinates ? JSON.stringify(data.coordinates) : null,
-          createdAt: data.createdAt || new Date().toISOString(),
-          updatedAt: data.updatedAt || new Date().toISOString(),
-        };
-      case 'Tour':
-        return {
-          id: String(data.id || ''),
-          title: data.title || '',
-          location: data.location || '',
-          price: parseFloat(String(data.price || 0)),
-          rating: parseFloat(String(data.rating || 0)),
+          waypoints: data.waypoints ? JSON.stringify(data.waypoints) : null,
+          // Hosted trip fields (Phase 11)
+          isHosted: data.isHosted === true,
+          location: data.location || null,
+          price: data.price ? parseFloat(String(data.price)) : null,
+          currency: data.currency || 'USD',
+          rating: data.rating ? parseFloat(String(data.rating)) : 0,
           reviews: parseInt(String(data.reviews || 0), 10),
-          duration: parseInt(String(data.duration || 0), 10),
-          category: data.category || '',
-          description: data.description || '',
+          duration: data.duration ? parseInt(String(data.duration), 10) : null,
+          durationType: data.durationType || 'days',
+          category: data.category || null,
+          difficulty: data.difficulty || null,
+          description: data.description || null,
+          shortDescription: data.shortDescription || null,
           highlights: data.highlights ? JSON.stringify(data.highlights) : null,
           inclusions: data.inclusions ? JSON.stringify(data.inclusions) : null,
           maxParticipants: data.maxParticipants ? parseInt(String(data.maxParticipants), 10) : null,
-          difficulty: data.difficulty || 'easy',
+          minParticipants: parseInt(String(data.minParticipants || 1), 10),
+          hostIntro: data.hostIntro || null,
+          joinPolicy: data.joinPolicy || 'open',
+          bookingInstructions: data.bookingInstructions || null,
+          imageUrl: data.imageUrl || null,
+          gallery: data.gallery ? JSON.stringify(data.gallery) : null,
+          tags: data.tags ? JSON.stringify(data.tags) : null,
+          isActive: data.isActive !== false,
+          isFeatured: data.isFeatured === true,
+          externalBookingUrl: data.externalBookingUrl || null,
           createdAt: data.createdAt || new Date().toISOString(),
           updatedAt: data.updatedAt || new Date().toISOString(),
         };
+      case 'Profile':
+        return {
+          id: String(data.id || ''),
+          userId: String(data.userId || ''),
+          displayName: data.displayName || null,
+          bio: data.bio || null,
+          avatarUrl: data.avatarUrl || null,
+          phone: data.phone || null,
+          homeBase: data.homeBase || null,
+          travelStyle: data.travelStyle || null,
+          languages: data.languages ? JSON.stringify(data.languages) : null,
+          isActive: data.isActive !== false,
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+        };
+      // Tour removed - unified into Trip with isHosted flag
       case 'Place':
         return {
           id: String(data.id || ''),

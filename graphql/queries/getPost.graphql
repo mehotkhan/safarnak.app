@@ -15,24 +15,18 @@ query GetPost($id: ID!) {
     relatedEntity {
       ... on Trip {
         id
+        isHosted
+        title
+        tripLocation: location
         destination
         startDate
         endDate
         preferences
-        tripCoordinates: coordinates {
-          latitude
-          longitude
-        }
-      }
-      ... on Tour {
-        id
-        title
-        location
         price
         rating
-        tourDescription: description
+        description
         imageUrl
-        tourCoordinates: coordinates {
+        coordinates {
           latitude
           longitude
         }
@@ -40,7 +34,7 @@ query GetPost($id: ID!) {
       ... on Place {
         id
         name
-        location
+        placeLocation: location
         placeDescription: description
         imageUrl
         placeCoordinates: coordinates {

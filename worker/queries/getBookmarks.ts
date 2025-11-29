@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { getServerDB, bookmarks, posts, tours, places, users } from '@database/server';
+import { getServerDB, bookmarks, posts, trips, places, users, profiles } from '@database/server';
 import type { GraphQLContext } from '../types';
 
 export const getBookmarks = async (
@@ -25,7 +25,7 @@ export const getBookmarks = async (
   const filteredBookmarks = type
     ? userBookmarks.filter((bm) => {
         if (type === 'posts') return bm.postId !== null;
-        if (type === 'tours') return bm.tourId !== null;
+        if (type === 'trips' || type === 'tours') return bm.tripId !== null; // tours -> trips
         if (type === 'places') return bm.placeId !== null;
         return true;
       })
@@ -35,7 +35,7 @@ export const getBookmarks = async (
   const bookmarksWithEntities = await Promise.all(
     filteredBookmarks.map(async (bookmark) => {
       let post = null;
-      let tour = null;
+      let trip = null; // Changed from tour to trip
       let place = null;
 
       if (bookmark.postId) {
@@ -51,14 +51,19 @@ export const getBookmarks = async (
             .from(users)
             .where(eq(users.id, postData.userId))
             .get();
+          const postUserProfile = postUser ? await db
+            .select()
+            .from(profiles)
+            .where(eq(profiles.userId, postUser.id))
+            .get() : null;
           
           post = {
             ...postData,
             user: postUser ? {
               id: postUser.id,
-              name: postUser.name,
+              name: postUserProfile?.displayName || postUser.username,
               username: postUser.username,
-              avatar: postUser.avatar,
+              avatar: postUserProfile?.avatarUrl || null,
               createdAt: postUser.createdAt,
             } : null,
             attachments: postData.attachments ? JSON.parse(postData.attachments || '[]') : [],
@@ -70,23 +75,25 @@ export const getBookmarks = async (
         }
       }
 
-      if (bookmark.tourId) {
-        const tourData = await db
+      if (bookmark.tripId) {
+        const tripData = await db
           .select()
-          .from(tours)
-          .where(eq(tours.id, bookmark.tourId))
+          .from(trips)
+          .where(eq(trips.id, bookmark.tripId))
           .get();
         
-        if (tourData) {
-          tour = {
-            ...tourData,
-            price: tourData.price ? tourData.price / 100 : 0,
-            rating: tourData.rating ? tourData.rating / 10 : 0,
-            highlights: tourData.highlights ? JSON.parse(tourData.highlights || '[]') : [],
-            inclusions: tourData.inclusions ? JSON.parse(tourData.inclusions || '[]') : [],
-            gallery: tourData.gallery ? JSON.parse(tourData.gallery || '[]') : [],
-            tags: tourData.tags ? JSON.parse(tourData.tags || '[]') : [],
-            coordinates: tourData.coordinates ? JSON.parse(tourData.coordinates || '{}') : null,
+        if (tripData) {
+          trip = {
+            ...tripData,
+            price: (tripData as any).price ? ((tripData as any).price / 100) : null,
+            rating: (tripData as any).rating ? ((tripData as any).rating / 10) : 0,
+            highlights: (tripData as any).highlights ? JSON.parse((tripData as any).highlights || '[]') : [],
+            inclusions: (tripData as any).inclusions ? JSON.parse((tripData as any).inclusions || '[]') : [],
+            gallery: (tripData as any).gallery ? JSON.parse((tripData as any).gallery || '[]') : [],
+            tags: (tripData as any).tags ? JSON.parse((tripData as any).tags || '[]') : [],
+            coordinates: tripData.coordinates ? JSON.parse(tripData.coordinates || '{}') : null,
+            itinerary: tripData.itinerary ? JSON.parse(tripData.itinerary || '[]') : null,
+            waypoints: tripData.waypoints ? JSON.parse(tripData.waypoints || '[]') : null,
           };
         }
       }
@@ -112,10 +119,10 @@ export const getBookmarks = async (
         id: bookmark.id,
         userId: bookmark.userId,
         postId: bookmark.postId,
-        tourId: bookmark.tourId,
+        tripId: bookmark.tripId, // Changed from tourId
         placeId: bookmark.placeId,
         post,
-        tour,
+        trip, // Changed from tour
         place,
         createdAt: bookmark.createdAt,
       };

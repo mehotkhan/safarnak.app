@@ -31,11 +31,13 @@ query SearchSemantic($query: String!, $entityTypes: [EntityType!], $first: Int =
             status
             createdAt
           }
-          ... on Tour {
+          ... on Trip {
             id
+            isHosted
             title
             category
             price
+            destination
             createdAt
           }
           ... on Place {

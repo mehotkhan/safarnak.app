@@ -4,6 +4,7 @@ interface User {
   id: string;
   name: string;
   username: string;
+  status: string; // active, suspended, deleted
   createdAt: string;
 }
 

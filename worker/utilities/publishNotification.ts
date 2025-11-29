@@ -49,7 +49,8 @@ export async function publishNotification(
         
         // Store alert data in the notifications table
         // The alert object contains all the fields we need
-        const notificationData = {
+        // Use new polymorphic fields (targetType/targetId) if available, otherwise use data JSON
+        const notificationData: any = {
           id: alert.id || createId(),
           userId: alert.userId,
           type: alert.type,
@@ -58,12 +59,29 @@ export async function publishNotification(
             message: alert.message,
             step: alert.step,
             totalSteps: alert.totalSteps,
-            tripId: alert.tripId,
+            tripId: alert.tripId, // Keep for backward compatibility in data JSON
             read: alert.read || false,
           }),
           read: alert.read || false,
           createdAt: alert.createdAt || new Date().toISOString(),
         };
+        
+        // Add polymorphic fields if available
+        if (alert.targetType) {
+          notificationData.targetType = alert.targetType;
+        }
+        if (alert.targetId) {
+          notificationData.targetId = alert.targetId;
+        } else if (alert.tripId) {
+          // Map tripId to targetType/targetId for trip-related notifications
+          notificationData.targetType = 'TRIP';
+          notificationData.targetId = alert.tripId;
+        }
+        
+        // Add actorId if available
+        if (alert.actorId) {
+          notificationData.actorId = alert.actorId;
+        }
 
         await db.insert(notifications).values(notificationData).run();
         console.log(`[publishNotification] Stored notification in database: ${notificationData.id}`);

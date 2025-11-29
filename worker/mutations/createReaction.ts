@@ -1,5 +1,5 @@
 import { eq, and } from 'drizzle-orm';
-import { getServerDB, reactions, posts, comments, users } from '@database/server';
+import { getServerDB, reactions, posts, comments, users, profiles } from '@database/server';
 import type { GraphQLContext } from '../types';
 
 export const createReaction = async (
@@ -42,13 +42,16 @@ export const createReaction = async (
   }
 
   // Check if user already reacted with this emoji
+  const targetType = postId ? 'POST' : 'COMMENT';
+  const targetId = postId || commentId!;
   const existing = await db
     .select()
     .from(reactions)
     .where(
       and(
         eq(reactions.userId, userId),
-        postId ? eq(reactions.postId, postId) : eq(reactions.commentId, commentId!),
+        eq(reactions.targetType, targetType),
+        eq(reactions.targetId, targetId),
         eq(reactions.emoji, emoji)
       )
     )
@@ -57,6 +60,7 @@ export const createReaction = async (
   if (existing) {
     // Return existing reaction
     const user = await db.select().from(users).where(eq(users.id, userId)).get();
+    const profile = user ? await db.select().from(profiles).where(eq(profiles.userId, userId)).get() : null;
     return {
       id: existing.id,
       postId: existing.postId || null,
@@ -65,7 +69,7 @@ export const createReaction = async (
       user: user
         ? {
             id: user.id,
-            name: user.name,
+            name: profile?.displayName || user.username,
             username: user.username,
             createdAt: user.createdAt,
           }
@@ -80,8 +84,10 @@ export const createReaction = async (
     .insert(reactions)
     .values({
       id: crypto.randomUUID(),
-      postId: postId || null,
-      commentId: commentId || null,
+      targetType: postId ? 'POST' : 'COMMENT',
+      targetId: postId || commentId!,
+      postId: postId || null, // Legacy field for backward compatibility
+      commentId: commentId || null, // Legacy field for backward compatibility
       userId,
       emoji: emoji.trim(),
       createdAt: new Date().toISOString(),
@@ -89,8 +95,9 @@ export const createReaction = async (
     .returning()
     .get();
 
-  // Fetch user for the reaction
+  // Fetch user and profile for the reaction
   const user = await db.select().from(users).where(eq(users.id, userId)).get();
+  const profile = user ? await db.select().from(profiles).where(eq(profiles.userId, userId)).get() : null;
 
   return {
     id: result.id,
@@ -100,7 +107,7 @@ export const createReaction = async (
     user: user
       ? {
           id: user.id,
-          name: user.name,
+          name: profile?.displayName || user.username,
           username: user.username,
           createdAt: user.createdAt,
         }

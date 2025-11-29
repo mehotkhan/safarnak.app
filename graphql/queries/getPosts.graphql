@@ -17,24 +17,18 @@ query GetPosts($type: String, $limit: Int, $offset: Int, $after: String, $before
       relatedEntity {
         ... on Trip {
           id
+          isHosted
           destination
           startDate
           endDate
           preferences
-          tripCoordinates: coordinates {
-            latitude
-            longitude
-          }
-        }
-        ... on Tour {
-          id
           title
-          location
+          tripLocation: location
           price
           rating
-          tourDescription: description
+          description
           imageUrl
-          tourCoordinates: coordinates {
+          coordinates {
             latitude
             longitude
           }
@@ -42,7 +36,7 @@ query GetPosts($type: String, $limit: Int, $offset: Int, $after: String, $before
         ... on Place {
           id
           name
-          location
+          placeLocation: location
           placeDescription: description
           imageUrl
           placeCoordinates: coordinates {

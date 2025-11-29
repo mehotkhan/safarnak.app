@@ -43,13 +43,9 @@ export const resolvers = {
   PostRelatedEntity: {
     __resolveType(obj: any) {
       // Determine the type based on the object properties
-      // Trips have 'destination' and 'status'
-      if (obj.destination !== undefined || obj.status !== undefined) {
+      // Trips have 'destination' and 'status' (or isHosted for hosted trips)
+      if (obj.destination !== undefined || obj.status !== undefined || obj.isHosted !== undefined) {
         return 'Trip';
-      }
-      // Tours have 'title' and 'category'
-      if (obj.title !== undefined || obj.category !== undefined) {
-        return 'Tour';
       }
       // Places have 'name' and 'type'
       if (obj.name !== undefined && obj.type !== undefined) {
@@ -63,8 +59,7 @@ export const resolvers = {
     __resolveType(obj: any) {
       if (obj.__typename) return obj.__typename;
       if (obj.content !== undefined && obj.userId !== undefined) return 'Post';
-      if (obj.destination !== undefined || obj.status !== undefined) return 'Trip';
-      if (obj.title !== undefined && obj.category !== undefined) return 'Tour';
+      if (obj.destination !== undefined || obj.status !== undefined || obj.isHosted !== undefined) return 'Trip';
       if (obj.name !== undefined && obj.type !== undefined) return 'Place';
       if (obj.country !== undefined && obj.coordinates !== undefined) return 'Location';
       return null;

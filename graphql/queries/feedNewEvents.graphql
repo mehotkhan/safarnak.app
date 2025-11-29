@@ -51,11 +51,13 @@ subscription FeedNewEvents($filter: FeedFilter) {
         status
         createdAt
       }
-      ... on Tour {
+      ... on Trip {
         id
+        isHosted
         title
         category
         price
+        destination
         createdAt
       }
       ... on Place {

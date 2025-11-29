@@ -1,5 +1,5 @@
-query GetTrips($status: String) {
-  getTrips(status: $status) {
+query GetTrips($status: String, $isHosted: Boolean) {
+  getTrips(status: $status, isHosted: $isHosted) {
     id
     destination
     startDate

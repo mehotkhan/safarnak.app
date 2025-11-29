@@ -32,7 +32,7 @@ export default function RegisterScreen() {
   // Auto-redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace('/(app)/(feed)' as any);
+      router.replace('/(app)/(home)' as any);
     }
   }, [isAuthenticated]);
   
@@ -164,7 +164,7 @@ export default function RegisterScreen() {
               onPress: () => {
                 console.log('[Register] User acknowledged registration success');
                 // Navigate to app feed page
-                router.replace('/(app)/(feed)' as any);
+                router.replace('/(app)/(home)' as any);
               },
             },
           ]
@@ -289,15 +289,28 @@ export default function RegisterScreen() {
               className="py-4"
             />
 
-            <TouchableOpacity
-              className="items-center py-2"
-              onPress={() => router.push('/(auth)/login' as any)}
-              disabled={loading}
-            >
-              <CustomText style={{ color: '#3b82f6', fontSize: 14, fontWeight: '500' }}>
-                {t('register.toggleToLogin') || 'Already have an account? Login'}
-              </CustomText>
-            </TouchableOpacity>
+            {/* Links */}
+            <View className="flex-row justify-center gap-4">
+              <TouchableOpacity
+                className="items-center py-2"
+                onPress={() => router.push('/(auth)/login' as any)}
+                disabled={loading}
+              >
+                <CustomText style={{ color: '#3b82f6', fontSize: 14, fontWeight: '500' }}>
+                  {t('register.toggleToLogin') || 'Already have an account? Login'}
+                </CustomText>
+              </TouchableOpacity>
+              <CustomText style={{ color: '#9ca3af', fontSize: 14 }} className="py-2">•</CustomText>
+              <TouchableOpacity
+                className="items-center py-2"
+                onPress={() => router.push('/(auth)/welcome' as any)}
+                disabled={loading}
+              >
+                <CustomText style={{ color: '#3b82f6', fontSize: 14, fontWeight: '500' }}>
+                  {t('register.backToOnboarding') || 'Back to onboarding'}
+                </CustomText>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </View>

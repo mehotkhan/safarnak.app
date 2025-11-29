@@ -1,7 +1,8 @@
 // Query resolver for me
 // Handles retrieving current user information
+// After Phase 11.4: Joins users and profiles tables
 
-import { getServerDB, users } from '@database/server';
+import { getServerDB, users, profiles } from '@database/server';
 import { eq } from 'drizzle-orm';
 import type { GraphQLContext } from '../types';
 
@@ -33,19 +34,29 @@ export const me = async (
       return null;
     }
 
+    // Fetch profile
+    const profile = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .get();
+
     console.log('[me] Retrieved user:', {
       id: user.id,
       username: user.username,
+      hasProfile: !!profile,
     });
 
+    // Return combined data matching GraphQL User type
     return {
       id: user.id,
-      name: user.name,
+      name: profile?.displayName || user.username, // Fallback to username if no profile
       username: user.username,
       email: user.email,
-      phone: user.phone,
-      avatar: user.avatar,
+      phone: profile?.phone || null,
+      avatar: profile?.avatarUrl || null,
       publicKey: user.publicKey,
+      status: user.status || 'active',
       createdAt: user.createdAt || new Date().toISOString(),
     };
   } catch (error) {

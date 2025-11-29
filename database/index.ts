@@ -19,7 +19,6 @@ export {
   // Server tables
   users,
   trips,
-  tours,
   messages,
   subscriptions,
   userPreferences,
@@ -38,7 +37,6 @@ export {
   // Relationships
   usersRelations,
   tripsRelations,
-  toursRelations,
   messagesRelations,
   subscriptionsRelations,
   userPreferencesRelations,
@@ -71,7 +69,6 @@ export {
   // Client cached tables
   cachedUsers,
   cachedTrips,
-  cachedTours,
   cachedPlaces,
   cachedMessages,
   pendingMutations,

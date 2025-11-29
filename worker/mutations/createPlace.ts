@@ -22,9 +22,12 @@ export const createPlace = async (
   { input }: { input: CreatePlaceInput },
   context: GraphQLContext
 ) => {
-  const db = getServerDB(context.env.DB);
+  // Check user activation status
+  const { assertActiveUser } = await import('../utilities/auth/assertActiveUser');
+  await assertActiveUser(context);
 
-  const userId = context.userId;
+  const db = getServerDB(context.env.DB);
+  const userId = context.userId!; // Safe after assertActiveUser
 
   // Validate required fields
   if (!input.name || !input.location || !input.description || !input.type) {

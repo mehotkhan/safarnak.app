@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
 import { useTheme } from '@ui/context';
 import { MapView } from '@ui/maps';
-import { useGetLocationQuery, useGetPlacesQuery, useGetToursQuery } from '@api';
+import { useGetLocationQuery, useGetPlacesQuery, useGetTripsQuery } from '@api';
 import Colors from '@constants/Colors';
 import { ShareModal } from '@ui/modals';
 
@@ -33,18 +33,19 @@ export default function LocationDetailScreen() {
 
   const location = data?.getLocation as any;
 
-  // Fetch nearby places and tours (filtered by location if needed)
+  // Fetch nearby places and hosted trips (filtered by location if needed)
   const { data: placesData } = useGetPlacesQuery({
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
 
-  const { data: toursData } = useGetToursQuery({
+  const { data: hostedTripsData } = useGetTripsQuery({
+    variables: { isHosted: true },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
 
-  // Filter places and tours by location (if locationId matches)
+  // Filter places and hosted trips by location (if locationId matches)
   // Must be called before early returns to follow React Hooks rules
   const nearbyPlaces = useMemo(() => {
     if (!placesData?.getPlaces || !location?.id) return [];
@@ -53,12 +54,12 @@ export default function LocationDetailScreen() {
       .slice(0, 3);
   }, [placesData, location]);
 
-  const availableTours = useMemo(() => {
-    if (!toursData?.getTours || !location?.id) return [];
-    return toursData.getTours
-      .filter((tour: any) => tour.location === location.name || tour.location?.includes(location.name))
+  const availableHostedTrips = useMemo(() => {
+    if (!hostedTripsData?.getTrips || !location?.id) return [];
+    return hostedTripsData.getTrips
+      .filter((trip: any) => trip.isHosted && (trip.location === location.name || trip.location?.includes(location.name)))
       .slice(0, 2);
-  }, [toursData, location]);
+  }, [hostedTripsData, location]);
 
   if (loading) {
     return (
@@ -242,34 +243,34 @@ export default function LocationDetailScreen() {
         </View>
         )}
 
-        {/* Available Tours */}
-        {availableTours.length > 0 && (
+        {/* Available Hosted Trips */}
+        {availableHostedTrips.length > 0 && (
         <View className="mb-6">
           <CustomText weight="bold" className="text-lg text-black dark:text-white mb-3">
-            {t('location.availableTours')}
+            {t('location.availableTours') || 'Available Hosted Trips'}
           </CustomText>
-            {availableTours.map((tour: any) => (
+            {availableHostedTrips.map((trip: any) => (
             <TouchableOpacity
-              key={tour.id}
-              onPress={() => router.push(`/(app)/(explore)/tours/${tour.id}` as any)}
+              key={trip.id}
+              onPress={() => router.push(`/(app)/(trips)/${trip.id}` as any)}
               className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
             >
               <CustomText weight="bold" className="text-base text-black dark:text-white mb-2">
-                {tour.title}
+                {trip.title}
               </CustomText>
               <View className="flex-row items-center justify-between">
                 <View className="flex-row items-center">
                   <Ionicons name="star" size={14} color="#fbbf24" />
                   <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1 mr-3">
-                    {tour.rating}
+                    {trip.rating}
                   </CustomText>
                   <Ionicons name="time-outline" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
                   <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
-                    {tour.duration} {t('explore.tourCard.days')}
+                    {trip.duration} {t('explore.tourCard.days') || 'days'}
                   </CustomText>
                 </View>
                 <CustomText weight="bold" className="text-base text-primary">
-                  ${tour.price}
+                  ${trip.price}
                 </CustomText>
               </View>
             </TouchableOpacity>

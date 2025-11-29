@@ -10,7 +10,7 @@
  * All IDs are UUIDs (text) - no more integer/string conversions!
  */
 
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real, primaryKey } from 'drizzle-orm/sqlite-core';
 import { relations, sql } from 'drizzle-orm';
 import { createId } from './utils';
 
@@ -50,42 +50,45 @@ const tripFields = {
   destination: text('destination'),
   startDate: text('start_date'),
   endDate: text('end_date'),
-  budget: real('budget'),
+  budget: integer('budget'), // Integer for minor units (cents/rials)
   travelers: integer('travelers').default(1),
   preferences: text('preferences'),
   accommodation: text('accommodation'),
-  status: text('status').default('in_progress'),
+  status: text('status').default('in_progress'), // draft | planned | in_progress | active | past | cancelled
   aiReasoning: text('ai_reasoning'),
   itinerary: text('itinerary'),
   coordinates: text('coordinates'),
   waypoints: text('waypoints'), // JSON array of waypoints for route polyline
-};
-
-// Shared tour fields (without ID)
-const tourFields = {
-  title: text('title').notNull(),
-  description: text('description'),
-  shortDescription: text('short_description'),
-  price: real('price').notNull(),
+  // Hosted trip fields (when isHosted = true)
+  isHosted: integer('is_hosted', { mode: 'boolean' }).default(false),
+  location: text('location'), // For hosted trips
+  price: real('price'), // For hosted trips
   currency: text('currency').default('USD'),
   rating: real('rating').default(0),
   reviews: integer('reviews').default(0),
-  duration: integer('duration').notNull(),
+  duration: integer('duration'),
   durationType: text('duration_type').default('days'),
-  location: text('location').notNull(),
-  coordinates: text('coordinates'),
-  category: text('category').notNull(),
-  difficulty: text('difficulty').default('easy'),
-  highlights: text('highlights'),
-  inclusions: text('inclusions'),
+  category: text('category'),
+  difficulty: text('difficulty'),
+  description: text('description'), // Full description for hosted trips
+  shortDescription: text('short_description'),
+  highlights: text('highlights'), // JSON array
+  inclusions: text('inclusions'), // JSON array
   maxParticipants: integer('max_participants'),
   minParticipants: integer('min_participants').default(1),
+  hostIntro: text('host_intro'),
+  joinPolicy: text('join_policy').default('open'), // open, request, invite_only
+  bookingInstructions: text('booking_instructions'), // Text describing off-app payment/coordination
   imageUrl: text('image_url'),
-  gallery: text('gallery'),
-  tags: text('tags'),
+  gallery: text('gallery'), // JSON array
+  tags: text('tags'), // JSON array
   isActive: integer('is_active', { mode: 'boolean' }).default(true),
   isFeatured: integer('is_featured', { mode: 'boolean' }).default(false),
+  externalBookingUrl: text('external_booking_url'),
 };
+
+// tourFields removed - unified into tripFields with isHosted flag
+// All tour fields are now part of trips table
 
 // Shared place fields (without ID)
 const placeFields = {
@@ -116,13 +119,29 @@ const messageFields = {
 // SERVER TABLES (Cloudflare D1)
 // ============================================================================
 
+// Users table - core authentication and identity
 export const users = sqliteTable('users', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  ...userFields,
+  username: text('username').unique().notNull(), // Handle/username
+  email: text('email').unique(),
   passwordHash: text('password_hash'), // Server-only - optional for biometric users
   publicKey: text('public_key'), // For biometric authentication (wallet address or PEM)
-  username: text('username').unique().notNull(),
-  email: text('email').unique(),
+  status: text('status').default('active'), // active, suspended, deleted
+  ...timestampColumns,
+});
+
+// Profiles table - extended user information
+export const profiles = sqliteTable('profiles', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  userId: text('user_id').references(() => users.id, { onDelete: 'cascade' }).unique().notNull(),
+  displayName: text('display_name'), // Full name (replaces users.name)
+  bio: text('bio'), // User bio/description
+  avatarUrl: text('avatar_url'), // Avatar URL (replaces users.avatar)
+  phone: text('phone'), // Phone number
+  homeBase: text('home_base'), // User's home location
+  travelStyle: text('travel_style'), // Travel preferences/style
+  languages: text('languages'), // JSON array of languages
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
   ...timestampColumns,
 });
 
@@ -141,20 +160,15 @@ export const trips = sqliteTable('trips', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id).notNull(),
   ...tripFields,
-  budget: integer('budget'), // Integer for server (cents/stored units)
   aiGenerated: integer('ai_generated', { mode: 'boolean' }).default(true),
   metadata: text('metadata'),
   ...timestampColumns,
 });
 
-export const tours = sqliteTable('tours', {
-  id: text('id').primaryKey().$defaultFn(() => createId()),
-  ...tourFields,
-  price: integer('price').notNull(), // Integer for server (cents)
-  rating: integer('rating').default(0), // Integer for server
-  ...timestampColumns,
-});
+// tours table removed - unified into trips table with isHosted flag
 
+// TODO(v3): Replace simple messages with E2E conversation-based schema:
+// conversations, conversation_members, messages with conversationId + ciphertext + senderDeviceId.
 export const messages = sqliteTable('messages', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   ...messageFields,
@@ -220,7 +234,11 @@ export const posts = sqliteTable('posts', {
 
 export const comments = sqliteTable('comments', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  postId: text('post_id').references(() => posts.id).notNull(),
+  // Polymorphic target (replaces postId)
+  targetType: text('target_type').notNull(), // 'POST' | 'TRIP' | 'PLACE'
+  targetId: text('target_id').notNull(),
+  // Legacy postId for backward compatibility (deprecated, use targetType/targetId)
+  postId: text('post_id').references(() => posts.id),
   userId: text('user_id').references(() => users.id).notNull(),
   content: text('content').notNull(),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
@@ -228,6 +246,10 @@ export const comments = sqliteTable('comments', {
 
 export const reactions = sqliteTable('reactions', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
+  // Polymorphic target (replaces postId/commentId)
+  targetType: text('target_type').notNull(), // 'POST' | 'COMMENT' | 'TRIP' | 'PLACE'
+  targetId: text('target_id').notNull(),
+  // Legacy fields for backward compatibility (deprecated, use targetType/targetId)
   postId: text('post_id').references(() => posts.id),
   commentId: text('comment_id').references(() => comments.id),
   userId: text('user_id').references(() => users.id).notNull(),
@@ -239,7 +261,7 @@ export const bookmarks = sqliteTable('bookmarks', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id).notNull(),
   postId: text('post_id').references(() => posts.id),
-  tourId: text('tour_id').references(() => tours.id),
+  tripId: text('trip_id').references(() => trips.id), // Changed from tourId to tripId
   placeId: text('place_id').references(() => places.id),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
@@ -257,7 +279,7 @@ export const userSubscriptions = sqliteTable('user_subscriptions', {
 export const payments = sqliteTable('payments', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   userId: text('user_id').references(() => users.id).notNull(),
-  tourId: text('tour_id').references(() => tours.id),
+  tripId: text('trip_id').references(() => trips.id), // Changed from tourId to tripId
   subscriptionId: text('subscription_id').references(() => userSubscriptions.id),
   transactionId: text('transaction_id').notNull(),
   amount: integer('amount').notNull(),
@@ -268,7 +290,7 @@ export const payments = sqliteTable('payments', {
 
 export const bookings = sqliteTable('bookings', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  tourId: text('tour_id').references(() => tours.id).notNull(),
+  tripId: text('trip_id').references(() => trips.id).notNull(), // Changed from tourId to tripId
   userId: text('user_id').references(() => users.id).notNull(),
   participants: integer('participants').notNull().default(1),
   selectedDate: text('selected_date').notNull(),
@@ -293,9 +315,12 @@ export const devices = sqliteTable('devices', {
 
 export const notifications = sqliteTable('notifications', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
-  userId: text('user_id').references(() => users.id).notNull(),
-  type: text('type').notNull(),
-  data: text('data'),
+  userId: text('user_id').references(() => users.id).notNull(), // recipient
+  actorId: text('actor_id').references(() => users.id), // who caused it (nullable)
+  type: text('type').notNull(), // e.g. 'like', 'comment', 'trip_update', 'message'
+  targetType: text('target_type'), // e.g. 'POST', 'TRIP', 'PLACE', 'MESSAGE'
+  targetId: text('target_id'), // id of that target
+  data: text('data'), // extra JSON payload for UI
   read: integer('read', { mode: 'boolean' }).default(false),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
 });
@@ -325,18 +350,30 @@ export const feedPreferences = sqliteTable('feed_preferences', {
 });
 
 // Follow graph
-export const followEdges = sqliteTable('follow_edges', {
-  followerId: text('follower_id').references(() => users.id).notNull(),
-  followeeId: text('followee_id').references(() => users.id).notNull(),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
+export const followEdges = sqliteTable(
+  'follow_edges',
+  {
+    followerId: text('follower_id').references(() => users.id).notNull(),
+    followeeId: text('followee_id').references(() => users.id).notNull(),
+    createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.followerId, table.followeeId] }),
+  }),
+);
 
 // Close friends
-export const closeFriends = sqliteTable('close_friends', {
-  userId: text('user_id').references(() => users.id).notNull(),
-  friendId: text('friend_id').references(() => users.id).notNull(),
-  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
-});
+export const closeFriends = sqliteTable(
+  'close_friends',
+  {
+    userId: text('user_id').references(() => users.id).notNull(),
+    friendId: text('friend_id').references(() => users.id).notNull(),
+    createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.userId, table.friendId] }),
+  }),
+);
 
 // Search index (server)
 export const searchIndex = sqliteTable('search_index', {
@@ -384,7 +421,6 @@ export const places = sqliteTable('places', {
   id: text('id').primaryKey().$defaultFn(() => createId()),
   ...placeFields,
   locationId: text('location_id').references(() => locations.id),
-  rating: integer('rating').default(0), // Integer for server
   price: integer('price'),
   ownerId: text('owner_id').references(() => users.id),
   embedding: text('embedding'),
@@ -398,6 +434,64 @@ export const thoughts = sqliteTable('thoughts', {
   step: text('step').notNull(),
   data: text('data'),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`),
+});
+
+// ============================================================================
+// TRIP PARTICIPANTS (Phase 11: Unified Trip + Manual Booking, No Payments)
+// ============================================================================
+// Safarnak does NOT process in-app payments for trips/tours.
+// Booking = joinTrip + manual coordination outside the app.
+// Payments are only used for subscriptions in separate billing modules.
+
+export const tripParticipants = sqliteTable('trip_participants', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tripId: text('trip_id').notNull().references(() => trips.id, { onDelete: 'cascade' }),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: text('role').notNull().default('MEMBER'), // 'HOST' | 'CO_HOST' | 'MEMBER'
+  joinStatus: text('join_status').notNull().default('REQUESTED'), // 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED_BY_USER' | 'CANCELLED_BY_HOST'
+  notes: text('notes'), // Free-text notes (e.g., "paid externally", coordination notes)
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// Optional: Trip check-ins (for offline/crypto check-in model)
+export const tripCheckins = sqliteTable('trip_checkins', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tripId: text('trip_id').notNull().references(() => trips.id, { onDelete: 'cascade' }),
+  participantId: text('participant_id').notNull().references(() => tripParticipants.id, { onDelete: 'cascade' }),
+  sessionId: text('session_id').notNull(), // Unique session identifier
+  signedByLeader: text('signed_by_leader').notNull(), // Cryptographic signature from trip leader
+  signedByParticipant: text('signed_by_participant').notNull(), // Cryptographic signature from participant
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+// ============================================================================
+// TRIP ITINERARY STRUCTURE (Phase 11)
+// ============================================================================
+// Structured itinerary: trip_days → trip_items
+// Replaces flat JSON itinerary field for better querying and organization
+
+export const tripDays = sqliteTable('trip_days', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tripId: text('trip_id').notNull().references(() => trips.id, { onDelete: 'cascade' }),
+  dayIndex: integer('day_index').notNull(), // 1, 2, 3... (day number in trip)
+  date: text('date'), // ISO date string for this day (optional, can be computed from trip startDate + dayIndex)
+  title: text('title'), // e.g., "Day 1: Arrival", "Day 2: Exploring"
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+});
+
+export const tripItems = sqliteTable('trip_items', {
+  id: text('id').primaryKey().$defaultFn(() => createId()),
+  tripDayId: text('trip_day_id').notNull().references(() => tripDays.id, { onDelete: 'cascade' }),
+  placeId: text('place_id').references(() => places.id), // Optional: link to a place
+  time: text('time'), // e.g., "09:00", "14:30" (optional)
+  title: text('title').notNull(), // e.g., "Breakfast at Cafe", "Visit Museum"
+  description: text('description'), // Detailed description
+  metadata: text('metadata'), // JSON for additional data (duration, cost, notes, etc.)
+  order: integer('order').default(0), // Order within the day
+  createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+  updatedAt: text('updated_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });
 
 // ============================================================================
@@ -423,11 +517,23 @@ export const cachedTrips = sqliteTable('cached_trips', {
   deletedAt: integer('deleted_at'),
 });
 
-export const cachedTours = sqliteTable('cached_tours', {
+// cachedTours removed - unified into cachedTrips with isHosted flag
+
+// Cached profiles table (mirrors profiles table from server)
+export const cachedProfiles = sqliteTable('cached_profiles', {
   id: text('id').primaryKey(),
-  ...tourFields,
+  userId: text('user_id').notNull(), // FK to cachedUsers
+  displayName: text('display_name'),
+  bio: text('bio'),
+  avatarUrl: text('avatar_url'),
+  phone: text('phone'),
+  homeBase: text('home_base'),
+  travelStyle: text('travel_style'),
+  languages: text('languages'), // JSON array
+  isActive: integer('is_active', { mode: 'boolean' }).default(true),
   ...timestampColumns,
   ...syncMetadataColumns,
+  ...pendingColumn,
 });
 
 export const cachedPlaces = sqliteTable('cached_places', {
@@ -435,6 +541,46 @@ export const cachedPlaces = sqliteTable('cached_places', {
   ...placeFields,
   ...timestampColumns,
   ...syncMetadataColumns,
+});
+
+// Cached trip participants (mirrors tripParticipants table)
+export const cachedTripParticipants = sqliteTable('cached_trip_participants', {
+  id: text('id').primaryKey(),
+  tripId: text('trip_id').notNull(), // FK to cachedTrips
+  userId: text('user_id').notNull(), // FK to cachedUsers
+  role: text('role').notNull().default('MEMBER'), // 'HOST' | 'CO_HOST' | 'MEMBER'
+  joinStatus: text('join_status').notNull().default('REQUESTED'), // 'REQUESTED' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED_BY_USER' | 'CANCELLED_BY_HOST'
+  notes: text('notes'),
+  ...timestampColumns,
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+// Cached trip days (mirrors tripDays table)
+export const cachedTripDays = sqliteTable('cached_trip_days', {
+  id: text('id').primaryKey(),
+  tripId: text('trip_id').notNull(), // FK to cachedTrips
+  dayIndex: integer('day_index').notNull(), // 1, 2, 3...
+  date: text('date'), // ISO date string
+  title: text('title'),
+  ...timestampColumns,
+  ...syncMetadataColumns,
+  ...pendingColumn,
+});
+
+// Cached trip items (mirrors tripItems table)
+export const cachedTripItems = sqliteTable('cached_trip_items', {
+  id: text('id').primaryKey(),
+  tripDayId: text('trip_day_id').notNull(), // FK to cachedTripDays
+  placeId: text('place_id'), // Optional FK to cachedPlaces
+  time: text('time'), // e.g., "09:00"
+  title: text('title').notNull(),
+  description: text('description'),
+  metadata: text('metadata'), // JSON
+  order: integer('order').default(0),
+  ...timestampColumns,
+  ...syncMetadataColumns,
+  ...pendingColumn,
 });
 
 export const cachedMessages = sqliteTable('cached_messages', {
@@ -507,13 +653,10 @@ export const tripsRelations = relations(trips, ({ many, one }) => ({
   user: one(users, { fields: [trips.userId], references: [users.id] }),
   itineraries: many(itineraries),
   plans: many(plans),
-  messages: many(messages),
   thoughts: many(thoughts),
 }));
 
-export const toursRelations = relations(tours, ({ many }) => ({
-  payments: many(payments),
-}));
+// toursRelations removed - tours table unified into trips
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   user: one(users, { fields: [messages.userId], references: [users.id] }),
@@ -554,7 +697,7 @@ export const reactionsRelations = relations(reactions, ({ one }) => ({
 
 export const paymentsRelations = relations(payments, ({ one }) => ({
   user: one(users, { fields: [payments.userId], references: [users.id] }),
-  tour: one(tours, { fields: [payments.tourId], references: [tours.id] }),
+  trip: one(trips, { fields: [payments.tripId], references: [trips.id] }), // Changed from tour to trip
   subscription: one(userSubscriptions, { fields: [payments.subscriptionId], references: [userSubscriptions.id] }),
 }));
 
@@ -598,8 +741,11 @@ export const feedEventsRelations = relations(feedEvents, ({ one }) => ({
 // Client schema (for local database)
 export const clientSchema = {
   cachedUsers,
+  cachedProfiles,
   cachedTrips,
-  cachedTours,
+  cachedTripParticipants,
+  cachedTripDays,
+  cachedTripItems,
   cachedPlaces,
   cachedMessages,
   pendingMutations,

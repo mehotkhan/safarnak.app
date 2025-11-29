@@ -12,9 +12,9 @@
 import { drizzle } from 'drizzle-orm/d1';
 import {
   users,
+  profiles,
   challenges,
   trips,
-  tours,
   messages,
   subscriptions,
   userPreferences,
@@ -38,6 +38,10 @@ import {
   followEdges,
   closeFriends,
   embeddingsMeta,
+  tripParticipants,
+  tripCheckins,
+  tripDays,
+  tripItems,
 } from './schema';
 
 /**
@@ -46,9 +50,9 @@ import {
  */
 export const serverSchema = {
   users,
+  profiles,
   challenges,
   trips,
-  tours,
   messages,
   subscriptions,
   userPreferences,
@@ -72,6 +76,10 @@ export const serverSchema = {
   followEdges,
   closeFriends,
   embeddingsMeta,
+  tripParticipants,
+  tripCheckins,
+  tripDays,
+  tripItems,
 };
 
 /**
@@ -95,9 +103,9 @@ export const schema = serverSchema;
 // Re-export server schema tables for convenience
 export {
   users,
+  profiles,
   challenges,
   trips,
-  tours,
   messages,
   subscriptions,
   userPreferences,
@@ -121,5 +129,7 @@ export {
   followEdges,
   closeFriends,
   embeddingsMeta,
+  tripParticipants,
+  tripCheckins,
 } from './schema';
 

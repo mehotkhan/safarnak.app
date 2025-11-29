@@ -8,15 +8,6 @@ declare module '*/@graphql/addMessage.graphql' {
 }
     
 
-declare module '*/@graphql/bookTour.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const BookTour: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
 declare module '*/@graphql/bookmarkPost.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -80,15 +71,6 @@ declare module '*/@graphql/createReaction.graphql' {
 }
     
 
-declare module '*/@graphql/createTour.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const CreateTour: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
 declare module '*/@graphql/createTrip.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
@@ -120,15 +102,6 @@ declare module '*/@graphql/deleteReaction.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const DeleteReaction: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
-declare module '*/@graphql/deleteTour.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const DeleteTour: DocumentNode;
 
   export default defaultDocument;
 }
@@ -282,24 +255,6 @@ declare module '*/@graphql/getPosts.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const GetPosts: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
-declare module '*/@graphql/getTour.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const GetTour: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
-declare module '*/@graphql/getTours.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const GetTours: DocumentNode;
 
   export default defaultDocument;
 }
@@ -489,15 +444,6 @@ declare module '*/@graphql/updatePlace.graphql' {
   import { DocumentNode } from 'graphql';
   const defaultDocument: DocumentNode;
   export const UpdatePlace: DocumentNode;
-
-  export default defaultDocument;
-}
-    
-
-declare module '*/@graphql/updateTour.graphql' {
-  import { DocumentNode } from 'graphql';
-  const defaultDocument: DocumentNode;
-  export const UpdateTour: DocumentNode;
 
   export default defaultDocument;
 }

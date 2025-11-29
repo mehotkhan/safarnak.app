@@ -23,8 +23,19 @@ export const getAlerts = async (
   const db = getServerDB(context.env.DB);
 
   // Fetch notifications from database for the current user
+  // Include new polymorphic fields (actorId, targetType, targetId)
   const dbNotifications = await db
-    .select()
+    .select({
+      id: notifications.id,
+      userId: notifications.userId,
+      actorId: notifications.actorId,
+      type: notifications.type,
+      targetType: notifications.targetType,
+      targetId: notifications.targetId,
+      data: notifications.data,
+      read: notifications.read,
+      createdAt: notifications.createdAt,
+    })
     .from(notifications)
     .where(eq(notifications.userId, userId))
     .orderBy(desc(notifications.createdAt))
@@ -46,6 +57,10 @@ export const getAlerts = async (
     }
 
     // Map to Alert format expected by GraphQL schema
+    // Use targetType/targetId if available, otherwise fall back to data JSON
+    const targetType = notification.targetType || (alertData.tripId ? 'TRIP' : null);
+    const targetId = notification.targetId || alertData.tripId || null;
+    
     return {
       id: notification.id,
       type: notification.type,
@@ -53,8 +68,11 @@ export const getAlerts = async (
       message: alertData.message || '',
       step: alertData.step || null,
       totalSteps: alertData.totalSteps || null,
-      tripId: alertData.tripId || null,
+      tripId: targetType === 'TRIP' ? targetId : (alertData.tripId || null), // Keep for backward compatibility
       userId: notification.userId,
+      actorId: notification.actorId || null, // Include actorId if available
+      targetType: targetType, // Include targetType
+      targetId: targetId, // Include targetId
       read: notification.read || false,
       createdAt: notification.createdAt,
     };

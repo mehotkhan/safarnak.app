@@ -1,5 +1,5 @@
 import { eq, and, desc, gte, lte } from 'drizzle-orm';
-import { getServerDB, posts, users, comments, reactions, trips, tours, places, bookmarks } from '@database/server';
+import { getServerDB, posts, users, profiles, comments, reactions, trips, places, bookmarks } from '@database/server';
 import type { GraphQLContext } from '../types';
 
 export const getPosts = async (
@@ -54,12 +54,18 @@ export const getPosts = async (
   // Fetch related data for each post
   const postsWithData = await Promise.all(
     paginatedPosts.map(async (post) => {
-      // Get user
+      // Get user and profile
       const user = await db
         .select()
         .from(users)
         .where(eq(users.id, post.userId))
         .get();
+      
+      const userProfile = user ? await db
+        .select()
+        .from(profiles)
+        .where(eq(profiles.userId, user.id))
+        .get() : null;
 
       // Get comments (limit to 4 latest)
       const postComments = await db
@@ -77,13 +83,18 @@ export const getPosts = async (
             .from(users)
             .where(eq(users.id, comment.userId))
             .get();
+          const commentProfile = commentUser ? await db
+            .select()
+            .from(profiles)
+            .where(eq(profiles.userId, commentUser.id))
+            .get() : null;
           return {
             ...comment,
             user: commentUser ? {
               id: commentUser.id,
-              name: commentUser.name,
+              name: commentProfile?.displayName || commentUser.username,
               username: commentUser.username,
-              avatar: commentUser.avatar,
+              avatar: commentProfile?.avatarUrl || null,
             } : null,
           };
         })
@@ -103,11 +114,16 @@ export const getPosts = async (
             .from(users)
             .where(eq(users.id, reaction.userId))
             .get();
+          const reactionProfile = reactionUser ? await db
+            .select()
+            .from(profiles)
+            .where(eq(profiles.userId, reactionUser.id))
+            .get() : null;
           return {
             ...reaction,
             user: reactionUser ? {
               id: reactionUser.id,
-              name: reactionUser.name,
+              name: reactionProfile?.displayName || reactionUser.username,
               username: reactionUser.username,
             } : null,
           };
@@ -149,22 +165,25 @@ export const getPosts = async (
             };
           }
         } else if (post.type === 'tour') {
-          const tour = await db
+          // Legacy 'tour' type - now handled as Trip with isHosted = true
+          const trip = await db
             .select()
-            .from(tours)
-            .where(eq(tours.id, post.relatedId))
+            .from(trips)
+            .where(eq(trips.id, post.relatedId))
             .get();
-          if (tour) {
+          if (trip) {
+            const isHosted = (trip as any).isHosted === 1 || (trip as any).isHosted === true;
             relatedEntity = {
-              ...tour,
-              __typename: 'Tour',
-              price: tour.price ? tour.price / 100 : 0,
-              rating: tour.rating ? tour.rating / 10 : 0,
-              highlights: tour.highlights ? JSON.parse(tour.highlights || '[]') : [],
-              inclusions: tour.inclusions ? JSON.parse(tour.inclusions || '[]') : [],
-              gallery: tour.gallery ? JSON.parse(tour.gallery || '[]') : [],
-              tags: tour.tags ? JSON.parse(tour.tags || '[]') : [],
-              coordinates: tour.coordinates ? JSON.parse(tour.coordinates || '{}') : null,
+              ...trip,
+              __typename: 'Trip',
+              isHosted,
+              itinerary: trip.itinerary ? JSON.parse(trip.itinerary || '[]') : null,
+              coordinates: trip.coordinates ? JSON.parse(trip.coordinates || '{}') : null,
+              waypoints: trip.waypoints ? JSON.parse(trip.waypoints || '[]') : null,
+              highlights: trip.highlights ? JSON.parse(trip.highlights || '[]') : [],
+              inclusions: trip.inclusions ? JSON.parse(trip.inclusions || '[]') : [],
+              gallery: trip.gallery ? JSON.parse(trip.gallery || '[]') : [],
+              tags: trip.tags ? JSON.parse(trip.tags || '[]') : [],
             };
           }
         } else if (post.type === 'place') {
@@ -189,9 +208,9 @@ export const getPosts = async (
         ...post,
         user: user ? {
           id: user.id,
-          name: user.name,
+          name: userProfile?.displayName || user.username,
           username: user.username,
-          avatar: user.avatar,
+          avatar: userProfile?.avatarUrl || null,
           createdAt: user.createdAt,
         } : null,
         attachments: post.attachments ? JSON.parse(post.attachments || '[]') : [],

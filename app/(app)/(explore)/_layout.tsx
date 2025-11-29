@@ -34,22 +34,7 @@ export default function ExploreLayout() {
           presentation: 'card',
         }}
       />
-      <Stack.Screen 
-        name="tours/[id]" 
-        options={{
-          headerShown: true,
-          title: t('tour.title'),
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen 
-        name="tours/[id]/book" 
-        options={{
-          headerShown: true,
-          title: t('tourBooking.title'),
-          presentation: 'modal',
-        }}
-      />
+      {/* Tours removed - use trips with isHosted flag instead */}
       <Stack.Screen 
         name="users/[id]" 
         options={{

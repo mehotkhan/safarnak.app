@@ -1,5 +1,5 @@
 import type { GraphQLContext, Env } from '../types';
-import { getServerDB, posts, trips, tours, places, locations, users } from '@database/server';
+import { getServerDB, posts, trips, places, locations, users } from '@database/server';
 import { eq } from 'drizzle-orm';
 
 function toCursor(createdAt: string, id: string): string {
@@ -120,7 +120,8 @@ export const searchSemantic = async (
       entity = await db.select().from(trips).where(eq(trips.id, entityId)).get();
       if (entity) actor = await db.select().from(users).where(eq(users.id, entity.userId)).get();
     } else if (entityType === 'TOUR') {
-      entity = await db.select().from(tours).where(eq(tours.id, entityId)).get();
+      // Legacy TOUR type - now handled as TRIP with isHosted = true
+      entity = await db.select().from(trips).where(eq(trips.id, entityId)).get();
     } else if (entityType === 'PLACE') {
       entity = await db.select().from(places).where(eq(places.id, entityId)).get();
     } else if (entityType === 'LOCATION') {
@@ -149,10 +150,8 @@ export const searchSemantic = async (
           __typename:
             entityType === 'POST'
               ? 'Post'
-              : entityType === 'TRIP'
+              : entityType === 'TRIP' || entityType === 'TOUR'
               ? 'Trip'
-              : entityType === 'TOUR'
-              ? 'Tour'
               : entityType === 'PLACE'
               ? 'Place'
               : 'Location',

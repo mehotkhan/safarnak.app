@@ -42,12 +42,22 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
     >
       <View className="flex-row justify-between items-start mb-3">
         <View className="flex-1">
+          <View className="flex-row items-center mb-1">
           <CustomText
             weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
+              className="text-lg text-black dark:text-white"
           >
             {trip?.destination || '—'}
           </CustomText>
+            {/* TODO: Show hosted badge when trip.isHosted is available (Phase 10-11) */}
+            {trip?.isHosted && (
+              <View className="ml-2 px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900">
+                <CustomText className="text-xs text-purple-800 dark:text-purple-200" weight="medium">
+                  {t('trips.hostedBadge') || 'Hosted'}
+                </CustomText>
+              </View>
+            )}
+          </View>
           <CustomText className="text-sm text-gray-600 dark:text-gray-400">
             {trip?.startDate ? formatDate(trip.startDate, 'short') : '—'} - {trip?.endDate ? formatDate(trip.endDate, 'short') : '—'}
           </CustomText>
@@ -68,6 +78,21 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
         <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
           {trip?.travelers ?? 1} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
         </CustomText>
+        {/* Show price for hosted trips, budget for personal trips */}
+        {trip?.isHosted && trip?.price ? (
+          <>
+            <Ionicons
+              name="cash-outline"
+              size={16}
+              color={isDark ? '#9ca3af' : '#6b7280'}
+              style={{ marginLeft: 16 }}
+            />
+            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              {trip.currency || 'USD'} {trip.price}
+            </CustomText>
+          </>
+        ) : (
+          <>
         <Ionicons
           name="wallet-outline"
           size={16}
@@ -77,6 +102,8 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
         <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
           {trip?.budget ? `$${trip.budget}` : '—'}
         </CustomText>
+          </>
+        )}
       </View>
 
       {trip?.preferences && (

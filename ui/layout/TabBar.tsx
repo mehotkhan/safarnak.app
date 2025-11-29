@@ -9,6 +9,7 @@ export interface Tab {
   id: string;
   label: string;
   icon?: string;
+  translationKey?: string;
 }
 
 export interface TabBarProps {
@@ -83,7 +84,37 @@ export const TabBar = React.memo<TabBarProps>(({
                   : 'text-gray-700 dark:text-gray-300'
               }`}
             >
-              {t(`feed.tabs.${tab.label}`) || tab.label}
+              {(() => {
+                if (tab.translationKey) {
+                  try {
+                    // Use t() with explicit options to ensure proper translation
+                    const translated = t(tab.translationKey, { 
+                      defaultValue: tab.label,
+                      returnObjects: false,
+                    });
+                    // If translation returns the key itself (missing translation), use label
+                    if (translated === tab.translationKey || !translated) {
+                      return tab.label;
+                    }
+                    return translated;
+                  } catch {
+                    return tab.label;
+                  }
+                }
+                const fallbackKey = `feed.tabs.${tab.label}`;
+                try {
+                  const translated = t(fallbackKey, { 
+                    defaultValue: tab.label,
+                    returnObjects: false,
+                  });
+                  if (translated === fallbackKey || !translated) {
+                    return tab.label;
+                  }
+                  return translated;
+                } catch {
+                  return tab.label;
+                }
+              })()}
             </CustomText>
           </TouchableOpacity>
         ))}
@@ -113,7 +144,23 @@ export const TabBar = React.memo<TabBarProps>(({
                 : 'text-gray-600 dark:text-gray-400'
             }`}
           >
-            {tab.label}
+            {(() => {
+              if (!tab.translationKey) return tab.label;
+              try {
+                // Use t() with explicit options to ensure proper translation
+                const translated = t(tab.translationKey, { 
+                  defaultValue: tab.label,
+                  returnObjects: false,
+                });
+                // If translation returns the key itself (missing translation), use label
+                if (translated === tab.translationKey || !translated) {
+                  return tab.label;
+                }
+                return translated;
+              } catch {
+                return tab.label;
+              }
+            })()}
           </CustomText>
         </TouchableOpacity>
       ))}

@@ -1,5 +1,5 @@
 import { eq, sql } from 'drizzle-orm';
-import { getServerDB, posts, trips, tours, places, users, feedEvents, searchIndex } from '@database/server';
+import { getServerDB, posts, trips, places, users, profiles, feedEvents, searchIndex } from '@database/server';
 import type { GraphQLContext } from '../types';
 import { incrementTrendingEntity, incrementTrendingTopic } from '../utilities/trending';
 import { enqueueEmbeddingJob } from '../utilities/semantic/embeddings';
@@ -16,12 +16,12 @@ export const createPost = async (
   { input }: { input: CreatePostInput },
   context: GraphQLContext
 ) => {
-  const db = getServerDB(context.env.DB);
+  // Check user activation status
+  const { assertActiveUser } = await import('../utilities/auth/assertActiveUser');
+  await assertActiveUser(context);
 
-  const userId = context.userId;
-  if (!userId) {
-    throw new Error('Not authenticated');
-  }
+  const db = getServerDB(context.env.DB);
+  const userId = context.userId!; // Safe after assertActiveUser
 
   // Validate: if type is provided, relatedId must also be provided (and vice versa)
   if ((input.type && !input.relatedId) || (!input.type && input.relatedId)) {
@@ -45,13 +45,15 @@ export const createPost = async (
         throw new Error('Unauthorized: You can only share your own trips');
       }
     } else if (input.type === 'tour') {
+      // Tour type removed - unified into trip with isHosted flag
+      // Check if it's a hosted trip
       relatedEntity = await db
         .select()
-        .from(tours)
-        .where(eq(tours.id, input.relatedId))
+        .from(trips)
+        .where(eq(trips.id, input.relatedId))
         .get();
-      if (!relatedEntity) {
-        throw new Error('Tour not found');
+      if (!relatedEntity || !(relatedEntity as any).isHosted) {
+        throw new Error('Hosted trip not found');
       }
     } else if (input.type === 'place') {
       relatedEntity = await db
@@ -82,6 +84,9 @@ export const createPost = async (
     if (!user) {
       throw new Error('User not found');
     }
+
+    // Get user profile
+    const userProfile = await db.select().from(profiles).where(eq(profiles.userId, userId)).get();
 
     // Insert post
     const result = await db
@@ -172,11 +177,11 @@ export const createPost = async (
             verb: 'CREATED',
             actor: {
               id: user.id,
-              name: user.name,
+              name: userProfile?.displayName || user.username,
               username: user.username,
               email: user.email,
-              phone: user.phone,
-              avatar: user.avatar,
+              phone: userProfile?.phone || null,
+              avatar: userProfile?.avatarUrl || null,
               createdAt: user.createdAt,
             },
             entity: {
@@ -215,9 +220,9 @@ export const createPost = async (
       ...result,
       user: {
         id: user.id,
-        name: user.name,
+        name: userProfile?.displayName || user.username,
         username: user.username,
-        avatar: user.avatar,
+        avatar: userProfile?.avatarUrl || null,
         createdAt: user.createdAt,
       },
       attachments: result.attachments ? JSON.parse(result.attachments || '[]') : [],

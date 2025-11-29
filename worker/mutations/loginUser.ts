@@ -1,4 +1,4 @@
-import { getServerDB, users, challenges, devices } from '@database/server';
+import { getServerDB, users, profiles, challenges, devices } from '@database/server';
 import { eq, and } from 'drizzle-orm';
 import { verifySignature } from '../utilities/auth/crypto';
 import { generateToken } from '../utilities/auth/password';
@@ -9,6 +9,7 @@ interface LoginUserResult {
     id: string;
     name: string;
     username: string;
+    status: string;
     createdAt: string;
   };
   token: string;
@@ -156,6 +157,9 @@ export const loginUser = async (
       console.warn('[loginUser] Warning: Failed to store token in KV', kvError);
     }
 
+    // Get user profile
+    const userProfile = await db.select().from(profiles).where(eq(profiles.userId, user.id)).get();
+
     console.log('[loginUser] ✅ User logged in successfully:', {
       userId: user.id,
       username: user.username,
@@ -165,8 +169,9 @@ export const loginUser = async (
     return {
       user: {
         id: user.id,
-        name: user.name,
+        name: userProfile?.displayName || user.username,
         username: user.username,
+        status: user.status || 'active',
         createdAt: user.createdAt || new Date().toISOString(),
       },
       token,

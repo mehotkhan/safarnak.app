@@ -143,7 +143,7 @@ export default function UserProfileScreen() {
   };
 
   const handleMessage = () => {
-    router.push(`/(app)/(notifications)/messages/${userId}` as any);
+    router.push(`/(app)/(inbox)/messages/${userId}` as any);
   };
 
   if (loading) {
@@ -343,7 +343,7 @@ export default function UserProfileScreen() {
               {userPosts.map((post: any) => (
                 <TouchableOpacity
                   key={post.id}
-                  onPress={() => router.push(`/(app)/(feed)/${post.id}` as any)}
+                  onPress={() => router.push(`/(app)/(home)/${post.id}` as any)}
                   className="w-[32%] aspect-square bg-gray-200 dark:bg-neutral-800 rounded-lg items-center justify-center"
                 >
                   {post.attachments && post.attachments.length > 0 ? (
@@ -372,7 +372,7 @@ export default function UserProfileScreen() {
               {userTrips.map((trip: any) => (
                 <TouchableOpacity
                   key={trip.id}
-                  onPress={() => router.push(`/(app)/(create)/${trip.id}` as any)}
+                  onPress={() => router.push(`/(app)/(trips)/${trip.id}` as any)}
                   className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
                 >
                   <CustomText weight="bold" className="text-lg text-black dark:text-white mb-1">

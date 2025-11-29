@@ -2,10 +2,8 @@ type Query {
   getMessages: [Message!]!
   me: User
   getUser(id: ID!): User
-  getTrips(status: String): [Trip!]!
+  getTrips(status: String, isHosted: Boolean): [Trip!]!
   getTrip(id: ID!): Trip
-  getTours(category: String, limit: Int): [Tour!]!
-  getTour(id: ID!): Tour
   getPlaces(category: String, limit: Int): [Place!]!
   getPlace(id: ID!): Place
   getLocations(limit: Int): [Location!]!
@@ -27,25 +25,30 @@ type Mutation {
   createTrip(input: CreateTripInput!): Trip!
   updateTrip(id: ID!, input: UpdateTripInput!): Trip!
   deleteTrip(id: ID!): Boolean!
-  createTour(input: CreateTourInput!): Tour!
-  updateTour(id: ID!, input: UpdateTourInput!): Tour!
-  deleteTour(id: ID!): Boolean!
+  joinTrip(tripId: ID!, message: String, participantsCount: Int): TripParticipant!
+  cancelTripJoin(tripId: ID!): TripParticipant!
+  respondTripJoinRequest(tripId: ID!, userId: ID!, decision: TripJoinDecision!): TripParticipant!
   createPlace(input: CreatePlaceInput!): Place!
   updatePlace(id: ID!, input: UpdatePlaceInput!): Place!
   deletePlace(id: ID!): Boolean!
   createLocation(input: CreateLocationInput!): Location!
   updateLocation(id: ID!, input: UpdateLocationInput!): Location!
   deleteLocation(id: ID!): Boolean!
-  bookTour(input: BookTourInput!): Booking!
+  # bookTour removed - use joinTrip instead
   createPost(input: CreatePostInput!): Post!
   createComment(postId: ID!, content: String!): Comment!
   createReaction(postId: ID, commentId: ID, emoji: String!): Reaction!
   deleteReaction(reactionId: ID!): Boolean!
   bookmarkPost(postId: ID!): Boolean!
-  bookmarkTour(tourId: ID!): Boolean!
+  bookmarkTrip(tripId: ID!): Boolean!
   bookmarkPlace(placeId: ID!): Boolean!
   revokeDevice(deviceId: String!): Boolean!
   generateAvatar(style: String): User!
+  # Phone and email verification mutations (for guest → member upgrade)
+  requestPhoneVerification(phone: String!): Boolean!
+  verifyPhone(code: String!): Boolean!
+  requestEmailVerification(email: String!): Boolean!
+  verifyEmail(code: String!): Boolean!
 }
 
 type Subscription {
@@ -69,7 +72,13 @@ type User {
   phone: String
   avatar: String
   publicKey: String
+  status: String! # active, suspended, deleted
   createdAt: String!
+  # User tier fields (for guest → member → pro flow)
+  emailVerified: Boolean
+  phoneVerified: Boolean
+  hasActiveSubscription: Boolean
+  subscriptionExpiresAt: String
 }
 
 type AuthPayload {
@@ -92,8 +101,75 @@ type Trip {
   itinerary: [ItineraryDay!]
   coordinates: Coordinates
   waypoints: [Waypoint!]
+  # Hosted trip fields (when isHosted = true)
+  isHosted: Boolean!
+  title: String
+  location: String
+  price: Float
+  currency: String
+  rating: Float
+  reviews: Int
+  duration: Int
+  durationType: String
+  category: String
+  difficulty: String
+  description: String
+  shortDescription: String
+  highlights: [String!]!
+  inclusions: [String!]!
+  maxParticipants: Int
+  minParticipants: Int
+  hostIntro: String
+  joinPolicy: TripJoinPolicy
+  bookingInstructions: String
+  imageUrl: String
+  gallery: [String!]!
+  tags: [String!]!
+  isActive: Boolean
+  isFeatured: Boolean
+  externalBookingUrl: String
+  # Viewer-specific fields (computed based on current user)
+  viewerJoinStatus: TripJoinStatus
   createdAt: String!
   updatedAt: String!
+}
+
+enum TripJoinPolicy {
+  OPEN
+  REQUEST
+  INVITE_ONLY
+}
+
+enum TripJoinStatus {
+  NONE
+  REQUESTED
+  ACCEPTED
+  REJECTED
+  CANCELLED_BY_USER
+  CANCELLED_BY_HOST
+}
+
+type TripParticipant {
+  id: ID!
+  tripId: ID!
+  userId: ID!
+  user: User
+  role: TripParticipantRole!
+  joinStatus: TripJoinStatus!
+  notes: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+enum TripParticipantRole {
+  HOST
+  CO_HOST
+  MEMBER
+}
+
+enum TripJoinDecision {
+  ACCEPT
+  REJECT
 }
 
 type ItineraryDay {
@@ -122,6 +198,33 @@ input CreateTripInput {
   preferences: String
   accommodation: String
   lang: String
+  coordinates: CoordinatesInput
+  waypoints: [WaypointInput!]
+  # Hosted trip fields
+  isHosted: Boolean
+  title: String
+  location: String
+  price: Float
+  currency: String
+  duration: Int
+  durationType: String
+  category: String
+  difficulty: String
+  description: String
+  shortDescription: String
+  highlights: [String!]
+  inclusions: [String!]
+  maxParticipants: Int
+  minParticipants: Int
+  hostIntro: String
+  joinPolicy: TripJoinPolicy
+  bookingInstructions: String
+  imageUrl: String
+  gallery: [String!]
+  tags: [String!]
+  isActive: Boolean
+  isFeatured: Boolean
+  externalBookingUrl: String
 }
 
 input UpdateTripInput {
@@ -137,35 +240,34 @@ input UpdateTripInput {
   itinerary: String
   userMessage: String
   lang: String
-}
-
-type Tour {
-  id: ID!
-  title: String!
-  location: String!
-  price: Float!
-  rating: Float!
-  reviews: Int!
-  duration: Int!
-  durationType: String!
-  category: String!
+  # Hosted trip fields
+  isHosted: Boolean
+  title: String
+  location: String
+  price: Float
+  currency: String
+  duration: Int
+  durationType: String
+  category: String
+  difficulty: String
   description: String
   shortDescription: String
-  highlights: [String!]!
-  inclusions: [String!]!
+  highlights: [String!]
+  inclusions: [String!]
   maxParticipants: Int
-  minParticipants: Int!
-  difficulty: String!
-  currency: String!
-  coordinates: Coordinates
+  minParticipants: Int
+  hostIntro: String
+  joinPolicy: TripJoinPolicy
+  bookingInstructions: String
   imageUrl: String
-  gallery: [String!]!
-  tags: [String!]!
-  isActive: Boolean!
-  isFeatured: Boolean!
-  createdAt: String!
-  updatedAt: String!
+  gallery: [String!]
+  tags: [String!]
+  isActive: Boolean
+  isFeatured: Boolean
+  externalBookingUrl: String
 }
+
+# Tour type removed - use Trip with isHosted = true instead
 
 type Place {
   id: ID!
@@ -203,20 +305,7 @@ type Location {
   updatedAt: String!
 }
 
-type Booking {
-  id: ID!
-  tourId: ID!
-  userId: ID!
-  participants: Int!
-  selectedDate: String!
-  fullName: String!
-  email: String!
-  phone: String
-  specialRequests: String
-  totalPrice: Float!
-  status: String!
-  createdAt: String!
-}
+# Booking type removed - use trip_participants table instead (Phase 10-11)
 
 type Alert {
   id: ID!
@@ -225,8 +314,11 @@ type Alert {
   message: String!
   step: Int
   totalSteps: Int
-  tripId: ID
+  tripId: ID # Deprecated - use targetType/targetId instead (kept for backward compatibility)
   userId: ID!
+  actorId: ID # Who caused the notification (nullable)
+  targetType: String # Polymorphic target type: 'POST', 'TRIP', 'PLACE', 'MESSAGE', etc.
+  targetId: ID # ID of the target entity
   read: Boolean
   createdAt: String!
 }
@@ -270,7 +362,7 @@ type Post {
   createdAt: String!
 }
 
-union PostRelatedEntity = Trip | Tour | Place
+union PostRelatedEntity = Trip | Place
 
 type Comment {
   id: ID!
@@ -295,10 +387,10 @@ type Bookmark {
   id: ID!
   userId: ID!
   postId: ID
-  tourId: ID
+  tripId: ID
   placeId: ID
   post: Post
-  tour: Tour
+  trip: Trip
   place: Place
   createdAt: String!
 }
@@ -315,11 +407,11 @@ type PostsConnection {
 """
 Feed types and connections for home stream
 """
-enum EntityType { POST TRIP TOUR PLACE LOCATION }
+enum EntityType { POST TRIP PLACE LOCATION }
 enum FeedVerb { CREATED UPDATED }
 enum Visibility { PUBLIC FOLLOWERS CIRCLE }
 
-union FeedEntity = Post | Trip | Tour | Place | Location
+union FeedEntity = Post | Trip | Place | Location
 
 type FeedEvent {
   id: ID!
@@ -394,51 +486,7 @@ type TrendingList {
   items: [TrendingItem!]!
 }
 
-input CreateTourInput {
-  title: String!
-  description: String
-  shortDescription: String
-  price: Float!
-  currency: String
-  duration: Int!
-  durationType: String
-  location: String!
-  coordinates: CoordinatesInput
-  category: String!
-  difficulty: String
-  highlights: [String!]
-  inclusions: [String!]
-  maxParticipants: Int
-  minParticipants: Int
-  imageUrl: String
-  gallery: [String!]
-  tags: [String!]
-  isActive: Boolean
-  isFeatured: Boolean
-}
-
-input UpdateTourInput {
-  title: String
-  description: String
-  shortDescription: String
-  price: Float
-  currency: String
-  duration: Int
-  durationType: String
-  location: String
-  coordinates: CoordinatesInput
-  category: String
-  difficulty: String
-  highlights: [String!]
-  inclusions: [String!]
-  maxParticipants: Int
-  minParticipants: Int
-  imageUrl: String
-  gallery: [String!]
-  tags: [String!]
-  isActive: Boolean
-  isFeatured: Boolean
-}
+# CreateTourInput and UpdateTourInput removed - use CreateTripInput/UpdateTripInput with isHosted = true
 
 input CreatePlaceInput {
   name: String!
@@ -495,15 +543,7 @@ input UpdateLocationInput {
   population: String
 }
 
-input BookTourInput {
-  tourId: ID!
-  participants: Int!
-  selectedDate: String!
-  fullName: String!
-  email: String!
-  phone: String
-  specialRequests: String
-}
+# BookTourInput removed - use joinTrip mutation instead
 
 input CreatePostInput {
   content: String
@@ -524,4 +564,10 @@ input UpdateUserInput {
 input CoordinatesInput {
   latitude: Float!
   longitude: Float!
+}
+
+input WaypointInput {
+  latitude: Float!
+  longitude: Float!
+  label: String
 }

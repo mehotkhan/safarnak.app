@@ -7,7 +7,7 @@ import Colors from '@constants/Colors';
 import { useAppSelector } from '@state/hooks';
 
 export const unstable_settings = {
-  initialRouteName: '(feed)',
+  initialRouteName: '(home)',
 };
 
 export default function AppLayout() {
@@ -46,7 +46,7 @@ export default function AppLayout() {
       }}
     >
       <Tabs.Screen
-        name='(feed)'
+        name='(home)'
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
@@ -72,33 +72,33 @@ export default function AppLayout() {
         }}
       />
       <Tabs.Screen
-        name='(create)'
+        name='(trips)'
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? 'compass' : 'compass-outline'}
+              name={focused ? 'map' : 'map-outline'}
               size={size + 4}
               color={color}
             />
           ),
-          tabBarAccessibilityLabel: t('common.create'),
+          tabBarAccessibilityLabel: t('common.trips'),
         }}
       />
       <Tabs.Screen
-        name='(notifications)'
+        name='(inbox)'
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
-              name={focused ? 'notifications' : 'notifications-outline'}
+              name={focused ? 'mail' : 'mail-outline'}
               size={size + 4}
               color={color}
             />
           ),
-          tabBarAccessibilityLabel: t('common.notifications'),
+          tabBarAccessibilityLabel: t('common.inbox'),
         }}
       />
       <Tabs.Screen
-        name='(profile)'
+        name='(me)'
         options={{
           tabBarIcon: ({ focused, color, size }) => (
             <Ionicons
@@ -108,6 +108,13 @@ export default function AppLayout() {
             />
           ),
           tabBarAccessibilityLabel: t('common.me'),
+        }}
+      />
+      {/* Hide compose route from tab bar - it's a modal/sheet, not a tab */}
+      <Tabs.Screen
+        name='compose'
+        options={{
+          href: null,
         }}
       />
     </Tabs>

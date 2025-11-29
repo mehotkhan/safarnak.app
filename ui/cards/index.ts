@@ -1,14 +1,14 @@
 /**
  * Card Components
  * 
- * Shared card components for displaying trips, tours, places, locations, posts, and feed items
+ * Shared card components for displaying trips, places, locations, posts, and feed items
+ * Note: Tours are now unified into trips with isHosted flag
  */
 
 export { TripCard } from './TripCard';
 export type { TripCardProps } from './TripCard';
 
-export { TourCard } from './TourCard';
-export type { TourCardProps } from './TourCard';
+// TourCard removed - use TripCard with isHosted flag instead
 
 export { PlaceCard } from './PlaceCard';
 export type { PlaceCardProps } from './PlaceCard';
@@ -20,5 +20,9 @@ export { PostCard } from './PostCard';
 export type { PostCardProps } from './PostCard';
 
 export { FeedItem } from './FeedItem';
+export { default as MyTripCard } from './MyTripCard';
+export type { MyTripCardProps } from './MyTripCard';
 export type { FeedItemProps } from './FeedItem';
+export { NotificationCard } from './NotificationCard';
+export type { NotificationCardProps, NotificationType } from './NotificationCard';
 

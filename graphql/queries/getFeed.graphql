@@ -54,11 +54,13 @@ query GetFeed($first: Int = 20, $after: String, $filter: FeedFilter) {
             status
             createdAt
           }
-          ... on Tour {
+          ... on Trip {
             id
+            isHosted
             title
             category
             price
+            destination
             createdAt
           }
           ... on Place {

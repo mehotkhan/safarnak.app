@@ -1,7 +1,7 @@
 // Mutation resolver for generateAvatar
 // Generates an AI avatar image based on user's name and updates their profile
 
-import { getServerDB, users } from '@database/server';
+import { getServerDB, users, profiles } from '@database/server';
 import { eq } from 'drizzle-orm';
 import type { GraphQLContext } from '../types';
 import { generateAvatarImage } from '../utilities/ai/generateAvatar';
@@ -105,7 +105,10 @@ export const generateAvatar = async (
 
   if (!currentUser) throw new Error('User not found');
 
-  const { firstName, lastName } = parseName(currentUser.name, currentUser.username);
+  const currentProfile = await db.select().from(profiles).where(eq(profiles.userId, userId)).get();
+  const displayName = currentProfile?.displayName || currentUser.username;
+
+  const { firstName, lastName } = parseName(displayName, currentUser.username);
   const avatarStyle = resolveStyle(style);
 
   console.log('[generateAvatar] Generating avatar for user:', {
@@ -153,21 +156,37 @@ export const generateAvatar = async (
   });
 
   // Delete previous avatar
-  await deleteOldAvatar(context.env, currentUser.avatar, r2Key);
+  await deleteOldAvatar(context.env, currentProfile?.avatarUrl || null, r2Key);
 
-  // Update DB
+  // Update profile (avatar is in profiles table now)
+  if (currentProfile) {
   await db
-    .update(users)
-    .set({ avatar: avatarUrl, updatedAt: new Date().toISOString() })
-    .where(eq(users.id, userId));
+      .update(profiles)
+      .set({ avatarUrl: avatarUrl, updatedAt: new Date().toISOString() })
+      .where(eq(profiles.userId, userId));
+  } else {
+    // Create profile if it doesn't exist
+    await db.insert(profiles).values({
+      userId,
+      displayName: currentUser.username,
+      avatarUrl: avatarUrl,
+      isActive: true,
+    });
+  }
 
-  const updated = await db
+  const updatedUser = await db
     .select()
     .from(users)
     .where(eq(users.id, userId))
     .get();
 
-  if (!updated) {
+  const updatedProfile = await db
+    .select()
+    .from(profiles)
+    .where(eq(profiles.userId, userId))
+    .get();
+
+  if (!updatedUser) {
     throw new Error('Failed to retrieve updated user');
   }
 
@@ -177,13 +196,13 @@ export const generateAvatar = async (
   });
 
   return {
-    id: updated.id,
-    name: updated.name,
-    username: updated.username,
-    email: updated.email,
-    phone: updated.phone,
-    avatar: updated.avatar,
-    publicKey: updated.publicKey,
-    createdAt: updated.createdAt || new Date().toISOString(),
+    id: updatedUser.id,
+    name: updatedProfile?.displayName || updatedUser.username,
+    username: updatedUser.username,
+    email: updatedUser.email,
+    phone: updatedProfile?.phone || null,
+    avatar: updatedProfile?.avatarUrl || null,
+    publicKey: updatedUser.publicKey,
+    createdAt: updatedUser.createdAt || new Date().toISOString(),
   };
 };

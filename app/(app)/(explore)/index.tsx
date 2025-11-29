@@ -5,12 +5,11 @@ import { useRouter, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { CustomText } from '@ui/display';
 import { LoadingState, ErrorState, EmptyState } from '@ui/feedback';
-import { TourCard, PlaceCard, TripCard } from '@ui/cards';
+import { PlaceCard, TripCard } from '@ui/cards';
 import { useTheme } from '@ui/context';
 import { 
   useSearchSemanticQuery, 
   useGetTrendingQuery,
-  useGetToursQuery,
   useGetPlacesQuery,
   useGetTripsQuery 
 } from '@api';
@@ -18,8 +17,9 @@ import { useDebounce } from '@hooks/useDebounce';
 import { useRefresh } from '@hooks/useRefresh';
 import { SearchBar } from '@ui/forms';
 import { TabBar } from '@ui/layout';
+import { FAB } from '@ui/components';
 
-type TabType = 'discover' | 'tours' | 'places' | 'trips';
+type TabType = 'discover' | 'tours' | 'places' | 'trips'; // 'tours' tab now shows hosted trips
 
 export default function ExploreScreen() {
   const { t } = useTranslation();
@@ -44,8 +44,8 @@ export default function ExploreScreen() {
   } as any);
 
   // Tab data queries
-  const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetToursQuery({
-    variables: { limit: 20 },
+  const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetTripsQuery({
+    variables: { isHosted: true },
     skip: activeTab !== 'tours',
     fetchPolicy: 'cache-and-network',
   });
@@ -80,11 +80,10 @@ export default function ExploreScreen() {
     if (!entityType || !entityId) return;
 
     if (entityType === 'POST') {
-      router.push(`/(app)/(feed)/${entityId}` as any);
+      router.push(`/(app)/(home)/${entityId}` as any);
     } else if (entityType === 'TRIP') {
-      router.push(`/(app)/(create)/${entityId}` as any);
-    } else if (entityType === 'TOUR') {
-      router.push(`/(app)/(explore)/tours/${entityId}` as any);
+      // All trips (including hosted) use the same route
+      router.push(`/(app)/(trips)/${entityId}` as any);
     } else if (entityType === 'PLACE') {
       router.push(`/(app)/(explore)/places/${entityId}` as any);
     } else if (entityType === 'LOCATION') {
@@ -96,16 +95,13 @@ export default function ExploreScreen() {
     setSearchQuery(topic);
   }, []);
 
-  const handleTourPress = useCallback((tourId: string) => {
-    router.push(`/(app)/(explore)/tours/${tourId}` as any);
-  }, [router]);
-
   const handlePlacePress = useCallback((placeId: string) => {
     router.push(`/(app)/(explore)/places/${placeId}` as any);
   }, [router]);
 
   const handleTripPress = useCallback((tripId: string) => {
-    router.push(`/(app)/(create)/${tripId}` as any);
+    // Handle both regular trips and hosted trips (unified Trip model)
+    router.push(`/(app)/(trips)/${tripId}` as any);
   }, [router]);
 
   const renderSearchResult = useCallback(({ item }: { item: any }) => {
@@ -122,13 +118,16 @@ export default function ExploreScreen() {
       subtitle = actor?.username ? `@${actor.username}` : t('explore.anonymousUser');
       icon = 'chatbubble-outline';
     } else if (entityType === 'TRIP') {
-      title = entity?.destination || t('explore.untitledTrip');
-      subtitle = entity?.status || t('explore.trip');
-      icon = 'airplane-outline';
-    } else if (entityType === 'TOUR') {
-      title = entity?.title || t('explore.untitledTour');
-      subtitle = entity?.location || t('explore.tour');
-      icon = 'map-outline';
+      // Handle both regular trips and hosted trips
+      if ((entity as any)?.isHosted) {
+        title = (entity as any)?.title || t('explore.untitledTour');
+        subtitle = (entity as any)?.location || t('explore.tour');
+        icon = 'map-outline';
+      } else {
+        title = entity?.destination || t('explore.untitledTrip');
+        subtitle = entity?.status || t('explore.trip');
+        icon = 'airplane-outline';
+      }
     } else if (entityType === 'PLACE') {
       title = entity?.name || t('explore.untitledPlace');
       subtitle = entity?.type || t('explore.place');
@@ -181,7 +180,7 @@ export default function ExploreScreen() {
         );
       }
 
-      const tours = toursData?.getTours || [];
+      const tours = toursData?.getTrips || [];
 
       if (tours.length === 0) {
         return (
@@ -200,10 +199,9 @@ export default function ExploreScreen() {
           data={tours}
           keyExtractor={(item: any) => `tour-${item.id}`}
           renderItem={({ item }: any) => (
-            <TourCard
-              tour={item}
-              onPress={() => handleTourPress(item.id)}
-              variant="detailed"
+            <TripCard
+              trip={item}
+              onPress={() => handleTripPress(item.id)}
             />
           )}
           contentContainerStyle={{ padding: 16 }}
@@ -586,6 +584,33 @@ export default function ExploreScreen() {
 
       {/* Content */}
       {renderContent()}
+
+      {/* FAB */}
+      <FAB
+        options={[
+          {
+            id: 'experience',
+            label: 'Create Experience',
+            translationKey: 'feed.newPost.title',
+            icon: 'create-outline',
+            route: '/(app)/compose',
+          },
+          {
+            id: 'trip',
+            label: 'Create Trip',
+            translationKey: 'plan.createPlan',
+            icon: 'airplane-outline',
+            route: '/(app)/compose',
+          },
+          {
+            id: 'place',
+            label: 'Add Place',
+            translationKey: 'places.addPlace',
+            icon: 'location-outline',
+            route: '/(app)/compose',
+          },
+        ]}
+      />
     </View>
   );
 }

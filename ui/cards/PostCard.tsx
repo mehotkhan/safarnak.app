@@ -96,7 +96,7 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
         <View className="px-3 pb-3">
           <View className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-2 flex-row items-center">
             <Ionicons
-              name={post.type === 'trip' ? 'airplane' : post.type === 'tour' ? 'map' : 'location'}
+              name={post.type === 'trip' || post.type === 'tour' ? (post.relatedEntity?.isHosted || post.type === 'tour' ? 'map' : 'airplane') : 'location'}
               size={16}
               color={isDark ? '#9ca3af' : '#6b7280'}
             />

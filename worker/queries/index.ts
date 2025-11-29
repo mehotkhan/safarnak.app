@@ -5,7 +5,7 @@ import { getMessages } from './getMessages';
 import { me } from './me';
 import { getUser } from './getUser';
 import { getTrips, getTrip } from './getTrips';
-import { getTours, getTour } from './getTours';
+// getTours and getTour removed - use getTrips with isHosted filter instead
 import { getPlaces, getPlace } from './getPlaces';
 import { getLocations, getLocation } from './getLocations';
 import { getPosts } from './getPosts';
@@ -29,8 +29,7 @@ export const Query = {
   getUser,
   getTrips,
   getTrip,
-  getTours,
-  getTour,
+  // getTours, getTour removed
   getPlaces,
   getPlace,
   getLocations,
@@ -53,4 +52,4 @@ export const Query = {
 };
 
 // Re-export individual resolvers
-export { getMessages, me, getUser, getTrips, getTrip, getTours, getTour, getPlaces, getPlace, getLocations, getLocation, getPosts, getPost, getBookmarks, getAlerts, checkUsernameAvailability, getMyDevices, getFeed, getFeedPreferences, search, searchSuggest, getTrending, isFollowing, getFollowers, getFollowing, searchSemantic };
+export { getMessages, me, getUser, getTrips, getTrip, getPlaces, getPlace, getLocations, getLocation, getPosts, getPost, getBookmarks, getAlerts, checkUsernameAvailability, getMyDevices, getFeed, getFeedPreferences, search, searchSuggest, getTrending, isFollowing, getFollowers, getFollowing, searchSemantic };

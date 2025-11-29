@@ -1,4 +1,4 @@
-import { Exact, Scalars, BookTourInput, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTourInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTourInput, UpdateTripInput, UpdateUserInput } from './types';
+import { Exact, Scalars, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTripInput, UpdateUserInput } from './types';
 
 import { gql } from '@apollo/client';
 import * as Apollo from '@apollo/client';
@@ -9,13 +9,6 @@ export type AddMessageMutationVariables = Exact<{
 
 
 export type AddMessageMutation = { addMessage: { id: string, content: string, createdAt: string } };
-
-export type BookTourMutationVariables = Exact<{
-  input: BookTourInput;
-}>;
-
-
-export type BookTourMutation = { bookTour: { id: string, tourId: string, userId: string, participants: number, selectedDate: string, fullName: string, email: string, phone?: string | null, specialRequests?: string | null, totalPrice: number, status: string, createdAt: string } };
 
 export type BookmarkPostMutationVariables = Exact<{
   postId: Scalars['ID']['input'];
@@ -59,9 +52,8 @@ export type CreatePostMutationVariables = Exact<{
 
 
 export type CreatePostMutation = { createPost: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
-      | { id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
-      | { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
-      | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
+      | { id: string, name: string, imageUrl?: string | null, placeLocation: string, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
+      | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, isHosted: boolean, title?: string | null, price?: number | null, rating?: number | null, description?: string | null, imageUrl?: string | null, tripLocation?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null, coordinates?: { latitude: number, longitude: number } | null }
      | null } };
 
 export type CreateReactionMutationVariables = Exact<{
@@ -72,13 +64,6 @@ export type CreateReactionMutationVariables = Exact<{
 
 
 export type CreateReactionMutation = { createReaction: { id: string, postId?: string | null, commentId?: string | null, userId: string, emoji: string, createdAt: string, user: { id: string, name: string, username: string } } };
-
-export type CreateTourMutationVariables = Exact<{
-  input: CreateTourInput;
-}>;
-
-
-export type CreateTourMutation = { createTour: { id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null } };
 
 export type CreateTripMutationVariables = Exact<{
   input: CreateTripInput;
@@ -108,13 +93,6 @@ export type DeleteReactionMutationVariables = Exact<{
 
 export type DeleteReactionMutation = { deleteReaction: boolean };
 
-export type DeleteTourMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type DeleteTourMutation = { deleteTour: boolean };
-
 export type FeedNewEventsSubscriptionVariables = Exact<{
   filter?: InputMaybe<FeedFilter>;
 }>;
@@ -124,8 +102,7 @@ export type FeedNewEventsSubscription = { feedNewEvents: Array<{ id: string, ent
       | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
       | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
       | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ id: string, content: string, createdAt: string, user: { id: string, name: string, avatar?: string | null } }>, reactions: Array<{ id: string, emoji: string, userId: string, createdAt: string, user: { id: string, name: string } }> }
-      | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
-      | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+      | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string, isHosted: boolean, title?: string | null, category?: string | null, price?: number | null }
      }> };
 
 export type FollowUserMutationVariables = Exact<{
@@ -152,11 +129,10 @@ export type GetBookmarksQueryVariables = Exact<{
 }>;
 
 
-export type GetBookmarksQuery = { getBookmarks: Array<{ id: string, userId: string, postId?: string | null, tourId?: string | null, placeId?: string | null, createdAt: string, post?: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
-        | { id: string, name: string, location: string, imageUrl?: string | null, placeCoordinates: { latitude: number, longitude: number } }
-        | { id: string, title: string, location: string, imageUrl?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
-        | { id: string, destination?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
-       | null } | null, tour?: { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, category: string, createdAt: string } | null, place?: { id: string, name: string, location: string, rating: number, type: string, imageUrl?: string | null, createdAt: string } | null }> };
+export type GetBookmarksQuery = { getBookmarks: Array<{ id: string, userId: string, postId?: string | null, tripId?: string | null, placeId?: string | null, createdAt: string, post?: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
+        | { id: string, name: string, imageUrl?: string | null, placeLocation: string, placeCoordinates: { latitude: number, longitude: number } }
+        | { id: string, destination?: string | null, isHosted: boolean, title?: string | null, imageUrl?: string | null, tripLocation?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null, coordinates?: { latitude: number, longitude: number } | null }
+       | null } | null, trip?: { id: string, isHosted: boolean, title?: string | null, destination?: string | null, price?: number | null, rating?: number | null, imageUrl?: string | null, category?: string | null, createdAt: string, tripLocation?: string | null } | null, place?: { id: string, name: string, location: string, rating: number, type: string, imageUrl?: string | null, createdAt: string } | null }> };
 
 export type GetFeedQueryVariables = Exact<{
   first?: InputMaybe<Scalars['Int']['input']>;
@@ -169,8 +145,7 @@ export type GetFeedQuery = { getFeed: { edges: Array<{ cursor: string, node: { i
           | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
           | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
           | { __typename: 'Post', id: string, userId: string, content?: string | null, commentsCount: number, reactionsCount: number, createdAt: string, comments: Array<{ id: string, content: string, createdAt: string, user: { id: string, name: string, avatar?: string | null } }>, reactions: Array<{ id: string, emoji: string, userId: string, createdAt: string, user: { id: string, name: string } }> }
-          | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
-          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string, isHosted: boolean, title?: string | null, category?: string | null, price?: number | null }
          } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
 
 export type GetFeedPreferencesQueryVariables = Exact<{ [key: string]: never; }>;
@@ -237,9 +212,8 @@ export type GetPostQueryVariables = Exact<{
 
 
 export type GetPostQuery = { getPost?: { id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null }, relatedEntity?:
-      | { id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
-      | { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
-      | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
+      | { id: string, name: string, imageUrl?: string | null, placeLocation: string, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
+      | { id: string, isHosted: boolean, title?: string | null, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, price?: number | null, rating?: number | null, description?: string | null, imageUrl?: string | null, tripLocation?: string | null, coordinates?: { latitude: number, longitude: number } | null }
      | null, comments: Array<{ id: string, userId: string, content: string, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ id: string, userId: string, emoji: string, createdAt: string, user: { id: string, name: string, username: string } }> } | null };
 
 export type GetPostsQueryVariables = Exact<{
@@ -252,25 +226,9 @@ export type GetPostsQueryVariables = Exact<{
 
 
 export type GetPostsQuery = { getPosts: { totalCount: number, hasNextPage: boolean, hasPreviousPage: boolean, nextOffset?: number | null, previousOffset?: number | null, posts: Array<{ id: string, userId: string, content?: string | null, attachments: Array<string>, type?: string | null, relatedId?: string | null, commentsCount: number, reactionsCount: number, isBookmarked: boolean, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null, createdAt: string }, relatedEntity?:
-        | { id: string, name: string, location: string, imageUrl?: string | null, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
-        | { id: string, title: string, location: string, price: number, rating: number, imageUrl?: string | null, tourDescription?: string | null, tourCoordinates?: { latitude: number, longitude: number } | null }
-        | { id: string, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, tripCoordinates?: { latitude: number, longitude: number } | null }
+        | { id: string, name: string, imageUrl?: string | null, placeLocation: string, placeDescription: string, placeCoordinates: { latitude: number, longitude: number } }
+        | { id: string, isHosted: boolean, destination?: string | null, startDate?: string | null, endDate?: string | null, preferences?: string | null, title?: string | null, price?: number | null, rating?: number | null, description?: string | null, imageUrl?: string | null, tripLocation?: string | null, coordinates?: { latitude: number, longitude: number } | null }
        | null, comments: Array<{ id: string, userId: string, content: string, createdAt: string, user: { id: string, name: string, username: string, avatar?: string | null } }>, reactions: Array<{ id: string, userId: string, emoji: string, createdAt: string, user: { id: string, name: string, username: string } }> }> } };
-
-export type GetTourQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-}>;
-
-
-export type GetTourQuery = { getTour?: { id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null } | null };
-
-export type GetToursQueryVariables = Exact<{
-  category?: InputMaybe<Scalars['String']['input']>;
-  limit?: InputMaybe<Scalars['Int']['input']>;
-}>;
-
-
-export type GetToursQuery = { getTours: Array<{ id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null }> };
 
 export type GetTrendingQueryVariables = Exact<{
   type: TrendingType;
@@ -291,6 +249,7 @@ export type GetTripQuery = { getTrip?: { id: string, destination?: string | null
 
 export type GetTripsQueryVariables = Exact<{
   status?: InputMaybe<Scalars['String']['input']>;
+  isHosted?: InputMaybe<Scalars['Boolean']['input']>;
 }>;
 
 
@@ -318,7 +277,7 @@ export type LoginMutationVariables = Exact<{
 }>;
 
 
-export type LoginMutation = { loginUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
+export type LoginMutation = { loginUser: { token: string, user: { id: string, name: string, username: string, status: string, createdAt: string } } };
 
 export type LoginUserMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -328,12 +287,12 @@ export type LoginUserMutationVariables = Exact<{
 }>;
 
 
-export type LoginUserMutation = { loginUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
+export type LoginUserMutation = { loginUser: { token: string, user: { id: string, name: string, username: string, status: string, createdAt: string } } };
 
 export type MeQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type MeQuery = { me?: { id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, createdAt: string } | null };
+export type MeQuery = { me?: { id: string, name: string, username: string, email?: string | null, phone?: string | null, avatar?: string | null, publicKey?: string | null, status: string, createdAt: string } | null };
 
 export type NewAlertsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -348,7 +307,7 @@ export type RegisterMutationVariables = Exact<{
 }>;
 
 
-export type RegisterMutation = { registerUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
+export type RegisterMutation = { registerUser: { token: string, user: { id: string, name: string, username: string, status: string, createdAt: string } } };
 
 export type RegisterUserMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -358,7 +317,7 @@ export type RegisterUserMutationVariables = Exact<{
 }>;
 
 
-export type RegisterUserMutation = { registerUser: { token: string, user: { id: string, name: string, username: string, createdAt: string } } };
+export type RegisterUserMutation = { registerUser: { token: string, user: { id: string, name: string, username: string, status: string, createdAt: string } } };
 
 export type RequestChallengeMutationVariables = Exact<{
   username: Scalars['String']['input'];
@@ -388,8 +347,7 @@ export type SearchQuery = { search: { edges: Array<{ cursor: string, node: { id:
           | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
           | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
           | { __typename: 'Post', id: string, userId: string, content?: string | null, createdAt: string }
-          | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
-          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string, isHosted: boolean, title?: string | null, category?: string | null, price?: number | null }
          } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
 
 export type SearchSemanticQueryVariables = Exact<{
@@ -404,8 +362,7 @@ export type SearchSemanticQuery = { searchSemantic: { edges: Array<{ cursor: str
           | { __typename: 'Location', id: string, name: string, country: string, createdAt: string }
           | { __typename: 'Place', id: string, name: string, type: string, location: string, createdAt: string }
           | { __typename: 'Post', id: string, userId: string, content?: string | null, createdAt: string }
-          | { __typename: 'Tour', id: string, title: string, category: string, price: number, createdAt: string }
-          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string }
+          | { __typename: 'Trip', id: string, userId: string, destination?: string | null, status: string, createdAt: string, isHosted: boolean, title?: string | null, category?: string | null, price?: number | null }
          } }>, pageInfo: { endCursor?: string | null, hasNextPage: boolean } } };
 
 export type SearchSuggestQueryVariables = Exact<{
@@ -452,14 +409,6 @@ export type UpdatePlaceMutationVariables = Exact<{
 
 
 export type UpdatePlaceMutation = { updatePlace: { id: string, name: string, location: string, distance?: number | null, rating: number, reviews: number, type: string, isOpen: boolean, description: string, tips: Array<string>, phone?: string | null, website?: string | null, hours?: string | null, price?: number | null, locationId?: string | null, ownerId?: string | null, imageUrl?: string | null, createdAt: string, coordinates: { latitude: number, longitude: number } } };
-
-export type UpdateTourMutationVariables = Exact<{
-  id: Scalars['ID']['input'];
-  input: UpdateTourInput;
-}>;
-
-
-export type UpdateTourMutation = { updateTour: { id: string, title: string, location: string, price: number, rating: number, reviews: number, duration: number, durationType: string, category: string, description?: string | null, shortDescription?: string | null, highlights: Array<string>, inclusions: Array<string>, maxParticipants?: number | null, minParticipants: number, difficulty: string, currency: string, imageUrl?: string | null, gallery: Array<string>, tags: Array<string>, isActive: boolean, isFeatured: boolean, createdAt: string, updatedAt: string, coordinates?: { latitude: number, longitude: number } | null } };
 
 export type UpdateTripMutationVariables = Exact<{
   id: Scalars['ID']['input'];
@@ -511,49 +460,6 @@ export function useAddMessageMutation(baseOptions?: Apollo.MutationHookOptions<A
 export type AddMessageMutationHookResult = ReturnType<typeof useAddMessageMutation>;
 export type AddMessageMutationResult = Apollo.MutationResult<AddMessageMutation>;
 export type AddMessageMutationOptions = Apollo.BaseMutationOptions<AddMessageMutation, AddMessageMutationVariables>;
-export const BookTourDocument = gql`
-    mutation BookTour($input: BookTourInput!) {
-  bookTour(input: $input) {
-    id
-    tourId
-    userId
-    participants
-    selectedDate
-    fullName
-    email
-    phone
-    specialRequests
-    totalPrice
-    status
-    createdAt
-  }
-}
-    `;
-
-/**
- * __useBookTourMutation__
- *
- * To run a mutation, you first call `useBookTourMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useBookTourMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [bookTourMutation, { data, loading, error }] = useBookTourMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useBookTourMutation(baseOptions?: Apollo.MutationHookOptions<BookTourMutation, BookTourMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<BookTourMutation, BookTourMutationVariables>(BookTourDocument, options);
-      }
-export type BookTourMutationHookResult = ReturnType<typeof useBookTourMutation>;
-export type BookTourMutationResult = Apollo.MutationResult<BookTourMutation>;
-export type BookTourMutationOptions = Apollo.BaseMutationOptions<BookTourMutation, BookTourMutationVariables>;
 export const BookmarkPostDocument = gql`
     mutation BookmarkPost($postId: ID!) {
   bookmarkPost(postId: $postId)
@@ -790,15 +696,17 @@ export const CreatePostDocument = gql`
           longitude
         }
       }
-      ... on Tour {
+      ... on Trip {
         id
+        isHosted
         title
-        location
+        tripLocation: location
+        destination
         price
         rating
-        tourDescription: description
+        description
         imageUrl
-        tourCoordinates: coordinates {
+        coordinates {
           latitude
           longitude
         }
@@ -806,7 +714,7 @@ export const CreatePostDocument = gql`
       ... on Place {
         id
         name
-        location
+        placeLocation: location
         placeDescription: description
         imageUrl
         placeCoordinates: coordinates {
@@ -890,65 +798,6 @@ export function useCreateReactionMutation(baseOptions?: Apollo.MutationHookOptio
 export type CreateReactionMutationHookResult = ReturnType<typeof useCreateReactionMutation>;
 export type CreateReactionMutationResult = Apollo.MutationResult<CreateReactionMutation>;
 export type CreateReactionMutationOptions = Apollo.BaseMutationOptions<CreateReactionMutation, CreateReactionMutationVariables>;
-export const CreateTourDocument = gql`
-    mutation CreateTour($input: CreateTourInput!) {
-  createTour(input: $input) {
-    id
-    title
-    location
-    price
-    rating
-    reviews
-    duration
-    durationType
-    category
-    description
-    shortDescription
-    highlights
-    inclusions
-    maxParticipants
-    minParticipants
-    difficulty
-    currency
-    coordinates {
-      latitude
-      longitude
-    }
-    imageUrl
-    gallery
-    tags
-    isActive
-    isFeatured
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useCreateTourMutation__
- *
- * To run a mutation, you first call `useCreateTourMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreateTourMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [createTourMutation, { data, loading, error }] = useCreateTourMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreateTourMutation(baseOptions?: Apollo.MutationHookOptions<CreateTourMutation, CreateTourMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreateTourMutation, CreateTourMutationVariables>(CreateTourDocument, options);
-      }
-export type CreateTourMutationHookResult = ReturnType<typeof useCreateTourMutation>;
-export type CreateTourMutationResult = Apollo.MutationResult<CreateTourMutation>;
-export type CreateTourMutationOptions = Apollo.BaseMutationOptions<CreateTourMutation, CreateTourMutationVariables>;
 export const CreateTripDocument = gql`
     mutation CreateTrip($input: CreateTripInput!) {
   createTrip(input: $input) {
@@ -1088,36 +937,6 @@ export function useDeleteReactionMutation(baseOptions?: Apollo.MutationHookOptio
 export type DeleteReactionMutationHookResult = ReturnType<typeof useDeleteReactionMutation>;
 export type DeleteReactionMutationResult = Apollo.MutationResult<DeleteReactionMutation>;
 export type DeleteReactionMutationOptions = Apollo.BaseMutationOptions<DeleteReactionMutation, DeleteReactionMutationVariables>;
-export const DeleteTourDocument = gql`
-    mutation DeleteTour($id: ID!) {
-  deleteTour(id: $id)
-}
-    `;
-
-/**
- * __useDeleteTourMutation__
- *
- * To run a mutation, you first call `useDeleteTourMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDeleteTourMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [deleteTourMutation, { data, loading, error }] = useDeleteTourMutation({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useDeleteTourMutation(baseOptions?: Apollo.MutationHookOptions<DeleteTourMutation, DeleteTourMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DeleteTourMutation, DeleteTourMutationVariables>(DeleteTourDocument, options);
-      }
-export type DeleteTourMutationHookResult = ReturnType<typeof useDeleteTourMutation>;
-export type DeleteTourMutationResult = Apollo.MutationResult<DeleteTourMutation>;
-export type DeleteTourMutationOptions = Apollo.BaseMutationOptions<DeleteTourMutation, DeleteTourMutationVariables>;
 export const FeedNewEventsDocument = gql`
     subscription FeedNewEvents($filter: FeedFilter) {
   feedNewEvents(filter: $filter) {
@@ -1172,11 +991,13 @@ export const FeedNewEventsDocument = gql`
         status
         createdAt
       }
-      ... on Tour {
+      ... on Trip {
         id
+        isHosted
         title
         category
         price
+        destination
         createdAt
       }
       ... on Place {
@@ -1340,7 +1161,7 @@ export const GetBookmarksDocument = gql`
     id
     userId
     postId
-    tourId
+    tripId
     placeId
     post {
       id
@@ -1364,12 +1185,14 @@ export const GetBookmarksDocument = gql`
             longitude
           }
         }
-        ... on Tour {
+        ... on Trip {
           id
+          isHosted
           title
-          location
+          tripLocation: location
+          destination
           imageUrl
-          tourCoordinates: coordinates {
+          coordinates {
             latitude
             longitude
           }
@@ -1377,7 +1200,7 @@ export const GetBookmarksDocument = gql`
         ... on Place {
           id
           name
-          location
+          placeLocation: location
           imageUrl
           placeCoordinates: coordinates {
             latitude
@@ -1389,10 +1212,12 @@ export const GetBookmarksDocument = gql`
       reactionsCount
       createdAt
     }
-    tour {
+    trip {
       id
+      isHosted
       title
-      location
+      tripLocation: location
+      destination
       price
       rating
       imageUrl
@@ -1502,11 +1327,13 @@ export const GetFeedDocument = gql`
             status
             createdAt
           }
-          ... on Tour {
+          ... on Trip {
             id
+            isHosted
             title
             category
             price
+            destination
             createdAt
           }
           ... on Place {
@@ -2028,24 +1855,18 @@ export const GetPostDocument = gql`
     relatedEntity {
       ... on Trip {
         id
+        isHosted
+        title
+        tripLocation: location
         destination
         startDate
         endDate
         preferences
-        tripCoordinates: coordinates {
-          latitude
-          longitude
-        }
-      }
-      ... on Tour {
-        id
-        title
-        location
         price
         rating
-        tourDescription: description
+        description
         imageUrl
-        tourCoordinates: coordinates {
+        coordinates {
           latitude
           longitude
         }
@@ -2053,7 +1874,7 @@ export const GetPostDocument = gql`
       ... on Place {
         id
         name
-        location
+        placeLocation: location
         placeDescription: description
         imageUrl
         placeCoordinates: coordinates {
@@ -2151,24 +1972,18 @@ export const GetPostsDocument = gql`
       relatedEntity {
         ... on Trip {
           id
+          isHosted
           destination
           startDate
           endDate
           preferences
-          tripCoordinates: coordinates {
-            latitude
-            longitude
-          }
-        }
-        ... on Tour {
-          id
           title
-          location
+          tripLocation: location
           price
           rating
-          tourDescription: description
+          description
           imageUrl
-          tourCoordinates: coordinates {
+          coordinates {
             latitude
             longitude
           }
@@ -2176,7 +1991,7 @@ export const GetPostsDocument = gql`
         ... on Place {
           id
           name
-          location
+          placeLocation: location
           placeDescription: description
           imageUrl
           placeCoordinates: coordinates {
@@ -2258,141 +2073,6 @@ export type GetPostsQueryHookResult = ReturnType<typeof useGetPostsQuery>;
 export type GetPostsLazyQueryHookResult = ReturnType<typeof useGetPostsLazyQuery>;
 export type GetPostsSuspenseQueryHookResult = ReturnType<typeof useGetPostsSuspenseQuery>;
 export type GetPostsQueryResult = Apollo.QueryResult<GetPostsQuery, GetPostsQueryVariables>;
-export const GetTourDocument = gql`
-    query GetTour($id: ID!) {
-  getTour(id: $id) {
-    id
-    title
-    location
-    price
-    rating
-    reviews
-    duration
-    durationType
-    category
-    description
-    shortDescription
-    highlights
-    inclusions
-    maxParticipants
-    minParticipants
-    difficulty
-    currency
-    coordinates {
-      latitude
-      longitude
-    }
-    imageUrl
-    gallery
-    tags
-    isActive
-    isFeatured
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useGetTourQuery__
- *
- * To run a query within a React component, call `useGetTourQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetTourQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetTourQuery({
- *   variables: {
- *      id: // value for 'id'
- *   },
- * });
- */
-export function useGetTourQuery(baseOptions: Apollo.QueryHookOptions<GetTourQuery, GetTourQueryVariables> & ({ variables: GetTourQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetTourQuery, GetTourQueryVariables>(GetTourDocument, options);
-      }
-export function useGetTourLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetTourQuery, GetTourQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetTourQuery, GetTourQueryVariables>(GetTourDocument, options);
-        }
-export function useGetTourSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetTourQuery, GetTourQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetTourQuery, GetTourQueryVariables>(GetTourDocument, options);
-        }
-export type GetTourQueryHookResult = ReturnType<typeof useGetTourQuery>;
-export type GetTourLazyQueryHookResult = ReturnType<typeof useGetTourLazyQuery>;
-export type GetTourSuspenseQueryHookResult = ReturnType<typeof useGetTourSuspenseQuery>;
-export type GetTourQueryResult = Apollo.QueryResult<GetTourQuery, GetTourQueryVariables>;
-export const GetToursDocument = gql`
-    query GetTours($category: String, $limit: Int) {
-  getTours(category: $category, limit: $limit) {
-    id
-    title
-    location
-    price
-    rating
-    reviews
-    duration
-    durationType
-    category
-    description
-    shortDescription
-    highlights
-    inclusions
-    maxParticipants
-    minParticipants
-    difficulty
-    currency
-    coordinates {
-      latitude
-      longitude
-    }
-    imageUrl
-    gallery
-    tags
-    isActive
-    isFeatured
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useGetToursQuery__
- *
- * To run a query within a React component, call `useGetToursQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetToursQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetToursQuery({
- *   variables: {
- *      category: // value for 'category'
- *      limit: // value for 'limit'
- *   },
- * });
- */
-export function useGetToursQuery(baseOptions?: Apollo.QueryHookOptions<GetToursQuery, GetToursQueryVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<GetToursQuery, GetToursQueryVariables>(GetToursDocument, options);
-      }
-export function useGetToursLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetToursQuery, GetToursQueryVariables>) {
-          const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<GetToursQuery, GetToursQueryVariables>(GetToursDocument, options);
-        }
-export function useGetToursSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetToursQuery, GetToursQueryVariables>) {
-          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<GetToursQuery, GetToursQueryVariables>(GetToursDocument, options);
-        }
-export type GetToursQueryHookResult = ReturnType<typeof useGetToursQuery>;
-export type GetToursLazyQueryHookResult = ReturnType<typeof useGetToursLazyQuery>;
-export type GetToursSuspenseQueryHookResult = ReturnType<typeof useGetToursSuspenseQuery>;
-export type GetToursQueryResult = Apollo.QueryResult<GetToursQuery, GetToursQueryVariables>;
 export const GetTrendingDocument = gql`
     query GetTrending($type: TrendingType!, $window: TimeWindow!, $entityTypes: [EntityType!], $limit: Int = 10) {
   getTrending(
@@ -2512,8 +2192,8 @@ export type GetTripLazyQueryHookResult = ReturnType<typeof useGetTripLazyQuery>;
 export type GetTripSuspenseQueryHookResult = ReturnType<typeof useGetTripSuspenseQuery>;
 export type GetTripQueryResult = Apollo.QueryResult<GetTripQuery, GetTripQueryVariables>;
 export const GetTripsDocument = gql`
-    query GetTrips($status: String) {
-  getTrips(status: $status) {
+    query GetTrips($status: String, $isHosted: Boolean) {
+  getTrips(status: $status, isHosted: $isHosted) {
     id
     destination
     startDate
@@ -2542,6 +2222,7 @@ export const GetTripsDocument = gql`
  * const { data, loading, error } = useGetTripsQuery({
  *   variables: {
  *      status: // value for 'status'
+ *      isHosted: // value for 'isHosted'
  *   },
  * });
  */
@@ -2655,6 +2336,7 @@ export const LoginDocument = gql`
       id
       name
       username
+      status
       createdAt
     }
     token
@@ -2701,6 +2383,7 @@ export const LoginUserDocument = gql`
       id
       name
       username
+      status
       createdAt
     }
     token
@@ -2745,6 +2428,7 @@ export const MeDocument = gql`
     phone
     avatar
     publicKey
+    status
     createdAt
   }
 }
@@ -2831,6 +2515,7 @@ export const RegisterDocument = gql`
       id
       name
       username
+      status
       createdAt
     }
     token
@@ -2877,6 +2562,7 @@ export const RegisterUserDocument = gql`
       id
       name
       username
+      status
       createdAt
     }
     token
@@ -3012,11 +2698,13 @@ export const SearchDocument = gql`
             status
             createdAt
           }
-          ... on Tour {
+          ... on Trip {
             id
+            isHosted
             title
             category
             price
+            destination
             createdAt
           }
           ... on Place {
@@ -3118,11 +2806,13 @@ export const SearchSemanticDocument = gql`
             status
             createdAt
           }
-          ... on Tour {
+          ... on Trip {
             id
+            isHosted
             title
             category
             price
+            destination
             createdAt
           }
           ... on Place {
@@ -3428,66 +3118,6 @@ export function useUpdatePlaceMutation(baseOptions?: Apollo.MutationHookOptions<
 export type UpdatePlaceMutationHookResult = ReturnType<typeof useUpdatePlaceMutation>;
 export type UpdatePlaceMutationResult = Apollo.MutationResult<UpdatePlaceMutation>;
 export type UpdatePlaceMutationOptions = Apollo.BaseMutationOptions<UpdatePlaceMutation, UpdatePlaceMutationVariables>;
-export const UpdateTourDocument = gql`
-    mutation UpdateTour($id: ID!, $input: UpdateTourInput!) {
-  updateTour(id: $id, input: $input) {
-    id
-    title
-    location
-    price
-    rating
-    reviews
-    duration
-    durationType
-    category
-    description
-    shortDescription
-    highlights
-    inclusions
-    maxParticipants
-    minParticipants
-    difficulty
-    currency
-    coordinates {
-      latitude
-      longitude
-    }
-    imageUrl
-    gallery
-    tags
-    isActive
-    isFeatured
-    createdAt
-    updatedAt
-  }
-}
-    `;
-
-/**
- * __useUpdateTourMutation__
- *
- * To run a mutation, you first call `useUpdateTourMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useUpdateTourMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [updateTourMutation, { data, loading, error }] = useUpdateTourMutation({
- *   variables: {
- *      id: // value for 'id'
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useUpdateTourMutation(baseOptions?: Apollo.MutationHookOptions<UpdateTourMutation, UpdateTourMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<UpdateTourMutation, UpdateTourMutationVariables>(UpdateTourDocument, options);
-      }
-export type UpdateTourMutationHookResult = ReturnType<typeof useUpdateTourMutation>;
-export type UpdateTourMutationResult = Apollo.MutationResult<UpdateTourMutation>;
-export type UpdateTourMutationOptions = Apollo.BaseMutationOptions<UpdateTourMutation, UpdateTourMutationVariables>;
 export const UpdateTripDocument = gql`
     mutation UpdateTrip($id: ID!, $input: UpdateTripInput!) {
   updateTrip(id: $id, input: $input) {

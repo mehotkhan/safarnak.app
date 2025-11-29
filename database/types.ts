@@ -5,7 +5,6 @@ import {
   trips,
   itineraries,
   plans,
-  tours,
   messages,
   posts,
   comments,
@@ -58,7 +57,7 @@ export enum MessageType {
 export enum PostType {
   PLAN = 'plan',
   TRIP = 'trip',
-  TOUR = 'tour',
+  // TOUR removed - unified into TRIP
 }
 
 // ============================================================================
@@ -75,7 +74,7 @@ export type Itinerary = InferSelectModel<typeof itineraries>;
 
 export type Plan = InferSelectModel<typeof plans>;
 
-export type Tour = InferSelectModel<typeof tours>;
+// Tour type removed - unified into Trip with isHosted flag
 
 export type Message = InferSelectModel<typeof messages>;
 

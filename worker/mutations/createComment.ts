@@ -1,5 +1,5 @@
 import { eq } from 'drizzle-orm';
-import { getServerDB, comments, posts, users } from '@database/server';
+import { getServerDB, comments, posts, users, profiles } from '@database/server';
 import type { GraphQLContext } from '../types';
 
 export const createComment = async (
@@ -29,7 +29,9 @@ export const createComment = async (
     .insert(comments)
     .values({
       id: crypto.randomUUID(),
-      postId,
+      targetType: 'POST', // Comments currently only support posts
+      targetId: postId,
+      postId, // Legacy field for backward compatibility
       userId,
       content: content.trim(),
       createdAt: new Date().toISOString(),
@@ -37,8 +39,9 @@ export const createComment = async (
     .returning()
     .get();
 
-  // Fetch user for the comment
+  // Fetch user and profile for the comment
   const user = await db.select().from(users).where(eq(users.id, userId)).get();
+  const profile = user ? await db.select().from(profiles).where(eq(profiles.userId, userId)).get() : null;
 
   return {
     id: result.id,
@@ -47,9 +50,9 @@ export const createComment = async (
     user: user
       ? {
           id: user.id,
-          name: user.name,
+          name: profile?.displayName || user.username, // Fallback to username if no profile
           username: user.username,
-          avatar: user.avatar || null,
+          avatar: profile?.avatarUrl || null,
           createdAt: user.createdAt,
         }
       : null,

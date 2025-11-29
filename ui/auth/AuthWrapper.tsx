@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from '@state/hooks';
 
 const USER_STORAGE_KEY = '@safarnak_user';
 const DEVICE_KEY_PAIR_KEY = '@safarnak_device_keypair';
+const USERNAME_KEY = '@safarnak_username';
 
 export default function AuthWrapper({
   children,
@@ -15,7 +16,7 @@ export default function AuthWrapper({
   children: React.ReactNode;
 }) {
   const dispatch = useAppDispatch();
-  const { isAuthenticated, isLoading } = useAppSelector(state => state.auth);
+  const { isAuthenticated, isLoading, user } = useAppSelector(state => state.auth);
 
   const checkAuthStatus = useCallback(async () => {
     try {
@@ -57,14 +58,22 @@ export default function AuthWrapper({
 
   useEffect(() => {
     if (!isLoading) {
-      if (isAuthenticated) {
-        // Navigate to main app (feed)
-        router.replace('/(app)/(feed)' as any);
+      // Check if user is authenticated AND active
+      if (isAuthenticated && user && user.status === 'active') {
+        // Navigate to main app (home)
+        router.replace('/(app)/(home)' as any);
       } else {
-        router.replace('/(auth)/welcome' as any);
+        // Check if user has stored username
+        AsyncStorage.getItem(USERNAME_KEY).then(() => {
+          // Always go to unified welcome screen (handles both new and returning users)
+          router.replace('/(auth)/welcome' as any);
+        }).catch(() => {
+          // On error, default to welcome
+          router.replace('/(auth)/welcome' as any);
+        });
       }
     }
-  }, [isAuthenticated, isLoading]);
+  }, [isAuthenticated, isLoading, user]);
 
   if (isLoading) {
     return (

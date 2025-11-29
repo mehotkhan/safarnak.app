@@ -1,7 +1,8 @@
 // Mutation resolver for updateUser
 // Handles user profile updates including avatar upload to R2
+// After Phase 11.4: Updates users table (username, email) and profiles table (displayName, phone, avatarUrl)
 
-import { getServerDB, users } from '@database/server';
+import { getServerDB, users, profiles } from '@database/server';
 import { eq } from 'drizzle-orm';
 import type { GraphQLContext } from '../types';
 
@@ -27,7 +28,7 @@ export const updateUser = async (
 
     const db = getServerDB(context.env.DB);
 
-    // Fetch current user
+    // Fetch current user and profile
     const currentUser = await db
       .select()
       .from(users)
@@ -38,16 +39,14 @@ export const updateUser = async (
       throw new Error('User not found');
     }
 
-    // Prepare update data
-    const updateData: Partial<typeof users.$inferInsert> = {};
+    const currentProfile = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .get();
 
-    // Update name if provided
-    if (input.name !== undefined) {
-      if (input.name.trim().length === 0) {
-        throw new Error('Name cannot be empty');
-      }
-      updateData.name = input.name.trim();
-    }
+    // Prepare update data for users table (username, email only)
+    const userUpdateData: Partial<typeof users.$inferInsert> = {};
 
     // Update username if provided
     if (input.username !== undefined) {
@@ -67,7 +66,7 @@ export const updateUser = async (
         throw new Error('Username is already taken');
       }
 
-      updateData.username = newUsername;
+      userUpdateData.username = newUsername;
     }
 
     // Update email if provided
@@ -93,12 +92,23 @@ export const updateUser = async (
         }
       }
 
-      updateData.email = newEmail;
+      userUpdateData.email = newEmail;
+    }
+
+    // Prepare update data for profiles table (displayName, phone, avatarUrl)
+    const profileUpdateData: Partial<typeof profiles.$inferInsert> = {};
+
+    // Update displayName (from name input) if provided
+    if (input.name !== undefined) {
+      if (input.name.trim().length === 0) {
+        throw new Error('Name cannot be empty');
+      }
+      profileUpdateData.displayName = input.name.trim();
     }
 
     // Update phone if provided
     if (input.phone !== undefined) {
-      updateData.phone = input.phone.trim() || null;
+      profileUpdateData.phone = input.phone.trim() || null;
     }
 
     // Handle avatar upload to R2 if provided
@@ -227,21 +237,22 @@ export const updateUser = async (
           avatarUrl,
         });
         
-        updateData.avatar = avatarUrl;
+        profileUpdateData.avatarUrl = avatarUrl;
 
         // Delete old avatar if it exists and is different
-        if (currentUser.avatar && currentUser.avatar !== avatarUrl) {
+        const oldAvatarUrl = currentProfile?.avatarUrl;
+        if (oldAvatarUrl && oldAvatarUrl !== avatarUrl) {
           try {
             // Extract key from old URL (handle both worker route and direct R2 URLs)
             let oldKey: string | null = null;
-            if (currentUser.avatar.includes('/avatars/')) {
-              const oldUrlParts = currentUser.avatar.split('/avatars/');
+            if (oldAvatarUrl.includes('/avatars/')) {
+              const oldUrlParts = oldAvatarUrl.split('/avatars/');
               if (oldUrlParts.length > 1) {
                 oldKey = `avatars/${oldUrlParts[1]}`;
               }
             } else {
               // Fallback: try to extract from any URL format
-              const oldUrlParts = currentUser.avatar.split('/');
+              const oldUrlParts = oldAvatarUrl.split('/');
               const lastPart = oldUrlParts[oldUrlParts.length - 1];
               if (lastPart && lastPart.startsWith('user-')) {
                 oldKey = `avatars/${lastPart}`;
@@ -263,17 +274,37 @@ export const updateUser = async (
       }
     }
 
-    // Update user in database
-    if (Object.keys(updateData).length > 0) {
-      updateData.updatedAt = new Date().toISOString();
+    // Update users table if needed
+    if (Object.keys(userUpdateData).length > 0) {
+      userUpdateData.updatedAt = new Date().toISOString();
       
       await db
         .update(users)
-        .set(updateData)
+        .set(userUpdateData)
         .where(eq(users.id, userId));
     }
 
-    // Fetch updated user
+    // Update or create profiles table if needed
+    if (Object.keys(profileUpdateData).length > 0) {
+      profileUpdateData.updatedAt = new Date().toISOString();
+      
+      if (currentProfile) {
+        // Update existing profile
+        await db
+          .update(profiles)
+          .set(profileUpdateData)
+          .where(eq(profiles.userId, userId));
+      } else {
+        // Create new profile if it doesn't exist
+        await db.insert(profiles).values({
+          userId,
+          ...profileUpdateData,
+          isActive: true,
+        });
+      }
+    }
+
+    // Fetch updated user and profile
     const updatedUser = await db
       .select()
       .from(users)
@@ -284,13 +315,20 @@ export const updateUser = async (
       throw new Error('Failed to retrieve updated user');
     }
 
+    const updatedProfile = await db
+      .select()
+      .from(profiles)
+      .where(eq(profiles.userId, userId))
+      .get();
+
+    // Return combined data matching GraphQL User type
     return {
       id: updatedUser.id,
-      name: updatedUser.name,
+      name: updatedProfile?.displayName || updatedUser.username, // Fallback to username if no profile
       username: updatedUser.username,
       email: updatedUser.email,
-      phone: updatedUser.phone,
-      avatar: updatedUser.avatar,
+      phone: updatedProfile?.phone || null,
+      avatar: updatedProfile?.avatarUrl || null,
       publicKey: updatedUser.publicKey,
       createdAt: updatedUser.createdAt || new Date().toISOString(),
     };

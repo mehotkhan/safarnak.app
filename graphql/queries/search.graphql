@@ -31,11 +31,13 @@ query Search($query: String!, $entityTypes: [EntityType!], $topics: [String!], $
             status
             createdAt
           }
-          ... on Tour {
+          ... on Trip {
             id
+            isHosted
             title
             category
             price
+            destination
             createdAt
           }
           ... on Place {

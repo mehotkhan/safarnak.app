@@ -43,7 +43,7 @@ export const bookmarkPost = async (
     id: crypto.randomUUID(),
     userId,
     postId,
-    tourId: null,
+    tripId: null, // Changed from tourId to tripId
     placeId: null,
     createdAt: new Date().toISOString(),
   });

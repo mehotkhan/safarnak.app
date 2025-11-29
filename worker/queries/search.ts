@@ -1,9 +1,9 @@
 import { and, desc, like, or, sql } from 'drizzle-orm';
-import { getServerDB, searchIndex, users, posts, trips, tours, places, locations } from '@database/server';
+import { getServerDB, searchIndex, users, posts, trips, places, locations } from '@database/server';
 import type { GraphQLContext } from '../types';
 import { eq } from 'drizzle-orm';
 
-type EntityType = 'POST' | 'TRIP' | 'TOUR' | 'PLACE' | 'LOCATION';
+type EntityType = 'POST' | 'TRIP' | 'PLACE' | 'LOCATION'; // TOUR removed - use TRIP with isHosted = true
 
 interface SearchArgs {
   query: string;
@@ -83,7 +83,8 @@ export const search = async (_: unknown, args: SearchArgs, context: GraphQLConte
       entity = await db.select().from(trips).where(eq(trips.id, row.entityId)).get();
       if (entity) actor = await db.select().from(users).where(eq(users.id, entity.userId)).get();
     } else if (row.entityType === 'TOUR') {
-      entity = await db.select().from(tours).where(eq(tours.id, row.entityId)).get();
+      // Legacy TOUR type - now handled as TRIP with isHosted = true
+      entity = await db.select().from(trips).where(eq(trips.id, row.entityId)).get();
     } else if (row.entityType === 'PLACE') {
       entity = await db.select().from(places).where(eq(places.id, row.entityId)).get();
     } else if (row.entityType === 'LOCATION') {
@@ -118,10 +119,8 @@ export const search = async (_: unknown, args: SearchArgs, context: GraphQLConte
           __typename:
             row.entityType === 'POST'
               ? 'Post'
-              : row.entityType === 'TRIP'
+              : row.entityType === 'TRIP' || row.entityType === 'TOUR'
               ? 'Trip'
-              : row.entityType === 'TOUR'
-              ? 'Tour'
               : row.entityType === 'PLACE'
               ? 'Place'
               : 'Location',

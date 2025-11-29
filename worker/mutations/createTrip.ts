@@ -1,5 +1,5 @@
 import { getServerDB } from '@database/server';
-import { trips, feedEvents, users, searchIndex } from '@database/server';
+import { trips, feedEvents, users, profiles, searchIndex } from '@database/server';
 import type { GraphQLContext } from '../types';
 import { eq } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
@@ -16,6 +16,32 @@ interface CreateTripInput {
   preferences?: string;
   accommodation?: string;
   lang?: string;
+  // Hosted trip fields
+  isHosted?: boolean;
+  title?: string;
+  location?: string;
+  price?: number;
+  currency?: string;
+  duration?: number;
+  durationType?: string;
+  category?: string;
+  difficulty?: string;
+  description?: string;
+  shortDescription?: string;
+  highlights?: string[];
+  inclusions?: string[];
+  maxParticipants?: number;
+  minParticipants?: number;
+  hostIntro?: string;
+  joinPolicy?: string;
+  imageUrl?: string;
+  gallery?: string[];
+  tags?: string[];
+  isActive?: boolean;
+  isFeatured?: boolean;
+  externalBookingUrl?: string;
+  coordinates?: { latitude: number; longitude: number };
+  waypoints?: Array<{ latitude: number; longitude: number }>;
 }
 
 export const createTrip = async (
@@ -23,12 +49,12 @@ export const createTrip = async (
   { input }: { input: CreateTripInput },
   context: GraphQLContext
 ) => {
-  const db = getServerDB(context.env.DB);
+  // Check user activation status
+  const { assertActiveUser } = await import('../utilities/auth/assertActiveUser');
+  await assertActiveUser(context);
 
-  const userId = context.userId;
-  if (!userId) {
-    throw new Error('Not authenticated');
-  }
+  const db = getServerDB(context.env.DB);
+  const userId = context.userId!; // Safe after assertActiveUser
 
   // Normalize optional fields
   const description = input.preferences?.trim();
@@ -97,26 +123,58 @@ export const createTrip = async (
       return Object.keys(base).length ? base : undefined;
     })();
 
-    const result = await db
-      .insert(trips)
-      .values({
+    // Prepare hosted fields if isHosted is true
+    const isHosted = input.isHosted === true;
+    const tripValues: any = {
         userId,
-        title: placeholderTitle || destination || 'Untitled Trip',
-        destination: destination || 'Untitled Trip',
+      title: input.title || placeholderTitle || destination || 'Untitled Trip',
+      destination: destination || input.location || 'Untitled Trip',
         startDate: input.startDate,
         endDate: input.endDate,
         budget: input.budget != null ? Math.round(Number(input.budget)) : null,
         travelers,
-        preferences: description,
+      isHosted: isHosted ? 1 : 0,
+      preferences: description || input.description,
         accommodation,
         status: 'pending',
         aiReasoning,
         itinerary: JSON.stringify(itineraryData),
-        coordinates: JSON.stringify(coordinatesData),
-        waypoints: JSON.stringify(waypoints),
-        aiGenerated: true,
+      coordinates: input.coordinates ? JSON.stringify(input.coordinates) : JSON.stringify(coordinatesData),
+      waypoints: input.waypoints ? JSON.stringify(input.waypoints) : JSON.stringify(waypoints),
+      aiGenerated: !isHosted, // Hosted trips are not AI-generated
         metadata: metadataPayload ? JSON.stringify(metadataPayload) : null,
-      })
+    };
+
+    // Add hosted fields if isHosted is true
+    if (isHosted) {
+      tripValues.location = input.location || destination;
+      tripValues.price = input.price != null ? Math.round(Number(input.price) * 100) : null; // Convert to cents
+      tripValues.currency = input.currency || 'USD';
+      tripValues.rating = 0;
+      tripValues.reviews = 0;
+      tripValues.duration = input.duration || placeholderDuration;
+      tripValues.durationType = input.durationType || 'days';
+      tripValues.category = input.category;
+      tripValues.difficulty = input.difficulty || 'easy';
+      tripValues.description = input.description || description;
+      tripValues.shortDescription = input.shortDescription;
+      tripValues.highlights = input.highlights ? JSON.stringify(input.highlights) : null;
+      tripValues.inclusions = input.inclusions ? JSON.stringify(input.inclusions) : null;
+      tripValues.maxParticipants = input.maxParticipants;
+      tripValues.minParticipants = input.minParticipants || 1;
+      tripValues.hostIntro = input.hostIntro;
+      tripValues.joinPolicy = input.joinPolicy || 'open';
+      tripValues.imageUrl = input.imageUrl;
+      tripValues.gallery = input.gallery ? JSON.stringify(input.gallery) : null;
+      tripValues.tags = input.tags ? JSON.stringify(input.tags) : null;
+      tripValues.isActive = input.isActive !== false;
+      tripValues.isFeatured = input.isFeatured === true;
+      tripValues.externalBookingUrl = input.externalBookingUrl;
+    }
+
+    const result = await db
+      .insert(trips)
+      .values(tripValues)
       .returning()
       .get();
 
@@ -148,6 +206,7 @@ export const createTrip = async (
     try {
       // Ensure we can resolve actor
       const actor = await db.select().from(users).where(eq(users.id, userId)).get();
+      const actorProfile = actor ? await db.select().from(profiles).where(eq(profiles.userId, userId)).get() : null;
       await db
         .insert(feedEvents)
         .values({
@@ -247,11 +306,11 @@ export const createTrip = async (
             actor: actor
               ? {
                   id: actor.id,
-                  name: actor.name,
+                  name: actorProfile?.displayName || actor.username,
                   username: actor.username,
                   email: actor.email,
-                  phone: actor.phone,
-                  avatar: actor.avatar,
+                  phone: actorProfile?.phone || null,
+                  avatar: actorProfile?.avatarUrl || null,
                   createdAt: actor.createdAt,
                 }
               : { id: userId, name: '', username: '', createdAt: new Date().toISOString() },

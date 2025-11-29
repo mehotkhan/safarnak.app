@@ -25,6 +25,9 @@ i18n.use(initReactI18next).init({
     useSuspense: false,
   },
   resources: {}, // Start with empty resources, load on-demand
+  returnEmptyString: false, // Don't return empty string for missing keys
+  returnNull: false, // Don't return null for missing keys
+  returnObjects: false, // Don't return objects for missing keys
 });
 
 // Load default language immediately

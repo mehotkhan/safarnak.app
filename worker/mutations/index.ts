@@ -9,19 +9,20 @@ import { loginUser } from './loginUser';
 import { updateUser } from './updateUser';
 import { createTrip } from './createTrip';
 import { updateTrip, deleteTrip } from './updateTrip';
-import { createTour } from './createTour';
-import { updateTour } from './updateTour';
-import { deleteTour } from './deleteTour';
+// Tour mutations removed - use Trip mutations with isHosted flag instead
 import { createPlace } from './createPlace';
 import { updatePlace } from './updatePlace';
 import { deletePlace } from './deletePlace';
 import { createLocation, updateLocation, deleteLocation } from './updateLocation';
-import { bookTour } from './bookTour';
+import { joinTrip } from './joinTrip';
+import { cancelTripJoin } from './cancelTripJoin';
+import { respondTripJoinRequest } from './respondTripJoinRequest';
 import { createPost } from './createPost';
 import { createComment } from './createComment';
 import { createReaction } from './createReaction';
 import { deleteReaction } from './deleteReaction';
 import { bookmarkPost } from './bookmarkPost';
+import { bookmarkTrip } from './bookmarkTrip';
 import { revokeDevice } from './revokeDevice';
 import { updateFeedPreferences } from './updateFeedPreferences';
 import { followUser } from './followUser';
@@ -30,8 +31,7 @@ import { addToCloseFriends } from './addToCloseFriends';
 import { removeFromCloseFriends } from './removeFromCloseFriends';
 import { generateAvatar } from './generateAvatar';
 
-// Placeholder resolvers for bookmarks
-const bookmarkTour = async () => true;
+// Placeholder resolver for bookmarkPlace
 const bookmarkPlace = async () => true;
 
 export const Mutation = {
@@ -43,22 +43,22 @@ export const Mutation = {
   createTrip,
   updateTrip,
   deleteTrip,
-  createTour,
-  updateTour,
-  deleteTour,
+  // createTour, updateTour, deleteTour removed
   createPlace,
   updatePlace,
   deletePlace,
   createLocation,
   updateLocation,
   deleteLocation,
-  bookTour,
+  joinTrip,
+  cancelTripJoin,
+  respondTripJoinRequest,
   createPost,
   createComment,
   createReaction,
   deleteReaction,
   bookmarkPost,
-  bookmarkTour,
+  bookmarkTrip,
   bookmarkPlace,
   revokeDevice,
   updateFeedPreferences,
@@ -70,4 +70,4 @@ export const Mutation = {
 };
 
 // Re-export individual resolvers
-export { addMessage, requestChallenge, registerUser, loginUser, updateUser, createTrip, updateTrip, deleteTrip, createTour, updateTour, deleteTour, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, bookTour, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTour, bookmarkPlace, revokeDevice, updateFeedPreferences, followUser, unfollowUser, addToCloseFriends, removeFromCloseFriends, generateAvatar };
+export { addMessage, requestChallenge, registerUser, loginUser, updateUser, createTrip, updateTrip, deleteTrip, createPlace, updatePlace, deletePlace, createLocation, updateLocation, deleteLocation, joinTrip, cancelTripJoin, respondTripJoinRequest, createPost, createComment, createReaction, deleteReaction, bookmarkPost, bookmarkTrip, bookmarkPlace, revokeDevice, updateFeedPreferences, followUser, unfollowUser, addToCloseFriends, removeFromCloseFriends, generateAvatar };

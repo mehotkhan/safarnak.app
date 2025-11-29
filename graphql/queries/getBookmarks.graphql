@@ -3,7 +3,7 @@ query GetBookmarks($type: String) {
     id
     userId
     postId
-    tourId
+    tripId
     placeId
     post {
       id
@@ -27,12 +27,14 @@ query GetBookmarks($type: String) {
             longitude
           }
         }
-        ... on Tour {
+        ... on Trip {
           id
+          isHosted
           title
-          location
+          tripLocation: location
+          destination
           imageUrl
-          tourCoordinates: coordinates {
+          coordinates {
             latitude
             longitude
           }
@@ -40,7 +42,7 @@ query GetBookmarks($type: String) {
         ... on Place {
           id
           name
-          location
+          placeLocation: location
           imageUrl
           placeCoordinates: coordinates {
             latitude
@@ -52,10 +54,12 @@ query GetBookmarks($type: String) {
       reactionsCount
       createdAt
     }
-    tour {
+    trip {
       id
+      isHosted
       title
-      location
+      tripLocation: location
+      destination
       price
       rating
       imageUrl

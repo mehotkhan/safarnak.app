@@ -4,6 +4,7 @@ mutation RegisterUser($username: String!, $publicKey: String!, $signature: Strin
       id
       name
       username
+      status
       createdAt
     }
     token

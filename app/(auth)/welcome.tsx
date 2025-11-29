@@ -1,41 +1,294 @@
-import { View, Text, TouchableOpacity, Image, I18nManager } from 'react-native';
-import React, { useRef, useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import {
+  View,
+  TouchableOpacity,
+  Alert,
+  FlatList,
+  Dimensions,
+  Image,
+  I18nManager,
+  ActivityIndicator,
+} from 'react-native';
 import { router } from 'expo-router';
-import PagerView from 'react-native-pager-view';
 import { useTranslation } from 'react-i18next';
+import { useAuth } from '@hooks/useAuth';
+import { CustomText } from '@ui/display';
 import { CustomButton } from '@ui/forms';
 import { Stack } from 'expo-router';
+import { useAppSelector } from '@state/hooks';
 import { useLanguage } from '@ui/context';
 import { Ionicons } from '@expo/vector-icons';
-import { useAppSelector } from '@state/hooks';
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const logoBeta = require('@assets/images/icon.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage1 = require('@assets/images/welcome-onboarding1.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage2 = require('@assets/images/welcome-onboarding2.webp');
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const onboardingImage3 = require('@assets/images/welcome-onboarding3.webp');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage4 = require('@assets/images/welcome-onboarding4.webp');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const onboardingImage5 = require('@assets/images/welcome-onboarding5.webp');
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const logoBeta = require('@assets/images/icon.webp');
 
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+// Slides data
+const SLIDES = [
+  {
+    key: 'welcome',
+    image: onboardingImage1,
+    titleKey: 'onboarding.welcome.title',
+    subtitleKey: 'onboarding.welcome.subtitle',
+  },
+  {
+    key: 'ai',
+    image: onboardingImage1,
+    titleKey: 'onboarding.slides.ai.title',
+    subtitleKey: 'onboarding.slides.ai.subtitle',
+  },
+  {
+    key: 'social',
+    image: onboardingImage2,
+    titleKey: 'onboarding.slides.social.title',
+    subtitleKey: 'onboarding.slides.social.subtitle',
+  },
+  {
+    key: 'offline',
+    image: onboardingImage3,
+    titleKey: 'onboarding.slides.offline.title',
+    subtitleKey: 'onboarding.slides.offline.subtitle',
+  },
+];
+
+// Intro Slider Component
+function IntroSlider({
+  currentIndex,
+  onIndexChange,
+}: {
+  currentIndex: number;
+  onIndexChange: (index: number) => void;
+}) {
+  const { t } = useTranslation();
+  const scrollRef = useRef<FlatList<any>>(null);
+
+  const onViewableItemsChanged = useCallback(
+    ({ viewableItems }: { viewableItems: Array<{ index?: number | null }> }) => {
+      if (viewableItems?.length && viewableItems[0].index != null) {
+        onIndexChange(viewableItems[0].index);
+      }
+    },
+    [onIndexChange]
+  );
+
+  const viewabilityConfig = {
+    itemVisiblePercentThreshold: 60,
+  };
+
+  return (
+    <View className="flex-1 justify-center">
+      <FlatList
+        ref={scrollRef}
+        data={SLIDES}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={(item) => item.key}
+        renderItem={({ item }) => (
+          <View
+            style={{ width: SCREEN_WIDTH }}
+            className="items-center justify-center px-8"
+          >
+            <CustomText weight="bold" className="text-4xl text-white mb-4 text-center">
+              {t(item.titleKey)}
+            </CustomText>
+            <CustomText className="text-lg text-white/95 text-center leading-7 px-4">
+              {t(item.subtitleKey)}
+            </CustomText>
+          </View>
+        )}
+        onViewableItemsChanged={onViewableItemsChanged}
+        viewabilityConfig={viewabilityConfig}
+      />
+
+      {/* Pagination Dots */}
+      <View className="flex-row justify-center items-center mt-8 gap-2">
+        {SLIDES.map((slide, index) => (
+          <View
+            key={slide.key}
+            className={`h-2.5 rounded-full transition-all ${
+              index === currentIndex
+                ? 'w-6 bg-white'
+                : 'w-2.5 bg-white/60'
+            }`}
+          />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+// Hero Section Component
+function HeroSection() {
+  const { t } = useTranslation();
+
+  return (
+    <View className="px-6 mb-8">
+      <View className="bg-white/95 dark:bg-black/95 rounded-2xl p-6 border border-white/20">
+        <CustomText weight="bold" className="text-lg text-black dark:text-white mb-2">
+          {t('onboarding.welcome.heroTitle') || 'AI-Powered Trip Planning'}
+        </CustomText>
+        <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+          {t('onboarding.welcome.heroDescription') ||
+            "Tell us about your trip and Safarnak's AI will design the best route for you."}
+        </CustomText>
+
+        {/* Three value props */}
+        <View className="flex-row justify-between items-center mt-4 gap-4">
+          {/* AI */}
+          <View className="flex-1 items-center">
+            <Ionicons name="sparkles" size={22} color="#3b82f6" />
+            <CustomText className="text-xs text-gray-700 dark:text-gray-300 mt-2 font-medium">
+              {t('onboarding.welcome.ai') || 'Smart AI'}
+            </CustomText>
+          </View>
+          {/* Social */}
+          <View className="flex-1 items-center">
+            <Ionicons name="people" size={22} color="#3b82f6" />
+            <CustomText className="text-xs text-gray-700 dark:text-gray-300 mt-2 font-medium">
+              {t('onboarding.welcome.social') || 'Travel together'}
+            </CustomText>
+          </View>
+          {/* Offline */}
+          <View className="flex-1 items-center">
+            <Ionicons name="cloud-offline" size={22} color="#3b82f6" />
+            <CustomText className="text-xs text-gray-700 dark:text-gray-300 mt-2 font-medium">
+              {t('onboarding.welcome.offline') || 'Offline ready'}
+            </CustomText>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+// CTA Section Component
+function CTASection({
+  loading,
+  onStartWithAITrip,
+  onJustLookAround,
+}: {
+  loading: boolean;
+  onStartWithAITrip: () => void;
+  onJustLookAround: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <View className="px-6 pb-8 mt-4">
+      <CustomButton
+        title={t('onboarding.welcome.startAITrip') || 'Start with AI Trip'}
+        onPress={onStartWithAITrip}
+        loading={loading}
+        className="mb-3"
+      />
+      <View className="mb-4">
+        <TouchableOpacity
+          onPress={onJustLookAround}
+          disabled={loading}
+          className="w-full rounded-full py-3 px-3 flex flex-row justify-center items-center border border-white/30 bg-transparent"
+        >
+          {loading ? (
+            <ActivityIndicator color="#ffffff" size="small" />
+          ) : (
+            <CustomText className="text-lg font-bold text-white">
+              {t('onboarding.welcome.justLookAround') || 'Just look around'}
+            </CustomText>
+          )}
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+// Main Welcome Screen
 export default function WelcomeScreen() {
   const { t } = useTranslation();
   const { currentLanguage, changeLanguage } = useLanguage();
+  const { loadStoredUsername, registerUser, loginAndValidate } = useAuth();
   const { isAuthenticated } = useAppSelector(state => state.auth);
-  const pagerRef = useRef<PagerView>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
+  const [storedUsername, setStoredUsername] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [languageDropdownOpen, setLanguageDropdownOpen] = useState(false);
+  const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
 
-  // Auto-redirect if already authenticated
+  const { user } = useAppSelector(state => state.auth);
+
+  // Auto-redirect if already authenticated and active
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace('/(app)/(feed)' as any);
+    if (isAuthenticated && user && user.status === 'active') {
+      router.replace('/(app)/(home)' as any);
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, user]);
+
+  // Load stored username on mount
+  useEffect(() => {
+    (async () => {
+      const existing = await loadStoredUsername();
+      setStoredUsername(existing);
+    })();
+  }, [loadStoredUsername]);
+
+  const generateRandomUsername = (): string => {
+    const prefix = 'traveler';
+    const random = Math.floor(Math.random() * 10000);
+    return `${prefix}-${random}`;
+  };
+
+  const handleStartWithAITrip = async () => {
+    if (storedUsername) {
+      // Existing user - login and go to AI trip wizard
+      setLoading(true);
+      const result = await loginAndValidate(storedUsername);
+      setLoading(false);
+      if (result) {
+        router.replace('/(app)/(trips)/new' as any);
+      }
+    } else {
+      // New user - show dialog
+      Alert.alert(
+        t('onboarding.welcome.chooseUsername') || 'Choose Username',
+        t('onboarding.welcome.chooseUsernameMessage') || 'How would you like to proceed?',
+        [
+          {
+            text: t('onboarding.welcome.autoGenerate') || 'Let Safarnak choose',
+            onPress: async () => {
+              setLoading(true);
+              const randomUsername = generateRandomUsername();
+              const result = await registerUser(randomUsername);
+              setLoading(false);
+              if (result) {
+                router.replace('/(app)/(trips)/new' as any);
+              }
+            },
+          },
+          {
+            text: t('onboarding.welcome.chooseMyself') || 'Let me pick',
+            onPress: () => router.push('/(auth)/register' as any),
+          },
+          { text: t('common.cancel') || 'Cancel', style: 'cancel' },
+        ]
+      );
+    }
+  };
+
+  const handleJustLookAround = async () => {
+    setLoading(true);
+    const randomUsername = generateRandomUsername();
+    const result = await registerUser(randomUsername);
+    setLoading(false);
+    if (result) {
+      router.replace('/(app)/(home)' as any);
+    }
+  };
 
   const languages = [
     { code: 'en', name: t('language.enNative') },
@@ -44,158 +297,136 @@ export default function WelcomeScreen() {
 
   const currentLang = languages.find(l => l.code === currentLanguage) || languages[0];
 
-  const onboarding = [
-    {
-      id: 1,
-      title: t('welcome.onboarding1.title'),
-      description: t('welcome.onboarding1.description'),
-      image: onboardingImage1,
-    },
-    {
-      id: 2,
-      title: t('welcome.onboarding2.title'),
-      description: t('welcome.onboarding2.description'),
-      image: onboardingImage2,
-    },
-    {
-      id: 3,
-      title: t('welcome.onboarding3.title'),
-      description: t('welcome.onboarding3.description'),
-      image: onboardingImage3,
-    },
-    {
-      id: 4,
-      title: t('welcome.onboarding4.title'),
-      description: t('welcome.onboarding4.description'),
-      image: onboardingImage4,
-    },
-    {
-      id: 5,
-      title: t('welcome.onboarding5.title'),
-      description: t('welcome.onboarding5.description'),
-      image: onboardingImage5,
-    },
-  ];
-
-  const isLastSlide = activeIndex === onboarding.length - 1;
+  const currentSlide = SLIDES[currentSlideIndex];
 
   return (
-    <View className="flex-1 bg-black">
-      <Stack.Screen options={{ title: t('common.appName') }} />
-      <View className="absolute top-0 left-0 right-0 z-10 pt-12 pb-4 px-5 bg-black/30">
+    <View className="flex-1">
+      <Stack.Screen options={{ headerShown: false }} />
+      
+      {/* Full-screen background image */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 0,
+        }}
+      >
+        <Image
+          source={currentSlide.image}
+          style={{
+            width: SCREEN_WIDTH,
+            height: SCREEN_HEIGHT,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
+          resizeMode="cover"
+        />
+        {/* Dark overlay for text readability */}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        />
+      </View>
+
+      {/* Header - transparent */}
+      <View
+        className="pt-12 pb-4 px-5"
+        style={{ zIndex: 10 }}
+      >
         <View className="flex-row items-center justify-between">
           <Image source={logoBeta} className="w-16 h-16" resizeMode="contain" />
-          <View className="flex-row items-center justify-center gap-4">
+          <View style={{ position: 'relative' }}>
             <TouchableOpacity
-              onPress={() => router.push('/(auth)/register' as any)}
-              className="self-center"
+              onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
+              className="flex-row items-center justify-center rounded-full px-3 py-1.5 bg-white/20 backdrop-blur"
             >
-              <Text className="text-white text-lg font-bold">{t('welcome.skip')}</Text>
+              <CustomText className="text-base font-medium ltr:mr-1 rtl:ml-1 text-white">
+                {currentLang.name}
+              </CustomText>
+              <Ionicons
+                name={languageDropdownOpen ? 'chevron-up' : 'chevron-down'}
+                size={16}
+                color="#ffffff"
+              />
             </TouchableOpacity>
-            <View style={{ position: 'relative' }}>
-              <TouchableOpacity
-                onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-                className="flex-row items-center justify-center rounded-full px-3 py-1.5"
-              >
-                <Text className="text-white text-base font-medium ltr:mr-1 rtl:ml-1">
-                  {currentLang.name}
-                </Text>
-                <Ionicons
-                  name={languageDropdownOpen ? 'chevron-up' : 'chevron-down'}
-                  size={16}
-                  color="#ffffff"
-                />
-              </TouchableOpacity>
 
-              {languageDropdownOpen && (
-                <View
-                  className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900"
-                  style={{
-                    minWidth: 140,
-                    paddingVertical: 4,
-                    shadowColor: '#000',
-                    shadowOpacity: 0.25,
-                    shadowRadius: 8,
-                    shadowOffset: { width: 0, height: 4 },
-                    elevation: 8,
-                  }}
-                >
-                  {languages.map((lang) => (
-                    <TouchableOpacity
-                      key={lang.code}
-                      onPress={() => {
-                        changeLanguage(lang.code);
-                        setLanguageDropdownOpen(false);
-                      }}
-                      className={`flex-row items-center px-3 py-2 ${
-                        currentLanguage === lang.code ? 'bg-gray-50 dark:bg-neutral-800' : ''
-                      }`}
-                    >
-                      <Text className="text-sm text-gray-900 dark:text-gray-100 font-medium">
-                        {lang.name}
-                      </Text>
-                      {currentLanguage === lang.code && (
-                        <Ionicons
-                          name="checkmark"
-                          size={16}
-                          color="#10b981"
-                          style={{ [I18nManager.isRTL ? 'marginRight' : 'marginLeft']: 'auto' } as any }
-                        />
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              )}
-            </View>
+            {languageDropdownOpen && (
+              <View
+                className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900"
+                style={{
+                  minWidth: 140,
+                  paddingVertical: 4,
+                  shadowColor: '#000',
+                  shadowOpacity: 0.25,
+                  shadowRadius: 8,
+                  shadowOffset: { width: 0, height: 4 },
+                  elevation: 8,
+                }}
+              >
+                {languages.map((lang) => (
+                  <TouchableOpacity
+                    key={lang.code}
+                    onPress={() => {
+                      changeLanguage(lang.code);
+                      setLanguageDropdownOpen(false);
+                    }}
+                    className={`flex-row items-center px-3 py-2 ${
+                      currentLanguage === lang.code ? 'bg-gray-50 dark:bg-neutral-800' : ''
+                    }`}
+                  >
+                    <CustomText className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                      {lang.name}
+                    </CustomText>
+                    {currentLanguage === lang.code && (
+                      <Ionicons
+                        name="checkmark"
+                        size={16}
+                        color="#10b981"
+                        style={{ [I18nManager.isRTL ? 'marginRight' : 'marginLeft']: 'auto' } as any }
+                      />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         </View>
       </View>
 
-      <PagerView
-        ref={pagerRef}
-        style={{ flex: 1 }}
-        initialPage={0}
-        onPageSelected={(e) => setActiveIndex(e.nativeEvent.position)}
+      {/* Main Content - above background */}
+      <View
+        className="flex-1"
+        style={{ zIndex: 10 }}
       >
-        {onboarding.map((item) => (
-          <View key={item.id} className="flex-1">
-            <Image source={item.image} className="absolute w-full h-full" resizeMode="cover" />
-            <View className="flex-1 justify-end pb-28 px-5">
-              <View className="bg-white/90 rounded-2xl p-6 shadow-lg">
-                <Text className="text-[#30D5C8] font-bold text-2xl text-center mb-2">{item.title}</Text>
-                <Text className="text-gray-700 text-center text-[15px] font-medium leading-6">{item.description}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </PagerView>
+        {/* Centered Slider */}
+        <IntroSlider
+          currentIndex={currentSlideIndex}
+          onIndexChange={setCurrentSlideIndex}
+        />
 
-      {/* Pagination Dots */}
-      <View className="absolute bottom-32 left-0 right-0 flex-row justify-center items-center">
-        {onboarding.map((_, index) => (
-          <View
-            key={index}
-            className={`w-8 h-1 mx-1 rounded ${
-              index === activeIndex ? 'bg-[#30D5C8]' : 'bg-white/40'
-            }`}
-          />
-        ))}
-      </View>
+        {/* Hero Card + Value Props */}
+        <HeroSection />
 
-      <View className="absolute bottom-10 left-0 right-0 px-6 z-20">
-        <CustomButton
-          title={isLastSlide ? t('welcome.getStarted') : t('welcome.next')}
-          onPress={() => {
-            if (isLastSlide) {
-              router.push('/(auth)/register' as any);
-            } else {
-              pagerRef.current?.setPage(activeIndex + 1);
-            }
-          }}
-          bgVariant="primary"
-          className="shadow-xl"
+        {/* CTA Buttons */}
+        <CTASection
+          loading={loading}
+          onStartWithAITrip={handleStartWithAITrip}
+          onJustLookAround={handleJustLookAround}
         />
       </View>
     </View>
   );
 }
+

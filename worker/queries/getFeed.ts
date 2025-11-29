@@ -1,8 +1,8 @@
 import { and, desc, eq, or, sql } from 'drizzle-orm';
-import { getServerDB, feedEvents, users, posts, trips, tours, places, locations, followEdges, closeFriends, comments as commentsTable, reactions as reactionsTable } from '@database/server';
+import { getServerDB, feedEvents, users, profiles, posts, trips, places, locations, followEdges, closeFriends, comments as commentsTable, reactions as reactionsTable } from '@database/server';
 import type { GraphQLContext } from '../types';
 
-type EntityType = 'POST' | 'TRIP' | 'TOUR' | 'PLACE' | 'LOCATION';
+type EntityType = 'POST' | 'TRIP' | 'PLACE' | 'LOCATION'; // TOUR removed - use TRIP with isHosted
 
 interface FeedFilter {
   entityTypes?: EntityType[];
@@ -115,6 +115,7 @@ export const getFeed = async (
   for (const row of rows.slice(0, first)) {
     // actor
     const actor = await db.select().from(users).where(eq(users.id, row.actorId)).get();
+    const actorProfile = actor ? await db.select().from(profiles).where(eq(profiles.userId, actor.id)).get() : null;
     // entity
     let entity: any = null;
     if (row.entityType === 'POST') {
@@ -129,10 +130,11 @@ export const getFeed = async (
         const commentsWithUsers = await Promise.all(
           postComments.map(async (c) => {
             const cu = await db.select().from(users).where(eq(users.id, c.userId)).get();
+            const cuProfile = cu ? await db.select().from(profiles).where(eq(profiles.userId, cu.id)).get() : null;
             return {
               ...c,
               user: cu
-                ? { id: cu.id, name: cu.name, username: cu.username, avatar: cu.avatar }
+                ? { id: cu.id, name: cuProfile?.displayName || cu.username, username: cu.username, avatar: cuProfile?.avatarUrl || null }
                 : null,
             };
           })
@@ -145,9 +147,10 @@ export const getFeed = async (
         const reactionsWithUsers = await Promise.all(
           postReactions.map(async (r) => {
             const ru = await db.select().from(users).where(eq(users.id, r.userId)).get();
+            const ruProfile = ru ? await db.select().from(profiles).where(eq(profiles.userId, ru.id)).get() : null;
             return {
               ...r,
-              user: ru ? { id: ru.id, name: ru.name, username: ru.username } : null,
+              user: ru ? { id: ru.id, name: ruProfile?.displayName || ru.username, username: ru.username } : null,
             };
           })
         );
@@ -163,7 +166,8 @@ export const getFeed = async (
     } else if (row.entityType === 'TRIP') {
       entity = await db.select().from(trips).where(eq(trips.id, row.entityId)).get();
     } else if (row.entityType === 'TOUR') {
-      entity = await db.select().from(tours).where(eq(tours.id, row.entityId)).get();
+      // Tour removed - use Trip with isHosted instead
+      entity = await db.select().from(trips).where(eq(trips.id, row.entityId)).get();
     } else if (row.entityType === 'PLACE') {
       entity = await db.select().from(places).where(eq(places.id, row.entityId)).get();
     } else if (row.entityType === 'LOCATION') {
@@ -205,17 +209,16 @@ export const getFeed = async (
         verb: row.verb,
         actor: {
           id: actor.id,
-          name: actor.name,
+          name: actorProfile?.displayName || actor.username,
           username: actor.username,
           email: actor.email,
-          phone: actor.phone,
-          avatar: actor.avatar,
+          phone: actorProfile?.phone || null,
+          avatar: actorProfile?.avatarUrl || null,
           createdAt: actor.createdAt,
         },
         entity: {
           __typename: row.entityType === 'POST' ? 'Post' :
-                      row.entityType === 'TRIP' ? 'Trip' :
-                      row.entityType === 'TOUR' ? 'Tour' :
+                      row.entityType === 'TRIP' || row.entityType === 'TOUR' ? 'Trip' : // TOUR -> Trip
                       row.entityType === 'PLACE' ? 'Place' : 'Location',
           ...entity,
         },

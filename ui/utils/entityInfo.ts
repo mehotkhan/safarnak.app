@@ -2,7 +2,7 @@
  * Entity Info Helper
  * 
  * Extracts title, location, imageUrl, and other info from post relatedEntity
- * Supports trip, tour, and place entity types
+ * Supports trip (with isHosted flag) and place entity types
  */
 
 export interface EntityInfo {
@@ -10,7 +10,8 @@ export interface EntityInfo {
   location: string;
   imageUrl: string | null;
   coordinates: { latitude: number; longitude: number } | null;
-  type: 'trip' | 'tour' | 'place' | null;
+  type: 'trip' | 'place' | null;
+  isHosted?: boolean;
   id: string | null;
 }
 
@@ -38,22 +39,20 @@ export function getEntityInfo(post: any): EntityInfo {
     };
   }
 
-  if (post.type === 'trip') {
+  if (post.type === 'trip' || post.type === 'tour') {
+    // Unified Trip model: tour is now trip with isHosted = true
+    const isHosted = post.relatedEntity?.isHosted || post.type === 'tour';
     return {
-      title: post.relatedEntity.destination || 'Trip',
-      location: post.relatedEntity.destination || '',
-      imageUrl: null,
-      coordinates: post.relatedEntity.tripCoordinates || null,
+      title: isHosted 
+        ? (post.relatedEntity?.title || post.relatedEntity?.destination || 'Trip')
+        : (post.relatedEntity?.destination || 'Trip'),
+      location: isHosted
+        ? (post.relatedEntity?.tripLocation || post.relatedEntity?.location || '')
+        : (post.relatedEntity?.destination || ''),
+      imageUrl: isHosted ? (post.relatedEntity?.imageUrl || null) : null,
+      coordinates: post.relatedEntity?.coordinates || post.relatedEntity?.tripCoordinates || null,
       type: 'trip',
-      id: post.relatedId || null,
-    };
-  } else if (post.type === 'tour') {
-    return {
-      title: post.relatedEntity.title || 'Tour',
-      location: post.relatedEntity.location || '',
-      imageUrl: post.relatedEntity.imageUrl || null,
-      coordinates: post.relatedEntity.tourCoordinates || null,
-      type: 'tour',
+      isHosted,
       id: post.relatedId || null,
     };
   } else if (post.type === 'place') {

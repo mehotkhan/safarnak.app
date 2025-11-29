@@ -3,7 +3,7 @@
 
 import { eq } from 'drizzle-orm';
 import { getServerDB } from '@database/server';
-import { users } from '@database/server';
+import { users, profiles } from '@database/server';
 import { ResolverContext } from '../types';
 import { hashPassword, generateToken } from '../utilities/auth/password';
 
@@ -46,13 +46,10 @@ export const register = async (
     const result = await db
       .insert(users)
       .values({
-        name: username,
         username,
         passwordHash,
         email: null,
-        phone: null,
-        avatar: null,
-        isActive: true,
+        status: 'active',
       })
       .returning({ id: users.id })
       .get();
@@ -69,6 +66,16 @@ export const register = async (
     if (!user) {
       throw new Error('Failed to retrieve created user');
     }
+
+    // Create default profile for the user
+    await db.insert(profiles).values({
+      userId,
+      displayName: username,
+      isActive: true,
+    });
+
+    // Get profile
+    const userProfile = await db.select().from(profiles).where(eq(profiles.userId, userId)).get();
 
     // Generate secure token
     const token = await generateToken(userId, username);
@@ -87,8 +94,9 @@ export const register = async (
     return {
       user: {
         id: user.id, // Already a UUID string
-        name: user.name,
+        name: userProfile?.displayName || user.username,
         username: user.username,
+        status: user.status || 'active',
         createdAt: user.createdAt,
       },
       token,

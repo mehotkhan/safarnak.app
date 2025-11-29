@@ -15,7 +15,7 @@ generates:
   ./api/hooks.ts:
     plugins:
       - add:
-          content: "import { Exact, Scalars, BookTourInput, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTourInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTourInput, UpdateTripInput, UpdateUserInput } from './types';\n"
+          content: "import { Exact, Scalars, CoordinatesInput, CreateLocationInput, CreatePlaceInput, CreatePostInput, CreateTripInput, UpdateLocationInput, UpdatePlaceInput, UpdateTripInput, UpdateUserInput } from './types';\n"
       - typescript-operations
       - typescript-react-apollo
     config:

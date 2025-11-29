@@ -209,9 +209,12 @@ The sync happens automatically on every Apollo cache write:
 
 **Drizzle Cached Tables** (`safarnak_local.db`):
 - `cached_users` - User entities with sync metadata
-- `cached_trips` - Trip entities with sync metadata
+- `cached_profiles` - Profile entities with sync metadata (Phase 11.4)
+- `cached_trips` - Trip entities with sync metadata (includes hosted trips via isHosted flag)
+- `cached_trip_participants` - Trip participant entities (Phase 12)
+- `cached_trip_days` - Trip day entities (Phase 12)
+- `cached_trip_items` - Trip item entities (Phase 12)
 - `cached_messages` - Message entities with sync metadata
-- `cached_tours` - Tour entities with sync metadata
 - `cached_places` - Place entities with sync metadata
 - `pending_mutations` - Queued mutations for offline
 - `sync_metadata` - Sync status per entity type
