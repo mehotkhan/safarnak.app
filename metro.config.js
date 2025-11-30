@@ -1,12 +1,17 @@
 const { getDefaultConfig } = require('expo/metro-config');
 const { withNativeWind } = require('nativewind/metro');
+const path = require('path');
 
 let config = getDefaultConfig(__dirname);
 
-// Add support for .sql files
+// Add support for .sql files (for Drizzle migrations)
+config.resolver.sourceExts.push('sql');
 
-// Support for path aliases
-const path = require('path');
+// Add migrations directory to watchFolders so Metro can resolve migration files
+if (!config.watchFolders) {
+  config.watchFolders = [];
+}
+config.watchFolders.push(path.resolve(__dirname, 'migrations'));
 config.resolver.extraNodeModules = {
   '@': path.resolve(__dirname),
   '@ui': path.resolve(__dirname, 'ui'),
@@ -19,6 +24,7 @@ config.resolver.extraNodeModules = {
   '@constants': path.resolve(__dirname, 'constants'),
   '@locales': path.resolve(__dirname, 'locales'),
   '@assets': path.resolve(__dirname, 'assets'),
+  '@migrations': path.resolve(__dirname, 'migrations'),
   // Polyfill buffer for react-native-quick-crypto
   buffer: require.resolve('buffer'),
 };

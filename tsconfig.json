@@ -69,6 +69,12 @@
       "@assets/*": [
         "./assets/*"
       ],
+      "@migrations": [
+        "./migrations"
+      ],
+      "@migrations/*": [
+        "./migrations/*"
+      ],
       "expo-file-system/next": [
         "./types/expo-file-system-next"
       ]

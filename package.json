@@ -17,12 +17,13 @@
     "images:webp": "./scripts/convert-images-to-webp.sh",
     "worker:dev": "wrangler dev --config wrangler.jsonc --ip 0.0.0.0",
     "worker:deploy": "wrangler deploy --config wrangler.jsonc",
+    "db:generate:server": "drizzle-kit generate --config database/drizzle.config.server.ts",
+    "db:generate:client": "drizzle-kit generate --config database/drizzle.config.client.ts",
     "db:generate": "yarn db:generate:server && yarn db:generate:client",
-    "db:generate:server": "drizzle-kit generate --config drizzle.config.ts",
-    "db:generate:client": "drizzle-kit generate --config drizzle.client.config.ts",
-    "db:migrate": "wrangler d1 migrations apply my-d1-db --local --config wrangler.jsonc",
+    "db:migrate:server": "wrangler d1 migrations apply my-d1-db --local --config wrangler.jsonc",
+    "db:migrate": "yarn db:migrate:server",
     "db:drop-remote": "wrangler d1 execute my-d1-db --remote --file=scripts/cleanup-remote-d1.sql --config wrangler.jsonc",
-    "db:studio": "drizzle-kit studio --config drizzle.config.ts --port 4983",
+    "db:studio": "drizzle-kit studio --config database/drizzle.config.server.ts --port 4983",
     "lint": "eslint . --ext .js,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.ts,.tsx --fix",
     "format": "prettier --write .",
@@ -113,6 +114,7 @@
     "@types/react-dom": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.2",
     "@typescript-eslint/parser": "^8.46.2",
+    "babel-plugin-inline-import": "^3.0.0",
     "babel-plugin-transform-remove-console": "^6.9.4",
     "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.6",
@@ -135,3 +137,6 @@
   },
   "packageManager": "yarn@1.22.22"
 }
+
+
+

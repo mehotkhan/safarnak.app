@@ -8,6 +8,7 @@ module.exports = function (api) {
       'nativewind/babel',
     ],
     plugins: [
+      ['inline-import', { extensions: ['.sql'] }], // Bundle SQL migration files
       // Keep only stable, widely-used plugins
       'react-native-reanimated/plugin',
       'react-native-worklets/plugin', // MUST be last
