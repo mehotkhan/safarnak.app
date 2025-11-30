@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "e836df66-8aeb-4659-bdfc-3c3b398a44d4",
-  "prevId": "a71994a9-8f75-4aae-b0fe-715940118bb0",
+  "id": "cb25f37d-d790-4759-aa89-8d889cc2c84a",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "bookings": {
       "name": "bookings",

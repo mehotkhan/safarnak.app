@@ -43,7 +43,7 @@
       "binding": "DB",
       "database_name": "my-d1-db",
       "database_id": "e4dd65e6-4417-4c6e-b1f8-5e96f3d22643",
-      "migrations_dir": "migrations",
+      "migrations_dir": "migrations/server",
     },
   ],
 

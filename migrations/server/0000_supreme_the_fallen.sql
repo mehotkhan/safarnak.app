@@ -55,6 +55,8 @@ CREATE TABLE `chat_invites` (
 	FOREIGN KEY (`to_user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE INDEX `chat_invites_conversation_id_idx` ON `chat_invites` (`conversation_id`);--> statement-breakpoint
+CREATE INDEX `chat_invites_to_user_id_idx` ON `chat_invites` (`to_user_id`);--> statement-breakpoint
 CREATE TABLE `chat_messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`conversation_id` text NOT NULL,
@@ -70,6 +72,7 @@ CREATE TABLE `chat_messages` (
 	FOREIGN KEY (`sender_device_id`) REFERENCES `devices`(`device_id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
+CREATE INDEX `chat_messages_conversation_id_created_at_idx` ON `chat_messages` (`conversation_id`,`created_at`);--> statement-breakpoint
 CREATE TABLE `close_friends` (
 	`user_id` text NOT NULL,
 	`friend_id` text NOT NULL,
@@ -102,6 +105,8 @@ CREATE TABLE `conversation_members` (
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `conversation_members_conversation_id_user_id_unique` ON `conversation_members` (`conversation_id`,`user_id`);--> statement-breakpoint
+CREATE INDEX `conversation_members_conversation_id_idx` ON `conversation_members` (`conversation_id`);--> statement-breakpoint
+CREATE INDEX `conversation_members_user_id_idx` ON `conversation_members` (`user_id`);--> statement-breakpoint
 CREATE TABLE `conversations` (
 	`id` text PRIMARY KEY NOT NULL,
 	`kind` text NOT NULL,
@@ -211,6 +216,7 @@ CREATE TABLE `message_receipts` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
+CREATE INDEX `message_receipts_message_id_idx` ON `message_receipts` (`message_id`);--> statement-breakpoint
 CREATE TABLE `messages` (
 	`id` text PRIMARY KEY NOT NULL,
 	`content` text NOT NULL,
@@ -471,6 +477,8 @@ CREATE TABLE `users` (
 	`password_hash` text,
 	`public_key` text,
 	`status` text DEFAULT 'active',
+	`email_verified` integer DEFAULT false,
+	`phone_verified` integer DEFAULT false,
 	`created_at` text DEFAULT (CURRENT_TIMESTAMP),
 	`updated_at` text DEFAULT (CURRENT_TIMESTAMP)
 );
