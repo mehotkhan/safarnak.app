@@ -62,6 +62,31 @@ jobs:
         run: |
           yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
           echo "Dependencies installed successfully"
+          
+      - name: Verify Babel plugin is installed
+        run: |
+          echo "Checking for babel-plugin-inline-import..."
+          if [ ! -d "node_modules/babel-plugin-inline-import" ]; then
+            echo "⚠️ babel-plugin-inline-import not found in node_modules, reinstalling..."
+            yarn install --frozen-lockfile
+          fi
+          # Verify it's accessible
+          if node -e "require.resolve('babel-plugin-inline-import')" 2>/dev/null; then
+            echo "✅ babel-plugin-inline-import is accessible"
+          else
+            echo "❌ babel-plugin-inline-import cannot be resolved, installing explicitly..."
+            yarn add -D babel-plugin-inline-import@^3.0.0
+            echo "✅ Plugin installed"
+          fi
+
+      - name: Generate GraphQL types (if needed)
+        run: |
+          if [ ! -f "api/types.ts" ] || [ ! -f "api/hooks.ts" ]; then
+            echo "Generating GraphQL types..."
+            yarn codegen
+          else
+            echo "✅ GraphQL types already exist"
+          fi
 
       - name: Verify required API files exist
         run: |

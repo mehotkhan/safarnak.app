@@ -1,0 +1,22 @@
+# Ignore problematic YAML files that cause Prettier parsing errors
+.github/ISSUE_TEMPLATE/*.yml
+
+# Build outputs
+android/
+ios/
+.expo/
+dist/
+build/
+*.apk
+*.aab
+
+# Dependencies
+node_modules/
+
+# Generated files
+api/types.ts
+api/hooks.ts
+
+# Logs
+*.log
+
