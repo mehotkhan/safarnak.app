@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   View,
   TouchableOpacity,
@@ -14,9 +14,9 @@ import { EmptyState } from '@ui/feedback';
 import { FeedItem, MyTripCard } from '@ui/cards';
 import { useTheme } from '@ui/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
+import { useFeed } from '@hooks/useFeed';
 import { FAB } from '@ui/components';
-import { useGetFeedQuery, useFeedNewEventsSubscription, GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation, GetFeedDocument, useGetTripsQuery } from '@api';
-import { client } from '@api';
+import { GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation, useGetTripsQuery } from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useRefresh } from '@hooks/useRefresh';
 import { Dropdown } from '@ui/forms';
@@ -34,19 +34,10 @@ export default function HomeScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
   const { user } = useAppSelector(state => state.auth);
-  const [selectedTimeFilter, setSelectedTimeFilter] = useState('all');
   const limit = 20;
 
-  const [newItemsCount, setNewItemsCount] = useState(0);
-  const [, setQueuedEvents] = useState<any[]>([]);
-  const [items, setItems] = useState<any[]>([]);
-  const [endCursor, setEndCursor] = useState<string | undefined>(undefined);
-  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-
   const { isOnline, isBackendReachable } = useSystemStatus();
-  const { getNow, isFuture } = useDateTime();
-  const [filterBounds, setFilterBounds] = useState<{ after?: string; before?: string }>({ after: undefined, before: undefined });
+  const { isFuture } = useDateTime();
   
   // Show offline icon if offline OR backend unreachable
   const isOffline = !isOnline || !isBackendReachable;
@@ -85,218 +76,25 @@ export default function HomeScreen() {
     return upcomingTrip || null;
   }, [tripsData, isFuture]);
 
-  // Compute stable time window bounds only when selection changes
-  useEffect(() => {
-    const filter = timeFilters.find(f => f.id === selectedTimeFilter);
-    if (!filter || !filter.days) {
-      setFilterBounds({ after: undefined, before: undefined });
-      return;
-    }
-    const now = getNow(); // capture once
-    const afterIso = now.minus({ days: filter.days }).toISO() || undefined;
-    setFilterBounds({ after: afterIso, before: undefined });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTimeFilter]);
-
-  // Track if we've loaded cached data on mount
-  const hasLoadedCachedData = useRef(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-
-  // Helper function to transform feed edges to items
-  const transformFeedEdgesToItems = useCallback((edges: any[]) => {
-    return edges
-      .map((e: any) => e?.node)
-      .filter(Boolean)
-      .filter((n: any) => n.entityType === 'POST')
-      .map((n: any) => {
-        const ent = n.entity || {};
-        const actor = n.actor || {};
-        return {
-          ...ent,
-          id: ent.id,
-          userId: ent.userId,
-          content: ent.content,
-          comments: ent.comments || [],
-          commentsCount: ent.commentsCount || 0,
-          reactions: ent.reactions || [],
-          reactionsCount: ent.reactionsCount || 0,
-          createdAt: ent.createdAt,
-          user: {
-            id: actor.id,
-            name: actor.name,
-            username: actor.username,
-            avatar: actor.avatar,
-            createdAt: actor.createdAt,
-          },
-        };
-      });
-  }, []);
-
-  // Load cached data from Apollo cache immediately on mount (offline-first)
-  useEffect(() => {
-    if (hasLoadedCachedData.current) return;
-    
-    // Try to read cached feed data from Apollo cache
-    // Try multiple times in case cache is still being restored
-    let attempts = 0;
-    const maxAttempts = 5;
-    const attemptInterval = 100; // 100ms between attempts
-    
-    const tryLoadCache = () => {
-      attempts++;
-      try {
-        const cachedData = client.readQuery({
-          query: GetFeedDocument,
-          variables: {
-            first: limit,
-            after: undefined,
-            filter: {
-              entityTypes: ['POST'] as any,
-              createdAtAfter: filterBounds.after,
-              createdAtBefore: filterBounds.before,
-            },
-          },
-        });
-
-        if (cachedData?.getFeed?.edges) {
-          const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
-          if (cachedItems.length > 0) {
-            setItems(cachedItems);
-            setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
-            setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
-            hasLoadedCachedData.current = true;
-            setInitialLoading(false); // We have cached data, don't show loading
-            return;
-          }
-        }
-      } catch (_error) {
-        // Cache miss or not ready yet
-      }
-      
-      // If we haven't found cached data and haven't exceeded max attempts, try again
-      if (attempts < maxAttempts) {
-        setTimeout(tryLoadCache, attemptInterval);
-      } else {
-        // No cached data found after all attempts
-        setInitialLoading(false);
-        if (__DEV__) {
-          console.debug('[Feed] No cached data found after attempts, will fetch from network');
-        }
-      }
-    };
-    
-    // Start trying immediately
-    tryLoadCache();
-  }, [limit, filterBounds.after, filterBounds.before, transformFeedEdgesToItems]);
-
-  const { data, loading, error, refetch, fetchMore } = useGetFeedQuery({
-    variables: {
-      first: limit,
-      after: undefined,
-      filter: {
-        entityTypes: ['POST'] as any,
-        createdAtAfter: filterBounds.after,
-        createdAtBefore: filterBounds.before,
-      },
-    },
-    fetchPolicy: 'cache-and-network', // Show cached data immediately, then fetch fresh data
-    errorPolicy: 'all',
-    notifyOnNetworkStatusChange: true, // Notify when network fetch completes
-  } as any);
-
-  // Reset list when filter changes and refetch
-  useEffect(() => {
-    hasLoadedCachedData.current = false; // Reset flag when filter changes
-    setItems([]);
-    setEndCursor(undefined);
-    setHasNextPage(false);
-    setInitialLoading(true);
-    
-    // Try to load cached data for new filter immediately
-    try {
-      const cachedData = client.readQuery({
-        query: GetFeedDocument,
-        variables: {
-          first: limit,
-          after: undefined,
-          filter: {
-            entityTypes: ['POST'] as any,
-            createdAtAfter: filterBounds.after,
-            createdAtBefore: filterBounds.before,
-          },
-        },
-      });
-
-      if (cachedData?.getFeed?.edges) {
-        const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
-        if (cachedItems.length > 0) {
-          setItems(cachedItems);
-          setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
-          setHasNextPage(Boolean(cachedData.getFeed.pageInfo?.hasNextPage));
-          hasLoadedCachedData.current = true;
-          setInitialLoading(false); // We have cached data, don't show loading
-        } else {
-          setInitialLoading(false);
-        }
-      } else {
-        setInitialLoading(false);
-      }
-    } catch {
-      // Cache miss - will fetch from network
-      setInitialLoading(false);
-    }
-    
-    refetch({
-      first: limit,
-      after: undefined,
-      filter: {
-        entityTypes: ['POST'] as any,
-        createdAtAfter: filterBounds.after,
-        createdAtBefore: filterBounds.before,
-      },
-    } as any);
-  }, [filterBounds.after, filterBounds.before, refetch, limit, transformFeedEdgesToItems]);
-
-  // Update list from query data (merges with cached data if available)
-  useEffect(() => {
-    if (!data?.getFeed) return;
-    
-    const edges = data.getFeed.edges || [];
-    const newItems = transformFeedEdgesToItems(edges);
-    
-    // Replace with new items from network (fresh data)
-    // This will merge with cached data that was already shown
-    if (newItems.length > 0) {
-      setItems(newItems);
-      setInitialLoading(false); // We have data now, don't show loading
-    }
-    
-    setEndCursor(data.getFeed.pageInfo?.endCursor || undefined);
-    setHasNextPage(Boolean(data.getFeed.pageInfo?.hasNextPage));
-  }, [data, transformFeedEdgesToItems]);
-
-  // Subscribe and queue up to 50 new events; cap banner at 9+
-  useFeedNewEventsSubscription({
-    variables: { filter: { entityTypes: ['POST'] as any } },
-    onData: ({ data }: { data?: any }) => {
-      try {
-        const incoming = (data?.data as any)?.feedNewEvents || [];
-        if (!Array.isArray(incoming) || incoming.length === 0) return;
-        setQueuedEvents((prev) => {
-          const existingIds = new Set(items.map((p) => p.id));
-          const queuedIds = new Set(prev.map((ev) => ev.entityId));
-          const add = incoming.filter(
-            (ev: any) => ev.entityType === 'POST' && !existingIds.has(ev.entityId) && !queuedIds.has(ev.entityId)
-          );
-          const merged = [...prev, ...add];
-          setNewItemsCount(Math.min(9, merged.length));
-          return merged.slice(-50);
-        });
-      } catch {
-        // ignore
-      }
-    },
-  } as any);
+  // Feed hook (offline-first via Drizzle-backed Apollo cache)
+  const {
+    items,
+    loading,
+    initialLoading,
+    error,
+    hasNextPage: _hasNextPage,
+    loadingMore: _loadingMore,
+    loadMore,
+    refetch,
+    selectedTimeFilter,
+    setSelectedTimeFilter,
+    newItemsCount,
+    showNew,
+  } = useFeed({
+    limit,
+    entityTypes: ['POST'],
+    initialTimeFilter: 'all',
+  });
 
   const [createReaction] = useCreateReactionMutation({
     refetchQueries: [GetPostsDocument],
@@ -317,86 +115,9 @@ export default function HomeScreen() {
     await refetch();
   });
 
-  const loadMore = useCallback(async () => {
-    if (loadingMore || !hasNextPage || !endCursor) return;
-    try {
-      setLoadingMore(true);
-      const res = await fetchMore({
-        variables: {
-          first: limit,
-          after: endCursor,
-          filter: {
-            entityTypes: ['POST'] as any,
-            createdAtAfter: filterBounds.after,
-            createdAtBefore: filterBounds.before,
-          },
-        },
-      } as any);
-      const edges = (res?.data as any)?.getFeed?.edges || [];
-      const next = edges
-        .map((e: any) => e?.node)
-        .filter(Boolean)
-        .filter((n: any) => n.entityType === 'POST')
-        .map((n: any) => {
-          const ent = n.entity || {};
-          return {
-            ...ent,
-            id: ent.id,
-            userId: ent.userId,
-            content: ent.content,
-            createdAt: ent.createdAt,
-          };
-        });
-      if (next.length) {
-        setItems((prev) => [...prev, ...next]);
-      }
-      setEndCursor((res?.data as any)?.getFeed?.pageInfo?.endCursor);
-      setHasNextPage(Boolean((res?.data as any)?.getFeed?.pageInfo?.hasNextPage));
-    } finally {
-      setLoadingMore(false);
-    }
-  }, [fetchMore, endCursor, hasNextPage, loadingMore, filterBounds.after, filterBounds.before]);
-
   const handleRefresh = useCallback(async () => {
     await onRefresh();
   }, [onRefresh]);
-
-  const handleShowNew = useCallback(() => {
-    setQueuedEvents((prev) => {
-      const take = prev.slice(0, 3);
-      const rest = prev.slice(3);
-      const mapped = take.map((n: any) => {
-        const ent = n.entity || {};
-        const actor = n.actor || {};
-        return {
-          ...ent,
-          id: ent.id,
-          userId: ent.userId,
-          content: ent.content,
-          comments: ent.comments || [],
-          commentsCount: ent.commentsCount || 0,
-          reactions: ent.reactions || [],
-          reactionsCount: ent.reactionsCount || 0,
-          createdAt: ent.createdAt,
-          user: {
-            id: actor.id,
-            name: actor.name,
-            username: actor.username,
-            avatar: actor.avatar,
-            createdAt: actor.createdAt,
-          },
-        };
-      });
-      setItems((cur) => {
-        const ids = new Set(cur.map((p) => p.id));
-        const toPrepend = mapped.filter((m) => !ids.has(m.id));
-        return [...toPrepend, ...cur];
-      });
-      const remaining = Math.min(9, rest.length);
-      setNewItemsCount(remaining);
-      return rest;
-    });
-  }, []);
 
   const handleLike = useCallback(async (postId: string, currentReactions: any[] = []) => {
     if (!user?.id) return;
@@ -509,7 +230,7 @@ export default function HomeScreen() {
             <Dropdown
               options={timeFilters.map(f => ({ id: f.id, label: f.label }))}
               value={selectedTimeFilter}
-              onChange={setSelectedTimeFilter}
+              onChange={value => setSelectedTimeFilter(value as any)}
               icon="time-outline"
               translationKey="feed.timeFilters"
             />
@@ -531,7 +252,7 @@ export default function HomeScreen() {
             <TouchableOpacity
               className="w-9 h-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 relative"
               onPress={() => {
-                router.push('/(app)/(inbox)/messages' as any);
+                router.push('/(app)/(inbox)' as any);
               }}
               activeOpacity={0.7}
             >
@@ -588,7 +309,7 @@ export default function HomeScreen() {
       {/* New items banner */}
       {newItemsCount > 0 && (
         <TouchableOpacity
-          onPress={handleShowNew}
+          onPress={showNew}
           activeOpacity={0.8}
           className="mx-4 mt-3 mb-1 rounded-full bg-primary items-center justify-center"
           style={{ paddingVertical: 8 }}
