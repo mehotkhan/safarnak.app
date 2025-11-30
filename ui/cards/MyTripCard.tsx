@@ -153,6 +153,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    zIndex:10
   },
   iconContainer: {
     width: 48,

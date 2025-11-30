@@ -63,7 +63,7 @@ export const Dropdown = React.memo<DropdownProps>(({
   };
 
   return (
-    <View style={{ position: 'relative', zIndex: 1000 }} className={className}>
+    <View style={{ position: 'relative', zIndex: 99999 }} className={className}>
       {trigger ? (
         <TouchableOpacity onPress={() => setIsOpen(!isOpen)} activeOpacity={0.7}>
           {trigger}

@@ -274,7 +274,7 @@ export default function HomeScreen() {
         {/* Travel Inspirations Button */}
         <TouchableOpacity
           onPress={() => router.push('/(app)/(home)/inspirations' as any)}
-          className="mt-2 mb-2 p-3 rounded-xl flex-row items-center justify-between"
+          className="mt-2 mb-2 p-3 rounded-xl flex-row items-center justify-between z-10"
           style={{ backgroundColor: isDark ? '#1f2937' : '#f3f4f6' }}
           activeOpacity={0.7}
         >

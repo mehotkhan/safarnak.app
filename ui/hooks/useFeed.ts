@@ -270,7 +270,7 @@ export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
     } as any).catch(() => {
       // network error will be surfaced via `error`
     });
-  }, [filterBounds.after, filterBounds.before, apolloRefetch, entityTypes, limit]);
+  }, [filterBounds.after, filterBounds.before, apolloRefetch, limit]);
 
   // Update list whenever query data changes
   useEffect(() => {
