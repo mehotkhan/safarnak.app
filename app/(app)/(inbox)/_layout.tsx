@@ -13,7 +13,7 @@ export default function NotificationsLayout() {
       <Stack.Screen
         name='index'
         options={{
-          title: t('common.notifications'),
+          title: t('inbox.title') || t('common.inbox') || 'Inbox',
           headerLargeTitle: true,
         }}
       />
@@ -22,12 +22,6 @@ export default function NotificationsLayout() {
         options={{
           title: t('notifications.details'),
           presentation: 'modal',
-        }}
-      />
-      <Stack.Screen
-        name='messages'
-        options={{
-          title: t('messages.title', { defaultValue: 'Messages' }),
         }}
       />
       <Stack.Screen
