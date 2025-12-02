@@ -1,13 +1,17 @@
 /**
- * Trip Creation Workflow (Intelligent Pipeline)
+ * Trip Creation Workflow (Intelligent Pipeline v2)
  * 
- * Redesigned architecture:
- * 1. Research destination (cache-first, OSM + Wikipedia + AI)
- * 2. Validate feasibility (budget, dates, reachability)
- * 3. Semantic matching (Vectorize search for attractions)
- * 4. AI itinerary generation (one-shot with preferences)
- * 5. Translation (batch if needed)
- * 6. Save & notify
+ * Redesigned architecture for speed and correctness:
+ * 1. Research + Match (parallel) - Cache-first destination research + semantic matching
+ * 2. Validate feasibility (lightweight, non-blocking)
+ * 3. AI Itinerary Generation (one-shot with preferences and real places)
+ * 4. Finalize + Save (translation → enrichment → waypoints → DB)
+ * 
+ * Key improvements:
+ * - Parallel I/O for research and matching
+ * - Translation happens BEFORE coordinate enrichment
+ * - Shared finalization pipeline with update workflow
+ * - Real places from matched attractions on first create
  */
 
 import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
@@ -19,13 +23,10 @@ import { trips } from '@database/server';
 import { researchDestination } from '../utilities/destination';
 import { searchAttractionsByPreferences } from '../utilities/semantic/searchAttractions';
 import { generateItineraryFromPreferences } from '../utilities/ai/generateItinerary';
-import { translateItineraryIfNeeded } from '../utilities/ai/translate';
 import {
   calculateDurationFromDates,
-  buildBaseDaysForTranslation,
-  normalizeDaysForDb,
-  extractWaypointsFromDays,
   normalizeRawDaysToRich,
+  finalizeItineraryForSave,
 } from '../utilities/trip/itineraryShared';
 import type { RichDay } from '../utilities/trip/types';
 
@@ -47,7 +48,7 @@ interface TripCreationParams {
 export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationParams> {
   override async run(event: WorkflowEvent<TripCreationParams>, step: WorkflowStep): Promise<void> {
     const { 
-        tripId,
+      tripId,
       userId: _userId, 
       destination, 
       startDate,
@@ -59,6 +60,9 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
       userLocation,
       lang,
     } = event.payload;
+    
+    // Wrap entire workflow in try-catch to send error notification on failure
+    try {
 
     // Single source of truth for trip duration across all steps
     const duration = calculateDurationFromDates(startDate, endDate);
@@ -67,25 +71,63 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     await step.sleep('Connection delay', '0.5 seconds');
 
     // ========================================================================
-    // STEP 1: Research Destination (Cache-First)
+    // STEP 1: Research + Match (PARALLEL)
+    // Combines destination research and semantic matching for speed
     // ========================================================================
-    const researchResult = await step.do('Step 1: Research', async () => {
+    const researchMatchResult = await step.do('Step 1: Research + Match', async () => {
+      const t0 = Date.now();
+      
       await publishNotification(this.env, 'TRIP_UPDATE', { 
         tripUpdates: {
-        id: `${tripId}-step-1`,
-        tripId,
-        type: 'workflow',
-          title: 'Researching Destination',
-          message: `Searching for real information about ${destination || 'destination'} in OpenStreetMap...`,
-        step: 1,
-          totalSteps: 6,
-        status: 'processing',
-          data: JSON.stringify({ status: 'research_start', destination }),
-        createdAt: new Date().toISOString(),
+          id: `${tripId}-step-1`,
+          tripId,
+          type: 'workflow',
+          title: 'Researching & Matching',
+          message: `Searching for real places in ${destination || 'destination'} and matching your preferences...`,
+          step: 1,
+          totalSteps: 4,
+          status: 'processing',
+          data: JSON.stringify({ status: 'research_match_start', destination }),
+          createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
-      const destinationData = await researchDestination(this.env, destination || 'Unknown');
+      // Run destination research and semantic matching in parallel
+      const [destinationData, semanticMatches] = await Promise.all([
+        researchDestination(this.env, destination || 'Unknown'),
+        searchAttractionsByPreferences(
+          this.env,
+          destination || 'Unknown',
+          preferences || '',
+          duration * 4 // Request more attractions than needed
+        ),
+      ]);
+
+      console.log(`[Workflow] Step 1: Research + Match completed in ${Date.now() - t0}ms`);
+      const restaurants = destinationData.restaurants || destinationData.foodSpots || [];
+      console.log(`[Workflow] Found ${destinationData.attractions.length} attractions, ${restaurants.length} restaurants`);
+      console.log(`[Workflow] Semantic search returned ${semanticMatches.length} matches`);
+
+      // Determine which attractions to use
+      // Fallback to all attractions if semantic search returns few results
+      const minAttractionsNeeded = Math.max(duration * 3, 10);
+      let matchedAttractions = semanticMatches;
+      
+      if (matchedAttractions.length < minAttractionsNeeded) {
+        console.log(`[Workflow] Semantic search returned ${matchedAttractions.length} attractions, using fallback to all ${destinationData.attractions.length} attractions`);
+        matchedAttractions = destinationData.attractions;
+      }
+      
+      if (matchedAttractions.length === 0) {
+        console.warn(`[Workflow] No attractions found for ${destination}, itinerary will use generic place names`);
+      } else {
+        console.log(`[Workflow] Using ${matchedAttractions.length} attractions for itinerary generation`);
+        console.log(`[Workflow] Sample attractions:`, matchedAttractions.slice(0, 3).map((a: any) => ({
+          name: a.name,
+          type: a.type,
+          hasAddress: !!a.address,
+        })));
+      }
       
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
@@ -93,38 +135,41 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
           tripId,
           type: 'workflow',
           title: 'Research Complete',
-          message: `Found ${destinationData.attractions.length} attractions and ${destinationData.restaurants.length} restaurants`,
+          message: `Found ${matchedAttractions.length} attractions and ${restaurants.length} restaurants`,
           step: 1,
-          totalSteps: 6,
+          totalSteps: 4,
           status: 'processing',
           data: JSON.stringify({ 
-            attractions: destinationData.attractions.length,
-            restaurants: destinationData.restaurants.length,
-            cached: true,
+            attractions: matchedAttractions.length,
+            restaurants: restaurants.length,
+            semanticMatches: semanticMatches.length,
+            timeTaken: Date.now() - t0,
           }),
           createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
-      return { destinationData };
+      return { destinationData, matchedAttractions, duration };
     });
 
     // ========================================================================
-    // STEP 2: Validate Trip Feasibility
+    // STEP 2: Validate Trip Feasibility (Lightweight, Non-blocking)
     // ========================================================================
     const validationResult = await step.do('Step 2: Validate', async () => {
+      const t0 = Date.now();
+      
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-        id: `${tripId}-step-2`,
-        tripId,
-        type: 'workflow',
+          id: `${tripId}-step-2`,
+          tripId,
+          type: 'workflow',
           title: 'Validation',
           message: 'Checking feasibility of budget, dates and trip duration...',
-        step: 2,
-          totalSteps: 6,
-        status: 'processing',
+          step: 2,
+          totalSteps: 4,
+          status: 'processing',
           data: JSON.stringify({ status: 'validation_start' }),
-        createdAt: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
@@ -139,9 +184,11 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         travelers: travelers || 1,
         preferences: preferences || '',
         userLocation,
-      }, researchResult.destinationData);
+      }, researchMatchResult.destinationData);
 
-      // Show warnings to user
+      console.log(`[Workflow] Step 2: Validation completed in ${Date.now() - t0}ms`);
+
+      // Show warnings to user (non-blocking)
       if (validation.warnings && validation.warnings.length > 0) {
         await publishNotification(this.env, 'TRIP_UPDATE', {
           tripUpdates: {
@@ -151,7 +198,7 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
             title: 'Warning',
             message: validation.warnings.join(' • '),
             step: 2,
-            totalSteps: 6,
+            totalSteps: 4,
             status: 'processing',
             data: JSON.stringify({ warnings: validation.warnings }),
             createdAt: new Date().toISOString(),
@@ -163,73 +210,30 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
     });
 
     // ========================================================================
-    // STEP 3: Semantic Matching (Vectorize Search)
+    // STEP 3: AI Itinerary Generation
+    // Generates raw itinerary - NO enrichment or translation here
     // ========================================================================
-    const matchingResult = await step.do('Step 3: Match Attractions', async () => {
+    const itineraryResult = await step.do('Step 3: Generate Itinerary', async () => {
+      const t0 = Date.now();
+      
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
           id: `${tripId}-step-3`,
           tripId,
           type: 'workflow',
-          title: 'Matching Preferences',
-          message: 'Searching for attractions matching your interests...',
-          step: 3,
-          totalSteps: 6,
-          status: 'processing',
-          data: JSON.stringify({ status: 'matching_start' }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      let matchedAttractions = await searchAttractionsByPreferences(
-        this.env,
-        destination || 'Unknown',
-        preferences || '',
-        duration * 4
-      );
-
-      // Fallback to all attractions if semantic search returns few results
-      if (matchedAttractions.length < duration * 2) {
-        matchedAttractions = researchResult.destinationData.attractions;
-      }
-
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-step-3-complete`,
-          tripId,
-          type: 'workflow',
-          title: 'Matching Complete',
-          message: `Found ${matchedAttractions.length} suitable attractions`,
-          step: 3,
-          totalSteps: 6,
-          status: 'processing',
-          data: JSON.stringify({ matched: matchedAttractions.length }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      return { matchedAttractions, duration };
-    });
-
-    // ========================================================================
-    // STEP 4: AI Itinerary Generation
-    // ========================================================================
-    const itineraryResult = await step.do('Step 4: Generate Itinerary', async () => {
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-step-4`,
-          tripId,
-          type: 'workflow',
           title: 'Generating Itinerary',
-          message: 'Creating detailed itinerary with AI...',
-          step: 4,
-          totalSteps: 6,
+          message: 'Creating detailed itinerary with AI using real places...',
+          step: 3,
+          totalSteps: 4,
           status: 'processing',
           data: JSON.stringify({ status: 'itinerary_generation' }),
           createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
+      const destRestaurants = researchMatchResult.destinationData.restaurants || researchMatchResult.destinationData.foodSpots || [];
+      console.log(`[Workflow] Step 3: Generating itinerary with ${researchMatchResult.matchedAttractions.length} attractions and ${destRestaurants.length} restaurants`);
+      
       // Generate itinerary using AI with preferences and matched attractions/restaurants
       const { itinerary, analysis } = await generateItineraryFromPreferences(this.env, {
         destination: destination || 'Unknown',
@@ -240,197 +244,200 @@ export class TripCreationWorkflow extends WorkflowEntrypoint<Env, TripCreationPa
         endDate,
         accommodation: undefined,
         userLocation,
-        // Pass real attractions and restaurants so AI can use actual place names
-        attractions: matchingResult.matchedAttractions.map((a: any) => ({
-          name: a.name,
-          type: a.type,
-          address: a.address,
-          description: a.description,
+        // Pass real attractions and restaurants so AI uses actual place names
+        attractions: researchMatchResult.matchedAttractions.map((a: any) => ({
+          name: a.name || 'Unknown',
+          type: a.type || a.kind || 'attraction',
+          address: a.address || '',
+          description: a.description || a.shortDescription || `${a.type || a.kind || 'attraction'} in ${destination}`,
+          tags: a.tags || [],
+          rating: a.rating || 0,
         })),
-        restaurants: researchResult.destinationData.restaurants.slice(0, 15).map((r: any) => ({
-          name: r.name,
-          cuisine: r.cuisine,
-          address: r.address,
+        restaurants: destRestaurants.slice(0, 20).map((r: any) => ({
+          name: r.name || 'Restaurant',
+          cuisine: r.cuisine || r.category || 'local',
+          address: r.address || '',
+          priceRange: r.priceRange || '$$',
+          rating: r.rating || 0,
         })),
       });
 
-      // Robust normalization to RichDay[] – handles multiple AI output shapes
+      // Normalize AI output to RichDay[] - NO enrichment here
+      // Enrichment happens in finalization step AFTER translation
       const days: RichDay[] = normalizeRawDaysToRich(itinerary.days || []);
 
-      // Extract waypoints using shared helper
-      const fallbackCenter = {
-        latitude: researchResult.destinationData.facts.coordinates.lat,
-        longitude: researchResult.destinationData.facts.coordinates.lon,
-      };
-      const waypoints = extractWaypointsFromDays(days, fallbackCenter, destination || 'City Center');
+      console.log(`[Workflow] Step 3: Generated ${days.length} days in ${Date.now() - t0}ms`);
 
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-step-4-complete`,
+          id: `${tripId}-step-3-complete`,
           tripId,
           type: 'workflow',
-          title: 'Itinerary Ready',
-          message: `${days.length} days with ${waypoints.length} waypoints`,
-          step: 4,
-          totalSteps: 6,
+          title: 'Itinerary Generated',
+          message: `Created ${days.length} days of activities`,
+          step: 3,
+          totalSteps: 4,
           status: 'processing',
-          data: JSON.stringify({ days: days.length, waypoints: waypoints.length }),
+          data: JSON.stringify({ days: days.length }),
           createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
-      return { days, waypoints, itinerary, analysis };
+      // Return raw days + itinerary metadata (no waypoints yet)
+      return { days, itinerary, analysis };
     });
 
     // ========================================================================
-    // STEP 5: Translation (if needed)
+    // STEP 4: Finalize + Save
+    // Translation → Enrichment → Waypoints → DB Save
+    // Uses shared pipeline for consistency with update workflow
     // ========================================================================
-    const translationResult = await step.do('Step 5: Translation', async () => {
-      const baseDays = buildBaseDaysForTranslation(itineraryResult.days as RichDay[]);
+    await step.do('Step 4: Finalize + Save', async () => {
+      const t0 = Date.now();
+      const db = getServerDB(this.env.DB);
+      
+      const center = {
+        latitude: researchMatchResult.destinationData.facts.coordinates.lat,
+        longitude: researchMatchResult.destinationData.facts.coordinates.lon,
+      };
 
-      if (!lang || lang === 'en') {
+      await publishNotification(this.env, 'TRIP_UPDATE', {
+        tripUpdates: {
+          id: `${tripId}-step-4`,
+          tripId,
+          type: 'workflow',
+          title: 'Finalizing Trip',
+          message: lang && lang !== 'en' 
+            ? `Translating to ${lang} and adding real coordinates...` 
+            : 'Adding real coordinates to places...',
+          step: 4,
+          totalSteps: 4,
+          status: 'processing',
+          data: JSON.stringify({ status: 'finalize_start', lang: lang || 'en' }),
+          createdAt: new Date().toISOString(),
+        }
+      }, this.ctx);
+
+      // Use shared finalization pipeline
+      // This handles: translation → enrichment → waypoints → DB normalization
+      const finalized = await finalizeItineraryForSave({
+        env: this.env,
+        lang,
+        destination: destination || 'Unknown',
+        destinationCenter: center,
+        days: itineraryResult.days as RichDay[],
+        title: itineraryResult.itinerary.title,
+        aiReasoning: itineraryResult.itinerary.aiReasoning,
+      });
+
+      console.log(`[Workflow] Step 4: Finalization completed in ${Date.now() - t0}ms`);
+      console.log(`[Workflow] Final: ${finalized.richDays.length} days, ${finalized.waypoints.length} waypoints`);
+
+      // Validate before saving
+      if (!finalized.dbDays || finalized.dbDays.length === 0) {
+        console.error('[Workflow] No days to save!');
+        
         await publishNotification(this.env, 'TRIP_UPDATE', {
           tripUpdates: {
-            id: `${tripId}-step-5-skip`,
+            id: `${tripId}-step-4-error`,
             tripId,
             type: 'workflow',
-            title: 'Translation skipped',
-            message: 'English language - no translation needed',
-            step: 5,
-            totalSteps: 6,
-            status: 'processing',
-            data: JSON.stringify({ skipped: true }),
+            title: '❌ Generation Failed',
+            message: 'Failed to generate itinerary. Please try again or contact support.',
+            step: 4,
+            totalSteps: 4,
+            status: 'error',
+            data: JSON.stringify({ 
+              status: 'error', 
+              error: 'No valid days generated',
+            }),
             createdAt: new Date().toISOString(),
           }
         }, this.ctx);
-        return { days: baseDays };
-      }
-
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-step-5`,
-          tripId,
-          type: 'workflow',
-          title: 'Translation',
-          message: `Translating itinerary to ${lang}...`,
-          step: 5,
-          totalSteps: 6,
-          status: 'processing',
-          data: JSON.stringify({ status: 'translating', lang }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      const translatedItinerary = await translateItineraryIfNeeded(
-        this.env,
-        {
-          ...(itineraryResult.itinerary || {}),
-          days: baseDays,
-        },
-        lang
-      );
-
-      const translatedDays: RichDay[] = (translatedItinerary.days || baseDays).map((day: any) => ({
-        day: day.day || 1,
-        title: day.title || `Day ${day.day || 1}`,
-        activities: day.activities || [],
-        estimatedCost: day.estimatedCost || 0,
-      }));
-
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-step-5-complete`,
-          tripId,
-          type: 'workflow',
-          title: 'Translation Complete',
-          message: 'Itinerary has been translated to your language',
-          step: 5,
-          totalSteps: 6,
-          status: 'processing',
-          data: JSON.stringify({ translated: true }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      return { days: translatedDays };
-    });
-
-    // ========================================================================
-    // STEP 6: Final Save
-    // ========================================================================
-    await step.do('Step 6: Save', async () => {
-      const db = getServerDB(this.env.DB);
-      
-      const { days } = translationResult;
-      const { waypoints } = itineraryResult;
-      
-      // Validate before saving
-      if (!days || days.length === 0) {
-        console.error('[Workflow] No days to save!');
+        
         throw new Error('No valid days generated');
       }
 
-      console.log(`[Workflow] Saving ${days.length} days to database`);
-      console.log('[Workflow] Days structure:', JSON.stringify(days.map((d: any) => ({
-        day: d.day,
-        title: d.title,
-        activitiesCount: d.activities?.length || 0,
-      })), null, 2));
-      
-      // Normalize itinerary to DB format using shared helper
-      const dbDays = normalizeDaysForDb(translationResult.days as RichDay[]);
-      
+      // Build update data
       const updateData: any = {
-        title: itineraryResult.itinerary.title || `${duration}-Day ${destination} Adventure`,
+        title: finalized.title || `${duration}-Day ${destination} Adventure`,
         destination: destination || 'Unknown',
-        aiReasoning: itineraryResult.itinerary.aiReasoning || `Personalized ${duration}-day trip`,
-        itinerary: JSON.stringify(dbDays),
-        coordinates: JSON.stringify({
-          latitude: researchResult.destinationData.facts.coordinates.lat,
-          longitude: researchResult.destinationData.facts.coordinates.lon,
-        }),
-        waypoints: JSON.stringify(waypoints),
+        aiReasoning: finalized.aiReasoning || `Personalized ${duration}-day trip`,
+        itinerary: JSON.stringify(finalized.dbDays),
+        coordinates: JSON.stringify(center),
+        waypoints: JSON.stringify(finalized.waypoints),
         budget: budget || null,
-        status: 'draft',
+        status: 'active',
         updatedAt: new Date().toISOString(),
         metadata: JSON.stringify({
           validation: validationResult.validation,
-          destinationFacts: researchResult.destinationData.facts,
-          attractionsCount: matchingResult.matchedAttractions.length,
-          waypointsCount: waypoints.length,
+          destinationFacts: researchMatchResult.destinationData.facts,
+          attractionsCount: researchMatchResult.matchedAttractions.length,
+          waypointsCount: finalized.waypoints.length,
           analysis: itineraryResult.analysis,
           pipeline: 'create-ai-v2',
+          language: lang || 'en',
         }),
       };
 
       await db.update(trips).set(updateData).where(eq(trips.id, tripId)).run();
       
-      console.log(`[Workflow] Trip ${tripId} saved successfully with ${days.length} days, status: ${updateData.status}`);
+      console.log(`[Workflow] Trip ${tripId} saved successfully with ${finalized.dbDays.length} days`);
 
       // Final notification
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-step-7`,
+          id: `${tripId}-step-4-complete`,
           tripId,
           type: 'workflow',
           title: '✅ Trip Ready!',
-          message: `${destination} - ${days.length} days - ${waypoints.length} waypoints - with real places`,
-          step: 6,
-          totalSteps: 6,
+          message: `${destination} - ${finalized.richDays.length} days - ${finalized.waypoints.length} waypoints - with real places`,
+          step: 4,
+          totalSteps: 4,
           status: 'completed',
           data: JSON.stringify({ 
             status: 'completed', 
             destination, 
-            days: days.length,
-            waypoints: waypoints.length,
+            days: finalized.richDays.length,
+            waypoints: finalized.waypoints.length,
           }),
           createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
-      console.log('✅ Intelligent trip workflow complete:', tripId, destination, `${days.length} days, ${waypoints.length} waypoints`);
+      console.log('✅ Intelligent trip workflow complete:', tripId, destination, `${finalized.richDays.length} days, ${finalized.waypoints.length} waypoints`);
 
       return { status: 'completed' };
     });
+    } catch (error: any) {
+      // Send error notification to user if workflow fails
+      const { tripId } = event.payload;
+      console.error('[TripCreationWorkflow] Workflow failed:', error);
+      
+      try {
+        await publishNotification(this.env, 'TRIP_UPDATE', {
+          tripUpdates: {
+            id: `${tripId}-workflow-error`,
+            tripId,
+            type: 'workflow',
+            title: '❌ Workflow Error',
+            message: error?.message || 'An error occurred while generating your trip. Please try again.',
+            step: 0,
+            totalSteps: 4,
+            status: 'error',
+            data: JSON.stringify({ 
+              status: 'error', 
+              error: error?.message || 'Unknown error',
+            }),
+            createdAt: new Date().toISOString(),
+          }
+        }, this.ctx);
+      } catch (notifError) {
+        console.error('[TripCreationWorkflow] Failed to send error notification:', notifError);
+      }
+      
+      // Re-throw to mark workflow as failed
+      throw error;
+    }
   }
 }

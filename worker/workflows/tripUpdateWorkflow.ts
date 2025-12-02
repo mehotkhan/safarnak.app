@@ -1,13 +1,18 @@
 /**
- * Trip Update Workflow
+ * Trip Update Workflow (v2)
  * AI-centric workflow for updating trips based on user feedback via chat
  * 
- * New architecture:
+ * Redesigned architecture aligned with creation workflow:
  * 1. Acknowledge + persist feedback
  * 2. Load full trip context + research (cache-first)
  * 3. AI update of itinerary + fields (destination/budget/preferences if changed)
- * 4. Optional validation + translation
- * 5. Save + final TRIP_UPDATE
+ * 4. Validation (lightweight, non-blocking)
+ * 5. Finalize + Save (translation → enrichment → waypoints → DB)
+ * 
+ * Key improvements:
+ * - Shared finalization pipeline with creation workflow
+ * - Translation happens BEFORE coordinate enrichment
+ * - Same data shape and correctness guarantees as create
  */
 
 import { WorkflowEntrypoint, WorkflowStep, WorkflowEvent } from 'cloudflare:workers';
@@ -22,15 +27,12 @@ import { geocodeDestinationCenter } from '../utilities/destination/geo';
 import { loadTripWithContext } from '../utilities/trip/loadTrip';
 import { appendTripFeedback } from '../utilities/trip/persistFeedback';
 import { applyTripUpdateWithAI } from '../utilities/ai/updateTrip';
-import { translateItineraryIfNeeded } from '../utilities/ai/translate';
 import type { TripUpdateInput } from '../utilities/ai/prompts';
 import type { TripUpdateResult } from '../utilities/ai/updateTrip';
 import {
   calculateDurationFromDates,
-  buildBaseDaysForTranslation,
-  normalizeDaysForDb,
-  extractWaypointsFromDays,
   normalizeRawDaysToRich,
+  finalizeItineraryForSave,
 } from '../utilities/trip/itineraryShared';
 import type { RichDay } from '../utilities/trip/types';
 
@@ -78,11 +80,16 @@ interface TripUpdateParams {
 export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams> {
   override async run(event: WorkflowEvent<TripUpdateParams>, step: WorkflowStep): Promise<void> {
     const { tripId, userId: _userId, userMessage, destination: _destination, lang } = event.payload;
+    
+    // Wrap entire workflow in try-catch to send error notification on failure
+    try {
 
     // ========================================================================
     // STEP 1: Acknowledge
     // ========================================================================
     await step.do('Step 1: Acknowledge', async () => {
+      const t0 = Date.now();
+      
       const tripUpdate = {
         id: `${tripId}-update-step-1`,
         tripId,
@@ -90,13 +97,14 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         title: 'Processing Your Request',
         message: `Reviewing your request: "${userMessage.substring(0, 50)}${userMessage.length > 50 ? '...' : ''}"`,
         step: 1,
-        totalSteps: 7,
+        totalSteps: 5,
         status: 'processing',
         data: JSON.stringify({ status: 'acknowledged', userMessage }),
         createdAt: new Date().toISOString(),
       };
 
       await publishNotification(this.env, 'TRIP_UPDATE', { tripUpdates: tripUpdate }, this.ctx);
+      console.log(`[TripUpdateWorkflow] Step 1: Acknowledge completed in ${Date.now() - t0}ms`);
       return { status: 'acknowledged' };
     });
 
@@ -104,74 +112,59 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
     await step.sleep('Connection delay', '0.5 seconds');
 
     // ========================================================================
-    // STEP 2: Load + Persist Feedback
+    // STEP 2: Load + Persist Feedback + Research (parallel where possible)
     // ========================================================================
-    const ctxResult = await step.do('Step 2: Load + Persist Feedback', async () => {
+    const ctxResult = await step.do('Step 2: Load + Research', async () => {
+      const t0 = Date.now();
+      
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
           id: `${tripId}-update-step-2`,
           tripId,
           type: 'workflow',
-          title: 'Saving Your Feedback',
-          message: 'Saving and preparing data for itinerary redesign...',
+          title: 'Loading Trip Data',
+          message: 'Loading trip context and researching destination...',
           step: 2,
-          totalSteps: 7,
+          totalSteps: 5,
           status: 'processing',
-          data: JSON.stringify({ status: 'feedback_saved', userMessage }),
+          data: JSON.stringify({ status: 'loading', userMessage }),
           createdAt: new Date().toISOString(),
         }
       }, this.ctx);
 
       // Load trip with context
       const { trip, itinerary } = await loadTripWithContext(this.env, tripId);
+      const destination = trip.destination || 'Unknown';
 
-      // Persist feedback
-      const updatedMetadata = await appendTripFeedback(this.env, tripId, trip.metadata, userMessage);
+      // Run feedback persistence and research in parallel
+      const [updatedMetadata, destinationData] = await Promise.all([
+        appendTripFeedback(this.env, tripId, trip.metadata, userMessage),
+        researchDestination(this.env, destination),
+      ]);
 
       // Extract user location
       const userLocation = extractUserLocation(trip.metadata, trip.preferences);
 
-      return { trip, itinerary, metadata: updatedMetadata, userLocation };
+      console.log(`[TripUpdateWorkflow] Step 2: Load + Research completed in ${Date.now() - t0}ms`);
+
+      return { trip, itinerary, metadata: updatedMetadata, userLocation, destinationData };
     });
 
     // ========================================================================
-    // STEP 3: Research (Optional / Lightweight)
+    // STEP 3: AI Trip Update (Core)
     // ========================================================================
-    const researchResult = await step.do('Step 3: Research', async () => {
-      const destination = ctxResult.trip.destination || 'Unknown';
+    const updateResult = await step.do('Step 3: AI Trip Update', async () => {
+      const t0 = Date.now();
+      
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
           id: `${tripId}-update-step-3`,
           tripId,
           type: 'workflow',
-          title: 'Re-researching Destination',
-          message: `Updating destination information: ${destination}...`,
-          step: 3,
-          totalSteps: 7,
-          status: 'processing',
-          data: JSON.stringify({ status: 'research', destination }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      // Cache-first research (non-blocking, used for validation)
-      const destinationData = await researchDestination(this.env, destination);
-      return { destinationData };
-    });
-
-    // ========================================================================
-    // STEP 4: AI Trip Update (Core)
-    // ========================================================================
-    const updateResult = await step.do('Step 4: AI Trip Update', async () => {
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-update-step-4`,
-          tripId,
-          type: 'workflow',
           title: 'AI Redesign',
           message: 'Redesigning itinerary based on your feedback...',
-          step: 4,
-          totalSteps: 7,
+          step: 3,
+          totalSteps: 5,
           status: 'processing',
           data: JSON.stringify({ status: 'ai_update' }),
           createdAt: new Date().toISOString(),
@@ -194,18 +187,20 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
       // Apply AI update
       const aiResult = await applyTripUpdateWithAI(this.env, input);
 
+      console.log(`[TripUpdateWorkflow] Step 3: AI Update completed in ${Date.now() - t0}ms`);
+
       if (!aiResult) {
         // Fallback: keep original itinerary, store failure reason
         console.warn('[TripUpdate] AI update failed, keeping original itinerary');
         await publishNotification(this.env, 'TRIP_UPDATE', {
           tripUpdates: {
-            id: `${tripId}-update-step-4-fallback`,
+            id: `${tripId}-update-step-3-fallback`,
             tripId,
             type: 'workflow',
             title: 'Notice',
             message: 'Could not apply changes completely. Current itinerary preserved.',
-            step: 4,
-            totalSteps: 7,
+            step: 3,
+            totalSteps: 5,
             status: 'processing',
             data: JSON.stringify({ status: 'fallback', reason: 'ai_update_failed' }),
             createdAt: new Date().toISOString(),
@@ -220,20 +215,20 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         };
       }
 
-      // Ensure itinerary is RichDay[] format (robust normalizer)
+      // Normalize AI output to RichDay[] - NO enrichment here
       const updatedDays: RichDay[] = normalizeRawDaysToRich(aiResult.updatedItinerary || []);
 
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-update-step-4-complete`,
+          id: `${tripId}-update-step-3-complete`,
           tripId,
           type: 'workflow',
           title: 'Redesign Complete',
-          message: 'Itinerary updated based on your feedback',
-          step: 4,
-          totalSteps: 7,
+          message: `Updated to ${updatedDays.length} days based on your feedback`,
+          step: 3,
+          totalSteps: 5,
           status: 'processing',
-          data: JSON.stringify({ status: 'ai_update_complete' }),
+          data: JSON.stringify({ status: 'ai_update_complete', days: updatedDays.length }),
           createdAt: new Date().toISOString(),
         }
       }, this.ctx);
@@ -248,11 +243,13 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
     });
 
     // ========================================================================
-    // STEP 5: Validation (Optional, Non-blocking)
+    // STEP 4: Validation (Lightweight, Non-blocking)
     // ========================================================================
-    const _validationResult = await step.do('Step 5: Validate', async () => {
+    const validationResult = await step.do('Step 4: Validate', async () => {
+      const t0 = Date.now();
       const modifications: Modifications = updateResult.modifications || {};
       const destination = modifications.destination ?? ctxResult.trip.destination ?? 'Unknown';
+      
       // Use duration helper if dates available, otherwise use itinerary length
       const duration = ctxResult.trip.startDate && ctxResult.trip.endDate
         ? calculateDurationFromDates(ctxResult.trip.startDate, ctxResult.trip.endDate)
@@ -270,18 +267,20 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         travelers,
         preferences,
         userLocation: ctxResult.userLocation,
-      }, researchResult.destinationData);
+      }, ctxResult.destinationData);
+
+      console.log(`[TripUpdateWorkflow] Step 4: Validation completed in ${Date.now() - t0}ms`);
 
       if (validation.warnings && validation.warnings.length > 0) {
         await publishNotification(this.env, 'TRIP_UPDATE', {
           tripUpdates: {
-            id: `${tripId}-update-step-5-warn`,
+            id: `${tripId}-update-step-4-warn`,
             tripId,
             type: 'workflow',
             title: 'Validation Warning',
             message: validation.warnings.join(' • '),
-            step: 5,
-            totalSteps: 7,
+            step: 4,
+            totalSteps: 5,
             status: 'processing',
             data: JSON.stringify({ warnings: validation.warnings }),
             createdAt: new Date().toISOString(),
@@ -289,102 +288,56 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         }, this.ctx);
       }
 
-      return { validation };
+      return { validation, destination, modifications };
     });
 
     // ========================================================================
-    // STEP 6: Translation (Batch)
+    // STEP 5: Finalize + Save
+    // Uses shared finalization pipeline (translation → enrichment → waypoints → DB)
     // ========================================================================
-    const translationResult = await step.do('Step 6: Translation', async () => {
-      const baseDays = buildBaseDaysForTranslation(updateResult.itinerary as RichDay[]);
-
-      if (!lang || lang === 'en') {
-        await publishNotification(this.env, 'TRIP_UPDATE', {
-          tripUpdates: {
-            id: `${tripId}-update-step-6-skip`,
-            tripId,
-            type: 'workflow',
-            title: 'Translation Not Needed',
-            message: 'English language - no translation needed',
-            step: 6,
-            totalSteps: 7,
-            status: 'processing',
-            data: JSON.stringify({ skipped: true }),
-            createdAt: new Date().toISOString(),
-          }
-        }, this.ctx);
-        return { itinerary: baseDays };
-      }
-
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-update-step-6`,
-          tripId,
-          type: 'workflow',
-          title: 'Translation',
-          message: `Translating itinerary to ${lang}...`,
-          step: 6,
-          totalSteps: 7,
-          status: 'processing',
-          data: JSON.stringify({ status: 'translating', lang }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      const translated = await translateItineraryIfNeeded(
-        this.env,
-        { days: baseDays },
-        lang
-      );
-
-      const translatedDays: RichDay[] = (translated.days || baseDays).map((day: any) => ({
-        day: day.day || 1,
-        title: day.title || `Day ${day.day || 1}`,
-        activities: day.activities || [],
-        estimatedCost: day.estimatedCost || 0,
-      }));
-
-      await publishNotification(this.env, 'TRIP_UPDATE', {
-        tripUpdates: {
-          id: `${tripId}-update-step-6-complete`,
-          tripId,
-          type: 'workflow',
-          title: 'Translation Complete',
-          message: 'Itinerary has been translated to your language',
-          step: 6,
-          totalSteps: 7,
-          status: 'processing',
-          data: JSON.stringify({ translated: true }),
-          createdAt: new Date().toISOString(),
-        }
-      }, this.ctx);
-
-      return { itinerary: translatedDays };
-    });
-
-    // ========================================================================
-    // STEP 7: Save + Final Notification
-    // ========================================================================
-    await step.do('Step 7: Save', async () => {
+    await step.do('Step 5: Finalize + Save', async () => {
+      const t0 = Date.now();
       const db = getServerDB(this.env.DB);
-      const modifications: Modifications = updateResult.modifications || {};
-      const destination = modifications.destination ?? ctxResult.trip.destination ?? 'Unknown';
+      const modifications: Modifications = validationResult.modifications || {};
+      const destination = validationResult.destination;
 
-      // Normalize itinerary to DB format using shared helper
-      const richDays: RichDay[] = (translationResult.itinerary || []).map((d: any) => ({
-        day: d.day || 1,
-        title: d.title || `Day ${d.day || 1}`,
-        activities: d.activities || [],
-        estimatedCost: d.estimatedCost || 0,
-      }));
-
-      const dbDays = normalizeDaysForDb(richDays);
+      await publishNotification(this.env, 'TRIP_UPDATE', {
+        tripUpdates: {
+          id: `${tripId}-update-step-5`,
+          tripId,
+          type: 'workflow',
+          title: 'Finalizing Updates',
+          message: lang && lang !== 'en' 
+            ? `Translating to ${lang} and adding coordinates...` 
+            : 'Adding coordinates and saving...',
+          step: 5,
+          totalSteps: 5,
+          status: 'processing',
+          data: JSON.stringify({ status: 'finalize_start', lang: lang || 'en' }),
+          createdAt: new Date().toISOString(),
+        }
+      }, this.ctx);
 
       // Get coordinates (use destination center as fallback)
       const center = await geocodeDestinationCenter(destination) || { latitude: 0, longitude: 0 };
 
-      // Extract waypoints using shared helper
-      const waypoints = extractWaypointsFromDays(richDays, center, destination);
+      // Convert itinerary to RichDay[] for finalization
+      const richInputDays: RichDay[] = normalizeRawDaysToRich(updateResult.itinerary as any[]);
+
+      // Use shared finalization pipeline
+      // This handles: translation → enrichment → waypoints → DB normalization
+      const finalized = await finalizeItineraryForSave({
+        env: this.env,
+        lang,
+        destination,
+        destinationCenter: center,
+        days: richInputDays,
+        title: ctxResult.trip.title || undefined,
+        aiReasoning: updateResult.aiReasoning,
+      });
+
+      console.log(`[TripUpdateWorkflow] Step 5: Finalization completed in ${Date.now() - t0}ms`);
+      console.log(`[TripUpdateWorkflow] Final: ${finalized.richDays.length} days, ${finalized.waypoints.length} waypoints`);
 
       // Build update data
       const updateData: any = {
@@ -392,11 +345,11 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         budget: modifications.budget ?? ctxResult.trip.budget,
         travelers: modifications.travelers ?? ctxResult.trip.travelers,
         preferences: modifications.preferences ?? ctxResult.trip.preferences,
-        aiReasoning: updateResult.aiReasoning || `User feedback applied: ${userMessage.substring(0, 120)}`,
-        itinerary: JSON.stringify(dbDays),
+        aiReasoning: finalized.aiReasoning || updateResult.aiReasoning || `User feedback applied: ${userMessage.substring(0, 120)}`,
+        itinerary: JSON.stringify(finalized.dbDays),
         coordinates: JSON.stringify(center),
-        waypoints: JSON.stringify(waypoints),
-        status: 'draft',
+        waypoints: JSON.stringify(finalized.waypoints),
+        status: 'active',
         updatedAt: new Date().toISOString(),
       };
 
@@ -407,11 +360,8 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
         lastUpdateAt: new Date().toISOString(),
         lastUpdateRequest: userMessage,
         pipeline: 'edit-ai-v2',
+        language: lang || ctxResult.metadata?.language || 'en',
       };
-
-      if (lang && typeof lang === 'string' && lang.trim()) {
-        meta.language = lang.trim();
-      }
 
       if (!updateResult.success) {
         meta.lastUpdateError = 'ai_update_failed';
@@ -429,18 +379,18 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
       // Send final notification
       await publishNotification(this.env, 'TRIP_UPDATE', {
         tripUpdates: {
-          id: `${tripId}-update-step-7`,
+          id: `${tripId}-update-step-5-complete`,
           tripId,
           type: 'workflow',
           title: '✅ Trip Updated!',
-          message: `Itinerary redesigned based on your feedback.`,
-          step: 7,
-          totalSteps: 7,
+          message: `${finalized.richDays.length} days with ${finalized.waypoints.length} waypoints`,
+          step: 5,
+          totalSteps: 5,
           status: 'completed',
           data: JSON.stringify({
             status: 'completed',
-            days: dbDays.length,
-            waypoints: waypoints.length,
+            days: finalized.dbDays.length,
+            waypoints: finalized.waypoints.length,
             success: updateResult.success,
           }),
           createdAt: new Date().toISOString(),
@@ -451,5 +401,35 @@ export class TripUpdateWorkflow extends WorkflowEntrypoint<Env, TripUpdateParams
 
       return { status: 'completed' };
     });
+    } catch (error: any) {
+      // Send error notification to user if workflow fails
+      const { tripId } = event.payload;
+      console.error('[TripUpdateWorkflow] Workflow failed:', error);
+      
+      try {
+        await publishNotification(this.env, 'TRIP_UPDATE', {
+          tripUpdates: {
+            id: `${tripId}-update-workflow-error`,
+            tripId,
+            type: 'workflow',
+            title: '❌ Update Error',
+            message: error?.message || 'An error occurred while updating your trip. Please try again.',
+            step: 0,
+            totalSteps: 5,
+            status: 'error',
+            data: JSON.stringify({ 
+              status: 'error', 
+              error: error?.message || 'Unknown error',
+            }),
+            createdAt: new Date().toISOString(),
+          }
+        }, this.ctx);
+      } catch (notifError) {
+        console.error('[TripUpdateWorkflow] Failed to send error notification:', notifError);
+      }
+      
+      // Re-throw to mark workflow as failed
+      throw error;
+    }
   }
 }

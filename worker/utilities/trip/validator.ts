@@ -66,7 +66,8 @@ export async function validateTripRequest(
   
   // Validate budget
   const costLevel = determineCostLevel(request.budget, duration, request.travelers, destinationData);
-  const minBudget = destinationData.facts.avgCost[costLevel] * duration * request.travelers;
+  const avgCost = destinationData.facts.avgCost || { budget: 50, mid: 100, luxury: 250 };
+  const minBudget = avgCost[costLevel] * duration * request.travelers;
   
   if (request.budget && request.budget < minBudget * 0.7) {
     warnings.push(`Budget may be insufficient for ${duration} days in ${destinationData.facts.city}`);
@@ -75,10 +76,10 @@ export async function validateTripRequest(
   }
   
   // Validate seasonal timing
+  const bestMonths = destinationData.facts.bestMonths || [];
   if (request.startDate) {
     const month = new Date(request.startDate).toLocaleString('en-US', { month: 'short' });
-    if (destinationData.facts.bestMonths.length > 0 && 
-        !destinationData.facts.bestMonths.includes(month)) {
+    if (bestMonths.length > 0 && !bestMonths.includes(month)) {
       warnings.push(`${month} is not the ideal season for ${destinationData.facts.city}`);
       confidence = confidence === 'high' ? 'medium' : confidence;
     }
@@ -156,7 +157,7 @@ function determineCostLevel(
   if (!budget) return 'mid';
   
   const dailyPerPerson = budget / duration / travelers;
-  const costs = destinationData.facts.avgCost;
+  const costs = destinationData.facts.avgCost || { budget: 50, mid: 100, luxury: 250 };
   
   if (dailyPerPerson <= costs.budget * 1.2) return 'budget';
   if (dailyPerPerson <= costs.mid * 1.2) return 'mid';

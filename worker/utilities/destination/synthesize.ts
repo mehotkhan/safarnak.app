@@ -5,6 +5,7 @@
 
 import type { Env } from '../../types';
 import type { DestinationFacts } from './types';
+import { AI_MODELS, AI_PRESETS } from '../ai/models';
 
 /**
  * Synthesize destination facts using AI
@@ -38,10 +39,10 @@ Respond with ONLY valid JSON (no markdown):
   "population": approximate population number or null
 }`;
     
-    const aiResponse: any = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+    const aiResponse: any = await env.AI.run(AI_MODELS.RESEARCH as any, {
       prompt,
-      max_tokens: 512,
-      temperature: 0.3,
+      max_tokens: AI_PRESETS.researchDestination.max_tokens,
+      temperature: AI_PRESETS.researchDestination.temperature,
     });
     
     const text = typeof aiResponse === 'string' ? aiResponse : 
@@ -97,10 +98,10 @@ export async function synthesizeTransportInfo(
   "bus": {"avgCost": number in USD}
 }`;
     
-    const aiResponse: any = await env.AI.run('@cf/meta/llama-3.1-8b-instruct-fp8', {
+    const aiResponse: any = await env.AI.run(AI_MODELS.RESEARCH as any, {
       prompt,
-      max_tokens: 256,
-      temperature: 0.3,
+      max_tokens: AI_PRESETS.researchDestination.max_tokens,
+      temperature: AI_PRESETS.researchDestination.temperature,
     });
     
     const text = typeof aiResponse === 'string' ? aiResponse : 

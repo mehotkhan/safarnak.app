@@ -14,8 +14,8 @@ export interface TripAnalysisInput {
   endDate?: string;
   accommodation?: string;
   userLocation?: string;
-  attractions?: Array<{ name: string; type?: string; address?: string; description?: string }>;
-  restaurants?: Array<{ name: string; cuisine?: string; address?: string }>;
+  attractions?: Array<{ name: string; type?: string; address?: string; description?: string; tags?: string[]; rating?: number }>;
+  restaurants?: Array<{ name: string; cuisine?: string; address?: string; priceRange?: string; rating?: number }>;
 }
 
 export interface TripUpdateInput {
@@ -85,29 +85,46 @@ export function buildItineraryGenerationPrompt(input: TripAnalysisInput, analysi
   // Build list of real attractions to use
   let attractionsList = '';
   if (hasAttractions) {
-    attractionsList += '\n\nREAL ATTRACTIONS (USE THESE NAMES EXACTLY):\n';
-    input.attractions!.slice(0, 30).forEach((attr, idx) => {
-      attractionsList += `${idx + 1}. ${attr.name}${
-        attr.type ? ` (${attr.type})` : ''
-      }${attr.address ? ` - ${attr.address}` : ''}\n`;
+    attractionsList += '\n\n=== REAL ATTRACTIONS - YOU MUST USE THESE EXACT NAMES ===\n';
+    input.attractions!.slice(0, 40).forEach((attr, idx) => {
+      const parts: string[] = [`${idx + 1}. ${attr.name}`];
+      if (attr.type) parts.push(`(${attr.type})`);
+      if (attr.address) {
+        // Use first part of address (usually the place name or street)
+        const addrParts = attr.address.split(',');
+        parts.push(`- ${addrParts[0].trim()}`);
+      }
+      if (attr.description) parts.push(`- ${attr.description}`);
+      attractionsList += parts.join(' ') + '\n';
     });
+    attractionsList += '\nCRITICAL: Every activity MUST reference one of these real attraction names above. Do NOT invent new place names.\n';
   }
 
   // Build list of real restaurants to use
   let restaurantsList = '';
   if (hasRestaurants) {
-    restaurantsList += '\n\nREAL RESTAURANTS (USE THESE NAMES EXACTLY):\n';
-    input.restaurants!.slice(0, 25).forEach((rest, idx) => {
-      restaurantsList += `${idx + 1}. ${rest.name}${
-        rest.cuisine ? ` (${rest.cuisine})` : ''
-      }${rest.address ? ` - ${rest.address}` : ''}\n`;
+    restaurantsList += '\n\n=== REAL RESTAURANTS - YOU MUST USE THESE EXACT NAMES ===\n';
+    input.restaurants!.slice(0, 30).forEach((rest, idx) => {
+      const parts: string[] = [`${idx + 1}. ${rest.name}`];
+      if (rest.cuisine) parts.push(`(${rest.cuisine})`);
+      if (rest.address) {
+        const addrParts = rest.address.split(',');
+        parts.push(`- ${addrParts[0].trim()}`);
+      }
+      if (rest.priceRange) parts.push(`- ${rest.priceRange}`);
+      restaurantsList += parts.join(' ') + '\n';
     });
+    restaurantsList += '\nCRITICAL: Every meal activity MUST reference one of these real restaurant names above. Do NOT invent new restaurant names.\n';
   }
 
   const realPlacesRules = hasRealPlaces
-    ? `1. Use ONLY the real place names listed above. Do NOT invent new places.
-2. Every activity MUST reference at least one real attraction or restaurant from the lists.
-3. Reuse places across multiple days if it makes sense, but avoid repeating the exact same pattern every day.`
+    ? `CRITICAL RULES FOR USING REAL PLACES:
+1. You MUST use ONLY the real place names listed in the sections above. Do NOT invent, guess, or create new place names.
+2. Every single activity MUST reference at least one real attraction or restaurant from the provided lists.
+3. Copy the exact names as written - do not modify, shorten, or paraphrase them.
+4. If an activity mentions a place, it MUST be one from the lists above.
+5. You can reuse places across multiple days if it makes sense, but vary the activities at each place.
+6. If you cannot find a suitable place from the lists for a specific activity, choose the closest match from the lists rather than inventing a name.`
     : `1. Use well-known, realistic places and neighborhoods in ${destination} (landmarks, districts, real-looking venues).
 2. Do NOT use placeholders like "[RESTAURANT]" or "Some Cafe". Always give a concrete name (even if it is an approximate guess).
 3. Prefer famous, central, or plausible places over obscure random names.`;
@@ -148,10 +165,10 @@ Respond ONLY with valid JSON (no markdown, no explanation). The values can be in
       "day": 1,
       "title": "Arrival and Old Town",
       "activities": [
-        "09:00: Visit [REAL PLACE NAME] - address",
-        "12:30: Lunch at [REAL RESTAURANT]",
-        "15:00: Explore [REAL DISTRICT/STREET]",
-        "20:00: Dinner at [REAL RESTAURANT]"
+        "09:00: Visit [EXACT NAME FROM ATTRACTIONS LIST] - [address from list]",
+        "12:30: Lunch at [EXACT NAME FROM RESTAURANTS LIST]",
+        "15:00: Explore [EXACT NAME FROM ATTRACTIONS LIST]",
+        "20:00: Dinner at [EXACT NAME FROM RESTAURANTS LIST]"
       ]
     }
   ],

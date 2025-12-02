@@ -7,6 +7,7 @@ import { DefaultPublishableContext } from 'graphql-workers-subscriptions';
  * Cloudflare Worker environment bindings
  */
 export interface Env {
+  // Cloudflare Services
   DB: D1Database;
   SUBSCRIPTION_POOL: DurableObjectNamespace;
   KV: KVNamespace;           // Key-Value storage for sessions & caches
@@ -17,6 +18,11 @@ export interface Env {
   TRIP_UPDATE_WORKFLOW: Workflow; // Workflow for trip update notifications
   EMBED_QUEUE: Queue<unknown>; // Cloudflare Queue for embedding jobs
   AI: Ai; // Workers AI binding
+
+  // External API Keys
+  OPENTRIPMAP_API_KEY: string; // OpenTripMap - POIs/attractions
+  ORS_API_KEY: string;         // OpenRouteService - routing/directions (optional)
+  // Note: Open-Meteo and Wikivoyage don't need API keys
 }
 
 /**
