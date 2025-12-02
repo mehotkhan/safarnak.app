@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   View,
@@ -7,7 +7,6 @@ import {
   Platform,
   Image,
   TouchableOpacity,
-  Keyboard,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
@@ -55,7 +54,6 @@ export default function ConversationScreen() {
   const { isDark } = useTheme();
   const auth = useAppSelector((state) => state.auth);
   const scrollViewRef = useRef<ScrollView>(null);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const { id } = useLocalSearchParams<{ id?: string }>();
   const conversationId = Array.isArray(id) ? id[0] : id;
 
@@ -95,15 +93,6 @@ export default function ConversationScreen() {
   useEffect(() => {
     scrollViewRef.current?.scrollToEnd({ animated: true });
   }, [messages]);
-
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
 
   const displayName =
     conversation?.title ||
@@ -190,13 +179,11 @@ export default function ConversationScreen() {
         )}
       </ScrollView>
 
-      <View style={{ marginBottom: keyboardVisible ? 30 : 0 }}>
-        <FloatingChatInput
-          onSend={handleSend}
-          placeholder={t('messages.typePlaceholder')}
-          disabled={sending || !conversationId}
-        />
-      </View>
+      <FloatingChatInput
+        onSend={handleSend}
+        placeholder={t('messages.typePlaceholder')}
+        disabled={sending || !conversationId}
+      />
     </KeyboardAvoidingView>
   );
 }

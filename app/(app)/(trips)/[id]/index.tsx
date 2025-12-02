@@ -34,7 +34,7 @@ export default function TripDetailScreen() {
   const { id } = useLocalSearchParams();
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [refreshing, setRefreshing] = useState(false);
-  const { keyboardHeight, keyboardHeightState, keyboardVisible } = useKeyboardInsets();
+  const { keyboardHeight, keyboardHeightState } = useKeyboardInsets();
   const { openTripChat } = useMessagingActions();
   const { user } = useAppSelector(state => state.auth);
   
@@ -106,6 +106,9 @@ export default function TripDetailScreen() {
         }, 2000);
       }, 500);
     }
+    
+    // If workflow has error, keep showing error state (don't auto-clear)
+    // User can retry or dismiss manually
   }, [tripUpdateData?.tripUpdates, refetch, tripId]);
 
   // Auto-refresh if trip is pending (every 3 seconds) - backup in case subscription fails
@@ -700,32 +703,53 @@ export default function TripDetailScreen() {
 
           {/* Pending Status Banner with Workflow Progress - Show when pending OR when we have subscription data */}
           {(trip?.status === 'pending' || (workflowStatus && currentStep !== null)) && (
-            <View className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-2xl p-4 mb-4">
+            <View className={`rounded-2xl p-4 mb-4 ${
+              workflowStatus === 'error' 
+                ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
+                : 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+            }`}>
               <View className="flex-row items-start">
-                <ActivityIndicator 
-                  size="small" 
-                  color={isDark ? '#fbbf24' : '#f59e0b'} 
-                  style={{ marginRight: 12 }}
-                  animating={workflowStatus !== 'completed'}
-                />
+                {workflowStatus === 'error' ? (
+                  <Ionicons 
+                    name="alert-circle" 
+                    size={20} 
+                    color={isDark ? '#f87171' : '#dc2626'} 
+                    style={{ marginRight: 12, marginTop: 2 }}
+                  />
+                ) : (
+                  <ActivityIndicator 
+                    size="small" 
+                    color={isDark ? '#fbbf24' : '#f59e0b'} 
+                    style={{ marginRight: 12 }}
+                    animating={workflowStatus !== 'completed' && workflowStatus !== 'error'}
+                  />
+                )}
                 <View className="flex-1" style={{ flexShrink: 1 }}>
                   {/* Title from subscription or fallback - Full text, no cropping */}
                   <CustomText 
                     weight="bold" 
-                    className="text-base text-yellow-800 dark:text-yellow-200 mb-1"
+                    className={`text-base mb-1 ${
+                      workflowStatus === 'error'
+                        ? 'text-red-800 dark:text-red-200'
+                        : 'text-yellow-800 dark:text-yellow-200'
+                    }`}
                   >
                     {workflowTitle || t('plan.form.processing')}
                   </CustomText>
                   
                   {/* Message from subscription or fallback - Full text, no cropping */}
                   <CustomText 
-                    className="text-sm text-yellow-700 dark:text-yellow-300 mb-2"
+                    className={`text-sm mb-2 ${
+                      workflowStatus === 'error'
+                        ? 'text-red-700 dark:text-red-300'
+                        : 'text-yellow-700 dark:text-yellow-300'
+                    }`}
                   >
                     {workflowMessage || t('plan.form.waitingMessage')}
                   </CustomText>
                   
-                  {/* Workflow Progress Bar - Show when we have step data from subscription */}
-                  {currentStep !== null && totalSteps !== null && (
+                  {/* Workflow Progress Bar - Show when we have step data from subscription and not error */}
+                  {currentStep !== null && totalSteps !== null && workflowStatus !== 'error' && (
                     <View className="mt-2">
                       <ProgressBar
                         current={currentStep}
@@ -737,10 +761,26 @@ export default function TripDetailScreen() {
                   )}
                   
                   {/* Show subscription status if available */}
-                  {workflowStatus && (
-                    <CustomText className="text-xs text-yellow-600 dark:text-yellow-400 mt-2 italic">
+                  {workflowStatus && workflowStatus !== 'error' && (
+                    <CustomText className={`text-xs mt-2 italic ${
+                      workflowStatus === 'completed' 
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-yellow-600 dark:text-yellow-400'
+                    }`}>
                       {workflowStatus === 'completed' ? t('plan.form.generated') : workflowStatus}
                     </CustomText>
+                  )}
+                  
+                  {/* Error action button */}
+                  {workflowStatus === 'error' && (
+                    <TouchableOpacity
+                      onPress={onRefresh}
+                      className="mt-3 bg-red-600 dark:bg-red-700 px-4 py-2 rounded-lg self-start"
+                    >
+                      <CustomText className="text-white text-sm font-semibold">
+                        {t('common.retry')}
+                      </CustomText>
+                    </TouchableOpacity>
                   )}
                 </View>
               </View>
@@ -1031,7 +1071,6 @@ export default function TripDetailScreen() {
           onSend={handleChatSend}
           placeholder={t('plan.form.chatPlaceholder')}
           disabled={updatingTrip || trip?.status === 'pending'}
-          keyboardVisible={keyboardVisible}
         />
       </Animated.View>
 

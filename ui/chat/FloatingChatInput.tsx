@@ -4,22 +4,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@ui/context';
 import Colors from '@constants/Colors';
+import { useKeyboardInsets } from '@hooks/useKeyboardInsets';
 
 interface FloatingChatInputProps {
   onSend: (message: string) => void;
   placeholder?: string;
   disabled?: boolean;
-  keyboardVisible?: boolean;
 }
 
 export default function FloatingChatInput({ 
   onSend, 
   placeholder,
   disabled = false,
-  keyboardVisible = false,
 }: FloatingChatInputProps) {
   const { t } = useTranslation();
   const { isDark } = useTheme();
+  const { keyboardVisible } = useKeyboardInsets();
   const defaultPlaceholder = placeholder || t('messages.typePlaceholder');
   const [message, setMessage] = useState('');
   const [inputHeight, setInputHeight] = useState(36);
