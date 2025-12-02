@@ -1,0 +1,12 @@
+# Safarnak Worker - Local Development Variables
+# Copy this file to .dev.vars and fill in your API keys
+# .dev.vars is gitignored and loaded automatically by wrangler dev
+
+# OpenTripMap API Key (free tier: 20,000 req/day)
+# Get yours at: https://opentripmap.io/product
+OPENTRIPMAP_API_KEY=your_opentripmap_api_key_here
+
+# OpenRouteService API Key (free tier: 2000 req/day)
+# Get yours at: https://openrouteservice.org/dev/#/signup
+ORS_API_KEY=your_ors_api_key_here
+
