@@ -1,24 +1,23 @@
 /**
  * Map Comparison Screen
  * 
- * Leaflet map demo screen.
+ * MapLibre full-screen map with random markers in Iran.
  */
 
-import { useState, useEffect } from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { useState, useEffect, useMemo } from 'react';
+import { View, Text } from 'react-native';
 import { Stack } from 'expo-router';
 import * as Location from 'expo-location';
-import { MapView } from '@ui/maps'; // Leaflet WebView
+import { MapLibreView, generateRandomMarkersInIran, calculateCenterFromMarkers, type MapLibreMarker } from '@ui/maps';
 
 export default function MapComparisonScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
-  // Sample waypoints for testing (Tehran → Darband → Tochal)
-  const waypoints = [
-    { latitude: 35.6892, longitude: 51.3890, label: 'Tehran City Center' },
-    { latitude: 35.7719, longitude: 51.3947, label: 'Darband' },
-    { latitude: 35.8892, longitude: 51.3947, label: 'Tochal Peak' },
-  ];
+  // Generate random markers in Iran
+  const markers = useMemo(() => generateRandomMarkersInIran(15), []);
+
+  // Calculate center from markers
+  const mapCenter = useMemo(() => calculateCenterFromMarkers(markers), [markers]);
 
   useEffect(() => {
     (async () => {
@@ -30,38 +29,43 @@ export default function MapComparisonScreen() {
     })();
   }, []);
 
+  const handleMarkerPress = (marker: MapLibreMarker) => {
+    console.log('Marker pressed:', marker);
+  };
+
   return (
     <View className="flex-1 bg-white dark:bg-black">
       <Stack.Screen
         options={{
-          title: 'Map Comparison',
+          title: 'MapLibre Map',
           headerShown: true,
         }}
       />
 
-      <ScrollView className="flex-1">
-        {/* Info Banner */}
-        <View className="mx-4 mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
-          <Text className="text-sm text-blue-900 dark:text-blue-100 font-medium mb-2">
-            📍 Leaflet WebView
+      {/* Full-screen Map */}
+      <View className="flex-1">
+        <MapLibreView
+          markers={markers}
+          initialCenter={mapCenter}
+          initialZoom={5}
+          minZoom={3}
+          maxZoom={18}
+          showUserLocation={!!location}
+          onMarkerPress={handleMarkerPress}
+        />
+      </View>
+
+      {/* Info Overlay */}
+      <View className="absolute bottom-4 left-4 right-4">
+        <View className="bg-white/90 dark:bg-black/90 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-lg">
+          <Text className="text-sm text-gray-900 dark:text-gray-100 font-semibold mb-1">
+            🗺️ MapLibre React Native
           </Text>
-          <Text className="text-xs text-blue-700 dark:text-blue-300">
-            🍃 WebView-based map - Lighter bundle, custom tile servers, web-compatible
+          <Text className="text-xs text-gray-600 dark:text-gray-400">
+            {markers.length} random markers across Iran
           </Text>
         </View>
-
-        {/* Map Container */}
-        <View className="h-[500px] mx-4 mb-4 rounded-2xl overflow-hidden border-2 border-gray-200 dark:border-gray-800">
-          <MapView
-            location={location}
-            waypoints={waypoints}
-            showControls={true}
-            autoCenter={false}
-          />
         </View>
-
-        <View className="px-4 pb-8" />
-      </ScrollView>
     </View>
   );
 }

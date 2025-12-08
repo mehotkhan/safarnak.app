@@ -87,69 +87,15 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    // Use production namespace / applicationId for release builds
-    namespace 'ir.mohet.safarnak'
+    namespace 'ir.mohet.safarnak_debug'
     defaultConfig {
-        applicationId 'ir.mohet.safarnak'
+        applicationId 'ir.mohet.safarnak_debug'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-
-        // Resolve versionName and versionCode from environment/package.json (CI friendly)
-        // 1) ANDROID_VERSION_CODE (int) can override versionCode
-        // 2) APP_VERSION (semver) can override versionName
-        // 3) Fallback versionName to package.json version
-        def envVersionName = System.getenv('APP_VERSION')
-        // Resolve version from package.json using Node (consistent across envs)
-        def resolvedVersionName = envVersionName
-        if (!resolvedVersionName) {
-            try {
-                // Execute from projectRoot (parent of android/) to find package.json
-                def nodeCmd = ["node", "-p", "require('./package.json').version"]
-                def proc = nodeCmd.execute(null, new File(projectRoot))
-                proc.waitFor()
-                if (proc.exitValue() == 0) {
-                    resolvedVersionName = proc.text.trim()
-                } else {
-                    throw new Exception("Node command failed")
-                }
-            } catch (Exception e) {
-                // Fallback to simple regex parse if node fails
-                def pkgFile = new File(projectRoot, 'package.json')
-                def pkgText = pkgFile.exists() ? pkgFile.getText('UTF-8') : ''
-                def m = (pkgText =~ /"version"\s*:\s*"([0-9]+\.[0-9]+\.[0-9]+)"/)
-                resolvedVersionName = (m && m.find()) ? m.group(1) : "0.0.0"
-            }
-        }
-
-        def envVersionCode = System.getenv('ANDROID_VERSION_CODE')
-        def computeCode = { String v ->
-            def m = (v =~ /(\d+)\.(\d+)\.(\d+)/)
-            if (m) {
-                return m[0][1].toInteger() * 10000 + m[0][2].toInteger() * 100 + m[0][3].toInteger()
-            }
-            return 1
-        }
-        def resolvedVersionCode = envVersionCode ? envVersionCode.toInteger() : computeCode(resolvedVersionName)
-
-        versionCode resolvedVersionCode
-        versionName resolvedVersionName
-
-        // Only ship arm64-v8a ABI to keep APK size small
-        ndk {
-            abiFilters 'arm64-v8a'
-        }
+        versionCode 21801
+        versionName "2.18.1"
 
         buildConfigField "String", "REACT_NATIVE_RELEASE_LEVEL", "\"${findProperty('reactNativeReleaseLevel') ?: 'stable'}\""
-        
-        // ====================================
-        // APK SIZE OPTIMIZATION - Resource Filtering
-        // ====================================
-        // Only include English and Persian languages (removes all other locales)
-        resConfigs "en", "fa"
-        
-        // Only include xxhdpi density (for arm64-v8a devices)
-        // This removes mdpi, hdpi, xhdpi, xxxhdpi variants
-        resConfigs "xxhdpi"
     }
     signingConfigs {
         debug {
@@ -162,20 +108,16 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            // Use a different applicationId for debug builds
-            applicationIdSuffix ".debug"
         }
         release {
             // Caution! In production, you need to generate your own keystore file.
             // see https://reactnative.dev/docs/signed-apk-android.
             signingConfig signingConfigs.debug
-            def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
-            shrinkResources enableShrinkResources.toBoolean()
             minifyEnabled enableMinifyInReleaseBuilds
-            
-            // Use proguard-android-optimize.txt for MORE aggressive R8 optimization
-            proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
-            
+            // shrinkResources requires minifyEnabled to be true
+            def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
+            shrinkResources enableShrinkResources.toBoolean() && enableMinifyInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
             def enablePngCrunchInRelease = findProperty('android.enablePngCrunchInReleaseBuilds') ?: 'true'
             crunchPngs enablePngCrunchInRelease.toBoolean()
         }
@@ -185,9 +127,6 @@ android {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
-        // Handle duplicate native libraries (kept from previous good build)
-        pickFirst '**/libc++_shared.so'
-        pickFirst '**/libjsc.so'
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'

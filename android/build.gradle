@@ -1,24 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-// ====================================
-// PROXY CONFIGURATION (Local Development Only)
-// ====================================
-// Automatically configure proxy settings for local development.
-// Proxy is disabled in CI environments (GitHub Actions sets CI=true).
-def isCI = System.getenv('CI') == 'true' || System.getenv('GITHUB_ACTIONS') == 'true'
-if (!isCI) {
-  // Only set proxy if not already set in gradle.properties (systemProp.* properties)
-  // Check actual system properties, not project properties
-  if (!System.getProperty('http.proxyHost')) {
-    System.setProperty('http.proxyHost', '127.0.0.1')
-    System.setProperty('http.proxyPort', '7890')
-    System.setProperty('https.proxyHost', '127.0.0.1')
-    System.setProperty('https.proxyPort', '7890')
-    System.setProperty('socksProxyHost', '127.0.0.1')
-    System.setProperty('socksProxyPort', '7890')
-  }
-}
-
 buildscript {
   repositories {
     google()

@@ -295,7 +295,7 @@ safarnak.app/                           # Single root directory
 │       └── (profile)/                  # Profile tab - user account
 ├── components/                         # React components (CLIENT)
 │   ├── AuthWrapper.tsx                 # Authentication guard component
-│   ├── MapView.tsx                     # Interactive Leaflet map (WebView-based)
+│   ├── MapView.tsx                     # Interactive MapLibre GL map (native)
 │   ├── context/                        # React contexts
 │   │   ├── LanguageContext.tsx         # i18n language switching
 │   │   ├── LanguageSwitcher.tsx       # Language selector UI

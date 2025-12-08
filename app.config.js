@@ -87,7 +87,7 @@ const getAppConfig = () => {
       slug: 'safarNak',
       version: appVersion,
       orientation: 'portrait',
-      icon: './assets/images/icon.webp',
+      icon: './assets/images/icon.png', // PNG required for Expo prebuild (jimp-compact doesn't support WebP)
       scheme: scheme,
       userInterfaceStyle: 'automatic',
       // Enable New Architecture for debug and local development builds, or when explicitly overridden
@@ -98,13 +98,11 @@ const getAppConfig = () => {
         isDebug ||
         isDevelopment,
       splash: {
-        image: './assets/images/splash-icon.webp',
+        image: './assets/images/splash-icon.png', // PNG required for Expo prebuild (jimp-compact doesn't support WebP)
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
         // Optimize splash screen for smaller APK
         ...(isProduction && {
-          // Use smaller splash image in production (WebP is smaller)
-          image: './assets/images/splash-icon.webp',
           // Disable splash screen animation in production for faster startup
           enableSplashScreenAnimation: false,
         }),
@@ -125,7 +123,7 @@ const getAppConfig = () => {
             return maj * 10000 + min * 100 + pat;
           })(),
         adaptiveIcon: {
-          foregroundImage: './assets/images/adaptive-icon.webp',
+          foregroundImage: './assets/images/adaptive-icon.png', // PNG required for Expo prebuild (jimp-compact doesn't support WebP)
           backgroundColor: '#ffffff',
         },
         edgeToEdgeEnabled: true,
@@ -169,21 +167,6 @@ const getAppConfig = () => {
             isAndroidBackgroundLocationEnabled: true,
           },
         ],
-        // ====================================
-        // BARE WORKFLOW - No gradleProperties needed!
-        // ====================================
-        // All build optimizations are now committed directly in:
-        // - android/gradle.properties (all Gradle/Hermes/R8 settings)
-        // - android/app/proguard-rules.pro (ProGuard/R8 rules)
-        // 
-        // Benefits:
-        // ✅ Full control over build configuration
-        // ✅ No expo prebuild overwriting our settings
-        // ✅ What we see locally = what CI builds
-        // ✅ Faster CI builds (no prebuild step)
-        //
-        // The expo-build-properties plugin is still needed for some Expo features,
-        // but we don't use it for optimization settings anymore.
         [
           'expo-build-properties',
           {
@@ -213,6 +196,7 @@ const getAppConfig = () => {
             } : {},
           },
         ],
+        "@maplibre/maplibre-react-native"
       ],
       experiments: {
         typedRoutes: true,

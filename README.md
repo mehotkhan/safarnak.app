@@ -614,8 +614,9 @@ ui/                           # 🎨 All client UI code
 ├── auth/                    # Authentication components
 │   └── AuthWrapper.tsx      # Authentication guard
 ├── maps/                    # Map components
-│   ├── MapView.tsx          # Leaflet-based map
-│   └── MapView.tsx          # Leaflet WebView map
+│   ├── MapView.tsx          # MapLibre GL map (native, replaces Leaflet)
+│   ├── MapLibreView.tsx     # MapLibre GL map component
+│   └── MapLibreLayerSelector.tsx  # Map layer selector UI
 ├── forms/                   # Form components
 │   ├── CustomButton.tsx
 │   ├── InputField.tsx
