@@ -7,8 +7,9 @@
 // Proxy is disabled in CI environments (GitHub Actions sets CI=true).
 def isCI = System.getenv('CI') == 'true' || System.getenv('GITHUB_ACTIONS') == 'true'
 if (!isCI) {
-  // Only set proxy if not already set in gradle.properties
-  if (!project.hasProperty('systemProp.http.proxyHost')) {
+  // Only set proxy if not already set in gradle.properties (systemProp.* properties)
+  // Check actual system properties, not project properties
+  if (!System.getProperty('http.proxyHost')) {
     System.setProperty('http.proxyHost', '127.0.0.1')
     System.setProperty('http.proxyPort', '7890')
     System.setProperty('https.proxyHost', '127.0.0.1')
