@@ -171,21 +171,28 @@ jobs:
       # -----------------------------------------------------------------------
       - name: Calculate version code for Android
         id: version_code
+        if: steps.version_changed.outputs.changed == 'true'
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          if [ -z "$VERSION" ]; then
+            echo "❌ Error: Version is empty!"
+            exit 1
+          fi
           VERSION_CODE=$(node -e "
             const v = '$VERSION'.split('.').map(n => parseInt(n, 10) || 0);
+            if (v.length !== 3 || v.some(n => isNaN(n))) {
+              console.error('Invalid version format:', '$VERSION');
+              process.exit(1);
+            }
             const code = v[0] * 10000 + v[1] * 100 + v[2];
-            if (isNaN(code) || code <= 0) {
-              console.error('Error: Invalid version code calculated from version: $VERSION');
+            if (isNaN(code) || code < 1) {
+              console.error('Invalid version code calculated:', code);
               process.exit(1);
             }
             console.log(code);
           ")
-          # Validate version code is a valid number
-          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
-            echo "❌ Error: Invalid version code calculated: $VERSION_CODE"
-            echo "Version: $VERSION"
+          if [ -z "$VERSION_CODE" ] || [ "$VERSION_CODE" = "NaN" ]; then
+            echo "❌ Error: Version code calculation failed! VERSION=$VERSION, VERSION_CODE=$VERSION_CODE"
             exit 1
           fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -314,18 +321,8 @@ jobs:
           VERSION_CODE=$(node -e "
             const v = '$VERSION'.split('.').map(n => parseInt(n, 10) || 0);
             const code = v[0] * 10000 + v[1] * 100 + v[2];
-            if (isNaN(code) || code <= 0) {
-              console.error('Error: Invalid version code calculated from version: $VERSION');
-              process.exit(1);
-            }
             console.log(code);
           ")
-          # Validate version code is a valid number
-          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
-            echo "❌ Error: Invalid version code calculated: $VERSION_CODE"
-            echo "Version: $VERSION"
-            exit 1
-          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT

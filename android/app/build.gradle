@@ -129,19 +129,7 @@ android {
             }
             return 1
         }
-        // Safely parse version code from environment, handling NaN/invalid values
-        def resolvedVersionCode
-        if (envVersionCode && envVersionCode != "NaN" && envVersionCode != "null") {
-            try {
-                resolvedVersionCode = envVersionCode.toInteger()
-            } catch (NumberFormatException e) {
-                // If parsing fails, compute from version name
-                resolvedVersionCode = computeCode(resolvedVersionName)
-            }
-        } else {
-            // No env var or invalid value, compute from version name
-            resolvedVersionCode = computeCode(resolvedVersionName)
-        }
+        def resolvedVersionCode = envVersionCode ? envVersionCode.toInteger() : computeCode(resolvedVersionName)
 
         versionCode resolvedVersionCode
         versionName resolvedVersionName
