@@ -6,12 +6,13 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import { CustomText } from '@ui/display';
 import { ProgressBar } from '@ui/feedback';
 import { CustomButton } from '@ui/forms';
@@ -22,7 +23,6 @@ import { useGetTripQuery, useTripUpdatesSubscription, useUpdateTripMutation } fr
 import Colors from '@constants/Colors';
 import { FloatingChatInput } from '@ui/chat';
 import { ShareModal, ConvertToHostedModal } from '@ui/modals';
-import { useKeyboardInsets } from '@hooks/useKeyboardInsets';
 import { useMessagingActions } from '@hooks/useMessagingActions';
 import { useAppSelector } from '@state/hooks';
 
@@ -34,7 +34,6 @@ export default function TripDetailScreen() {
   const { id } = useLocalSearchParams();
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [refreshing, setRefreshing] = useState(false);
-  const { keyboardHeight, keyboardHeightState } = useKeyboardInsets();
   const { openTripChat } = useMessagingActions();
   const { user } = useAppSelector(state => state.auth);
   
@@ -173,15 +172,6 @@ export default function TripDetailScreen() {
       }));
   }, [trip?.waypoints]);
 
-  // Animated style for floating input positioning - MUST be before early returns
-  const floatingInputStyle = useAnimatedStyle(() => {
-    const height = keyboardHeight.value;
-    // When keyboard is visible, position input just above keyboard
-    // When keyboard is hidden, position at bottom with safe area
-    return {
-      bottom: height > 0 ? height : insets.bottom,
-    };
-  });
 
   // Loading state
   if (loading && !trip) {
@@ -636,42 +626,49 @@ export default function TripDetailScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white dark:bg-black">
-      <Stack.Screen
-        options={{
-          title: (trip?.destination as string) || t('plan.viewPlan'),
-          headerShown: true,
-          headerRight: () => (
-            <View className="flex-row items-center">
-              {showMap && (
-                <TouchableOpacity onPress={handleMapPress} className="p-2">
-                  <Ionicons name="map-outline" size={22} color={isDark ? '#fff' : '#000'} />
-                </TouchableOpacity>
-              )}
-              {/* Make Public / Convert to Tour button - only show if trip is not already hosted and user owns the trip */}
-              {trip && !trip.isHosted && user?.id && trip.userId === user.id && (
-                <TouchableOpacity onPress={handleMakePublic} className="p-2">
-                  <Ionicons name="globe-outline" size={22} color={isDark ? '#fff' : '#000'} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity onPress={handleShare} className="p-2">
-                <Ionicons name="share-outline" size={22} color={isDark ? '#fff' : '#000'} />
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} className="p-2">
-                <Ionicons name="trash-outline" size={22} color="#ef4444" />
-              </TouchableOpacity>
-            </View>
-          ),
-        }}
-      />
-
-      <ScrollView 
-        className="flex-1"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingBottom: keyboardHeightState > 0 ? keyboardHeightState + 80 : 100 }}
-        showsVerticalScrollIndicator={true}
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#ffffff' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
+        <Stack.Screen
+          options={{
+            title: (trip?.destination as string) || t('plan.viewPlan'),
+            headerShown: true,
+            headerRight: () => (
+              <View className="flex-row items-center">
+                {showMap && (
+                  <TouchableOpacity onPress={handleMapPress} className="p-2">
+                    <Ionicons name="map-outline" size={22} color={isDark ? '#fff' : '#000'} />
+                  </TouchableOpacity>
+                )}
+                {/* Make Public / Convert to Tour button - only show if trip is not already hosted and user owns the trip */}
+                {trip && !trip.isHosted && user?.id && trip.userId === user.id && (
+                  <TouchableOpacity onPress={handleMakePublic} className="p-2">
+                    <Ionicons name="globe-outline" size={22} color={isDark ? '#fff' : '#000'} />
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={handleShare} className="p-2">
+                  <Ionicons name="share-outline" size={22} color={isDark ? '#fff' : '#000'} />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleDelete} className="p-2">
+                  <Ionicons name="trash-outline" size={22} color="#ef4444" />
+                </TouchableOpacity>
+              </View>
+            ),
+          }}
+        />
+
+        {/* Trip content */}
+        <View style={{ flex: 1 }}>
+          <ScrollView 
+            className="flex-1"
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: 100 }}
+            showsVerticalScrollIndicator={true}
+          >
         {/* Map View */}
         {showMap && location && (
           <View className="h-64 bg-gray-100 dark:bg-neutral-900">
@@ -1053,26 +1050,16 @@ export default function TripDetailScreen() {
           )}
           
         </View>
-      </ScrollView>
-      
-      {/* Floating Chat Input - Adjusts with keyboard */}
-      <Animated.View 
-        className="absolute left-0 right-0 border-t border-gray-200 dark:border-neutral-800"
-        style={[
-          {
-            backgroundColor: isDark ? '#000000' : '#ffffff',
-            paddingTop: 8,
-            paddingBottom: keyboardHeightState > 0 ? 0 : insets.bottom,
-          },
-          floatingInputStyle,
-        ]}
-      >
+          </ScrollView>
+        </View>
+
+        {/* Floating input fixed to bottom */}
         <FloatingChatInput
           onSend={handleChatSend}
           placeholder={t('plan.form.chatPlaceholder')}
           disabled={updatingTrip || trip?.status === 'pending'}
         />
-      </Animated.View>
+      </KeyboardAvoidingView>
 
       {/* Share Modal */}
       <ShareModal
@@ -1095,7 +1082,7 @@ export default function TripDetailScreen() {
         }}
         loading={updatingTrip}
       />
-    </View>
+    </SafeAreaView>
   );
 }
 

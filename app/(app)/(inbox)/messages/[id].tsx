@@ -8,6 +8,7 @@ import {
   Image,
   TouchableOpacity,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { CustomText } from '@ui/display';
@@ -102,89 +103,99 @@ export default function ConversationScreen() {
     'Conversation';
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1 bg-white dark:bg-black">
-      <Stack.Screen
-        options={{
-          title: displayName || t('messages.conversation'),
-          headerShown: true,
-        }}
-      />
+    <SafeAreaView style={{ flex: 1, backgroundColor: isDark ? '#000000' : '#ffffff' }}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        <Stack.Screen
+          options={{
+            title: displayName || t('messages.conversation'),
+            headerShown: true,
+          }}
+        />
 
-      <View className="px-6 py-3 bg-gray-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
-        <View className="flex-row items-center">
-          <View className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
-            {conversation?.members[0]?.avatar ? (
-              <Image
-                source={{ uri: conversation.members[0].avatar || undefined }}
-                className="w-full h-full"
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="w-full h-full items-center justify-center">
-                <Ionicons name="person" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-              </View>
-            )}
-          </View>
-          <View>
-            <CustomText weight="bold" className="text-base text-black dark:text-white">
-              {displayName}
-            </CustomText>
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400">
-              {conversation?.members.length
-                ? `${conversation.members.length} ${t('messages.members') || 'members'}`
-                : ''}
-            </CustomText>
+        <View className="px-6 py-3 bg-gray-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+          <View className="flex-row items-center">
+            <View className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
+              {conversation?.members[0]?.avatar ? (
+                <Image
+                  source={{ uri: conversation.members[0].avatar || undefined }}
+                  className="w-full h-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="w-full h-full items-center justify-center">
+                  <Ionicons name="person" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+                </View>
+              )}
+            </View>
+            <View>
+              <CustomText weight="bold" className="text-base text-black dark:text-white">
+                {displayName}
+              </CustomText>
+              <CustomText className="text-sm text-gray-600 dark:text-gray-400">
+                {conversation?.members.length
+                  ? `${conversation.members.length} ${t('messages.members') || 'members'}`
+                  : ''}
+              </CustomText>
+            </View>
           </View>
         </View>
-      </View>
 
-      <ScrollView ref={scrollViewRef} className="flex-1 px-4 py-4" contentContainerStyle={{ flexGrow: 1 }}>
-        {(messagesLoading && messages.length === 0) || !conversation ? (
-          <View className="flex-1 items-center justify-center py-20">
-            <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-          </View>
-        ) : (
-          <>
-            {hasMore && (
-              <TouchableOpacity
-                className="mb-4 items-center"
-                onPress={loadMore}
-                disabled={fetchingMore}
-                activeOpacity={0.7}
-              >
-                <CustomText className="text-sm text-primary">
-                  {fetchingMore
-                    ? t('common.loading') || 'Loading…'
-                    : t('messages.loadEarlier') || 'Load earlier messages'}
-                </CustomText>
-              </TouchableOpacity>
-            )}
-            {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                text={message.plaintext || message.ciphertext}
-                timestamp={message.createdAt}
-                isOwnMessage={message.senderUserId === auth.user?.id}
-                pending={message.pending}
-              />
-            ))}
-            {messages.length === 0 && (
-              <View className="flex-1 items-center justify-center py-12">
-                <CustomText className="text-base text-gray-500 dark:text-gray-400">
-                  {t('messages.noMessagesYet')}
-                </CustomText>
+        {/* Chat content / messages list */}
+        <View style={{ flex: 1 }}>
+          <ScrollView ref={scrollViewRef} className="flex-1 px-4 py-4" contentContainerStyle={{ flexGrow: 1 }}>
+            {(messagesLoading && messages.length === 0) || !conversation ? (
+              <View className="flex-1 items-center justify-center py-20">
+                <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
               </View>
+            ) : (
+              <>
+                {hasMore && (
+                  <TouchableOpacity
+                    className="mb-4 items-center"
+                    onPress={loadMore}
+                    disabled={fetchingMore}
+                    activeOpacity={0.7}
+                  >
+                    <CustomText className="text-sm text-primary">
+                      {fetchingMore
+                        ? t('common.loading') || 'Loading…'
+                        : t('messages.loadEarlier') || 'Load earlier messages'}
+                    </CustomText>
+                  </TouchableOpacity>
+                )}
+                {messages.map((message) => (
+                  <MessageBubble
+                    key={message.id}
+                    text={message.plaintext || message.ciphertext}
+                    timestamp={message.createdAt}
+                    isOwnMessage={message.senderUserId === auth.user?.id}
+                    pending={message.pending}
+                  />
+                ))}
+                {messages.length === 0 && (
+                  <View className="flex-1 items-center justify-center py-12">
+                    <CustomText className="text-base text-gray-500 dark:text-gray-400">
+                      {t('messages.noMessagesYet')}
+                    </CustomText>
+                  </View>
+                )}
+              </>
             )}
-          </>
-        )}
-      </ScrollView>
+          </ScrollView>
+        </View>
 
-      <FloatingChatInput
-        onSend={handleSend}
-        placeholder={t('messages.typePlaceholder')}
-        disabled={sending || !conversationId}
-      />
-    </KeyboardAvoidingView>
+        {/* Floating input fixed to bottom */}
+        <FloatingChatInput
+          onSend={handleSend}
+          placeholder={t('messages.typePlaceholder')}
+          disabled={sending || !conversationId}
+        />
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
