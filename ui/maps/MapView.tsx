@@ -282,6 +282,15 @@ export default function MapView({
             title={marker.title}
           >
             <View className="items-center justify-center">
+              {/* Place Name Label */}
+              {marker.title && (
+                <View className="mb-1 px-2 py-1 bg-white/95 dark:bg-gray-900/95 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md">
+                  <Text className="text-xs font-semibold text-gray-900 dark:text-gray-100" numberOfLines={1}>
+                    {marker.title}
+                  </Text>
+                </View>
+              )}
+              {/* Marker Icon */}
               <View className="w-8 h-8 bg-purple-500 rounded-full border-2 border-white shadow-lg items-center justify-center">
                 <Ionicons name="location" size={16} color="#FFFFFF" />
               </View>

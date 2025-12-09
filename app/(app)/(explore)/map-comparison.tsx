@@ -4,11 +4,11 @@
  * MapLibre full-screen map with random markers in Iran.
  */
 
-import { useState, useEffect, useMemo } from 'react';
-import { View, Text } from 'react-native';
-import { Stack } from 'expo-router';
+import { MapLibreView, calculateCenterFromMarkers, generateRandomMarkersInIran, type MapLibreMarker } from '@ui/maps';
 import * as Location from 'expo-location';
-import { MapLibreView, generateRandomMarkersInIran, calculateCenterFromMarkers, type MapLibreMarker } from '@ui/maps';
+import { Stack } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { View } from 'react-native';
 
 export default function MapComparisonScreen() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -54,19 +54,7 @@ export default function MapComparisonScreen() {
           onMarkerPress={handleMarkerPress}
         />
       </View>
-
-      {/* Info Overlay */}
-      <View className="absolute bottom-4 left-4 right-4">
-        <View className="bg-white/90 dark:bg-black/90 rounded-xl p-4 border border-gray-200 dark:border-gray-800 shadow-lg">
-          <Text className="text-sm text-gray-900 dark:text-gray-100 font-semibold mb-1">
-            🗺️ MapLibre React Native
-          </Text>
-          <Text className="text-xs text-gray-600 dark:text-gray-400">
-            {markers.length} random markers across Iran
-          </Text>
-        </View>
-        </View>
-    </View>
+      </View>
   );
 }
 
