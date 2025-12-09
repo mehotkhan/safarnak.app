@@ -19,7 +19,7 @@ import {
 import { createId } from '@database/utils';
 import { useAppSelector } from '@ui/state/hooks';
 import { enqueueOfflineMutation } from '@ui/state/middleware/offlineMiddleware';
-import { encryptMessage, decryptMessage } from '@/crypto/conversationKeys';
+import { encryptMessage, decryptMessage } from '@utils/conversationKeys';
 import type { DeviceKeyPair } from '@state/slices/authSlice';
 
 interface ConversationMember {
