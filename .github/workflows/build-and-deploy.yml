@@ -176,8 +176,18 @@ jobs:
           VERSION_CODE=$(node -e "
             const v = '$VERSION'.split('.').map(n => parseInt(n, 10) || 0);
             const code = v[0] * 10000 + v[1] * 100 + v[2];
+            if (isNaN(code) || code <= 0) {
+              console.error('Error: Invalid version code calculated from version: $VERSION');
+              process.exit(1);
+            }
             console.log(code);
           ")
+          # Validate version code is a valid number
+          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
+            echo "❌ Error: Invalid version code calculated: $VERSION_CODE"
+            echo "Version: $VERSION"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "📱 Version: $VERSION → Version Code: $VERSION_CODE"
@@ -304,8 +314,18 @@ jobs:
           VERSION_CODE=$(node -e "
             const v = '$VERSION'.split('.').map(n => parseInt(n, 10) || 0);
             const code = v[0] * 10000 + v[1] * 100 + v[2];
+            if (isNaN(code) || code <= 0) {
+              console.error('Error: Invalid version code calculated from version: $VERSION');
+              process.exit(1);
+            }
             console.log(code);
           ")
+          # Validate version code is a valid number
+          if ! [[ "$VERSION_CODE" =~ ^[0-9]+$ ]]; then
+            echo "❌ Error: Invalid version code calculated: $VERSION_CODE"
+            echo "Version: $VERSION"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
           echo "major=$(echo $VERSION | cut -d. -f1)" >> $GITHUB_OUTPUT
