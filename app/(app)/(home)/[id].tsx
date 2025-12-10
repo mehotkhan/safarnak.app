@@ -22,6 +22,7 @@ import { useGetPostQuery, useCreateCommentMutation, useCreateReactionMutation, u
 import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
+import { NetworkStatus } from '@apollo/client';
 
 export default function PostDetailScreen() {
   const { t } = useTranslation();
@@ -32,11 +33,12 @@ export default function PostDetailScreen() {
   const { formatRelativeTime } = useDateTime();
   const [commentText, setCommentText] = useState('');
 
-  const { data, loading, error, refetch } = useGetPostQuery({
+  const { data, loading, networkStatus, error, refetch } = useGetPostQuery({
     variables: { id: postId },
     skip: !postId,
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
 
   const [createComment, { loading: creatingComment }] = useCreateCommentMutation({
@@ -149,7 +151,11 @@ export default function PostDetailScreen() {
     }
   };
 
-  if (loading) {
+  // Data-first: show data if it exists, only show loading if no data
+  const isInitialLoad = !post && loading;
+  const isRefetching = !!post && networkStatus === NetworkStatus.refetch;
+
+  if (isInitialLoad) {
     return <LoadingState message={t('common.loading')} />;
   }
 

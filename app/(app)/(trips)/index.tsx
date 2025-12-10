@@ -13,11 +13,12 @@ import { CustomText } from '@ui/display';
 import { useTheme } from '@ui/context';
 import { TripCard } from '@ui/cards';
 import { TabBar } from '@ui/layout';
-import { FAB } from '@ui/components';
+import { CreateFAB } from '@ui/components';
 import { useGetTripsQuery } from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useActivationGuard } from '@ui/hooks/useActivationGuard';
 import Colors from '@constants/Colors';
+import { NetworkStatus } from '@apollo/client';
 
 type TabType = 'myTrips' | 'joined' | 'drafts';
 
@@ -31,9 +32,10 @@ export default function PlanScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   // GraphQL Queries
-  const { data: tripsData, loading: tripsLoading, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
+  const { data: tripsData, loading: tripsLoading, networkStatus: tripsNetworkStatus, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
 
   // Filter trips by current user and status
@@ -68,10 +70,6 @@ export default function PlanScreen() {
     );
   }, [allTrips, user?.id]);
 
-  // Loading and error states
-  const currentLoading = tripsLoading;
-  const currentError = tripsError;
-
   // Refresh handler
   const onRefresh = useCallback(async () => {
     try {
@@ -101,9 +99,41 @@ export default function PlanScreen() {
     }
   }, [activeTab, myTrips, joinedTrips, draftTrips]);
 
+  // Loading and error states - data-first pattern (after currentData is defined)
+  const isInitialLoad = !currentData.length && tripsLoading;
+  const isRefetching = currentData.length > 0 && tripsNetworkStatus === NetworkStatus.refetch;
+  const currentError = tripsError;
+
   // Render content based on active tab
   const renderContent = () => {
-    if (currentLoading && currentData.length === 0) {
+    // Data-first: show data if it exists, only show loading if no data
+    if (currentData.length > 0) {
+      return (
+        <FlatList
+          key={`trips-list-${activeTab}`}
+          extraData={`${activeTab}-${currentData.length}`}
+          data={currentData as any[]}
+          keyExtractor={(item, index) => `${activeTab}-${item?.id || index}`}
+          removeClippedSubviews={true}
+          renderItem={({ item }) => {
+            if (!item?.id) return null;
+            
+            return (
+              <TripCard
+                trip={item}
+                onPress={() => handleTripPress(item.id)}
+              />
+            );
+          }}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          }
+          contentContainerStyle={{ padding: 24, paddingTop: 0 }}
+        />
+      );
+    }
+
+    if (isInitialLoad) {
       return (
         <View className="flex-1 items-center justify-center py-20">
           <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
@@ -174,29 +204,8 @@ export default function PlanScreen() {
       );
     }
 
-    return (
-      <FlatList
-        key={`trips-list-${activeTab}`}
-        extraData={`${activeTab}-${currentData.length}`}
-        data={currentData as any[]}
-        keyExtractor={(item, index) => `${activeTab}-${item?.id || index}`}
-        removeClippedSubviews={true}
-        renderItem={({ item }) => {
-          if (!item?.id) return null;
-          
-            return (
-              <TripCard
-                trip={item}
-                onPress={() => handleTripPress(item.id)}
-              />
-            );
-        }}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        contentContainerStyle={{ padding: 24, paddingTop: 0 }}
-      />
-    );
+    // Empty state
+    return null;
   };
 
   return (
@@ -232,28 +241,28 @@ export default function PlanScreen() {
       {renderContent()}
 
       {/* FAB */}
-      <FAB
+      <CreateFAB
         options={[
           {
             id: 'trip',
             label: 'Create Trip',
             translationKey: 'plan.createPlan',
             icon: 'airplane-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/trip',
           },
           {
             id: 'place',
             label: 'Add Place',
             translationKey: 'places.addPlace',
             icon: 'location-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/place',
           },
           {
             id: 'experience',
             label: 'Create Experience',
             translationKey: 'feed.newPost.title',
             icon: 'create-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/experience',
           },
         ]}
       />

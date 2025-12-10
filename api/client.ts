@@ -378,7 +378,7 @@ const errorLink = onError(({ graphQLErrors, networkError, operation }: any) => {
   }
 });
 
-const cache = new InMemoryCache();
+export const cache = new InMemoryCache();
 
 export const client = new ApolloClient({
   link: from([errorLink, authLink, splitLink]),
@@ -398,13 +398,11 @@ export const client = new ApolloClient({
   },
 });
 
-// Lazy cache persistence initialization
-// Deferred to avoid blocking app bootup
 let cachePersistenceInitialized = false;
 let cachePersistencePromise: Promise<void> | null = null;
 
-export async function initializeCachePersistence(): Promise<void> {
-  if (cachePersistenceInitialized) return;
+export function initializeCachePersistence(): Promise<void> {
+  if (cachePersistenceInitialized) return Promise.resolve();
   if (cachePersistencePromise) return cachePersistencePromise;
   
   cachePersistencePromise = (async () => {
@@ -423,9 +421,9 @@ export async function initializeCachePersistence(): Promise<void> {
           if (__DEV__) {
             console.log('✅ Apollo cache persistence initialized');
           }
-        } catch (drizzleError) {
+        } catch (_drizzleError) {
           if (__DEV__) {
-            console.warn('⚠️ Drizzle cache persistence failed, falling back to AsyncStorage:', drizzleError);
+            console.warn('⚠️ Drizzle cache persistence failed, falling back to AsyncStorage');
           }
           try {
             // Fallback to AsyncStorage if Drizzle fails
@@ -438,9 +436,9 @@ export async function initializeCachePersistence(): Promise<void> {
             if (__DEV__) {
               console.log('✅ Apollo cache persistence via AsyncStorage initialized');
             }
-          } catch (asyncError) {
+          } catch (_asyncError) {
             if (__DEV__) {
-              console.error('❌ Failed to persist cache with AsyncStorage:', asyncError);
+              console.error('❌ Failed to persist cache with AsyncStorage');
             }
           }
         }
@@ -464,14 +462,7 @@ export async function initializeCachePersistence(): Promise<void> {
   return cachePersistencePromise;
 }
 
-// Initialize cache persistence after a delay to avoid blocking app bootup
-if (Platform.OS !== 'web') {
-  setTimeout(() => {
-    initializeCachePersistence().catch(() => {
-      // Silently fail - cache persistence is optional
-    });
-  }, 2000); // 2 second delay
-}
+// ❌ NO setTimeout here anymore - cache restoration must happen before app renders
 
 // ============================================================================
 // WebSocket Utilities

@@ -4,9 +4,7 @@ import type { ApolloError } from '@apollo/client';
 import {
   useGetFeedQuery,
   useFeedNewEventsSubscription,
-  GetFeedDocument,
 } from '@api';
-import { client } from '@api';
 import { useDateTime } from '@hooks/useDateTime';
 
 type TimeFilterId = 'all' | 'today' | 'week' | 'month';
@@ -56,7 +54,7 @@ export interface UseFeedOptions {
 export interface UseFeedResult {
   items: FeedItemEntity[];
   loading: boolean;
-  initialLoading: boolean;
+  networkStatus: number;
   error: ApolloError | undefined;
   hasNextPage: boolean;
   loadingMore: boolean;
@@ -79,6 +77,12 @@ function transformFeedEdgesToItems(edges: any[]): FeedItemEntity[] {
     .map((n: any) => {
       const ent = n.entity || {};
       const actor = n.actor || {};
+      
+      // Ensure required fields exist to prevent crashes
+      if (!ent.id || !ent.userId || !actor.id) {
+        return null;
+      }
+      
       return {
         ...ent,
         id: ent.id,
@@ -97,7 +101,8 @@ function transformFeedEdgesToItems(edges: any[]): FeedItemEntity[] {
           createdAt: actor.createdAt,
         },
       } as FeedItemEntity;
-    });
+    })
+    .filter((item): item is FeedItemEntity => item !== null);
 }
 
 export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
@@ -122,11 +127,9 @@ export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const hasLoadedCachedData = useRef(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-
   const [_queuedEvents, setQueuedEvents] = useState<any[]>([]);
   const [newItemsCount, setNewItemsCount] = useState(0);
+  const isFirstMount = useRef(true);
 
   // Compute stable time window bounds when filter changes
   useEffect(() => {
@@ -141,64 +144,13 @@ export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTimeFilter]);
 
-  // Load cached data from Apollo cache immediately on first mount (offline-first)
-  useEffect(() => {
-    if (hasLoadedCachedData.current) return;
-
-    let attempts = 0;
-    const maxAttempts = 5;
-    const attemptInterval = 100; // ms
-
-    const tryLoadCache = () => {
-      attempts += 1;
-      try {
-        const cachedData = client.readQuery({
-          query: GetFeedDocument,
-          variables: {
-            first: limit,
-            after: undefined,
-            filter: {
-              entityTypes: entityTypes as any,
-              createdAtAfter: filterBounds.after,
-              createdAtBefore: filterBounds.before,
-            },
-          },
-        });
-
-        if (cachedData?.getFeed?.edges) {
-          const cachedItems = transformFeedEdgesToItems(
-            cachedData.getFeed.edges,
-          );
-          if (cachedItems.length > 0) {
-            setItems(cachedItems);
-            setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
-            setHasNextPage(
-              Boolean(cachedData.getFeed.pageInfo?.hasNextPage),
-            );
-            hasLoadedCachedData.current = true;
-            setInitialLoading(false);
-            return;
-          }
-        }
-      } catch {
-        // Cache miss or not ready yet
-      }
-
-      if (attempts < maxAttempts) {
-        setTimeout(tryLoadCache, attemptInterval);
-      } else {
-        setInitialLoading(false);
-      }
-    };
-
-    tryLoadCache();
-    // We intentionally ignore filterBounds/entityTypes to avoid restarting attempts on every change
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [limit]);
+  // Cache is now restored before components mount, so Apollo will automatically
+  // read from cache first. No need for manual cache reading attempts.
 
   const {
     data,
     loading,
+    networkStatus,
     error,
     refetch: apolloRefetch,
     fetchMore,
@@ -217,74 +169,42 @@ export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
     notifyOnNetworkStatusChange: true,
   } as any);
 
-  // When filter bounds change, reset list and attempt to read cached data synchronously
+  // When filter bounds change, reset list
+  // Apollo will automatically re-run the query when variables change (cache-and-network policy)
   useEffect(() => {
-    hasLoadedCachedData.current = false;
+    // Skip on initial mount - let the query run naturally
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+
+    // Reset list when filter changes - Apollo will automatically refetch with new variables
     setItems([]);
     setEndCursor(undefined);
     setHasNextPage(false);
-    setInitialLoading(true);
-
-    try {
-      const cachedData = client.readQuery({
-        query: GetFeedDocument,
-        variables: {
-          first: limit,
-          after: undefined,
-          filter: {
-            entityTypes: entityTypes as any,
-            createdAtAfter: filterBounds.after,
-            createdAtBefore: filterBounds.before,
-          },
-        },
-      });
-
-      if (cachedData?.getFeed?.edges) {
-        const cachedItems = transformFeedEdgesToItems(cachedData.getFeed.edges);
-        if (cachedItems.length > 0) {
-          setItems(cachedItems);
-          setEndCursor(cachedData.getFeed.pageInfo?.endCursor || undefined);
-          setHasNextPage(
-            Boolean(cachedData.getFeed.pageInfo?.hasNextPage),
-          );
-          hasLoadedCachedData.current = true;
-          setInitialLoading(false);
-        } else {
-          setInitialLoading(false);
-        }
-      } else {
-        setInitialLoading(false);
-      }
-    } catch {
-      setInitialLoading(false);
-    }
-
-    apolloRefetch({
-      first: limit,
-      after: undefined,
-      filter: {
-        entityTypes: entityTypes as any,
-        createdAtAfter: filterBounds.after,
-        createdAtBefore: filterBounds.before,
-      },
-    } as any).catch(() => {
-      // network error will be surfaced via `error`
-    });
-  }, [filterBounds.after, filterBounds.before, apolloRefetch, limit]);
+  }, [filterBounds.after, filterBounds.before]);
 
   // Update list whenever query data changes
+  // With cache-and-network, this will fire immediately with cached data, then again with network data
   useEffect(() => {
     if (!data?.getFeed) return;
-    const edges = data.getFeed.edges || [];
-    const newItems = transformFeedEdgesToItems(edges);
+    
+    try {
+      const edges = data.getFeed.edges || [];
+      const newItems = transformFeedEdgesToItems(edges);
 
-    if (newItems.length > 0) {
-      setItems(newItems);
-      setInitialLoading(false);
+      if (newItems.length > 0) {
+        setItems(newItems);
+      }
+
+      setEndCursor(data.getFeed.pageInfo?.endCursor || undefined);
+      setHasNextPage(Boolean(data.getFeed.pageInfo?.hasNextPage));
+    } catch (error) {
+      if (typeof __DEV__ !== 'undefined' && __DEV__) {
+        console.error('Error transforming feed data:', error);
+      }
+      // Don't crash - just keep existing items
     }
-
-    setEndCursor(data.getFeed.pageInfo?.endCursor || undefined);
-    setHasNextPage(Boolean(data.getFeed.pageInfo?.hasNextPage));
   }, [data]);
 
   // Subscribe to new events and queue them (banner-style)
@@ -422,7 +342,7 @@ export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
     () => ({
       items,
       loading,
-      initialLoading,
+      networkStatus: networkStatus || 0,
       error: error as ApolloError | undefined,
       hasNextPage,
       loadingMore,
@@ -438,7 +358,7 @@ export function useFeed(options: UseFeedOptions = {}): UseFeedResult {
     [
       items,
       loading,
-      initialLoading,
+      networkStatus,
       error,
       hasNextPage,
       loadingMore,

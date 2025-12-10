@@ -15,7 +15,7 @@ import { FeedItem, MyTripCard } from '@ui/cards';
 import { useTheme } from '@ui/context';
 import { useSystemStatus } from '@hooks/useSystemStatus';
 import { useFeed } from '@hooks/useFeed';
-import { FAB } from '@ui/components';
+import { CreateFAB } from '@ui/components';
 import { GetPostsDocument, useCreateReactionMutation, useDeleteReactionMutation, useBookmarkPostMutation, useGetTripsQuery } from '@api';
 import { useAppSelector } from '@state/hooks';
 import { useRefresh } from '@hooks/useRefresh';
@@ -80,7 +80,6 @@ export default function HomeScreen() {
   const {
     items,
     loading,
-    initialLoading,
     error,
     hasNextPage: _hasNextPage,
     loadingMore: _loadingMore,
@@ -95,6 +94,10 @@ export default function HomeScreen() {
     entityTypes: ['POST'],
     initialTimeFilter: 'all',
   });
+
+  // Determine loading states: only show full loading if no data exists
+  // With cache-and-network, cached data shows immediately, network runs in background
+  const isInitialLoad = !items.length && loading;
 
   const [createReaction] = useCreateReactionMutation({
     refetchQueries: [GetPostsDocument],
@@ -360,9 +363,9 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 4 }}
         ListEmptyComponent={
-          // Only show loading if we don't have any items AND we're still loading
-          // If we have items (cached or fresh), don't show loading spinner
-          items.length === 0 && (initialLoading || loading) ? (
+          // Data-first pattern: only show loading if no data exists
+          // If we have cached data, it will show immediately (no loading state)
+          isInitialLoad ? (
             <LoadingState message="Loading..." className="py-16" />
           ) : items.length === 0 && error ? (
             <ErrorState
@@ -381,28 +384,28 @@ export default function HomeScreen() {
       />
 
       {/* FAB */}
-      <FAB
+      <CreateFAB
         options={[
           {
             id: 'experience',
             label: 'Create Experience',
             translationKey: 'feed.newPost.title',
             icon: 'create-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/experience',
           },
           {
             id: 'trip',
             label: 'Create Trip',
             translationKey: 'plan.createPlan',
             icon: 'airplane-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/trip',
           },
           {
             id: 'place',
             label: 'Add Place',
             translationKey: 'places.addPlace',
             icon: 'location-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/place',
           },
         ]}
       />

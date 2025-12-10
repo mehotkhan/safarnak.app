@@ -17,7 +17,8 @@ import { useDebounce } from '@hooks/useDebounce';
 import { useRefresh } from '@hooks/useRefresh';
 import { SearchBar } from '@ui/forms';
 import { TabBar } from '@ui/layout';
-import { FAB } from '@ui/components';
+import { CreateFAB } from '@ui/components';
+import { NetworkStatus } from '@apollo/client';
 
 type TabType = 'discover' | 'tours' | 'places' | 'trips'; // 'tours' tab now shows hosted trips
 
@@ -31,34 +32,44 @@ export default function ExploreScreen() {
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   // Semantic search (when user types)
-  const { data: searchData, loading: searchLoading, error: searchError, refetch: refetchSearch } = useSearchSemanticQuery({
+  const { data: searchData, loading: searchLoading, networkStatus: searchNetworkStatus, error: searchError, refetch: refetchSearch } = useSearchSemanticQuery({
     variables: { query: debouncedSearch || '', first: 30 },
     skip: !debouncedSearch || debouncedSearch.length < 2,
     fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   } as any);
 
   // Trending topics (KV-backed)
-  const { data: trendingData, loading: trendingLoading, refetch: refetchTrending } = useGetTrendingQuery({
+  const { data: trendingData, loading: trendingLoading, networkStatus: trendingNetworkStatus, refetch: refetchTrending } = useGetTrendingQuery({
     variables: { type: 'TOPIC' as any, window: 'H1' as any, limit: 12 },
     fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   } as any);
 
   // Tab data queries
-  const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetTripsQuery({
+  const { data: toursData, loading: toursLoading, networkStatus: toursNetworkStatus, error: toursError, refetch: refetchTours } = useGetTripsQuery({
     variables: { isHosted: true },
     skip: activeTab !== 'tours',
     fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
 
-  const { data: placesData, loading: placesLoading, error: placesError, refetch: refetchPlaces } = useGetPlacesQuery({
+  const { data: placesData, loading: placesLoading, networkStatus: placesNetworkStatus, error: placesError, refetch: refetchPlaces } = useGetPlacesQuery({
     variables: { limit: 20 },
     skip: activeTab !== 'places',
     fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
 
-  const { data: tripsData, loading: tripsLoading, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
+  const { data: tripsData, loading: tripsLoading, networkStatus: tripsNetworkStatus, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
     skip: activeTab !== 'trips',
     fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
 
   // Refresh hooks
@@ -165,7 +176,35 @@ export default function ExploreScreen() {
   const renderTabContent = () => {
     // Tours Tab
     if (activeTab === 'tours') {
-      if (toursLoading) {
+      const tours = toursData?.getTrips || [];
+      const isInitialLoad = !tours.length && toursLoading;
+      const isRefetching = tours.length > 0 && toursNetworkStatus === NetworkStatus.refetch;
+
+      // Data-first: show data if it exists, only show loading if no data
+      if (tours.length > 0) {
+        return (
+          <FlatList
+            data={tours}
+            keyExtractor={(item: any) => `tour-${item.id}`}
+            renderItem={({ item }: any) => (
+              <TripCard
+                trip={item}
+                onPress={() => handleTripPress(item.id)}
+              />
+            )}
+            contentContainerStyle={{ padding: 16 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={toursRefreshing}
+                onRefresh={onRefreshTours}
+              />
+            }
+          />
+        );
+      }
+
+      if (isInitialLoad) {
         return <LoadingState message={t('common.loading')} className="py-20" />;
       }
 
@@ -180,8 +219,6 @@ export default function ExploreScreen() {
         );
       }
 
-      const tours = toursData?.getTrips || [];
-
       if (tours.length === 0) {
         return (
           <EmptyState
@@ -194,31 +231,40 @@ export default function ExploreScreen() {
         );
       }
 
-      return (
-        <FlatList
-          data={tours}
-          keyExtractor={(item: any) => `tour-${item.id}`}
-          renderItem={({ item }: any) => (
-            <TripCard
-              trip={item}
-              onPress={() => handleTripPress(item.id)}
-            />
-          )}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={toursRefreshing}
-              onRefresh={onRefreshTours}
-            />
-          }
-        />
-      );
     }
 
     // Places Tab
     if (activeTab === 'places') {
-      if (placesLoading) {
+      const places = placesData?.getPlaces || [];
+      const isInitialLoad = !places.length && placesLoading;
+      const isRefetching = places.length > 0 && placesNetworkStatus === NetworkStatus.refetch;
+
+      // Data-first: show data if it exists, only show loading if no data
+      if (places.length > 0) {
+        return (
+          <FlatList
+            data={places}
+            keyExtractor={(item: any) => `place-${item.id}`}
+            renderItem={({ item }: any) => (
+              <PlaceCard
+                place={item}
+                onPress={() => handlePlacePress(item.id)}
+                variant="detailed"
+              />
+            )}
+            contentContainerStyle={{ padding: 16 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={placesRefreshing}
+                onRefresh={onRefreshPlaces}
+              />
+            }
+          />
+        );
+      }
+
+      if (isInitialLoad) {
         return <LoadingState message={t('common.loading')} className="py-20" />;
       }
 
@@ -233,8 +279,6 @@ export default function ExploreScreen() {
         );
       }
 
-      const places = placesData?.getPlaces || [];
-
       if (places.length === 0) {
         return (
           <EmptyState
@@ -247,32 +291,39 @@ export default function ExploreScreen() {
         );
       }
 
-      return (
-        <FlatList
-          data={places}
-          keyExtractor={(item: any) => `place-${item.id}`}
-          renderItem={({ item }: any) => (
-            <PlaceCard
-              place={item}
-              onPress={() => handlePlacePress(item.id)}
-              variant="detailed"
-            />
-          )}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={placesRefreshing}
-              onRefresh={onRefreshPlaces}
-            />
-          }
-        />
-      );
     }
 
     // Trips Tab
     if (activeTab === 'trips') {
-      if (tripsLoading) {
+      const trips = tripsData?.getTrips || [];
+      const isInitialLoad = !trips.length && tripsLoading;
+      const isRefetching = trips.length > 0 && tripsNetworkStatus === NetworkStatus.refetch;
+
+      // Data-first: show data if it exists, only show loading if no data
+      if (trips.length > 0) {
+        return (
+          <FlatList
+            data={trips}
+            keyExtractor={(item: any) => `trip-${item.id}`}
+            renderItem={({ item }: any) => (
+              <TripCard
+                trip={item}
+                onPress={() => handleTripPress(item.id)}
+              />
+            )}
+            contentContainerStyle={{ padding: 16 }}
+            showsVerticalScrollIndicator={false}
+            refreshControl={
+              <RefreshControl
+                refreshing={tripsRefreshing}
+                onRefresh={onRefreshTrips}
+              />
+            }
+          />
+        );
+      }
+
+      if (isInitialLoad) {
         return <LoadingState message={t('common.loading')} className="py-20" />;
       }
 
@@ -287,8 +338,6 @@ export default function ExploreScreen() {
         );
       }
 
-      const trips = tripsData?.getTrips || [];
-
       if (trips.length === 0) {
         return (
           <EmptyState
@@ -301,29 +350,11 @@ export default function ExploreScreen() {
         );
       }
 
-      return (
-        <FlatList
-          data={trips}
-          keyExtractor={(item: any) => `trip-${item.id}`}
-          renderItem={({ item }: any) => (
-            <TripCard
-              trip={item}
-              onPress={() => handleTripPress(item.id)}
-            />
-          )}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={tripsRefreshing}
-              onRefresh={onRefreshTrips}
-            />
-          }
-        />
-      );
     }
 
     // Discover Tab (default)
+    const isTrendingInitialLoad = !trendingTopics.length && trendingLoading;
+
     return (
       <ScrollView 
         showsVerticalScrollIndicator={false} 
@@ -346,7 +377,7 @@ export default function ExploreScreen() {
             {t('explore.trendingDescription')}
           </CustomText>
 
-          {trendingLoading ? (
+          {isTrendingInitialLoad ? (
             <LoadingState message={t('common.loading')} className="py-8" />
           ) : trendingTopics.length > 0 ? (
             <View className="flex-row flex-wrap gap-2">
@@ -586,28 +617,28 @@ export default function ExploreScreen() {
       {renderContent()}
 
       {/* FAB */}
-      <FAB
+      <CreateFAB
         options={[
           {
             id: 'experience',
             label: 'Create Experience',
             translationKey: 'feed.newPost.title',
             icon: 'create-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/experience',
           },
           {
             id: 'trip',
             label: 'Create Trip',
             translationKey: 'plan.createPlan',
             icon: 'airplane-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/trip',
           },
           {
             id: 'place',
             label: 'Add Place',
             translationKey: 'places.addPlace',
             icon: 'location-outline',
-            route: '/(app)/compose',
+            createRoute: '/(app)/compose/place',
           },
         ]}
       />

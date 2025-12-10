@@ -46,13 +46,6 @@ export const useUserLevel = (): UserLevel => {
   const emailVerified = userWithTiers?.emailVerified === true;
   const phoneVerified = userWithTiers?.phoneVerified === true;
   
-  console.log('[useUserLevel] Verification status:', {
-    emailVerified,
-    phoneVerified,
-    emailVerifiedValue: userWithTiers?.emailVerified,
-    phoneVerifiedValue: userWithTiers?.phoneVerified,
-  });
-  
   if (emailVerified && phoneVerified) {
     return 'member';
   }

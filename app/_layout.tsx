@@ -10,13 +10,13 @@ import {
 import { useFonts, loadAsync } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Provider } from 'react-redux';
 import { PersistGate } from 'redux-persist/integration/react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { View } from 'react-native';
 
-import { client } from '@api';
+import { client, initializeCachePersistence } from '@api';
 import { persistor, store } from '@state';
 import { useAppSelector } from '@state/hooks';
 import { processQueue } from '@state/middleware/offlineMiddleware';
@@ -36,6 +36,8 @@ if (typeof global.Buffer === 'undefined') {
 // Disable noisy warnings in development
 if (__DEV__) {
   const originalWarn = console.warn;
+  const originalError = console.error;
+  
   console.warn = (...args) => {
     const msg = args[0];
     
@@ -59,6 +61,23 @@ if (__DEV__) {
     
     originalWarn(...args);
   };
+  
+  console.error = (...args) => {
+    const msg = args[0];
+    
+    // Filter out Expo Router navigation warnings during initial mount
+    // This happens when router tries to navigate before Stack is ready - harmless
+    if (
+      typeof msg === 'string' &&
+      (msg.includes("The action 'REPLACE'") || 
+       msg.includes("was not handled by any navigator") ||
+       msg.includes("Do you have a route named 'index'"))
+    ) {
+      return;
+    }
+    
+    originalError(...args);
+  };
 }
 
 export { ErrorBoundary } from 'expo-router';
@@ -76,6 +95,27 @@ export default function RootLayout() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     VazirRegular: require('../assets/fonts/Vazirmatn-Regular.ttf'),
   });
+
+  // Cache restoration state - must complete before rendering ApolloProvider
+  const [cacheReady, setCacheReady] = useState(false);
+
+  // Restore Apollo cache before app renders
+  useEffect(() => {
+    let mounted = true;
+    initializeCachePersistence()
+      .catch(() => {
+        // Silently fail - cache persistence is optional, app can continue
+      })
+      .finally(() => {
+        if (mounted) {
+          setCacheReady(true);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Load non-essential fonts (VazirMedium, VazirBold) asynchronously after initial render
   // These are only needed for medium/bold text weights, which are less common
@@ -98,10 +138,15 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (essentialFontsError) throw essentialFontsError;
-    if (essentialFontsLoaded) SplashScreen.hideAsync();
-  }, [essentialFontsError, essentialFontsLoaded]);
+    if (essentialFontsLoaded && cacheReady) SplashScreen.hideAsync();
+  }, [essentialFontsError, essentialFontsLoaded, cacheReady]);
 
-  if (!essentialFontsLoaded) return null;
+  // Wait for both fonts and cache to be ready
+  if (!essentialFontsLoaded || !cacheReady) {
+    // IMPORTANT: this should be very light and static
+    // No loading placeholders - just a minimal background
+    return <View style={{ flex: 1, backgroundColor: '#000' }} />;
+  }
 
   // Component that needs theme state (inside providers)
   function ThemedApp() {

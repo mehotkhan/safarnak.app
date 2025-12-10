@@ -21,7 +21,7 @@ export type * from './types';
 export type * from './hooks';
 
 // Apollo client (uses DrizzleCacheStorage for persistence)
-export { client } from './client';
+export { client, initializeCachePersistence } from './client';
 
 // Drizzle cache storage (for utilities that need direct access)
 export { drizzleCacheStorage, DrizzleCacheStorage } from './cache-storage';

@@ -62,21 +62,30 @@ export default function AuthWrapper({
     if (!isLoading && !hasRedirected.current) {
       hasRedirected.current = true;
       
-      // Check if user is authenticated AND active
-      if (isAuthenticated && user && user.status === 'active') {
-        // Navigate to main app (home) - only on initial load
-        router.replace('/(app)/(home)' as any);
-      } else {
-        // Check if user has stored username
-        AsyncStorage.getItem(USERNAME_KEY).then(() => {
-          // Always go to unified welcome screen (handles both new and returning users)
-          router.replace('/(auth)/welcome' as any);
-        }).catch(() => {
-          // On error, default to welcome
-          router.replace('/(auth)/welcome' as any);
-        });
-      }
+      // Small delay to ensure navigator is ready
+      const timer = setTimeout(() => {
+        // Check if user is authenticated AND active
+        if (isAuthenticated && user && user.status === 'active') {
+          // Navigate to main app (home) - only on initial load
+          router.replace('/(app)/(home)' as any);
+        } else {
+          // Check if user has stored username
+          AsyncStorage.getItem(USERNAME_KEY).then(() => {
+            // Always go to unified welcome screen (handles both new and returning users)
+            router.replace('/(auth)/welcome' as any);
+          }).catch(() => {
+            // On error, default to welcome
+            router.replace('/(auth)/welcome' as any);
+          });
+        }
+      }, 100); // Small delay to ensure navigator is mounted
+      
+      return () => {
+        clearTimeout(timer);
+      };
     }
+    // Return undefined if condition not met
+    return undefined;
   }, [isLoading, isAuthenticated, user]); // Include dependencies but only redirect once
 
   if (isLoading) {

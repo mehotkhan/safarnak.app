@@ -18,6 +18,7 @@ import { useDateTime } from '@hooks/useDateTime';
 import { useMyConversations } from '@hooks/useConversations';
 import { useAppSelector } from '@state/hooks';
 import { useGetAlertsQuery } from '@api';
+import { NetworkStatus } from '@apollo/client';
 
 type InboxTab = 'activity' | 'messages';
 
@@ -33,9 +34,12 @@ export default function InboxScreen() {
   const {
     data: alertsData,
     loading: alertsLoading,
+    networkStatus: alertsNetworkStatus,
     refetch: refetchAlerts,
   } = useGetAlertsQuery({
     fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
+    notifyOnNetworkStatusChange: true,
   });
   const {
     conversations,
@@ -157,7 +161,57 @@ export default function InboxScreen() {
   );
 
   const renderActivity = () => {
-    if (alertsLoading && sortedAlerts.length === 0) {
+    // Data-first: show data if it exists, only show loading if no data
+    const isInitialLoad = !sortedAlerts.length && alertsLoading;
+    const isRefetching = sortedAlerts.length > 0 && alertsNetworkStatus === NetworkStatus.refetch;
+
+    if (sortedAlerts.length > 0) {
+      return (
+        <FlatList
+          data={sortedAlerts}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => handleNotificationPress(item.id)}
+              className="flex-row items-start px-4 py-4 border-b border-gray-200 dark:border-neutral-800"
+              style={{
+                backgroundColor: item.read
+                  ? 'transparent'
+                  : isDark ? '#1f2937' : '#eff6ff',
+              }}
+              activeOpacity={0.7}
+            >
+              <View
+                className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                style={{ backgroundColor: getNotificationColor(item.type) + '20' }}
+              >
+                <Ionicons
+                  name={getNotificationIcon(item.type) as any}
+                  size={20}
+                  color={getNotificationColor(item.type)}
+                />
+              </View>
+              <View className="flex-1">
+                <CustomText weight="bold" className="text-base text-black dark:text-white mb-1">
+                  {item.title || t('inbox.notification')}
+                </CustomText>
+                <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  {item.message || ''}
+                </CustomText>
+                <CustomText className="text-xs text-gray-500 dark:text-gray-400">
+                  {formatRelativeTime(item.createdAt)}
+                </CustomText>
+              </View>
+            </TouchableOpacity>
+          )}
+          refreshControl={
+            <RefreshControl refreshing={activityRefreshing} onRefresh={handleActivityRefresh} />
+          }
+        />
+      );
+    }
+
+    if (isInitialLoad) {
       return (
         <View className="flex-1 items-center justify-center py-20">
           <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
@@ -183,65 +237,7 @@ export default function InboxScreen() {
       );
     }
 
-    return (
-      <FlatList
-        data={sortedAlerts}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={() => handleNotificationPress(item.id)}
-            className="flex-row items-start px-4 py-4 border-b border-gray-200 dark:border-neutral-800"
-                style={{
-                  backgroundColor: item.read
-                    ? 'transparent'
-                    : isDark ? '#1f2937' : '#eff6ff',
-                }}
-              >
-                  <View
-              className="w-12 h-12 rounded-full items-center justify-center mr-3"
-                    style={{
-                      backgroundColor: isDark ? '#374151' : '#f3f4f6',
-                    }}
-                  >
-                    <Ionicons
-                name={getNotificationIcon(item.type) as any}
-                      size={24}
-                color={getNotificationColor(item.type)}
-                    />
-                  </View>
-            <View className="flex-1">
-              <View className="flex-row items-center justify-between mb-1">
-                <CustomText
-                  weight="bold"
-                  className="text-base text-black dark:text-white flex-1"
-                      numberOfLines={1}
-                    >
-                      {item.title}
-                </CustomText>
-                      {!item.read && (
-                        <View
-                    className="w-2 h-2 rounded-full ml-2"
-                    style={{ backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary }}
-                        />
-                      )}
-                    </View>
-              <CustomText
-                className="text-sm text-gray-600 dark:text-gray-400 mt-1"
-                    numberOfLines={2}
-                  >
-                    {item.message}
-              </CustomText>
-              <CustomText className="text-xs text-gray-500 dark:text-gray-500 mt-1">
-                {formatRelativeTime(item.createdAt)}
-              </CustomText>
-                </View>
-              </TouchableOpacity>
-        )}
-        refreshControl={
-          <RefreshControl refreshing={activityRefreshing} onRefresh={handleActivityRefresh} />
-        }
-      />
-    );
+    return null;
   };
 
   // Render Messages (Conversations)

@@ -25,6 +25,7 @@ import { FloatingChatInput } from '@ui/chat';
 import { ShareModal, ConvertToHostedModal } from '@ui/modals';
 import { useMessagingActions } from '@hooks/useMessagingActions';
 import { useAppSelector } from '@state/hooks';
+import { NetworkStatus } from '@apollo/client';
 
 export default function TripDetailScreen() {
   const { t } = useTranslation();
@@ -38,11 +39,12 @@ export default function TripDetailScreen() {
   const { user } = useAppSelector(state => state.auth);
   
   // Use cache-first for offline support, with skip if no tripId
-  const { data, loading, error, refetch } = useGetTripQuery({
+  const { data, loading, networkStatus, error, refetch } = useGetTripQuery({
     variables: { id: tripId },
     skip: !tripId,
     fetchPolicy: 'cache-and-network', // Try cache first, then network
     errorPolicy: 'all', // Return partial data even on error
+    notifyOnNetworkStatusChange: true,
   });
   
   const trip = data?.getTrip as any;
