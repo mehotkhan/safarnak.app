@@ -16,8 +16,12 @@ const withAndroidRTL = config =>
 const getAppConfig = () => {
   const isDebug = process.env.EAS_BUILD_PROFILE === 'debug';
   const isRelease = process.env.EAS_BUILD_PROFILE === 'release';
-  const isDevelopment = !isDebug && !isRelease; // Development mode (expo run:android)
-  const isProduction = isRelease || process.env.NODE_ENV === 'production';
+  // Check NODE_ENV for CI/production builds (GitHub Actions sets NODE_ENV=production)
+  const isProductionEnv = process.env.NODE_ENV === 'production';
+  // In CI, if NODE_ENV=production and EAS_BUILD_PROFILE is not set, treat as release
+  const isReleaseBuild = isRelease || (isProductionEnv && !isDebug && !process.env.EAS_BUILD_PROFILE);
+  const isDevelopment = !isDebug && !isReleaseBuild; // Development mode (expo run:android)
+  const isProduction = isReleaseBuild || isProductionEnv;
 
   // Default configuration
   let appName = 'سفرناک';
@@ -25,7 +29,27 @@ const getAppConfig = () => {
   let packageName = 'ir.mohet.safarnak';
   let scheme = 'safarnak';
 
-  // Override with environment variables if available
+  // Set specific configurations for different modes
+  if (isDebug) {
+    appName = 'سفرناک دیباگ';
+    bundleIdentifier = 'ir.mohet.safarnak_debug';
+    packageName = 'ir.mohet.safarnak_debug';
+    scheme = 'safarnak-debug';
+  } else if (isReleaseBuild) {
+    // Release/production build - use production name
+    appName = 'سفرناک';
+    bundleIdentifier = 'ir.mohet.safarnak';
+    packageName = 'ir.mohet.safarnak';
+    scheme = 'safarnak';
+  } else if (isDevelopment) {
+    // Development mode - use debug configuration for Persian name
+    appName = 'سفرناک دیباگ';
+    bundleIdentifier = 'ir.mohet.safarnak_debug';
+    packageName = 'ir.mohet.safarnak_debug';
+    scheme = 'safarnak-debug';
+  }
+
+  // Override with environment variables if available (after mode detection)
   if (process.env.APP_NAME) {
     appName = process.env.APP_NAME;
   }
@@ -37,25 +61,6 @@ const getAppConfig = () => {
 
   if (process.env.APP_SCHEME) {
     scheme = process.env.APP_SCHEME;
-  }
-
-  // Set specific configurations for different modes
-  if (isDebug) {
-    appName = 'سفرناک دیباگ';
-    bundleIdentifier = 'ir.mohet.safarnak_debug';
-    packageName = 'ir.mohet.safarnak_debug';
-    scheme = 'safarnak-debug';
-  } else if (isRelease) {
-    appName = 'سفرناک';
-    bundleIdentifier = 'ir.mohet.safarnak';
-    packageName = 'ir.mohet.safarnak';
-    scheme = 'safarnak';
-  } else if (isDevelopment) {
-    // Development mode - use debug configuration for Persian name
-    appName = 'سفرناک دیباگ';
-    bundleIdentifier = 'ir.mohet.safarnak_debug';
-    packageName = 'ir.mohet.safarnak_debug';
-    scheme = 'safarnak-debug';
   }
 
   // Read version from package.json

@@ -400,10 +400,17 @@ jobs:
       - name: Expo prebuild (propagate version to native)
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
+          echo "Build mode: RELEASE (production)"
+          echo "App name: ${{ env.APP_NAME }}"
           npx expo prebuild --platform android --no-install --clear || echo "Expo prebuild failed, continuing..."
           echo "Expo prebuild completed"
         env:
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+          EAS_BUILD_PROFILE: 'release'
+          NODE_ENV: 'production'
+          APP_NAME: ${{ env.APP_NAME }}
+          BUNDLE_IDENTIFIER: ${{ env.BUNDLE_IDENTIFIER }}
+          APP_SCHEME: ${{ env.APP_SCHEME }}
 
       - name: Setup Java
         uses: actions/setup-java@v4
@@ -472,8 +479,11 @@ jobs:
         env:
           ANDROID_HOME: ${{ env.ANDROID_HOME }}
           ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
-          APP_NAME: 'Safarnak'
-          APP_SCHEME: 'safarnak'
+          EAS_BUILD_PROFILE: 'release'
+          NODE_ENV: 'production'
+          APP_NAME: ${{ env.APP_NAME }}
+          APP_SCHEME: ${{ env.APP_SCHEME }}
+          BUNDLE_IDENTIFIER: ${{ env.BUNDLE_IDENTIFIER }}
           EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
           GRAPHQL_URL: 'https://safarnak.app/graphql'
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
