@@ -176,6 +176,7 @@ const getAppConfig = () => {
             android: {
               // These are applied at plugin level (not Gradle)
               enableProguardInReleaseBuilds: true,
+              enableMinifyInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
               // Additional APK size optimizations
