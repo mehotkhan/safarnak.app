@@ -42,7 +42,7 @@ export const SkeletonLoader = React.memo<SkeletonLoaderProps>(({
         {Array.from({ length: lines }).map((_, index) => (
           <View
             key={index}
-            className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2"
+            className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700"
             style={{
               ...baseStyle,
               width: (index === lines - 1 ? '80%' : '100%') as any,
@@ -58,7 +58,7 @@ export const SkeletonLoader = React.memo<SkeletonLoaderProps>(({
   if (type === 'card') {
     return (
       <View 
-        className={`bg-gray-300 dark:bg-neutral-700 rounded-2xl ${className}`}
+        className={`rounded-2xl bg-gray-300 dark:bg-neutral-700 ${className}`}
         style={{
           ...baseStyle,
           ...(width && { width: width as any }),
@@ -72,7 +72,7 @@ export const SkeletonLoader = React.memo<SkeletonLoaderProps>(({
   if (type === 'avatar') {
     return (
       <View 
-        className={`bg-gray-300 dark:bg-neutral-700 rounded-full ${className}`}
+        className={`rounded-full bg-gray-300 dark:bg-neutral-700 ${className}`}
         style={{
           ...baseStyle,
           width: (width as number) || 40,
@@ -86,7 +86,7 @@ export const SkeletonLoader = React.memo<SkeletonLoaderProps>(({
   // custom
   return (
     <View 
-      className={`bg-gray-300 dark:bg-neutral-700 rounded ${className}`}
+      className={`rounded bg-gray-300 dark:bg-neutral-700 ${className}`}
       style={{
         ...baseStyle,
         ...(width && { width: width as any }),

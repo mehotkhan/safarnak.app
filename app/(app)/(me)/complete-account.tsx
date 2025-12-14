@@ -216,37 +216,37 @@ export default function CompleteAccountScreen() {
       />
       
       <View className="px-6 py-8">
-        <CustomText weight="bold" className="text-2xl text-black dark:text-white mb-2">
+        <CustomText weight="bold" className="mb-2 text-2xl text-black dark:text-white">
           {t('profile.completeAccount.title') || 'Complete your Safarnak account'}
         </CustomText>
-        <CustomText className="text-base text-gray-600 dark:text-gray-400 mb-8">
+        <CustomText className="mb-8 text-base text-gray-600 dark:text-gray-400">
           {t('profile.completeAccount.subtitle') || 
             'Add and verify your phone and email to secure your account and enable notifications.'}
         </CustomText>
 
         {/* Progress Indicator */}
-        <View className="flex-row items-center mb-8">
-          <View className={`flex-1 h-1 ${step === 'phone' || step === 'email' || step === 'complete' ? 'bg-primary' : 'bg-gray-300'}`} />
-          <View className="mx-2 w-8 h-8 rounded-full bg-primary items-center justify-center">
+        <View className="mb-8 flex-row items-center">
+          <View className={`h-1 flex-1 ${step === 'phone' || step === 'email' || step === 'complete' ? 'bg-primary' : 'bg-gray-300'}`} />
+          <View className="mx-2 size-8 items-center justify-center rounded-full bg-primary">
             <Ionicons name="checkmark" size={16} color="#fff" />
           </View>
-          <View className={`flex-1 h-1 ${step === 'email' || step === 'complete' ? 'bg-primary' : 'bg-gray-300'}`} />
-          <View className={`mx-2 w-8 h-8 rounded-full items-center justify-center ${
+          <View className={`h-1 flex-1 ${step === 'email' || step === 'complete' ? 'bg-primary' : 'bg-gray-300'}`} />
+          <View className={`mx-2 size-8 items-center justify-center rounded-full ${
             step === 'email' || step === 'complete' ? 'bg-primary' : 'bg-gray-300'
           }`}>
             {step === 'complete' ? (
               <Ionicons name="checkmark" size={16} color="#fff" />
             ) : (
-              <CustomText className="text-white text-xs">2</CustomText>
+              <CustomText className="text-xs text-white">2</CustomText>
             )}
           </View>
-          <View className={`flex-1 h-1 ${step === 'complete' ? 'bg-primary' : 'bg-gray-300'}`} />
+          <View className={`h-1 flex-1 ${step === 'complete' ? 'bg-primary' : 'bg-gray-300'}`} />
         </View>
 
         {/* Step 1: Phone Verification */}
         {step === 'phone' && (
           <View>
-            <CustomText weight="bold" className="text-lg text-black dark:text-white mb-4">
+            <CustomText weight="bold" className="mb-4 text-lg text-black dark:text-white">
               {t('profile.completeAccount.step1') || 'Step 1: Verify Phone'}
             </CustomText>
             <InputField
@@ -297,7 +297,7 @@ export default function CompleteAccountScreen() {
         {/* Step 2: Email Verification */}
         {step === 'email' && (
           <View>
-            <CustomText weight="bold" className="text-lg text-black dark:text-white mb-4">
+            <CustomText weight="bold" className="mb-4 text-lg text-black dark:text-white">
               {t('profile.completeAccount.step2') || 'Step 2: Verify Email'}
             </CustomText>
             <InputField
@@ -350,10 +350,10 @@ export default function CompleteAccountScreen() {
         {step === 'complete' && (
           <View className="items-center py-8">
             <Ionicons name="checkmark-circle" size={64} color="#10b981" />
-            <CustomText weight="bold" className="text-xl text-black dark:text-white mt-4 mb-2">
+            <CustomText weight="bold" className="mb-2 mt-4 text-xl text-black dark:text-white">
               {t('profile.completeAccount.completeTitle') || 'Account Complete!'}
             </CustomText>
-            <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+            <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
               {t('profile.completeAccount.completeMessage') || 
                 'You are now a Safarnak Member. Enjoy enhanced features!'}
             </CustomText>

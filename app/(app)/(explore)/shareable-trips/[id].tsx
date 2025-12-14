@@ -30,7 +30,7 @@ export default function ShareableTripDetailRedirect() {
     <View className="flex-1 items-center justify-center bg-white dark:bg-black">
       <Stack.Screen options={{ headerShown: false }} />
       <ActivityIndicator size="large" />
-      <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+      <CustomText className="mt-4 text-gray-600 dark:text-gray-400">
         {t('common.loading')}
       </CustomText>
     </View>

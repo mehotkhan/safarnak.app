@@ -192,11 +192,11 @@ export default function RegisterScreen() {
       className="flex-1 bg-[#f8f9fa]"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Image source={authRegisterBg} className="absolute w-full h-full" resizeMode="cover" />
+      <Image source={authRegisterBg} className="absolute size-full" resizeMode="cover" />
       <Stack.Screen options={{ title: t('register.title') || 'Register' }} />
       <View className="flex-1 justify-center px-6">
-        <View className="bg-white/90 rounded-2xl p-6 shadow-lg">
-          <View className="items-center mb-6">
+        <View className="rounded-2xl bg-white/90 p-6 shadow-lg">
+          <View className="mb-6 items-center">
             <CustomText weight='bold' style={{ fontSize: 28, textAlign: 'center', marginBottom: 8, color: '#1a1a1a' }}>
               {t('register.title') || 'Create Account'}
             </CustomText>
@@ -238,7 +238,7 @@ export default function RegisterScreen() {
                 <TouchableOpacity
                   onPress={handleGenerateRandomName}
                   disabled={loading}
-                  className={`bg-primary rounded-full px-4 py-3 flex-row items-center justify-center ${loading ? 'opacity-50' : ''}`}
+                  className={`flex-row items-center justify-center rounded-full bg-primary px-4 py-3 ${loading ? 'opacity-50' : ''}`}
                   style={{ height: 48 }}
                 >
                   <Ionicons name="shuffle" size={20} color="#fff" />
@@ -254,7 +254,7 @@ export default function RegisterScreen() {
               <CustomText style={{ fontSize: 14, color: '#374151', fontWeight: '500', marginBottom: 8 }}>
                 {t('register.usernameLabel') || 'Username'}
               </CustomText>
-              <View className="bg-gray-100 border border-gray-300 rounded-lg px-4 py-3">
+              <View className="rounded-lg border border-gray-300 bg-gray-100 px-4 py-3">
                 <CustomText style={{ fontSize: 16, color: '#1f2937', fontFamily: 'monospace' }}>
                   {username}
                 </CustomText>
@@ -269,7 +269,7 @@ export default function RegisterScreen() {
 
             {/* Error Message - Show biometric auth errors */}
             {authError && (
-              <View className="bg-red-50 border border-red-200 rounded-md px-3 py-2 mb-4">
+              <View className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2">
                 <View className="flex-row items-center">
                   <Ionicons name="warning" size={20} color="#dc2626" style={{ marginRight: 8 }} />
                   <CustomText style={{ color: '#dc2626', fontSize: 14, flex: 1 }}>

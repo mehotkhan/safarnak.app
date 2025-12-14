@@ -89,11 +89,11 @@ export default function MapLibreLayerSelector({
   return (
     <View className={`absolute ${positionClasses[position]} z-50`}>
       {isExpanded ? (
-        <View className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <View className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 shadow-lg dark:border-gray-700 dark:bg-gray-900/95">
           {/* Header */}
           <TouchableOpacity
             onPress={() => setIsExpanded(false)}
-            className="flex-row items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700"
+            className="flex-row items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-700"
           >
             <View className="flex-row items-center">
               <Ionicons name={currentOption.icon} size={20} color="#6b7280" />
@@ -120,7 +120,7 @@ export default function MapLibreLayerSelector({
                   }}
                   className={`flex-row items-center px-4 py-3 ${
                     isSelected
-                      ? 'bg-purple-50 dark:bg-purple-900/20 border-l-2 border-purple-500'
+                      ? 'border-l-2 border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                       : 'active:bg-gray-50 dark:active:bg-gray-800'
                   }`}
                 >
@@ -154,7 +154,7 @@ export default function MapLibreLayerSelector({
       ) : (
         <TouchableOpacity
           onPress={() => setIsExpanded(true)}
-          className="bg-white/95 dark:bg-gray-900/95 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 px-4 py-3 flex-row items-center"
+          className="flex-row items-center rounded-xl border border-gray-200 bg-white/95 px-4 py-3 shadow-lg dark:border-gray-700 dark:bg-gray-900/95"
         >
           <Ionicons name={currentOption.icon} size={20} color="#6b7280" />
           <Text className="ml-2 text-sm font-medium text-gray-900 dark:text-gray-100">

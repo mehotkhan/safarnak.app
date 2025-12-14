@@ -99,11 +99,11 @@ export default function NotificationDetailScreen() {
     return (
       <View className="flex-1 items-center justify-center" style={{ backgroundColor: colors.background }}>
         <Ionicons name="alert-circle-outline" size={64} color={isDark ? '#6b7280' : '#9ca3af'} />
-        <CustomText weight="bold" className="text-lg mt-4" style={{ color: colors.text }}>
+        <CustomText weight="bold" className="mt-4 text-lg" style={{ color: colors.text }}>
           {t('inbox.notFound') || 'Notification not found'}
         </CustomText>
-        <TouchableOpacity onPress={() => refetch()} className="mt-4 px-4 py-2 rounded-full bg-primary">
-          <Text className="text-white font-semibold">{t('common.retry') || 'Retry'}</Text>
+        <TouchableOpacity onPress={() => refetch()} className="mt-4 rounded-full bg-primary px-4 py-2">
+          <Text className="font-semibold text-white">{t('common.retry') || 'Retry'}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -121,10 +121,10 @@ export default function NotificationDetailScreen() {
 
       <ScrollView className='flex-1'>
         {/* Header */}
-        <View className='p-6 border-b' style={{ borderBottomColor: isDark ? '#333' : '#e5e7eb' }}>
-          <View className='flex-row items-center gap-4 mb-4'>
+        <View className='border-b p-6' style={{ borderBottomColor: isDark ? '#333' : '#e5e7eb' }}>
+          <View className='mb-4 flex-row items-center gap-4'>
             <View
-              className='w-16 h-16 rounded-full items-center justify-center'
+              className='size-16 items-center justify-center rounded-full'
               style={{ backgroundColor: isDark ? '#374151' : '#f3f4f6' }}
             >
               <Ionicons
@@ -135,7 +135,7 @@ export default function NotificationDetailScreen() {
             </View>
             <View className='flex-1'>
               <View
-                className='px-3 py-1 rounded-full self-start mb-2'
+                className='mb-2 self-start rounded-full px-3 py-1'
                 style={{ backgroundColor: `${getTypeColor(notification.type)}20` }}
               >
                 <Text
@@ -157,7 +157,7 @@ export default function NotificationDetailScreen() {
           </View>
 
           <Text
-            className='text-2xl font-bold mb-2'
+            className='mb-2 text-2xl font-bold'
             style={{ color: colors.text }}
           >
             {notification.title}
@@ -186,7 +186,7 @@ export default function NotificationDetailScreen() {
             <View className="mt-6 gap-3">
               <TouchableOpacity
                 onPress={handleNavigate}
-                className="py-4 rounded-xl flex-row items-center justify-center gap-2"
+                className="flex-row items-center justify-center gap-2 rounded-xl py-4"
                 style={{ backgroundColor: colors.primary }}
                 activeOpacity={0.8}
               >

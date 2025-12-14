@@ -195,7 +195,7 @@ export default function CreatePlaceScreen() {
             <TouchableOpacity
               onPress={getCurrentLocation}
               disabled={locationLoading}
-              className={`px-3 py-3 rounded-full justify-center items-center min-w-[48px] ${
+              className={`min-w-[48px] items-center justify-center rounded-full p-3 ${
                 locationLoading
                   ? 'bg-gray-300 dark:bg-neutral-700'
                   : 'bg-primary'
@@ -209,7 +209,7 @@ export default function CreatePlaceScreen() {
             </TouchableOpacity>
           </View>
           {locationError && (
-            <CustomText className="text-sm text-red-500 mt-1">
+            <CustomText className="mt-1 text-sm text-red-500">
               {locationError}
             </CustomText>
           )}
@@ -224,7 +224,7 @@ export default function CreatePlaceScreen() {
         />
 
         <View className="mb-4">
-          <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+          <CustomText className="mb-2 text-sm text-gray-700 dark:text-gray-300">
             {t('places.form.type') || 'Type *'}
           </CustomText>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row gap-2">
@@ -232,7 +232,7 @@ export default function CreatePlaceScreen() {
               <TouchableOpacity
                 key={type}
                 onPress={() => handleInputChange('type', type)}
-                className={`px-4 py-2 rounded-full ${
+                className={`rounded-full px-4 py-2 ${
                   formData.type === type
                     ? 'bg-primary'
                     : 'bg-gray-100 dark:bg-neutral-800'
@@ -290,18 +290,18 @@ export default function CreatePlaceScreen() {
           placeholder={t('places.form.imageUrlPlaceholder') || 'https://...'}
         />
 
-        <View className="flex-row items-center justify-between p-4 bg-gray-100 dark:bg-neutral-800 rounded-lg">
+        <View className="flex-row items-center justify-between rounded-lg bg-gray-100 p-4 dark:bg-neutral-800">
           <CustomText className="text-base text-gray-700 dark:text-gray-300">
             {t('places.form.isOpen') || 'Currently Open'}
           </CustomText>
           <TouchableOpacity
             onPress={() => handleInputChange('isOpen', !formData.isOpen)}
-            className={`w-12 h-6 rounded-full ${
+            className={`h-6 w-12 rounded-full ${
               formData.isOpen ? 'bg-primary' : 'bg-gray-300 dark:bg-neutral-600'
             }`}
           >
             <View
-              className={`w-5 h-5 rounded-full bg-white absolute top-0.5 ${
+              className={`absolute top-0.5 size-5 rounded-full bg-white ${
                 formData.isOpen ? 'right-0.5' : 'left-0.5'
               }`}
             />
@@ -310,7 +310,7 @@ export default function CreatePlaceScreen() {
       </ScrollView>
 
       <Animated.View
-        className="absolute left-0 right-0 px-6 bg-white dark:bg-black border-t border-gray-200 dark:border-neutral-800"
+        className="absolute inset-x-0 border-t border-gray-200 bg-white px-6 dark:border-neutral-800 dark:bg-black"
         style={floatingButtonStyle}
       >
         <CustomButton

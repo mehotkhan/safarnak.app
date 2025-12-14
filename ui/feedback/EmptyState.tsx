@@ -41,12 +41,12 @@ export const EmptyState = React.memo<EmptyStateProps>(({
       <Ionicons name={icon} size={iconSize} color={iconColor} />
       <CustomText
         weight="bold"
-        className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center"
+        className="mb-2 mt-4 text-center text-xl text-gray-800 dark:text-gray-300"
       >
         {title}
       </CustomText>
       {description && (
-        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+        <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
           {description}
         </CustomText>
       )}

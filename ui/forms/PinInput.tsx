@@ -136,7 +136,7 @@ export default function PinInput({
   return (
     <View className={`w-full ${className}`}>
       {label && (
-        <CustomText className="text-base text-black dark:text-white mb-3">
+        <CustomText className="mb-3 text-base text-black dark:text-white">
           {label}
         </CustomText>
       )}
@@ -157,12 +157,12 @@ export default function PinInput({
             >
               <View
                 className={`
-                  h-14 rounded-xl border-2 items-center justify-center
+                  h-14 items-center justify-center rounded-xl border-2
                   ${isFocused 
                     ? 'border-primary bg-primary/5 dark:bg-primary/10' 
                     : hasValue
-                    ? 'border-gray-300 dark:border-neutral-600 bg-gray-50 dark:bg-neutral-800'
-                    : 'border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-900'
+                    ? 'border-gray-300 bg-gray-50 dark:border-neutral-600 dark:bg-neutral-800'
+                    : 'border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900'
                   }
                   ${error ? 'border-red-500' : ''}
                   ${disabled ? 'opacity-50' : ''}
@@ -181,7 +181,7 @@ export default function PinInput({
                   maxLength={1}
                   editable={!disabled}
                   selectTextOnFocus
-                  className="text-2xl font-bold text-black dark:text-white text-center w-full h-full"
+                  className="size-full text-center text-2xl font-bold text-black dark:text-white"
                   style={{
                     textAlign: 'center',
                     fontSize: 24,
@@ -195,7 +195,7 @@ export default function PinInput({
       </View>
 
       {error && (
-        <CustomText className="text-sm text-red-500 mt-2">
+        <CustomText className="mt-2 text-sm text-red-500">
           {error}
         </CustomText>
       )}

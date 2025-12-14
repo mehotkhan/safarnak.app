@@ -37,8 +37,8 @@ export const StatCard = React.memo<StatCardProps>(({
   className = '',
 }) => {
   const content = (
-    <View className={`bg-white dark:bg-neutral-900 rounded-xl p-3 border border-gray-200 dark:border-neutral-800 ${className}`}>
-      <View className="flex-row items-center justify-between mb-1.5">
+    <View className={`rounded-xl border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900 ${className}`}>
+      <View className="mb-1.5 flex-row items-center justify-between">
         <CustomText className="text-xs text-gray-500 dark:text-gray-400">
           {title}
         </CustomText>
@@ -48,7 +48,7 @@ export const StatCard = React.memo<StatCardProps>(({
       </View>
       <CustomText
         weight="bold"
-        className="text-xl text-black dark:text-white mb-0.5"
+        className="mb-0.5 text-xl text-black dark:text-white"
       >
         {value}
       </CustomText>

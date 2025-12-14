@@ -93,13 +93,13 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
   return (
     <View className="mb-4">
       {label ? (
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+        <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
           {label}
         </CustomText>
       ) : null}
       <Pressable
         onPress={() => setOpen(true)}
-        className="flex-row items-center bg-neutral-100 rounded-full border border-neutral-100 px-4 py-3"
+        className="flex-row items-center rounded-full border border-neutral-100 bg-neutral-100 px-4 py-3"
       >
         <Ionicons name="calendar-outline" size={18} color="#6b7280" />
         <CustomText className="ml-2 text-black dark:text-white">
@@ -108,20 +108,20 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
-        <Pressable className="flex-1 bg-black/40 items-center justify-center px-6" onPress={() => setOpen(false)}>
-          <Pressable className="w-full max-w-md bg-white dark:bg-neutral-900 rounded-2xl p-5" onPress={() => {}}>
-            <CustomText weight="bold" className="text-lg text-black dark:text-white mb-4">
+        <Pressable className="flex-1 items-center justify-center bg-black/40 px-6" onPress={() => setOpen(false)}>
+          <Pressable className="w-full max-w-md rounded-2xl bg-white p-5 dark:bg-neutral-900" onPress={() => {}}>
+            <CustomText weight="bold" className="mb-4 text-lg text-black dark:text-white">
               {t('datePicker.selectDate')}
             </CustomText>
             
             {/* Calendar Type Indicator */}
-            <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-3 text-center">
+            <CustomText className="mb-3 text-center text-xs text-gray-500 dark:text-gray-400">
               {currentLanguage === 'fa' ? 'تقویم شمسی (جلالی)' : currentLanguage === 'ar' ? 'التقويم الهجري' : 'Gregorian Calendar'}
             </CustomText>
             
-            <View className="flex-row items-center justify-between mb-3">
+            <View className="mb-3 flex-row items-center justify-between">
               {/* Year Picker */}
-              <View className="items-center flex-1">
+              <View className="flex-1 items-center">
                 <Pressable 
                   onPress={() => { 
                     setYear(y => y + 1);
@@ -130,7 +130,7 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
                 >
                   <Ionicons name="chevron-up" size={20} color="#6b7280" />
                 </Pressable>
-                <CustomText weight="medium" className="text-lg text-black dark:text-white min-w-[70px] text-center">
+                <CustomText weight="medium" className="min-w-[70px] text-center text-lg text-black dark:text-white">
                   {yearLabel}
                 </CustomText>
                 <Pressable 
@@ -141,19 +141,19 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
                 >
                   <Ionicons name="chevron-down" size={20} color="#6b7280" />
                 </Pressable>
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <CustomText className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {currentLanguage === 'fa' ? 'سال' : currentLanguage === 'ar' ? 'سنة' : (t('datePicker.year') || 'Year')}
                 </CustomText>
               </View>
               
               {/* Month Picker */}
-              <View className="items-center flex-1">
+              <View className="flex-1 items-center">
                 <Pressable onPress={() => { 
                   setMonth(m => (m === 12 ? 1 : m + 1));
                 }} className="p-2">
                   <Ionicons name="chevron-up" size={20} color="#6b7280" />
                 </Pressable>
-                <CustomText weight="medium" className="text-lg text-black dark:text-white min-w-[70px] text-center">
+                <CustomText weight="medium" className="min-w-[70px] text-center text-lg text-black dark:text-white">
                   {monthName}
                 </CustomText>
                 <Pressable onPress={() => { 
@@ -161,40 +161,40 @@ export default function DatePicker({ label, value, onChange, placeholder }: Prop
                 }} className="p-2">
                   <Ionicons name="chevron-down" size={20} color="#6b7280" />
                 </Pressable>
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <CustomText className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {currentLanguage === 'fa' ? 'ماه' : currentLanguage === 'ar' ? 'شهر' : (t('datePicker.month') || 'Month')}
                 </CustomText>
               </View>
               
               {/* Day Picker */}
-              <View className="items-center flex-1">
+              <View className="flex-1 items-center">
                 <Pressable onPress={() => setDay(d => d + 1)} className="p-2">
                   <Ionicons name="chevron-up" size={20} color="#6b7280" />
                 </Pressable>
-                <CustomText weight="medium" className="text-lg text-black dark:text-white min-w-[60px] text-center">
+                <CustomText weight="medium" className="min-w-[60px] text-center text-lg text-black dark:text-white">
                   {dayLabel}
                 </CustomText>
                 <Pressable onPress={() => setDay(d => Math.max(1, d - 1))} className="p-2">
                   <Ionicons name="chevron-down" size={20} color="#6b7280" />
                 </Pressable>
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                <CustomText className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                   {currentLanguage === 'fa' ? 'روز' : currentLanguage === 'ar' ? 'يوم' : (t('datePicker.day') || 'Day')}
                 </CustomText>
               </View>
             </View>
 
             {/* Preview of selected date */}
-            <View className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-3 mb-4">
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            <View className="mb-4 rounded-lg bg-gray-50 p-3 dark:bg-neutral-800">
+              <CustomText className="text-center text-sm text-gray-600 dark:text-gray-400">
                 {displayValue || formatted}
               </CustomText>
             </View>
 
             <View className="flex-row justify-end gap-3">
-              <Pressable onPress={() => setOpen(false)} className="px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-800">
+              <Pressable onPress={() => setOpen(false)} className="rounded-full bg-neutral-100 px-4 py-2 dark:bg-neutral-800">
                 <CustomText className="text-black dark:text-white">{t('common.cancel')}</CustomText>
               </Pressable>
-              <Pressable onPress={apply} className="px-4 py-2 rounded-full bg-primary">
+              <Pressable onPress={apply} className="rounded-full bg-primary px-4 py-2">
                 <CustomText className="text-white">{t('common.ok')}</CustomText>
               </Pressable>
             </View>

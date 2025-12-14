@@ -112,13 +112,13 @@ export default function LoginScreen() {
       className="flex-1 bg-[#f8f9fa]"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Image source={authLoginBg} className="absolute w-full h-full" resizeMode="cover" />
+      <Image source={authLoginBg} className="absolute size-full" resizeMode="cover" />
       <Stack.Screen options={{ title: t('login.title') }} />
       
       <View className="flex-1 justify-center px-6">
-        <View className="bg-white/90 rounded-2xl p-6 shadow-lg">
+        <View className="rounded-2xl bg-white/90 p-6 shadow-lg">
           {/* Header */}
-          <View className="items-center mb-6">
+          <View className="mb-6 items-center">
             <CustomText weight="bold" style={{ fontSize: 28, textAlign: 'center', marginBottom: 8, color: '#1a1a1a' }}>
               {t('login.title')}
             </CustomText>
@@ -158,7 +158,7 @@ export default function LoginScreen() {
 
           {/* Error Message */}
           {authError && (
-            <View className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 mb-4">
+            <View className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3">
               <View className="flex-row items-center">
                 <Ionicons name="warning" size={20} color="#dc2626" style={{ marginRight: 8 }} />
                 <CustomText style={{ color: '#dc2626', fontSize: 14, flex: 1 }}>
@@ -175,7 +175,7 @@ export default function LoginScreen() {
             loading={loading}
             disabled={loading || !username.trim()}
             IconLeft={() => <Ionicons name="finger-print" size={24} color="#fff" style={{ marginRight: 8 }} />}
-            className="py-4 mb-4"
+            className="mb-4 py-4"
           />
 
           {/* Links */}

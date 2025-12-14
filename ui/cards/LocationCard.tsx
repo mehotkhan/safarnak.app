@@ -32,7 +32,7 @@ export const LocationCard = React.memo<LocationCardProps>(({ location, onPress, 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-4 border border-gray-200 dark:border-neutral-800 ${className}`}
+      className={`mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 ${className}`}
       activeOpacity={0.8}
     >
       {/* Image */}
@@ -46,11 +46,11 @@ export const LocationCard = React.memo<LocationCardProps>(({ location, onPress, 
       />
       
       <View className="p-4">
-        <View className="flex-row justify-between items-start mb-3">
+        <View className="mb-3 flex-row items-start justify-between">
           <View className="flex-1">
             <CustomText
               weight="bold"
-              className="text-lg text-black dark:text-white mb-1"
+              className="mb-1 text-lg text-black dark:text-white"
             >
               {location?.name || '—'}
             </CustomText>
@@ -67,9 +67,9 @@ export const LocationCard = React.memo<LocationCardProps>(({ location, onPress, 
       )}
 
       {location?.popularActivities && location.popularActivities.length > 0 && (
-        <View className="flex-row flex-wrap mt-2">
+        <View className="mt-2 flex-row flex-wrap">
           {location.popularActivities.slice(0, 3).map((activity: string, index: number) => (
-            <View key={index} className="bg-gray-100 dark:bg-neutral-800 px-2 py-1 rounded-full mr-2 mb-2">
+            <View key={index} className="mb-2 mr-2 rounded-full bg-gray-100 px-2 py-1 dark:bg-neutral-800">
               <CustomText className="text-xs text-gray-600 dark:text-gray-400">
                 {activity}
               </CustomText>

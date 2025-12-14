@@ -63,7 +63,7 @@ export default function CustomButton({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`w-full rounded-full py-3 px-3 flex flex-row justify-center items-center my-2 android:shadow-none shadow-md shadow-black/20 android:elevation-2 ${getBgVariantStyle(
+      className={`my-2 flex w-full flex-row items-center justify-center rounded-full p-3 shadow-md shadow-black/20 ${getBgVariantStyle(
         bgVariant
       )} ${(disabled || loading) ? 'opacity-50' : ''} ${className}`}
       disabled={disabled || loading}

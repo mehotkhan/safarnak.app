@@ -97,13 +97,13 @@ export const ImageWithPlaceholder = React.memo<ImageWithPlaceholderProps>(({
 
   return (
     <View 
-      className={`bg-gray-200 dark:bg-neutral-800 relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden bg-gray-200 dark:bg-neutral-800 ${className}`}
       style={containerStyle}
     >
       {!shouldShowPlaceholder ? (
         <Image
           source={source}
-          className={`w-full h-full ${imageClassName}`}
+          className={`size-full ${imageClassName}`}
           resizeMode={resizeMode}
           onError={handleMainError}
           onLoad={handleLoad}
@@ -111,20 +111,20 @@ export const ImageWithPlaceholder = React.memo<ImageWithPlaceholderProps>(({
       ) : shouldShowPlaceholderImage ? (
         <Image
           source={{ uri: placeholder }}
-          className={`w-full h-full ${imageClassName}`}
+          className={`size-full ${imageClassName}`}
           resizeMode={resizeMode}
           onError={handlePlaceholderError}
           onLoad={handleLoad}
         />
       ) : (
-        <View className="w-full h-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
+        <View className="size-full items-center justify-center bg-gray-100 dark:bg-neutral-800">
           <Ionicons 
             name={fallbackIcon as any} 
             size={48} 
             color={isDark ? '#4b5563' : '#9ca3af'} 
           />
           {fallbackText && (
-            <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <CustomText className="mt-2 text-sm text-gray-500 dark:text-gray-400">
               {fallbackText}
             </CustomText>
           )}

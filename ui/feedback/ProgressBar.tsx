@@ -45,7 +45,7 @@ export const ProgressBar = React.memo<ProgressBarProps>(({
   return (
     <View className={`mb-4 ${className}`}>
       {showLabel && (
-        <View className="flex-row items-center justify-between mb-2">
+        <View className="mb-2 flex-row items-center justify-between">
           <CustomText className="text-sm text-gray-600 dark:text-gray-400">
             {defaultLabel}
           </CustomText>
@@ -54,7 +54,7 @@ export const ProgressBar = React.memo<ProgressBarProps>(({
           </CustomText>
         </View>
       )}
-      <View className="h-2 bg-gray-200 dark:bg-neutral-800 rounded-full overflow-hidden">
+      <View className="h-2 overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
         <View
           className="h-full rounded-full"
           style={{ 

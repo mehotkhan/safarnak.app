@@ -156,12 +156,12 @@ export const Toast: React.FC<ToastProps> = ({
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={hideToast}
-        className={`mx-4 mt-2 ${colors.bg} ${colors.border} border rounded-2xl p-4 shadow-lg`}
+        className={`mx-4 mt-2 ${colors.bg} ${colors.border} rounded-2xl border p-4 shadow-lg`}
       >
         <View className="flex-row items-start">
           <Ionicons name={getIconName()} size={24} color={colors.icon} style={{ marginRight: 12, marginTop: 2 }} />
           <View className="flex-1">
-            <CustomText weight="bold" className={`text-base mb-1 ${colors.title}`}>
+            <CustomText weight="bold" className={`mb-1 text-base ${colors.title}`}>
               {title}
             </CustomText>
             <CustomText className={`text-sm ${colors.message}`}>

@@ -43,11 +43,11 @@ export default function CreatePostScreen() {
           headerShown: true,
         }}
       />
-      <View className="flex-1 px-4 py-4">
-        <CustomText className="text-gray-700 dark:text-gray-300 mb-2">
+      <View className="flex-1 p-4">
+        <CustomText className="mb-2 text-gray-700 dark:text-gray-300">
           {t('feed.share.addMessage')}
         </CustomText>
-        <View className="rounded-xl border border-gray-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
+        <View className="rounded-xl border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
           <TextInput
             value={content}
             onChangeText={setContent}

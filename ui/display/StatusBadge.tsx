@@ -45,18 +45,18 @@ export const StatusBadge = React.memo<StatusBadgeProps>(({
     : (isDark ? '#6b7280' : '#6b7280');
 
   const content = (
-    <View className={`flex-row items-center justify-between p-3 bg-white dark:bg-neutral-900 rounded-xl mb-2 border border-gray-200 dark:border-neutral-800 ${className}`}>
-      <View className="flex-row items-center flex-1">
+    <View className={`mb-2 flex-row items-center justify-between rounded-xl border border-gray-200 bg-white p-3 dark:border-neutral-800 dark:bg-neutral-900 ${className}`}>
+      <View className="flex-1 flex-row items-center">
         {icon && (
           <View
-            className="w-9 h-9 rounded-full items-center justify-center mr-3"
+            className="mr-3 size-9 items-center justify-center rounded-full"
             style={{ backgroundColor }}
           >
             <Ionicons name={icon} size={18} color={iconColor} />
           </View>
         )}
         <View className="flex-1">
-          <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">
+          <CustomText className="mb-0.5 text-xs text-gray-500 dark:text-gray-400">
             {label}
           </CustomText>
           <CustomText weight="medium" className="text-base text-black dark:text-white">
@@ -65,7 +65,7 @@ export const StatusBadge = React.memo<StatusBadgeProps>(({
         </View>
       </View>
       {isActive && (
-        <View className="w-2 h-2 rounded-full bg-green-500" />
+        <View className="size-2 rounded-full bg-green-500" />
       )}
     </View>
   );

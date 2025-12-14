@@ -9,14 +9,14 @@ interface Props {
 
 export default function Divider({ label, className }: Props) {
   return (
-    <View className={`flex-row items-center my-4 ${className || ''}`}>
-      <View className="flex-1 h-px bg-gray-200 dark:bg-neutral-800" />
+    <View className={`my-4 flex-row items-center ${className || ''}`}>
+      <View className="h-px flex-1 bg-gray-200 dark:bg-neutral-800" />
       {label ? (
         <CustomText className="mx-3 text-xs text-gray-500 dark:text-gray-400">
           {label}
         </CustomText>
       ) : null}
-      <View className="flex-1 h-px bg-gray-200 dark:bg-neutral-800" />
+      <View className="h-px flex-1 bg-gray-200 dark:bg-neutral-800" />
     </View>
   );
 }

@@ -8,10 +8,14 @@ import importPlugin from 'eslint-plugin-import';
 import jsxA11y from 'eslint-plugin-jsx-a11y';
 import prettier from 'eslint-plugin-prettier';
 import prettierConfig from 'eslint-config-prettier';
+import tailwind from 'eslint-plugin-tailwindcss';
 
 export default [
   // Base JavaScript configuration
   js.configs.recommended,
+
+  // Tailwind lint rules (flat config preset)
+  ...tailwind.configs['flat/recommended'],
 
   // Global ignores
   {
@@ -127,6 +131,10 @@ export default [
       'no-var': 'error',
       'no-undef': 'off', // TypeScript handles this
 
+      // Tailwind rules
+      // Turn the "typo / unknown utility" rule into a hard error
+      'tailwindcss/no-custom-classname': 'error',
+
       // Prettier integration
       'prettier/prettier': 'off', // Disable prettier integration for now
     },
@@ -142,6 +150,12 @@ export default [
         node: {
           extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
+      },
+      tailwindcss: {
+        // IMPORTANT: point to your Tailwind config so it knows NativeWind preset + custom tokens
+        config: './tailwind.config.js',
+        // React Native: className is the primary prop for Tailwind classes
+        classAttributes: ['className'],
       },
     },
   },

@@ -87,7 +87,7 @@ export default function CreateLocationScreen() {
       <Stack.Screen options={{ title: t('trips.tabs.locationsCreate') || 'Create Location' }} />
       
       <ScrollView className="flex-1 px-6 py-4">
-        <CustomText weight="bold" className="text-2xl text-black dark:text-white mb-6">
+        <CustomText weight="bold" className="mb-6 text-2xl text-black dark:text-white">
           {t('trips.tabs.locationsCreate') || 'Create Location'}
         </CustomText>
 
@@ -115,7 +115,7 @@ export default function CreateLocationScreen() {
           rows={4}
         />
 
-        <View className="flex-row gap-3 mb-4">
+        <View className="mb-4 flex-row gap-3">
           <View className="flex-1">
             <InputField
               label={t('location.latitude') || 'Latitude'}

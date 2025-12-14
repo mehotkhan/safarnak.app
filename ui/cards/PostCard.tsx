@@ -47,12 +47,12 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-3 border border-gray-200 dark:border-neutral-800 ${className}`}
+      className={`mb-3 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 ${className}`}
       activeOpacity={0.8}
     >
       {/* Header */}
-      <View className="flex-row items-center p-3 border-b border-gray-100 dark:border-neutral-800">
-        <TouchableOpacity onPress={onUserPress} className="flex-row items-center flex-1">
+      <View className="flex-row items-center border-b border-gray-100 p-3 dark:border-neutral-800">
+        <TouchableOpacity onPress={onUserPress} className="flex-1 flex-row items-center">
           <UserAvatar avatar={post.user?.avatar} size={40} className="mr-2" userId={post.user?.id} username={post.user?.username} />
           <View className="flex-1">
             <CustomText weight="medium" className="text-sm text-black dark:text-white">
@@ -64,7 +64,7 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
           </View>
         </TouchableOpacity>
         {post.type && (
-          <View className="bg-primary/10 px-2 py-1 rounded-full">
+          <View className="rounded-full bg-primary/10 px-2 py-1">
             <CustomText className="text-xs text-primary">
               {t(`explore.categories.${post.type}s`)}
             </CustomText>
@@ -94,13 +94,13 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
 
       {entityInfo && entityInfo.title && (
         <View className="px-3 pb-3">
-          <View className="bg-gray-50 dark:bg-neutral-800 rounded-lg p-2 flex-row items-center">
+          <View className="flex-row items-center rounded-lg bg-gray-50 p-2 dark:bg-neutral-800">
             <Ionicons
               name={post.type === 'trip' || post.type === 'tour' ? (post.relatedEntity?.isHosted || post.type === 'tour' ? 'map' : 'airplane') : 'location'}
               size={16}
               color={isDark ? '#9ca3af' : '#6b7280'}
             />
-            <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-2" numberOfLines={1}>
+            <CustomText className="ml-2 text-xs text-gray-600 dark:text-gray-400" numberOfLines={1}>
               {entityInfo.title}
             </CustomText>
           </View>
@@ -108,14 +108,14 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
       )}
 
       {/* Footer */}
-      <View className="flex-row items-center justify-between px-3 py-2 border-t border-gray-100 dark:border-neutral-800">
+      <View className="flex-row items-center justify-between border-t border-gray-100 px-3 py-2 dark:border-neutral-800">
         <View className="flex-row items-center">
           <Ionicons
             name="heart-outline"
             size={18}
             color={isDark ? '#9ca3af' : '#6b7280'}
           />
-          <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
+          <CustomText className="ml-1 text-xs text-gray-600 dark:text-gray-400">
             {post.reactionsCount || 0}
           </CustomText>
         </View>
@@ -125,7 +125,7 @@ export const PostCard = React.memo<PostCardProps>(({ post, onPress, onUserPress,
             size={18}
             color={isDark ? '#9ca3af' : '#6b7280'}
           />
-          <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1">
+          <CustomText className="ml-1 text-xs text-gray-600 dark:text-gray-400">
             {post.commentsCount || 0}
           </CustomText>
         </View>

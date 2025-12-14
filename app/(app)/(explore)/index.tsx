@@ -18,7 +18,6 @@ import { useRefresh } from '@hooks/useRefresh';
 import { SearchBar } from '@ui/forms';
 import { TabBar } from '@ui/layout';
 import { CreateFAB } from '@ui/components';
-import { NetworkStatus } from '@apollo/client';
 
 type TabType = 'discover' | 'tours' | 'places' | 'trips'; // 'tours' tab now shows hosted trips
 
@@ -32,7 +31,7 @@ export default function ExploreScreen() {
   const debouncedSearch = useDebounce(searchQuery, 400);
 
   // Semantic search (when user types)
-  const { data: searchData, loading: searchLoading, networkStatus: searchNetworkStatus, error: searchError, refetch: refetchSearch } = useSearchSemanticQuery({
+  const { data: searchData, loading: searchLoading, error: searchError, refetch: refetchSearch } = useSearchSemanticQuery({
     variables: { query: debouncedSearch || '', first: 30 },
     skip: !debouncedSearch || debouncedSearch.length < 2,
     fetchPolicy: 'cache-and-network',
@@ -41,7 +40,7 @@ export default function ExploreScreen() {
   } as any);
 
   // Trending topics (KV-backed)
-  const { data: trendingData, loading: trendingLoading, networkStatus: trendingNetworkStatus, refetch: refetchTrending } = useGetTrendingQuery({
+  const { data: trendingData, loading: trendingLoading, refetch: refetchTrending } = useGetTrendingQuery({
     variables: { type: 'TOPIC' as any, window: 'H1' as any, limit: 12 },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
@@ -49,7 +48,7 @@ export default function ExploreScreen() {
   } as any);
 
   // Tab data queries
-  const { data: toursData, loading: toursLoading, networkStatus: toursNetworkStatus, error: toursError, refetch: refetchTours } = useGetTripsQuery({
+  const { data: toursData, loading: toursLoading, error: toursError, refetch: refetchTours } = useGetTripsQuery({
     variables: { isHosted: true },
     skip: activeTab !== 'tours',
     fetchPolicy: 'cache-and-network',
@@ -57,7 +56,7 @@ export default function ExploreScreen() {
     notifyOnNetworkStatusChange: true,
   });
 
-  const { data: placesData, loading: placesLoading, networkStatus: placesNetworkStatus, error: placesError, refetch: refetchPlaces } = useGetPlacesQuery({
+  const { data: placesData, loading: placesLoading, error: placesError, refetch: refetchPlaces } = useGetPlacesQuery({
     variables: { limit: 20 },
     skip: activeTab !== 'places',
     fetchPolicy: 'cache-and-network',
@@ -65,7 +64,7 @@ export default function ExploreScreen() {
     notifyOnNetworkStatusChange: true,
   });
 
-  const { data: tripsData, loading: tripsLoading, networkStatus: tripsNetworkStatus, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
+  const { data: tripsData, loading: tripsLoading, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
     skip: activeTab !== 'trips',
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
@@ -152,15 +151,15 @@ export default function ExploreScreen() {
     return (
       <TouchableOpacity
         onPress={() => handleResultPress(item)}
-        className="px-4 py-3 border-b border-gray-100 dark:border-neutral-800"
+        className="border-b border-gray-100 px-4 py-3 dark:border-neutral-800"
         activeOpacity={0.7}
       >
         <View className="flex-row items-center">
-          <View className="w-10 h-10 rounded-full bg-gray-100 dark:bg-neutral-800 items-center justify-center mr-3">
+          <View className="mr-3 size-10 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800">
             <Ionicons name={icon} size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
           </View>
           <View className="flex-1">
-            <CustomText weight="medium" className="text-base text-gray-900 dark:text-gray-100 mb-0.5" numberOfLines={2}>
+            <CustomText weight="medium" className="mb-0.5 text-base text-gray-900 dark:text-gray-100" numberOfLines={2}>
               {title}
             </CustomText>
             <CustomText className="text-sm text-gray-500 dark:text-gray-400">
@@ -178,7 +177,6 @@ export default function ExploreScreen() {
     if (activeTab === 'tours') {
       const tours = toursData?.getTrips || [];
       const isInitialLoad = !tours.length && toursLoading;
-      const isRefetching = tours.length > 0 && toursNetworkStatus === NetworkStatus.refetch;
 
       // Data-first: show data if it exists, only show loading if no data
       if (tours.length > 0) {
@@ -237,7 +235,6 @@ export default function ExploreScreen() {
     if (activeTab === 'places') {
       const places = placesData?.getPlaces || [];
       const isInitialLoad = !places.length && placesLoading;
-      const isRefetching = places.length > 0 && placesNetworkStatus === NetworkStatus.refetch;
 
       // Data-first: show data if it exists, only show loading if no data
       if (places.length > 0) {
@@ -297,7 +294,6 @@ export default function ExploreScreen() {
     if (activeTab === 'trips') {
       const trips = tripsData?.getTrips || [];
       const isInitialLoad = !trips.length && tripsLoading;
-      const isRefetching = trips.length > 0 && tripsNetworkStatus === NetworkStatus.refetch;
 
       // Data-first: show data if it exists, only show loading if no data
       if (trips.length > 0) {
@@ -368,12 +364,12 @@ export default function ExploreScreen() {
       >
         {/* Trending Topics */}
         <View className="px-4 py-6">
-          <View className="flex-row items-center justify-between mb-3">
+          <View className="mb-3 flex-row items-center justify-between">
             <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100">
               {t('explore.trending')}
             </CustomText>
           </View>
-          <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          <CustomText className="mb-4 text-sm text-gray-600 dark:text-gray-400">
             {t('explore.trendingDescription')}
           </CustomText>
 
@@ -388,14 +384,14 @@ export default function ExploreScreen() {
                   <TouchableOpacity
                     key={item.key}
                     onPress={() => handleTrendingPress(label)}
-                    className="px-4 py-2.5 rounded-full bg-primary/10 border border-primary/20 flex-row items-center"
+                    className="flex-row items-center rounded-full border border-primary/20 bg-primary/10 px-4 py-2.5"
                     activeOpacity={0.7}
                   >
-                    <CustomText weight="medium" className="text-primary mr-1.5">
+                    <CustomText weight="medium" className="mr-1.5 text-primary">
                       #{label}
                     </CustomText>
                     {score > 1 && (
-                      <View className="px-1.5 py-0.5 rounded-full bg-primary/20">
+                      <View className="rounded-full bg-primary/20 px-1.5 py-0.5">
                         <CustomText className="text-xs text-primary" weight="bold">
                           {score}
                         </CustomText>
@@ -417,26 +413,26 @@ export default function ExploreScreen() {
         </View>
 
         {/* Quick Actions */}
-        <View className="px-4 py-6 border-t border-gray-200 dark:border-neutral-800">
-          <CustomText weight="bold" className="text-xl text-gray-900 dark:text-gray-100 mb-4">
+        <View className="border-t border-gray-200 px-4 py-6 dark:border-neutral-800">
+          <CustomText weight="bold" className="mb-4 text-xl text-gray-900 dark:text-gray-100">
             {t('explore.discover')}
           </CustomText>
           
           {/* Shareable Trips - Featured */}
           <TouchableOpacity
             onPress={() => router.push('/(app)/(explore)/shareable-trips' as any)}
-            className="flex-row items-center p-4 mb-3 rounded-xl border-2"
+            className="mb-3 flex-row items-center rounded-xl border-2 p-4"
             style={{ 
               backgroundColor: isDark ? '#1e3a5f' : '#eff6ff',
               borderColor: isDark ? '#3b82f6' : '#60a5fa'
             }}
             activeOpacity={0.7}
           >
-            <View className="w-12 h-12 rounded-full items-center justify-center mr-4" style={{ backgroundColor: '#3b82f6' }}>
+            <View className="mr-4 size-12 items-center justify-center rounded-full" style={{ backgroundColor: '#3b82f6' }}>
               <Ionicons name="compass" size={24} color="#fff" />
             </View>
             <View className="flex-1">
-              <CustomText weight="bold" className="text-base mb-0.5" style={{ color: isDark ? '#60a5fa' : '#1e40af' }}>
+              <CustomText weight="bold" className="mb-0.5 text-base" style={{ color: isDark ? '#60a5fa' : '#1e40af' }}>
                 {t('explore.shareableTrips')}
               </CustomText>
               <CustomText className="text-sm" style={{ color: isDark ? '#93c5fd' : '#3b82f6' }}>
@@ -448,14 +444,14 @@ export default function ExploreScreen() {
           
           <TouchableOpacity
             onPress={() => setActiveTab('tours')}
-            className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            className="mb-3 flex-row items-center rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-900"
             activeOpacity={0.7}
           >
-            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+            <View className="mr-4 size-12 items-center justify-center rounded-full bg-primary/10">
               <Ionicons name="map" size={24} color="#3b82f6" />
             </View>
             <View className="flex-1">
-              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+              <CustomText weight="bold" className="mb-0.5 text-base text-gray-900 dark:text-gray-100">
                 {t('explore.browseTours')}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
@@ -467,14 +463,14 @@ export default function ExploreScreen() {
 
           <TouchableOpacity
             onPress={() => setActiveTab('places')}
-            className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            className="mb-3 flex-row items-center rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-900"
             activeOpacity={0.7}
           >
-            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+            <View className="mr-4 size-12 items-center justify-center rounded-full bg-primary/10">
               <Ionicons name="location" size={24} color="#3b82f6" />
             </View>
             <View className="flex-1">
-              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+              <CustomText weight="bold" className="mb-0.5 text-base text-gray-900 dark:text-gray-100">
                 {t('explore.browsePlaces')}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
@@ -486,14 +482,14 @@ export default function ExploreScreen() {
 
           <TouchableOpacity
             onPress={() => setActiveTab('trips')}
-            className="flex-row items-center p-4 mb-3 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            className="mb-3 flex-row items-center rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-900"
             activeOpacity={0.7}
           >
-            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+            <View className="mr-4 size-12 items-center justify-center rounded-full bg-primary/10">
               <Ionicons name="airplane" size={24} color="#3b82f6" />
             </View>
             <View className="flex-1">
-              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+              <CustomText weight="bold" className="mb-0.5 text-base text-gray-900 dark:text-gray-100">
                 {t('explore.browseTrips')}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
@@ -505,14 +501,14 @@ export default function ExploreScreen() {
 
           <TouchableOpacity
             onPress={() => router.push('/(app)/(explore)/map-comparison' as any)}
-            className="flex-row items-center p-4 rounded-xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+            className="flex-row items-center rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-900"
             activeOpacity={0.7}
           >
-            <View className="w-12 h-12 rounded-full bg-primary/10 items-center justify-center mr-4">
+            <View className="mr-4 size-12 items-center justify-center rounded-full bg-primary/10">
               <Ionicons name="globe" size={24} color="#3b82f6" />
             </View>
             <View className="flex-1">
-              <CustomText weight="bold" className="text-base text-gray-900 dark:text-gray-100 mb-0.5">
+              <CustomText weight="bold" className="mb-0.5 text-base text-gray-900 dark:text-gray-100">
                 {t('explore.mapComparison')}
               </CustomText>
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
@@ -563,7 +559,7 @@ export default function ExploreScreen() {
           renderItem={renderSearchResult}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
-            <View className="px-4 py-3 bg-gray-50 dark:bg-neutral-900">
+            <View className="bg-gray-50 px-4 py-3 dark:bg-neutral-900">
               <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                 {t('explore.resultsCount', { count: searchResults.length })}
               </CustomText>
@@ -582,8 +578,8 @@ export default function ExploreScreen() {
       <Stack.Screen options={{ title: t('explore.title'), headerShown: false }} />
       
       {/* Compact Header */}
-      <View className="px-4 pt-12 pb-3 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
-        <View className="flex-row items-center justify-between mb-3">
+      <View className="border-b border-gray-200 bg-white px-4 pb-3 pt-12 dark:border-neutral-800 dark:bg-black">
+        <View className="mb-3 flex-row items-center justify-between">
           <CustomText weight="bold" className="text-2xl text-black dark:text-white">
             {t('explore.title')}
           </CustomText>

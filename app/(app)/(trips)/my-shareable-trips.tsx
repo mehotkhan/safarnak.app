@@ -144,11 +144,11 @@ export default function MyShareableTripsScreen() {
         }
       >
         {/* Header Info */}
-        <View className='p-4 border-b' style={{ borderBottomColor: isDark ? '#333' : '#e5e7eb' }}>
+        <View className='border-b p-4' style={{ borderBottomColor: isDark ? '#333' : '#e5e7eb' }}>
           <Text className='text-sm' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
             {t('create.shareableTrips.description')}
           </Text>
-          <View className='flex-row items-center gap-4 mt-3'>
+          <View className='mt-3 flex-row items-center gap-4'>
             <View>
               <Text className='text-2xl font-bold' style={{ color: colors.text }}>
                 {publicTrips.length}
@@ -184,30 +184,30 @@ export default function MyShareableTripsScreen() {
               color={isDark ? '#6b7280' : '#9ca3af'}
             />
             <Text
-              className='text-lg font-semibold mt-4'
+              className='mt-4 text-lg font-semibold'
               style={{ color: colors.text }}
             >
               {t('create.shareableTrips.emptyState')}
             </Text>
             <Text
-              className='text-sm mt-2 text-center px-8'
+              className='mt-2 px-8 text-center text-sm'
               style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
             >
               {t('create.shareableTrips.emptyDescription')}
             </Text>
           </View>
         ) : (
-          <View className='p-4 gap-4'>
+          <View className='gap-4 p-4'>
             {/* Public Trips */}
             {publicTrips.length > 0 && (
               <>
-                <Text className='text-lg font-bold mb-2' style={{ color: colors.text }}>
+                <Text className='mb-2 text-lg font-bold' style={{ color: colors.text }}>
                   {t('create.shareableTrips.public')} ({publicTrips.length})
                 </Text>
                 {publicTrips.map((trip) => (
                   <TouchableOpacity
                     key={trip.id}
-                    className='rounded-2xl overflow-hidden'
+                    className='overflow-hidden rounded-2xl'
                     style={{
                       backgroundColor: isDark ? '#1f2937' : '#fff',
                       shadowColor: '#000',
@@ -226,12 +226,12 @@ export default function MyShareableTripsScreen() {
                     <View className='relative'>
                       <Image
                         source={{ uri: trip.imageUrl }}
-                        className='w-full h-40'
+                        className='h-40 w-full'
                         resizeMode='cover'
                       />
                       {/* Public badge */}
                       <View
-                        className='absolute top-3 right-3 px-3 py-1 rounded-full flex-row items-center gap-1'
+                        className='absolute right-3 top-3 flex-row items-center gap-1 rounded-full px-3 py-1'
                         style={{ backgroundColor: 'rgba(16, 185, 129, 0.9)' }}
                       >
                         <Ionicons name='globe' size={12} color='#fff' />
@@ -243,10 +243,10 @@ export default function MyShareableTripsScreen() {
 
                     {/* Content */}
                     <View className='p-4'>
-                      <View className='flex-row items-start justify-between mb-2'>
+                      <View className='mb-2 flex-row items-start justify-between'>
                         <View className='flex-1'>
                           <Text
-                            className='text-lg font-bold mb-1'
+                            className='mb-1 text-lg font-bold'
                             style={{ color: colors.text }}
                             numberOfLines={1}
                           >
@@ -263,7 +263,7 @@ export default function MyShareableTripsScreen() {
                       </View>
 
                       {/* Stats */}
-                      <View className='flex-row items-center gap-4 mb-3'>
+                      <View className='mb-3 flex-row items-center gap-4'>
                         <View className='flex-row items-center gap-1'>
                           <Ionicons
                             name='download'
@@ -307,7 +307,7 @@ export default function MyShareableTripsScreen() {
 
                       {/* Actions */}
                       <View
-                        className='flex-row items-center justify-between pt-3 border-t'
+                        className='flex-row items-center justify-between border-t pt-3'
                         style={{ borderTopColor: isDark ? '#374151' : '#e5e7eb' }}
                       >
                         <View>
@@ -342,13 +342,13 @@ export default function MyShareableTripsScreen() {
             {/* Private Trips */}
             {privateTrips.length > 0 && (
               <>
-                <Text className='text-lg font-bold mb-2 mt-4' style={{ color: colors.text }}>
+                <Text className='mb-2 mt-4 text-lg font-bold' style={{ color: colors.text }}>
                   {t('create.shareableTrips.private')} ({privateTrips.length})
                 </Text>
                 {privateTrips.map((trip) => (
                   <TouchableOpacity
                     key={trip.id}
-                    className='rounded-2xl overflow-hidden'
+                    className='overflow-hidden rounded-2xl'
                     style={{
                       backgroundColor: isDark ? '#1f2937' : '#fff',
                       shadowColor: '#000',
@@ -367,12 +367,12 @@ export default function MyShareableTripsScreen() {
                     <View className='relative'>
                       <Image
                         source={{ uri: trip.imageUrl }}
-                        className='w-full h-40'
+                        className='h-40 w-full'
                         resizeMode='cover'
                       />
                       {/* Private badge */}
                       <View
-                        className='absolute top-3 right-3 px-3 py-1 rounded-full flex-row items-center gap-1'
+                        className='absolute right-3 top-3 flex-row items-center gap-1 rounded-full px-3 py-1'
                         style={{ backgroundColor: 'rgba(107, 114, 128, 0.9)' }}
                       >
                         <Ionicons name='lock-closed' size={12} color='#fff' />
@@ -384,10 +384,10 @@ export default function MyShareableTripsScreen() {
 
                     {/* Content */}
                     <View className='p-4'>
-                      <View className='flex-row items-start justify-between mb-2'>
+                      <View className='mb-2 flex-row items-start justify-between'>
                         <View className='flex-1'>
                           <Text
-                            className='text-lg font-bold mb-1'
+                            className='mb-1 text-lg font-bold'
                             style={{ color: colors.text }}
                             numberOfLines={1}
                           >
@@ -405,7 +405,7 @@ export default function MyShareableTripsScreen() {
 
                       {/* Actions */}
                       <View
-                        className='flex-row items-center justify-between pt-3 border-t'
+                        className='flex-row items-center justify-between border-t pt-3'
                         style={{ borderTopColor: isDark ? '#374151' : '#e5e7eb' }}
                       >
                         <View>
@@ -418,7 +418,7 @@ export default function MyShareableTripsScreen() {
                         </View>
                         <TouchableOpacity
                           onPress={() => toggleVisibility(trip.id, trip.isPublic)}
-                          className='px-4 py-2 rounded-full flex-row items-center gap-2'
+                          className='flex-row items-center gap-2 rounded-full px-4 py-2'
                           style={{ backgroundColor: colors.primary }}
                           activeOpacity={0.8}
                         >

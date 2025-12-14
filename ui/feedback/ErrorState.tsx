@@ -37,19 +37,19 @@ export const ErrorState = React.memo<ErrorStateProps>(({
   const iconColor = isDark ? '#ef4444' : '#dc2626';
 
   return (
-    <View className={`flex-1 items-center justify-center bg-white dark:bg-black px-6 py-12 ${className}`}>
+    <View className={`flex-1 items-center justify-center bg-white px-6 py-12 dark:bg-black ${className}`}>
       <Ionicons name={icon} size={iconSize} color={iconColor} />
       {title && (
-        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+        <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
           {title}
         </CustomText>
       )}
-      <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+      <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
         {message}
       </CustomText>
       {onRetry && (
         <CustomText 
-          className="text-primary mt-4 text-center underline"
+          className="underline mt-4 text-center text-primary"
           onPress={onRetry}
         >
           Tap to retry

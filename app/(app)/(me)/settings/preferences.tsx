@@ -141,33 +141,33 @@ export default function PreferencesScreen() {
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
-      <View className="px-4 py-4">
+      <View className="p-4">
         {/* Feed Preferences */}
         <View className="mb-6">
-          <CustomText weight="bold" className="text-base text-black dark:text-white mb-2">
+          <CustomText weight="bold" className="mb-2 text-base text-black dark:text-white">
             {t('profile.preferences.feed.title', { defaultValue: 'Feed Preferences' })}
           </CustomText>
           {!isOnline && (
-            <CustomText className="text-xs text-red-500 mb-2">
+            <CustomText className="mb-2 text-xs text-red-500">
               {t('common.offline', { defaultValue: 'You are offline. Changes will be saved later.' })}
             </CustomText>
           )}
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="mb-2 flex-row items-center justify-between">
             <CustomText className="text-gray-800 dark:text-gray-200">
               {t('profile.preferences.feed.followingOnly', { defaultValue: 'Following only' })}
             </CustomText>
             <Switch value={fpFollowingOnly} onValueChange={setFpFollowingOnly} />
           </View>
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="mb-2 flex-row items-center justify-between">
             <CustomText className="text-gray-800 dark:text-gray-200">
               {t('profile.preferences.feed.closeFriendsOnly', { defaultValue: 'Close friends only' })}
             </CustomText>
             <Switch value={fpCircleOnly} onValueChange={setFpCircleOnly} />
           </View>
-          <CustomText className="text-gray-800 dark:text-gray-200 mb-2">
+          <CustomText className="mb-2 text-gray-800 dark:text-gray-200">
             {t('profile.preferences.feed.entityTypes', { defaultValue: 'Entity types' })}
           </CustomText>
-          <View className="flex-row flex-wrap gap-2 mb-2">
+          <View className="mb-2 flex-row flex-wrap gap-2">
             {(['POST','TRIP','PLACE','LOCATION'] as const).map((et) => {
               const selected = fpEntityTypes.includes(et);
               return (
@@ -178,10 +178,10 @@ export default function PreferencesScreen() {
                       selected ? prev.filter((x) => x !== et) : [...prev, et]
                     )
                   }
-                  className={`px-3 py-1.5 rounded-full border ${
+                  className={`rounded-full border px-3 py-1.5 ${
                     selected
-                      ? 'bg-primary border-primary'
-                      : 'bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700'
+                      ? 'border-primary bg-primary'
+                      : 'border-gray-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
                   }`}
                 >
                   <CustomText className={selected ? 'text-white' : 'text-gray-700 dark:text-gray-300'}>{et}</CustomText>
@@ -189,7 +189,7 @@ export default function PreferencesScreen() {
               );
             })}
           </View>
-          <CustomText className="text-gray-800 dark:text-gray-200 mb-2">
+          <CustomText className="mb-2 text-gray-800 dark:text-gray-200">
             {t('profile.preferences.feed.topics', { defaultValue: 'Topics' })}
           </CustomText>
           <View className="mb-2">
@@ -202,7 +202,7 @@ export default function PreferencesScreen() {
             />
             {/* Suggestions */}
             {topicInput?.length ? (
-              <View className="flex-row flex-wrap gap-2 mt-2">
+              <View className="mt-2 flex-row flex-wrap gap-2">
                 {(suggestData?.searchSuggest || []).map((s: string) => {
                   const selected = fpTopics.includes(s);
                   return (
@@ -213,10 +213,10 @@ export default function PreferencesScreen() {
                           selected ? prev.filter((x) => x !== s) : [...prev, s]
                         )
                       }
-                      className={`px-3 py-1.5 rounded-full border ${
+                      className={`rounded-full border px-3 py-1.5 ${
                         selected
-                          ? 'bg-primary border-primary'
-                          : 'bg-gray-100 dark:bg-neutral-800 border-gray-300 dark:border-neutral-700'
+                          ? 'border-primary bg-primary'
+                          : 'border-gray-300 bg-gray-100 dark:border-neutral-700 dark:bg-neutral-800'
                       }`}
                     >
                       <CustomText className={selected ? 'text-white' : 'text-gray-700 dark:text-gray-300'}>#{s}</CustomText>
@@ -237,10 +237,10 @@ export default function PreferencesScreen() {
                       selected ? prev.filter((x) => x !== topic) : [...prev, topic]
                     )
                   }
-                  className={`px-3 py-1.5 rounded-full border ${
+                  className={`rounded-full border px-3 py-1.5 ${
                     selected
-                      ? 'bg-primary border-primary'
-                      : 'bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700'
+                      ? 'border-primary bg-primary'
+                      : 'border-gray-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
                   }`}
                 >
                   <CustomText className={selected ? 'text-white' : 'text-gray-700 dark:text-gray-300'}>#{topic}</CustomText>
@@ -248,7 +248,7 @@ export default function PreferencesScreen() {
               );
             })}
             {/* Trending topics */}
-            <View className="flex-row flex-wrap gap-2 mt-2">
+            <View className="mt-2 flex-row flex-wrap gap-2">
               {(trendingData?.getTrending?.items || []).map((it: any) => {
                 const s = it.label?.replace(/^#/, '') || it.key;
                 const selected = fpTopics.includes(s);
@@ -260,10 +260,10 @@ export default function PreferencesScreen() {
                         selected ? prev.filter((x) => x !== s) : [...prev, s]
                       )
                     }
-                    className={`px-3 py-1.5 rounded-full border ${
+                    className={`rounded-full border px-3 py-1.5 ${
                       selected
-                        ? 'bg-primary border-primary'
-                        : 'bg-gray-100 dark:bg-neutral-800 border-gray-300 dark:border-neutral-700'
+                        ? 'border-primary bg-primary'
+                        : 'border-gray-300 bg-gray-100 dark:border-neutral-700 dark:bg-neutral-800'
                     }`}
                   >
                     <CustomText className={selected ? 'text-white' : 'text-gray-700 dark:text-gray-300'}>#{s}</CustomText>
@@ -277,7 +277,7 @@ export default function PreferencesScreen() {
 
         {/* Muted Users */}
         <View className="mb-6">
-          <CustomText weight="bold" className="text-base text-black dark:text-white mb-2">
+          <CustomText weight="bold" className="mb-2 text-base text-black dark:text-white">
             {t('profile.preferences.feed.mutedUsers', { defaultValue: 'Muted users' })}
           </CustomText>
           <InputField
@@ -287,18 +287,18 @@ export default function PreferencesScreen() {
             onChangeText={setMutedInput}
             icon="person-outline"
           />
-          <View className="flex-row flex-wrap gap-2 mt-2">
+          <View className="mt-2 flex-row flex-wrap gap-2">
             {fpMutedUserIds.map((uid) => (
               <TouchableOpacity
                 key={uid}
                 onPress={() => setFpMutedUserIds((prev) => prev.filter((x) => x !== uid))}
-                className="px-3 py-1.5 rounded-full bg-gray-100 dark:bg-neutral-800"
+                className="rounded-full bg-gray-100 px-3 py-1.5 dark:bg-neutral-800"
               >
                 <CustomText className="text-xs text-gray-700 dark:text-gray-300">{uid.substring(0,8)}…</CustomText>
               </TouchableOpacity>
             ))}
           </View>
-          <View className="flex-row gap-2 mt-2">
+          <View className="mt-2 flex-row gap-2">
             <CustomButton
               title={t('common.add') || 'Add'}
               onPress={() => {

@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useRouter, useLocalSearchParams, Stack } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -25,13 +25,11 @@ import { FloatingChatInput } from '@ui/chat';
 import { ShareModal, ConvertToHostedModal } from '@ui/modals';
 import { useMessagingActions } from '@hooks/useMessagingActions';
 import { useAppSelector } from '@state/hooks';
-import { NetworkStatus } from '@apollo/client';
 
 export default function TripDetailScreen() {
   const { t } = useTranslation();
   const { isDark } = useTheme();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams();
   const tripId = useMemo(() => (Array.isArray(id) ? id[0] : id) as string, [id]);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,7 +37,7 @@ export default function TripDetailScreen() {
   const { user } = useAppSelector(state => state.auth);
   
   // Use cache-first for offline support, with skip if no tripId
-  const { data, loading, networkStatus, error, refetch } = useGetTripQuery({
+  const { data, loading, error, refetch } = useGetTripQuery({
     variables: { id: tripId },
     skip: !tripId,
     fetchPolicy: 'cache-and-network', // Try cache first, then network
@@ -187,7 +185,7 @@ export default function TripDetailScreen() {
         />
         <View className="flex-1 items-center justify-center">
           <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-          <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+          <CustomText className="mt-4 text-gray-600 dark:text-gray-400">
             {t('common.loading')}
           </CustomText>
         </View>
@@ -211,10 +209,10 @@ export default function TripDetailScreen() {
         >
           <View className="items-center">
             <Ionicons name="warning-outline" size={64} color="#ef4444" />
-            <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+            <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
               {t('common.error')}
             </CustomText>
-            <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-4">
+            <CustomText className="mb-4 text-center text-base text-gray-600 dark:text-gray-400">
               {(error as any)?.message || t('plan.errors.loadFailed')}
             </CustomText>
             <CustomButton
@@ -242,10 +240,10 @@ export default function TripDetailScreen() {
         />
         <View className="flex-1 items-center justify-center px-6">
           <Ionicons name="document-outline" size={64} color={isDark ? '#4b5563' : '#d1d5db'} />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('plan.notFound')}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-4">
+          <CustomText className="mb-4 text-center text-base text-gray-600 dark:text-gray-400">
             {t('plan.tripNotFound')}
           </CustomText>
           <CustomButton
@@ -373,8 +371,8 @@ export default function TripDetailScreen() {
       return (
         <>
           {/* Price & Capacity */}
-          <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
-            <View className="flex-row items-center mb-3">
+          <View className="mb-4 rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
+            <View className="mb-3 flex-row items-center">
               <Ionicons
                 name="cash-outline"
                 size={20}
@@ -382,30 +380,30 @@ export default function TripDetailScreen() {
               />
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white ml-2"
+                className="ml-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.priceAndCapacity', { defaultValue: 'Price & Capacity' })}
               </CustomText>
             </View>
             {trip.price && (
-              <View className="flex-row items-center mb-2">
+              <View className="mb-2 flex-row items-center">
                 <Ionicons
                   name="wallet-outline"
                   size={16}
                   color={isDark ? '#9ca3af' : '#6b7280'}
                 />
-                <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                   {trip.price} {trip.currency || 'USD'} {t('tripDetail.hosted.perPerson', { defaultValue: 'per person' })}
                 </CustomText>
               </View>
             )}
-            <View className="flex-row items-center mb-2">
+            <View className="mb-2 flex-row items-center">
               <Ionicons
                 name="people-outline"
                 size={16}
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                 {trip.minParticipants || 1} - {trip.maxParticipants || t('tripDetail.hosted.unlimited', { defaultValue: 'Unlimited' })} {t('tripDetail.hosted.participants', { defaultValue: 'participants' })}
               </CustomText>
             </View>
@@ -416,7 +414,7 @@ export default function TripDetailScreen() {
                   size={16}
                   color={isDark ? '#9ca3af' : '#6b7280'}
                 />
-                <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                   {trip.duration} {trip.durationType || 'days'}
                 </CustomText>
               </View>
@@ -428,11 +426,11 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white mb-2"
+                className="mb-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.description', { defaultValue: 'Description' })}
               </CustomText>
-              <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+              <CustomText className="text-base leading-6 text-gray-700 dark:text-gray-300">
                 {trip.description}
               </CustomText>
             </View>
@@ -443,19 +441,19 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white mb-2"
+                className="mb-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.highlights', { defaultValue: 'Highlights' })}
               </CustomText>
               {trip.highlights.map((highlight: string, index: number) => (
-                <View key={index} className="flex-row items-start mb-2">
+                <View key={index} className="mb-2 flex-row items-start">
                   <Ionicons
                     name="star"
                     size={16}
                     color={isDark ? Colors.dark.primary : Colors.light.primary}
                     style={{ marginTop: 2, marginRight: 8 }}
                   />
-                  <CustomText className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                  <CustomText className="flex-1 text-sm text-gray-700 dark:text-gray-300">
                     {highlight}
                   </CustomText>
                 </View>
@@ -468,19 +466,19 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white mb-2"
+                className="mb-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.inclusions', { defaultValue: 'What\'s Included' })}
               </CustomText>
               {trip.inclusions.map((inclusion: string, index: number) => (
-                <View key={index} className="flex-row items-start mb-2">
+                <View key={index} className="mb-2 flex-row items-start">
                   <Ionicons
                     name="checkmark-circle"
                     size={16}
                     color={isDark ? Colors.dark.primary : Colors.light.primary}
                     style={{ marginTop: 2, marginRight: 8 }}
                   />
-                  <CustomText className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                  <CustomText className="flex-1 text-sm text-gray-700 dark:text-gray-300">
                     {inclusion}
                   </CustomText>
                 </View>
@@ -490,8 +488,8 @@ export default function TripDetailScreen() {
 
           {/* Category & Difficulty */}
           {(trip.category || trip.difficulty) && (
-            <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
-              <View className="flex-row items-center mb-3">
+            <View className="mb-4 rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
+              <View className="mb-3 flex-row items-center">
                 <Ionicons
                   name="information-circle-outline"
                   size={20}
@@ -499,19 +497,19 @@ export default function TripDetailScreen() {
                 />
                 <CustomText
                   weight="bold"
-                  className="text-base text-black dark:text-white ml-2"
+                  className="ml-2 text-base text-black dark:text-white"
                 >
                   {t('tripDetail.hosted.tripInfo', { defaultValue: 'Trip Information' })}
                 </CustomText>
               </View>
               {trip.category && (
-                <View className="flex-row items-center mb-2">
+                <View className="mb-2 flex-row items-center">
                   <Ionicons
                     name="pricetag-outline"
                     size={16}
                     color={isDark ? '#9ca3af' : '#6b7280'}
                   />
-                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                  <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                     {t('tripDetail.hosted.category', { defaultValue: 'Category' })}: {trip.category}
                   </CustomText>
                 </View>
@@ -523,7 +521,7 @@ export default function TripDetailScreen() {
                     size={16}
                     color={isDark ? '#9ca3af' : '#6b7280'}
                   />
-                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+                  <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                     {t('tripDetail.hosted.difficulty', { defaultValue: 'Difficulty' })}: {trip.difficulty}
                   </CustomText>
                 </View>
@@ -543,19 +541,19 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white mb-2"
+                className="mb-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.hostIntro', { defaultValue: 'About the Host' })}
               </CustomText>
-              <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+              <CustomText className="text-base leading-6 text-gray-700 dark:text-gray-300">
                 {trip.hostIntro}
               </CustomText>
             </View>
           )}
 
           {/* Join Policy */}
-          <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
-            <View className="flex-row items-center mb-3">
+          <View className="mb-4 rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
+            <View className="mb-3 flex-row items-center">
               <Ionicons
                 name="people-circle-outline"
                 size={20}
@@ -563,7 +561,7 @@ export default function TripDetailScreen() {
               />
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white ml-2"
+                className="ml-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.joinPolicy', { defaultValue: 'Join Policy' })}
               </CustomText>
@@ -574,7 +572,7 @@ export default function TripDetailScreen() {
                 size={16}
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                 {trip.joinPolicy === 'OPEN' 
                   ? t('tripDetail.hosted.joinPolicy.open', { defaultValue: 'Open - Anyone can join' })
                   : trip.joinPolicy === 'REQUEST'
@@ -590,11 +588,11 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white mb-2"
+                className="mb-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.hosted.bookingInstructions', { defaultValue: 'Booking Instructions' })}
               </CustomText>
-              <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+              <CustomText className="text-base leading-6 text-gray-700 dark:text-gray-300">
                 {trip.bookingInstructions}
               </CustomText>
             </View>
@@ -702,10 +700,10 @@ export default function TripDetailScreen() {
 
           {/* Pending Status Banner with Workflow Progress - Show when pending OR when we have subscription data */}
           {(trip?.status === 'pending' || (workflowStatus && currentStep !== null)) && (
-            <View className={`rounded-2xl p-4 mb-4 ${
+            <View className={`mb-4 rounded-2xl p-4 ${
               workflowStatus === 'error' 
-                ? 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'
-                : 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800'
+                ? 'border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'
+                : 'border border-yellow-200 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20'
             }`}>
               <View className="flex-row items-start">
                 {workflowStatus === 'error' ? (
@@ -727,7 +725,7 @@ export default function TripDetailScreen() {
                   {/* Title from subscription or fallback - Full text, no cropping */}
                   <CustomText 
                     weight="bold" 
-                    className={`text-base mb-1 ${
+                    className={`mb-1 text-base ${
                       workflowStatus === 'error'
                         ? 'text-red-800 dark:text-red-200'
                         : 'text-yellow-800 dark:text-yellow-200'
@@ -738,7 +736,7 @@ export default function TripDetailScreen() {
                   
                   {/* Message from subscription or fallback - Full text, no cropping */}
                   <CustomText 
-                    className={`text-sm mb-2 ${
+                    className={`mb-2 text-sm ${
                       workflowStatus === 'error'
                         ? 'text-red-700 dark:text-red-300'
                         : 'text-yellow-700 dark:text-yellow-300'
@@ -761,7 +759,7 @@ export default function TripDetailScreen() {
                   
                   {/* Show subscription status if available */}
                   {workflowStatus && workflowStatus !== 'error' && (
-                    <CustomText className={`text-xs mt-2 italic ${
+                    <CustomText className={`mt-2 text-xs italic ${
                       workflowStatus === 'completed' 
                         ? 'text-green-600 dark:text-green-400'
                         : 'text-yellow-600 dark:text-yellow-400'
@@ -774,9 +772,9 @@ export default function TripDetailScreen() {
                   {workflowStatus === 'error' && (
                     <TouchableOpacity
                       onPress={onRefresh}
-                      className="mt-3 bg-red-600 dark:bg-red-700 px-4 py-2 rounded-lg self-start"
+                      className="mt-3 self-start rounded-lg bg-red-600 px-4 py-2 dark:bg-red-700"
                     >
-                      <CustomText className="text-white text-sm font-semibold">
+                      <CustomText className="text-sm font-semibold text-white">
                         {t('common.retry')}
                       </CustomText>
                     </TouchableOpacity>
@@ -795,8 +793,8 @@ export default function TripDetailScreen() {
 
           {/* Trip Info - Show in overview tab for hosted trips, always for non-hosted */}
           {(!trip?.isHosted || activeTab === 'overview' || isPending) && (
-          <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4 mb-4">
-            <View className="flex-row items-center mb-3">
+          <View className="mb-4 rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
+            <View className="mb-3 flex-row items-center">
               <Ionicons
                 name="information-circle"
                 size={20}
@@ -804,7 +802,7 @@ export default function TripDetailScreen() {
               />
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white ml-2"
+                className="ml-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.tripDetails')}
               </CustomText>
@@ -812,38 +810,38 @@ export default function TripDetailScreen() {
             {isPending ? (
               // Placeholder for trip info when pending (workflow is running)
               <>
-                <View className="flex-row items-center mb-2">
-                  <View className="w-4 h-4 rounded bg-gray-300 dark:bg-neutral-700" />
-                  <View className="ml-2 flex-1 h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '60%' }} />
+                <View className="mb-2 flex-row items-center">
+                  <View className="size-4 rounded bg-gray-300 dark:bg-neutral-700" />
+                  <View className="ml-2 h-4 flex-1 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '60%' }} />
                 </View>
-                <View className="flex-row items-center mb-2">
-                  <View className="w-4 h-4 rounded bg-gray-300 dark:bg-neutral-700" />
-                  <View className="ml-2 flex-1 h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '50%' }} />
+                <View className="mb-2 flex-row items-center">
+                  <View className="size-4 rounded bg-gray-300 dark:bg-neutral-700" />
+                  <View className="ml-2 h-4 flex-1 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '50%' }} />
                 </View>
                 <View className="flex-row items-center">
-                  <View className="w-4 h-4 rounded bg-gray-300 dark:bg-neutral-700" />
-                  <View className="ml-2 flex-1 h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '70%' }} />
+                  <View className="size-4 rounded bg-gray-300 dark:bg-neutral-700" />
+                  <View className="ml-2 h-4 flex-1 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '70%' }} />
                 </View>
               </>
             ) : (
               <>
-            <View className="flex-row items-center mb-2">
+            <View className="mb-2 flex-row items-center">
               <Ionicons
                 name="people-outline"
                 size={16}
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                     {trip?.travelers || 1} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
               </CustomText>
             </View>
-            <View className="flex-row items-center mb-2">
+            <View className="mb-2 flex-row items-center">
               <Ionicons
                 name="wallet-outline"
                 size={16}
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                 {trip?.budget ? `$${trip.budget}` : '—'} {t('tripDetail.budget')}
               </CustomText>
             </View>
@@ -853,7 +851,7 @@ export default function TripDetailScreen() {
                 size={16}
                 color={isDark ? '#9ca3af' : '#6b7280'}
               />
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+              <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
                 {trip?.preferences || '—'}
               </CustomText>
             </View>
@@ -882,7 +880,7 @@ export default function TripDetailScreen() {
           {/* AI Reasoning - Show in overview tab for hosted trips, always for non-hosted */}
           {(!trip?.isHosted || activeTab === 'overview' || isPending) && (
           <View className="mb-4">
-            <View className="flex-row items-center mb-3">
+            <View className="mb-3 flex-row items-center">
               <Ionicons
                 name="sparkles"
                 size={20}
@@ -890,7 +888,7 @@ export default function TripDetailScreen() {
               />
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white ml-2"
+                className="ml-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.aiReasoning')}
               </CustomText>
@@ -898,13 +896,13 @@ export default function TripDetailScreen() {
             {isPending ? (
               // Placeholder for AI reasoning when pending (workflow is running)
               <View>
-                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '100%' }} />
-                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '95%' }} />
-                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '85%' }} />
-                <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '90%' }} />
+                <View className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '100%' }} />
+                <View className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '95%' }} />
+                <View className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '85%' }} />
+                <View className="h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '90%' }} />
               </View>
             ) : (
-            <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+            <CustomText className="text-base leading-6 text-gray-700 dark:text-gray-300">
               {trip?.aiReasoning || '—'}
             </CustomText>
             )}
@@ -918,7 +916,7 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-lg text-black dark:text-white mb-4"
+                className="mb-4 text-lg text-black dark:text-white"
               >
                 {t('tripDetail.itinerary')}
               </CustomText>
@@ -927,58 +925,58 @@ export default function TripDetailScreen() {
               <View className="relative">
                 {/* Timeline Line */}
                 <View 
-                  className="absolute left-4 top-0 bottom-0 w-0.5"
+                  className="absolute inset-y-0 left-4 w-0.5"
                   style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 
                 {/* Placeholder Day 1 */}
-                <View className="flex-row mb-6">
+                <View className="mb-6 flex-row">
                   <View className="relative mr-4">
                     <View 
-                      className="w-8 h-8 rounded-full border-2 items-center justify-center"
+                      className="size-8 items-center justify-center rounded-full border-2"
                       style={{ 
                         backgroundColor: isDark ? '#000000' : '#ffffff',
                         borderColor: isDark ? '#374151' : '#e5e7eb',
                       }}
                     >
                       <View 
-                        className="w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-700"
+                        className="size-3 rounded-full bg-gray-300 dark:bg-neutral-700"
                       />
                     </View>
                   </View>
                   <View className="flex-1 pb-4">
-                    <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
-                      <View className="h-5 bg-gray-300 dark:bg-neutral-700 rounded mb-3" style={{ width: '60%' }} />
+                    <View className="rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
+                      <View className="mb-3 h-5 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '60%' }} />
                       <View>
-                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '90%' }} />
-                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '75%' }} />
-                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '85%' }} />
+                        <View className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '90%' }} />
+                        <View className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '75%' }} />
+                        <View className="h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '85%' }} />
                       </View>
                     </View>
                   </View>
                 </View>
                 
                 {/* Placeholder Day 2 */}
-                <View className="flex-row mb-6">
+                <View className="mb-6 flex-row">
                   <View className="relative mr-4">
                     <View 
-                      className="w-8 h-8 rounded-full border-2 items-center justify-center"
+                      className="size-8 items-center justify-center rounded-full border-2"
                       style={{ 
                         backgroundColor: isDark ? '#000000' : '#ffffff',
                         borderColor: isDark ? '#374151' : '#e5e7eb',
                       }}
                     >
                       <View 
-                        className="w-3 h-3 rounded-full bg-gray-300 dark:bg-neutral-700"
+                        className="size-3 rounded-full bg-gray-300 dark:bg-neutral-700"
                       />
                     </View>
                   </View>
                   <View className="flex-1 pb-4">
-                    <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
-                      <View className="h-5 bg-gray-300 dark:bg-neutral-700 rounded mb-3" style={{ width: '55%' }} />
+                    <View className="rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
+                      <View className="mb-3 h-5 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '55%' }} />
                       <View>
-                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded mb-2" style={{ width: '88%' }} />
-                        <View className="h-4 bg-gray-300 dark:bg-neutral-700 rounded" style={{ width: '80%' }} />
+                        <View className="mb-2 h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '88%' }} />
+                        <View className="h-4 rounded bg-gray-300 dark:bg-neutral-700" style={{ width: '80%' }} />
                       </View>
                     </View>
                   </View>
@@ -989,7 +987,7 @@ export default function TripDetailScreen() {
             <View className="mb-4">
               <CustomText
                 weight="bold"
-                className="text-lg text-black dark:text-white mb-4"
+                className="mb-4 text-lg text-black dark:text-white"
               >
                 {t('tripDetail.itinerary')}
               </CustomText>
@@ -998,23 +996,23 @@ export default function TripDetailScreen() {
               <View className="relative">
                 {/* Timeline Line */}
                 <View 
-                  className="absolute left-4 top-0 bottom-0 w-0.5"
+                  className="absolute inset-y-0 left-4 w-0.5"
                   style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
                 />
                 
                 {(trip.itinerary as any[]).map((day: any) => (
-                  <View key={day.day} className="flex-row mb-6">
+                  <View key={day.day} className="mb-6 flex-row">
                     {/* Timeline Dot */}
                     <View className="relative mr-4">
                       <View 
-                        className="w-8 h-8 rounded-full border-2 items-center justify-center"
+                        className="size-8 items-center justify-center rounded-full border-2"
                         style={{ 
                           backgroundColor: isDark ? '#000000' : '#ffffff',
                           borderColor: isDark ? Colors.dark.primary : Colors.light.primary,
                         }}
                       >
                         <View 
-                          className="w-3 h-3 rounded-full"
+                          className="size-3 rounded-full"
                           style={{ backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary }}
                         />
                       </View>
@@ -1022,21 +1020,21 @@ export default function TripDetailScreen() {
                     
                     {/* Day Content */}
                     <View className="flex-1 pb-4">
-                      <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
+                      <View className="rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
                         <CustomText
                           weight="bold"
-                          className="text-base text-black dark:text-white mb-2"
+                          className="mb-2 text-base text-black dark:text-white"
                         >
                           {t('tripDetail.day')} {day.day}: {day.title}
                         </CustomText>
                         <View className="mt-2">
                           {(day.activities as string[]).map((activity: string, actIndex: number) => (
-                            <View key={actIndex} className="flex-row items-start mb-2">
+                            <View key={actIndex} className="mb-2 flex-row items-start">
                               <View 
-                                className="w-1.5 h-1.5 rounded-full mt-2 mr-2"
+                                className="mr-2 mt-2 size-1.5 rounded-full"
                                 style={{ backgroundColor: isDark ? '#6b7280' : '#9ca3af' }}
                               />
-                              <CustomText className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                              <CustomText className="flex-1 text-sm text-gray-700 dark:text-gray-300">
                                 {activity}
                               </CustomText>
                             </View>

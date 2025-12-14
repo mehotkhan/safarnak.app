@@ -22,8 +22,8 @@ export const SectionHeader = React.memo<SectionHeaderProps>(({
   rightComponent,
 }) => {
   return (
-    <View className={`flex-row items-center justify-between mb-2 ${className}`}>
-      <CustomText weight="bold" className="text-sm text-gray-500 dark:text-gray-400 uppercase">
+    <View className={`mb-2 flex-row items-center justify-between ${className}`}>
+      <CustomText weight="bold" className="text-sm uppercase text-gray-500 dark:text-gray-400">
         {title}
       </CustomText>
       {rightComponent}

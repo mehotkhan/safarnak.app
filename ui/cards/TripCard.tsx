@@ -37,12 +37,12 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800 ${className}`}
+      className={`mb-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900 ${className}`}
       activeOpacity={0.8}
     >
-      <View className="flex-row justify-between items-start mb-3">
+      <View className="mb-3 flex-row items-start justify-between">
         <View className="flex-1">
-          <View className="flex-row items-center mb-1">
+          <View className="mb-1 flex-row items-center">
           <CustomText
             weight="bold"
               className="text-lg text-black dark:text-white"
@@ -51,7 +51,7 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
           </CustomText>
             {/* TODO: Show hosted badge when trip.isHosted is available (Phase 10-11) */}
             {trip?.isHosted && (
-              <View className="ml-2 px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-900">
+              <View className="ml-2 rounded-full bg-purple-100 px-2 py-0.5 dark:bg-purple-900">
                 <CustomText className="text-xs text-purple-800 dark:text-purple-200" weight="medium">
                   {t('trips.hostedBadge') || 'Hosted'}
                 </CustomText>
@@ -62,20 +62,20 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
             {trip?.startDate ? formatDate(trip.startDate, 'short') : '—'} - {trip?.endDate ? formatDate(trip.endDate, 'short') : '—'}
           </CustomText>
         </View>
-        <View className={`px-3 py-1 rounded-full ${statusColor}`}>
+        <View className={`rounded-full px-3 py-1 ${statusColor}`}>
           <CustomText className={`text-xs ${statusTextColor}`}>
             {t(`plan.${trip?.status === 'in_progress' ? 'inProgress' : 'completed'}`)}
           </CustomText>
         </View>
       </View>
 
-      <View className="flex-row items-center mb-2">
+      <View className="mb-2 flex-row items-center">
         <Ionicons
           name="people-outline"
           size={16}
           color={isDark ? '#9ca3af' : '#6b7280'}
         />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+        <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
           {trip?.travelers ?? 1} {trip?.travelers === 1 ? t('tripDetail.traveler') : t('tripDetail.travelers')}
         </CustomText>
         {/* Show price for hosted trips, budget for personal trips */}
@@ -87,7 +87,7 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
               color={isDark ? '#9ca3af' : '#6b7280'}
               style={{ marginLeft: 16 }}
             />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+            <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
               {trip.currency || 'USD'} {trip.price}
             </CustomText>
           </>
@@ -99,7 +99,7 @@ export const TripCard = React.memo<TripCardProps>(({ trip, onPress, className = 
           color={isDark ? '#9ca3af' : '#6b7280'}
           style={{ marginLeft: 16 }}
         />
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+        <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
           {trip?.budget ? `$${trip.budget}` : '—'}
         </CustomText>
           </>

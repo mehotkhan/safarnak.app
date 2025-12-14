@@ -18,7 +18,7 @@ export default function TextArea({ label, value, onChangeText, placeholder, clas
   return (
     <View className={`mb-4 ${className || ''}`}>
       {label ? (
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+        <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
           {label}
         </CustomText>
       ) : null}
@@ -33,7 +33,7 @@ export default function TextArea({ label, value, onChangeText, placeholder, clas
           const h = e.nativeEvent.contentSize?.height || minHeight;
           setAutoHeight(h < minHeight ? minHeight : h);
         }}
-        className={`rounded-2xl p-4 text-black text-[15px] bg-neutral-100 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800`}
+        className={`rounded-2xl border border-neutral-200 bg-neutral-100 p-4 text-[15px] text-black dark:border-neutral-800 dark:bg-neutral-900`}
         style={{
           textAlign: I18nManager.isRTL ? 'right' : 'left',
           minHeight,

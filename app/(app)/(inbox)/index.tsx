@@ -18,7 +18,6 @@ import { useDateTime } from '@hooks/useDateTime';
 import { useMyConversations } from '@hooks/useConversations';
 import { useAppSelector } from '@state/hooks';
 import { useGetAlertsQuery } from '@api';
-import { NetworkStatus } from '@apollo/client';
 
 type InboxTab = 'activity' | 'messages';
 
@@ -34,7 +33,6 @@ export default function InboxScreen() {
   const {
     data: alertsData,
     loading: alertsLoading,
-    networkStatus: alertsNetworkStatus,
     refetch: refetchAlerts,
   } = useGetAlertsQuery({
     fetchPolicy: 'cache-and-network',
@@ -47,8 +45,6 @@ export default function InboxScreen() {
     refreshing: conversationsRefreshing,
     refetch: refetchConversations,
   } = useMyConversations();
-
-  const alerts = alertsData?.getAlerts ?? [];
 
   const handleActivityRefresh = useCallback(async () => {
     setActivityRefreshing(true);
@@ -117,22 +113,22 @@ export default function InboxScreen() {
     ({ item }: { item: ReturnType<typeof useMyConversations>['conversations'][number] }) => (
       <TouchableOpacity
         onPress={() => handleConversationPress(item.id)}
-        className="flex-row items-center px-4 py-3 border-b border-gray-200 dark:border-neutral-800"
+        className="flex-row items-center border-b border-gray-200 px-4 py-3 dark:border-neutral-800"
         activeOpacity={0.7}
       >
         <View className="relative mr-3">
-          <View className="w-12 h-12 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800">
+          <View className="size-12 overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
             {item.members[0]?.avatar ? (
-              <Image source={{ uri: item.members[0].avatar || undefined }} className="w-full h-full" resizeMode="cover" />
+              <Image source={{ uri: item.members[0].avatar || undefined }} className="size-full" resizeMode="cover" />
             ) : (
-              <View className="w-full h-full items-center justify-center">
+              <View className="size-full items-center justify-center">
                 <Ionicons name="person" size={24} color={isDark ? '#9ca3af' : '#6b7280'} />
               </View>
             )}
           </View>
         </View>
         <View className="flex-1">
-          <View className="flex-row items-center justify-between mb-1">
+          <View className="mb-1 flex-row items-center justify-between">
             <CustomText weight="bold" className="text-base text-black dark:text-white" numberOfLines={1}>
               {getConversationTitle(item)}
             </CustomText>
@@ -153,17 +149,18 @@ export default function InboxScreen() {
 
   // Render Activity (Notifications)
   const sortedAlerts = useMemo(
-    () =>
-      alerts.slice().sort((a, b) => {
+    () => {
+      const alerts = alertsData?.getAlerts ?? [];
+      return alerts.slice().sort((a, b) => {
         return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      }),
-    [alerts],
+      });
+    },
+    [alertsData?.getAlerts],
   );
 
   const renderActivity = () => {
     // Data-first: show data if it exists, only show loading if no data
     const isInitialLoad = !sortedAlerts.length && alertsLoading;
-    const isRefetching = sortedAlerts.length > 0 && alertsNetworkStatus === NetworkStatus.refetch;
 
     if (sortedAlerts.length > 0) {
       return (
@@ -173,7 +170,7 @@ export default function InboxScreen() {
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() => handleNotificationPress(item.id)}
-              className="flex-row items-start px-4 py-4 border-b border-gray-200 dark:border-neutral-800"
+              className="flex-row items-start border-b border-gray-200 p-4 dark:border-neutral-800"
               style={{
                 backgroundColor: item.read
                   ? 'transparent'
@@ -182,7 +179,7 @@ export default function InboxScreen() {
               activeOpacity={0.7}
             >
               <View
-                className="w-10 h-10 rounded-full items-center justify-center mr-3"
+                className="mr-3 size-10 items-center justify-center rounded-full"
                 style={{ backgroundColor: getNotificationColor(item.type) + '20' }}
               >
                 <Ionicons
@@ -192,10 +189,10 @@ export default function InboxScreen() {
                 />
               </View>
               <View className="flex-1">
-                <CustomText weight="bold" className="text-base text-black dark:text-white mb-1">
+                <CustomText weight="bold" className="mb-1 text-base text-black dark:text-white">
                   {item.title || t('inbox.notification')}
                 </CustomText>
-                <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                <CustomText className="mb-1 text-sm text-gray-600 dark:text-gray-400">
                   {item.message || ''}
                 </CustomText>
                 <CustomText className="text-xs text-gray-500 dark:text-gray-400">
@@ -227,10 +224,10 @@ export default function InboxScreen() {
               size={64}
               color={isDark ? '#6b7280' : '#9ca3af'}
             />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('inbox.emptyActivity') || 'No activity yet'}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
             {t('inbox.emptyActivityDescription') || 'Your notifications will appear here'}
           </CustomText>
           </View>
@@ -258,10 +255,10 @@ export default function InboxScreen() {
             size={64}
             color={isDark ? '#6b7280' : '#9ca3af'}
           />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('inbox.emptyMessages') || 'No messages yet'}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
             {t('inbox.emptyMessagesDescription') || 'Start a conversation with someone'}
           </CustomText>
         </View>
@@ -286,7 +283,7 @@ export default function InboxScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-black">
       {/* Segmented Control: Activity / Messages */}
-      <View className="px-4 pt-4 pb-2">
+      <View className="px-4 pb-2 pt-4">
         <TabBar
           tabs={[
             { id: 'activity', label: t('inbox.activity') || 'Activity' },

@@ -77,10 +77,10 @@ export default function ShareableTripsScreen() {
   const renderEmpty = () => (
     <View className="flex-1 items-center justify-center px-6 py-20">
       <Ionicons name="compass-outline" size={64} color={isDark ? '#6b7280' : '#9ca3af'} />
-      <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+      <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
         {t('explore.noShareableTrips') || 'No shareable trips yet'}
       </CustomText>
-      <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+      <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
         {t('explore.noShareableTripsDescription') || 'Check back later for inspiring trip ideas from the community'}
       </CustomText>
     </View>
@@ -108,7 +108,7 @@ export default function ShareableTripsScreen() {
             <TouchableOpacity
               key={filter.id}
               onPress={() => setSelectedFilter(filter.id)}
-              className={`px-4 py-2 rounded-full ${
+              className={`rounded-full px-4 py-2 ${
                 selectedFilter === filter.id
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -134,17 +134,17 @@ export default function ShareableTripsScreen() {
       {loading && filteredTrips.length === 0 ? (
         <View className="flex-1 items-center justify-center py-20">
           <Ionicons name="hourglass-outline" size={48} color={isDark ? '#6b7280' : '#9ca3af'} />
-          <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+          <CustomText className="mt-4 text-gray-600 dark:text-gray-400">
             {t('common.loading')}
           </CustomText>
         </View>
       ) : error && filteredTrips.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6 py-20">
           <Ionicons name="warning-outline" size={64} color="#ef4444" />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('common.error')}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
             {(error as any)?.message || t('common.error')}
           </CustomText>
         </View>

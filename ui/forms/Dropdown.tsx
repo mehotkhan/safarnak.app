@@ -71,7 +71,7 @@ export const Dropdown = React.memo<DropdownProps>(({
       ) : (
         <TouchableOpacity
           onPress={() => setIsOpen(!isOpen)}
-          className="flex-row items-center px-3 py-1.5 rounded-full bg-gray-100 dark:bg-neutral-800"
+          className="flex-row items-center rounded-full bg-gray-100 px-3 py-1.5 dark:bg-neutral-800"
           activeOpacity={0.7}
         >
           {icon && (
@@ -81,7 +81,7 @@ export const Dropdown = React.memo<DropdownProps>(({
               color={isDark ? '#9ca3af' : '#6b7280'}
             />
           )}
-          <CustomText className="ltr:ml-2 rtl:mr-2 text-sm text-gray-800 dark:text-gray-200">
+          <CustomText className="text-sm text-gray-800 dark:text-gray-200 ltr:ml-2 rtl:mr-2">
             {displayLabel}
           </CustomText>
           <Ionicons
@@ -108,7 +108,7 @@ export const Dropdown = React.memo<DropdownProps>(({
             }}
           />
           <View
-            className={`absolute mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900 ${
+            className={`absolute mt-2 rounded-xl bg-white dark:bg-neutral-900 ltr:right-0 rtl:left-0 ${
               placement === 'top' ? 'bottom-full mb-2' : ''
             }`}
             style={{

@@ -59,11 +59,11 @@ export const ListItem = React.memo<ListItemProps>(({
     <TouchableOpacity
       onPress={onPress}
       disabled={!onPress}
-      className={`flex-row items-center py-4 border-b border-gray-200 dark:border-neutral-800 ${className}`}
+      className={`flex-row items-center border-b border-gray-200 py-4 dark:border-neutral-800 ${className}`}
       activeOpacity={0.7}
     >
       <View
-        className="w-10 h-10 rounded-full items-center justify-center mr-3"
+        className="mr-3 size-10 items-center justify-center rounded-full"
         style={{ backgroundColor: iconBgColor }}
       >
         <Ionicons name={icon} size={20} color={color} />
@@ -80,13 +80,13 @@ export const ListItem = React.memo<ListItemProps>(({
           {title}
         </CustomText>
         {subtitle && (
-          <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <CustomText className="mt-1 text-sm text-gray-500 dark:text-gray-400">
             {subtitle}
           </CustomText>
         )}
       </View>
       {badge !== undefined && badge > 0 && (
-        <View className="w-6 h-6 bg-red-500 rounded-full items-center justify-center mr-3">
+        <View className="mr-3 size-6 items-center justify-center rounded-full bg-red-500">
           <CustomText className="text-xs text-white" weight="bold">
             {badge > 9 ? '9+' : badge}
           </CustomText>

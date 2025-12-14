@@ -34,9 +34,9 @@ export default function SettingsLayout() {
           headerShown: true,
           title: t('profile.settings'),
           header: () => (
-            <View className="bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
+            <View className="border-b border-gray-200 bg-white dark:border-neutral-800 dark:bg-black">
               {/* Page Header */}
-              <View className="px-4 pt-12 pb-3">
+              <View className="px-4 pb-3 pt-12">
                 <CustomText weight="bold" className="text-2xl text-black dark:text-white">
                   {t('profile.settings')}
                 </CustomText>

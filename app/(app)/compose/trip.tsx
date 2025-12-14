@@ -301,7 +301,7 @@ export default function CreateTripScreen() {
             <TouchableOpacity
               onPress={handleSubmit}
               disabled={loading || !formIsValid}
-              className={`px-4 py-2 rounded-full ${
+              className={`rounded-full px-4 py-2 ${
                 loading || !formIsValid
                   ? 'bg-gray-300 dark:bg-neutral-700'
                   : 'bg-primary'
@@ -312,7 +312,7 @@ export default function CreateTripScreen() {
               ) : (
                 <View className="flex-row items-center gap-1">
                   <Ionicons name="checkmark" size={18} color="#fff" />
-                  <CustomText className="text-white text-sm font-medium">
+                  <CustomText className="text-sm font-medium text-white">
                     {t('plan.form.submit')}
                   </CustomText>
                 </View>
@@ -341,7 +341,7 @@ export default function CreateTripScreen() {
             <TouchableOpacity
               onPress={getCurrentLocation}
               disabled={locationLoading}
-              className={`px-3 py-3 rounded-full justify-center items-center min-w-[48px] ${
+              className={`min-w-[48px] items-center justify-center rounded-full p-3 ${
                 locationLoading
                   ? 'bg-gray-300 dark:bg-neutral-700'
                   : 'bg-primary'
@@ -355,7 +355,7 @@ export default function CreateTripScreen() {
             </TouchableOpacity>
           </View>
           {locationError && (
-            <CustomText className="text-sm text-red-500 mt-1">
+            <CustomText className="mt-1 text-sm text-red-500">
               {locationError}
             </CustomText>
           )}
@@ -372,18 +372,18 @@ export default function CreateTripScreen() {
           />
           
           {/* Helpful Hints */}
-          <View className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl">
-            <CustomText weight="medium" className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+          <View className="mt-2 rounded-xl bg-blue-50 p-3 dark:bg-blue-900/20">
+            <CustomText weight="medium" className="mb-2 text-sm text-blue-800 dark:text-blue-200">
               {t('plan.form.describePlanHints')}
             </CustomText>
             <View>
-              <CustomText className="text-xs text-blue-700 dark:text-blue-300 mb-1">
+              <CustomText className="mb-1 text-xs text-blue-700 dark:text-blue-300">
                 • {t('plan.form.describePlanHint1')}
               </CustomText>
-              <CustomText className="text-xs text-blue-700 dark:text-blue-300 mb-1">
+              <CustomText className="mb-1 text-xs text-blue-700 dark:text-blue-300">
                 • {t('plan.form.describePlanHint2')}
               </CustomText>
-              <CustomText className="text-xs text-blue-700 dark:text-blue-300 mb-1">
+              <CustomText className="mb-1 text-xs text-blue-700 dark:text-blue-300">
                 • {t('plan.form.describePlanHint3')}
               </CustomText>
               <CustomText className="text-xs text-blue-700 dark:text-blue-300">
@@ -393,7 +393,7 @@ export default function CreateTripScreen() {
           </View>
 
           {/* Voice Recording - Disabled */}
-          <View className="mt-3 p-3 bg-gray-100 dark:bg-neutral-800 rounded-xl">
+          <View className="mt-3 rounded-xl bg-gray-100 p-3 dark:bg-neutral-800">
             <View className="flex-row items-center">
               <Ionicons 
                 name="mic-off-outline" 
@@ -410,7 +410,7 @@ export default function CreateTripScreen() {
 
         {/* Destination (Optional) */}
         <View className="mb-4">
-          <View className="flex-row items-center justify-between mb-2">
+          <View className="mb-2 flex-row items-center justify-between">
             <CustomText
               weight="medium"
               className="text-base text-black dark:text-white"
@@ -431,7 +431,7 @@ export default function CreateTripScreen() {
         </View>
 
         {/* Dates */}
-        <View className="flex-row gap-3 mb-4">
+        <View className="mb-4 flex-row gap-3">
           <View className="flex-1">
             <DatePicker
               label={t('plan.form.startDate')}
@@ -453,7 +453,7 @@ export default function CreateTripScreen() {
         {/* Advanced Options - Collapsible */}
         <TouchableOpacity
           onPress={() => setShowAdvanced(!showAdvanced)}
-          className="flex-row items-center justify-between mb-3 py-2"
+          className="mb-3 flex-row items-center justify-between py-2"
         >
           <CustomText weight="medium" className="text-base text-black dark:text-white">
             {t('plan.form.advancedOptions')}
@@ -473,7 +473,7 @@ export default function CreateTripScreen() {
         <View className="mb-4">
           <CustomText
             weight="medium"
-            className="text-base text-black dark:text-white mb-2"
+            className="mb-2 text-base text-black dark:text-white"
           >
             {t('plan.form.travelers')}
           </CustomText>
@@ -490,7 +490,7 @@ export default function CreateTripScreen() {
         <View className="mb-4">
           <CustomText
             weight="medium"
-            className="text-base text-black dark:text-white mb-2"
+            className="mb-2 text-base text-black dark:text-white"
           >
             {t('plan.form.accommodation')}
           </CustomText>
@@ -499,10 +499,10 @@ export default function CreateTripScreen() {
               <TouchableOpacity
                 key={type}
                 onPress={() => handleInputChange('accommodation', type)}
-                className={`px-4 py-2 rounded-full border ${
+                className={`rounded-full border px-4 py-2 ${
                   formData.accommodation === type
-                    ? 'bg-primary border-primary'
-                    : 'bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700'
+                    ? 'border-primary bg-primary'
+                    : 'border-gray-300 bg-white dark:border-neutral-700 dark:bg-neutral-900'
                 }`}
               >
                 <CustomText
@@ -523,7 +523,7 @@ export default function CreateTripScreen() {
         <View className="mb-6">
           <CustomText
             weight="medium"
-            className="text-base text-black dark:text-white mb-2"
+            className="mb-2 text-base text-black dark:text-white"
           >
             {t('plan.form.preferences')}
           </CustomText>

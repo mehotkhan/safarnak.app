@@ -90,7 +90,7 @@ export default function AuthWrapper({
 
   if (isLoading) {
     return (
-      <View className="flex-1 justify-center items-center bg-white dark:bg-black">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
         <ActivityIndicator size="large" color="#8b5cf6" />
       </View>
     );

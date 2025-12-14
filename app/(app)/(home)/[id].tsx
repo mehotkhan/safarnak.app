@@ -22,7 +22,6 @@ import { useGetPostQuery, useCreateCommentMutation, useCreateReactionMutation, u
 import { useAppSelector } from '@state/hooks';
 import { useDateTime } from '@hooks/useDateTime';
 import { getEntityInfo } from '@utils/entityInfo';
-import { NetworkStatus } from '@apollo/client';
 
 export default function PostDetailScreen() {
   const { t } = useTranslation();
@@ -33,7 +32,7 @@ export default function PostDetailScreen() {
   const { formatRelativeTime } = useDateTime();
   const [commentText, setCommentText] = useState('');
 
-  const { data, loading, networkStatus, error, refetch } = useGetPostQuery({
+  const { data, loading, error, refetch } = useGetPostQuery({
     variables: { id: postId },
     skip: !postId,
     fetchPolicy: 'cache-and-network',
@@ -153,7 +152,6 @@ export default function PostDetailScreen() {
 
   // Data-first: show data if it exists, only show loading if no data
   const isInitialLoad = !post && loading;
-  const isRefetching = !!post && networkStatus === NetworkStatus.refetch;
 
   if (isInitialLoad) {
     return <LoadingState message={t('common.loading')} />;
@@ -180,7 +178,7 @@ export default function PostDetailScreen() {
       
       <ScrollView className="flex-1">
         {/* User Header */}
-        <View className="flex-row items-center px-4 py-4 border-b border-gray-200 dark:border-neutral-800">
+        <View className="flex-row items-center border-b border-gray-200 p-4 dark:border-neutral-800">
           <UserAvatar avatar={post.user?.avatar} size={48} className="mr-3" userId={post.user?.id} username={post.user?.username} />
           <View className="flex-1">
             <CustomText weight="bold" className="text-base text-black dark:text-white">
@@ -190,12 +188,12 @@ export default function PostDetailScreen() {
               {entityInfo?.location && (
                 <>
                   <Ionicons name="location" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
-                  <CustomText className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                  <CustomText className="ml-1 text-sm text-gray-500 dark:text-gray-400">
                     {entityInfo.location}
                   </CustomText>
                 </>
               )}
-              <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
+              <CustomText className="ml-2 text-sm text-gray-400 dark:text-gray-500">
                 • {formatRelativeTime(post.createdAt)}
               </CustomText>
             </View>
@@ -217,8 +215,8 @@ export default function PostDetailScreen() {
 
         {/* Content */}
         {post.content && (
-          <View className="px-4 pt-4 pb-2">
-            <CustomText className="text-base text-gray-800 dark:text-gray-200 leading-6">
+          <View className="px-4 pb-2 pt-4">
+            <CustomText className="text-base leading-6 text-gray-800 dark:text-gray-200">
               {post.content}
             </CustomText>
           </View>
@@ -228,7 +226,7 @@ export default function PostDetailScreen() {
         {entityInfo && entityInfo.title && (
           <TouchableOpacity
             onPress={handleViewRelatedEntity}
-            className="mx-4 mt-4 p-4 bg-gray-50 dark:bg-neutral-800/50 rounded-xl border border-gray-200 dark:border-neutral-700"
+            className="mx-4 mt-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/50"
             activeOpacity={0.7}
           >
             <View className="flex-row items-center">
@@ -239,14 +237,14 @@ export default function PostDetailScreen() {
                 style={{ marginRight: 8 }}
               />
               <View className="flex-1">
-                <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wide">
+                <CustomText className="mb-1 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   {t('feed.post.relatedEntity') || 'Related'}
                 </CustomText>
                 <CustomText weight="bold" className="text-base text-black dark:text-white">
                   {entityInfo.title}
                 </CustomText>
                 {entityInfo.location && (
-                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                  <CustomText className="mt-1 text-sm text-gray-600 dark:text-gray-400">
                     {entityInfo.location}
                   </CustomText>
                 )}
@@ -257,20 +255,20 @@ export default function PostDetailScreen() {
         )}
 
         {/* Actions */}
-        <View className="flex-row items-center px-4 py-4 border-t border-gray-200 dark:border-neutral-800">
-          <TouchableOpacity onPress={handleLike} className="flex-row items-center mr-6" activeOpacity={0.7}>
+        <View className="flex-row items-center border-t border-gray-200 p-4 dark:border-neutral-800">
+          <TouchableOpacity onPress={handleLike} className="mr-6 flex-row items-center" activeOpacity={0.7}>
             <Ionicons 
               name={liked ? 'heart' : 'heart-outline'} 
               size={24} 
               color={liked ? '#ef4444' : (isDark ? '#9ca3af' : '#6b7280')} 
             />
-            <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-2 font-medium">
+            <CustomText className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
               {post?.reactionsCount || 0}
             </CustomText>
           </TouchableOpacity>
-          <View className="flex-row items-center mr-6">
+          <View className="mr-6 flex-row items-center">
             <Ionicons name="chatbubble-outline" size={24} color={isDark ? '#9ca3af' : '#6b7280'} />
-            <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-2 font-medium">
+            <CustomText className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
               {post?.commentsCount || 0}
             </CustomText>
           </View>
@@ -282,16 +280,16 @@ export default function PostDetailScreen() {
 
         {/* Content */}
         {post.content && (
-          <View className="px-4 py-4 border-b border-gray-200 dark:border-neutral-800">
-            <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+          <View className="border-b border-gray-200 p-4 dark:border-neutral-800">
+            <CustomText className="text-base leading-6 text-gray-700 dark:text-gray-300">
               {post.content}
             </CustomText>
           </View>
         )}
 
         {/* Comments */}
-        <View className="px-4 py-4">
-          <CustomText weight="bold" className="text-lg text-black dark:text-white mb-4">
+        <View className="p-4">
+          <CustomText weight="bold" className="mb-4 text-lg text-black dark:text-white">
             {t('common.comments', { count: post?.commentsCount || 0 }) || `Comments (${post?.commentsCount || 0})`}
           </CustomText>
           {post?.comments && post.comments.length > 0 ? (
@@ -300,8 +298,8 @@ export default function PostDetailScreen() {
                 <View className="flex-row items-start">
                   <UserAvatar avatar={comment.user?.avatar} size={32} className="mr-3" userId={comment.user?.id} username={comment.user?.username} />
                   <View className="flex-1">
-                    <View className="flex-row items-center mb-1">
-                      <CustomText weight="bold" className="text-sm text-black dark:text-white mr-2">
+                    <View className="mb-1 flex-row items-center">
+                      <CustomText weight="bold" className="mr-2 text-sm text-black dark:text-white">
                         {comment.user?.name || 'Unknown'}
                       </CustomText>
                       <CustomText className="text-xs text-gray-400 dark:text-gray-500">
@@ -324,14 +322,14 @@ export default function PostDetailScreen() {
       </ScrollView>
 
       {/* Comment Input */}
-      <View className="flex-row items-center px-4 py-3 border-t border-gray-200 dark:border-neutral-800 bg-white dark:bg-black">
-        <View className="w-8 h-8 rounded-full bg-gray-200 dark:bg-neutral-800 mr-3" />
+      <View className="flex-row items-center border-t border-gray-200 bg-white px-4 py-3 dark:border-neutral-800 dark:bg-black">
+        <View className="mr-3 size-8 rounded-full bg-gray-200 dark:bg-neutral-800" />
         <TextInput
           placeholder={t('common.addComment') || 'Add a comment...'}
           placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
           value={commentText}
           onChangeText={setCommentText}
-          className="flex-1 bg-gray-100 dark:bg-neutral-900 rounded-full px-4 py-2 text-black dark:text-white mr-2"
+          className="mr-2 flex-1 rounded-full bg-gray-100 px-4 py-2 text-black dark:bg-neutral-900 dark:text-white"
           editable={!creatingComment}
         />
         <TouchableOpacity 

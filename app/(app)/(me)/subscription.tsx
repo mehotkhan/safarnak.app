@@ -30,51 +30,51 @@ const PlanCard = ({ plan, currentPlan, onSelect, isDark, t }: PlanCardProps) => 
 
   return (
     <View
-      className={`rounded-2xl p-5 mb-4 border-2 ${
+      className={`mb-4 rounded-2xl border-2 p-5 ${
         isPremium
-          ? 'bg-primary/10 dark:bg-primary/20 border-primary'
+          ? 'border-primary bg-primary/10 dark:bg-primary/20'
           : isActive
-            ? 'bg-white dark:bg-neutral-900 border-primary'
-            : 'bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-800'
+            ? 'border-primary bg-white dark:bg-neutral-900'
+            : 'border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900'
       }`}
     >
       {isPremium && (
-        <View className="absolute top-4 right-4 px-3 py-1 bg-primary rounded-full">
-          <CustomText className="text-white text-xs" weight="bold">
+        <View className="absolute right-4 top-4 rounded-full bg-primary px-3 py-1">
+          <CustomText className="text-xs text-white" weight="bold">
             {t('subscription.popular')}
           </CustomText>
         </View>
       )}
 
-      <CustomText weight="bold" className="text-2xl text-black dark:text-white mb-1">
+      <CustomText weight="bold" className="mb-1 text-2xl text-black dark:text-white">
         {plan.name}
       </CustomText>
       
-      <View className="flex-row items-baseline mb-4">
+      <View className="mb-4 flex-row items-baseline">
         <CustomText weight="bold" className="text-4xl text-primary">
           ${plan.price}
         </CustomText>
-        <CustomText className="text-gray-600 dark:text-gray-400 ml-2">
+        <CustomText className="ml-2 text-gray-600 dark:text-gray-400">
           /{t('subscription.month')}
         </CustomText>
       </View>
 
       <View className="mb-4">
-        <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+        <CustomText className="mb-2 text-sm text-gray-600 dark:text-gray-400">
           {t('subscription.aiQuota', { quota: plan.aiQuota })}
         </CustomText>
       </View>
 
       <View className="mb-5">
         {plan.features.map((feature: string, index: number) => (
-          <View key={index} className="flex-row items-start mb-2">
+          <View key={index} className="mb-2 flex-row items-start">
             <Ionicons
               name="checkmark-circle"
               size={20}
               color={isPremium ? (isDark ? '#60a5fa' : '#3b82f6') : '#10b981'}
               style={{ marginTop: 2 }}
             />
-            <CustomText className="text-base text-gray-700 dark:text-gray-300 ml-3 flex-1">
+            <CustomText className="ml-3 flex-1 text-base text-gray-700 dark:text-gray-300">
               {t(feature)}
             </CustomText>
           </View>
@@ -82,7 +82,7 @@ const PlanCard = ({ plan, currentPlan, onSelect, isDark, t }: PlanCardProps) => 
       </View>
 
       {isActive ? (
-        <View className="py-3 bg-gray-100 dark:bg-neutral-800 rounded-lg items-center">
+        <View className="items-center rounded-lg bg-gray-100 py-3 dark:bg-neutral-800">
           <CustomText weight="bold" className="text-gray-700 dark:text-gray-300">
             {t('subscription.currentPlan')}
           </CustomText>
@@ -176,33 +176,33 @@ export default function SubscriptionScreen() {
     <ScrollView className="flex-1 bg-white dark:bg-black">
       <Stack.Screen options={{ title: t('subscription.title'), headerShown: true }} />
 
-      <View className="px-6 py-6">
+      <View className="p-6">
         {/* Header */}
-        <View className="items-center mb-6">
+        <View className="mb-6 items-center">
           <Ionicons name="sparkles" size={64} color={isDark ? '#60a5fa' : '#3b82f6'} />
-          <CustomText weight="bold" className="text-3xl text-black dark:text-white mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-3xl text-black dark:text-white">
             {t('subscription.header')}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
             {t('subscription.description')}
           </CustomText>
         </View>
 
         {/* Pro Status Card - Show if user is Pro */}
         {userLevel === 'pro' && (
-          <View className="bg-yellow-500/10 dark:bg-yellow-500/20 rounded-2xl p-6 mb-6 border-2 border-yellow-500/50">
-            <View className="flex-row items-center mb-3">
+          <View className="mb-6 rounded-2xl border-2 border-yellow-500/50 bg-yellow-500/10 p-6 dark:bg-yellow-500/20">
+            <View className="mb-3 flex-row items-center">
               <Ionicons name="star" size={32} color="#eab308" />
-              <CustomText weight="bold" className="text-2xl text-black dark:text-white ml-3">
+              <CustomText weight="bold" className="ml-3 text-2xl text-black dark:text-white">
                 {t('subscription.proStatus.title') || 'You are Pro!'}
               </CustomText>
             </View>
-            <CustomText className="text-base text-gray-700 dark:text-gray-300 mb-4">
+            <CustomText className="mb-4 text-base text-gray-700 dark:text-gray-300">
               {t('subscription.proStatus.description') || 
                 'Thank you for being a Safarnak Pro member. Enjoy all premium features!'}
             </CustomText>
             {subscriptionExpiresAt && (
-              <View className="bg-white/50 dark:bg-black/50 rounded-lg p-3">
+              <View className="rounded-lg bg-white/50 p-3 dark:bg-black/50">
                 <CustomText className="text-sm text-gray-600 dark:text-gray-400">
                   {t('subscription.proStatus.expiresAt') || 'Subscription expires:'} {new Date(subscriptionExpiresAt).toLocaleDateString()}
                 </CustomText>
@@ -225,7 +225,7 @@ export default function SubscriptionScreen() {
         {/* Plans - Show if user is not Pro */}
         {userLevel !== 'pro' && (
           <>
-            <CustomText weight="bold" className="text-xl text-black dark:text-white mb-4">
+            <CustomText weight="bold" className="mb-4 text-xl text-black dark:text-white">
               {t('subscription.choosePlan') || 'Choose Your Plan'}
             </CustomText>
         {plans.map(plan => (
@@ -240,11 +240,11 @@ export default function SubscriptionScreen() {
         ))}
             
             {/* Subscribe CTA */}
-            <View className="bg-primary/5 dark:bg-primary/10 rounded-2xl p-6 mt-6 border border-primary/20">
-              <CustomText weight="bold" className="text-lg text-black dark:text-white mb-2 text-center">
+            <View className="mt-6 rounded-2xl border border-primary/20 bg-primary/5 p-6 dark:bg-primary/10">
+              <CustomText weight="bold" className="mb-2 text-center text-lg text-black dark:text-white">
                 {t('subscription.cta.title') || 'Ready to upgrade?'}
               </CustomText>
-              <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-4 text-center">
+              <CustomText className="mb-4 text-center text-sm text-gray-700 dark:text-gray-300">
                 {t('subscription.cta.description') || 
                   'Subscribe with Tron wallet to unlock all Pro features.'}
               </CustomText>
@@ -264,13 +264,13 @@ export default function SubscriptionScreen() {
         )}
 
         {/* FAQ Section */}
-        <View className="mt-6 mb-6">
-          <CustomText weight="bold" className="text-xl text-black dark:text-white mb-4">
+        <View className="my-6">
+          <CustomText weight="bold" className="mb-4 text-xl text-black dark:text-white">
             {t('subscription.faq.title')}
           </CustomText>
 
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800">
-            <CustomText weight="bold" className="text-base text-black dark:text-white mb-2">
+          <View className="mb-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <CustomText weight="bold" className="mb-2 text-base text-black dark:text-white">
               {t('subscription.faq.q1')}
             </CustomText>
             <CustomText className="text-sm text-gray-600 dark:text-gray-400">
@@ -278,8 +278,8 @@ export default function SubscriptionScreen() {
             </CustomText>
           </View>
 
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800">
-            <CustomText weight="bold" className="text-base text-black dark:text-white mb-2">
+          <View className="mb-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <CustomText weight="bold" className="mb-2 text-base text-black dark:text-white">
               {t('subscription.faq.q2')}
             </CustomText>
             <CustomText className="text-sm text-gray-600 dark:text-gray-400">
@@ -287,8 +287,8 @@ export default function SubscriptionScreen() {
             </CustomText>
           </View>
 
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
-            <CustomText weight="bold" className="text-base text-black dark:text-white mb-2">
+          <View className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+            <CustomText weight="bold" className="mb-2 text-base text-black dark:text-white">
               {t('subscription.faq.q3')}
             </CustomText>
             <CustomText className="text-sm text-gray-600 dark:text-gray-400">

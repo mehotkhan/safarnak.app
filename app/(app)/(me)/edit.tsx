@@ -190,9 +190,9 @@ export default function EditProfileScreen() {
 
       <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 24 }}>
         {/* Avatar - compact */}
-        <View className="items-center mb-6">
+        <View className="mb-6 items-center">
           <View
-            className="w-24 h-24 rounded-full overflow-hidden mb-3"
+            className="mb-3 size-24 overflow-hidden rounded-full"
             style={{
               backgroundColor: isDark ? '#262626' : '#f5f5f5',
               borderWidth: 2,
@@ -200,15 +200,15 @@ export default function EditProfileScreen() {
             }}
           >
             {avatarUri ? (
-              <Image source={{ uri: avatarUri }} className="w-full h-full" resizeMode="cover" />
+              <Image source={{ uri: avatarUri }} className="size-full" resizeMode="cover" />
             ) : userAvatar ? (
-              <Image source={{ uri: userAvatar }} className="w-full h-full" resizeMode="cover" />
+              <Image source={{ uri: userAvatar }} className="size-full" resizeMode="cover" />
             ) : (
-              <Image source={appIcon} className="w-full h-full" resizeMode="contain" />
+              <Image source={appIcon} className="size-full" resizeMode="contain" />
             )}
           </View>
 
-          <View className="flex-row gap-2 w-full px-4">
+          <View className="w-full flex-row gap-2 px-4">
             <CustomButton
               title={t('profile.edit.changeAvatar', { defaultValue: 'Change Photo' })}
               onPress={handleChangeAvatar}
@@ -236,7 +236,7 @@ export default function EditProfileScreen() {
         </View>
 
         {/* Form - compact spacing */}
-        <View className="gap-3 mb-6">
+        <View className="mb-6 gap-3">
           <InputField
             label={t('profile.edit.nameLabel', { defaultValue: 'Name' })}
             placeholder={t('profile.edit.namePlaceholder', { defaultValue: 'Your full name' })}

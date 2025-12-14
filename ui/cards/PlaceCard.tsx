@@ -40,11 +40,11 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
     return (
       <TouchableOpacity
         onPress={onPress}
-        className={`bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden mb-3 border border-gray-200 dark:border-neutral-800 ${className}`}
+        className={`mb-3 overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-neutral-800 dark:bg-neutral-900 ${className}`}
         activeOpacity={0.8}
       >
         <View className="flex-row">
-          <View className="w-24 h-24 bg-gray-200 dark:bg-neutral-800">
+          <View className="size-24 bg-gray-200 dark:bg-neutral-800">
             <ImageWithPlaceholder
               source={imageUrl ? { uri: imageUrl } : { uri: placeholderImageUrl }}
               placeholder={placeholderImageUrl}
@@ -55,28 +55,28 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
             />
           </View>
           <View className="flex-1 p-3">
-            <View className="flex-row justify-between items-start mb-1">
-              <View className="flex-1 mr-2">
+            <View className="mb-1 flex-row items-start justify-between">
+              <View className="mr-2 flex-1">
                 <CustomText
                   weight="bold"
-                  className="text-base text-black dark:text-white mb-1"
+                  className="mb-1 text-base text-black dark:text-white"
                   numberOfLines={1}
                 >
                   {place.name || 'Unnamed Place'}
                 </CustomText>
-                <View className="flex-row items-center mb-1">
+                <View className="mb-1 flex-row items-center">
                   <Ionicons
                     name="location-outline"
                     size={12}
                     color={isDark ? '#9ca3af' : '#6b7280'}
                   />
-                  <CustomText className="text-xs text-gray-600 dark:text-gray-400 ml-1" numberOfLines={1}>
+                  <CustomText className="ml-1 text-xs text-gray-600 dark:text-gray-400" numberOfLines={1}>
                     {place.location || 'Location not specified'}
                   </CustomText>
                 </View>
               </View>
               <View
-                className={`px-2 py-1 rounded-full ${
+                className={`rounded-full px-2 py-1 ${
                   place.isOpen
                     ? 'bg-green-100 dark:bg-green-900'
                     : 'bg-red-100 dark:bg-red-900'
@@ -116,14 +116,14 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
   return (
     <TouchableOpacity
       onPress={onPress}
-      className={`bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-4 border border-gray-200 dark:border-neutral-800 ${className}`}
+      className={`mb-4 rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900 ${className}`}
       activeOpacity={0.8}
     >
-      <View className="flex-row justify-between items-start mb-3">
+      <View className="mb-3 flex-row items-start justify-between">
         <View className="flex-1">
           <CustomText
             weight="bold"
-            className="text-lg text-black dark:text-white mb-1"
+            className="mb-1 text-lg text-black dark:text-white"
           >
             {place?.name || '—'}
           </CustomText>
@@ -133,7 +133,7 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
               size={16}
               color={isDark ? '#9ca3af' : '#6b7280'}
             />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+            <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
               {place?.location || '—'}
             </CustomText>
           </View>
@@ -149,8 +149,8 @@ export const PlaceCard = React.memo<PlaceCardProps>(({ place, onPress, variant =
       </CustomText>
 
       {place?.isOpen !== undefined && (
-        <View className="flex-row items-center mt-2">
-          <View className={`w-2 h-2 rounded-full mr-2 ${place.isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
+        <View className="mt-2 flex-row items-center">
+          <View className={`mr-2 size-2 rounded-full ${place.isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
           <CustomText className="text-xs text-gray-500 dark:text-gray-400">
             {place.isOpen ? (t('places.open') || 'Open') : (t('places.closed') || 'Closed')}
           </CustomText>

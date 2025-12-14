@@ -25,7 +25,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
       <View style={{ position: 'relative' }}>
         <TouchableOpacity
           onPress={() => setOpen(o => !o)}
-          className="flex-row items-center px-3 py-2 rounded-xl border bg-white dark:bg-neutral-900 border-gray-300 dark:border-neutral-700"
+          className="flex-row items-center rounded-xl border border-gray-300 bg-white px-3 py-2 dark:border-neutral-700 dark:bg-neutral-900"
         >
           <Text className="text-base ltr:mr-2 rtl:ml-2">{current.flag}</Text>
           <Text className="text-sm font-medium text-gray-800 dark:text-gray-200 ltr:mr-1 rtl:ml-1">
@@ -40,7 +40,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
 
         {open && (
           <View
-            className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl border bg-white dark:bg-neutral-900 border-gray-200 dark:border-neutral-700"
+            className="absolute z-50 mt-2 rounded-xl border border-gray-200 bg-white dark:border-neutral-700 dark:bg-neutral-900 ltr:right-0 rtl:left-0"
             style={{ minWidth: 180, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
           >
             {languages.map((lang, idx) => (
@@ -56,10 +56,10 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
               >
                 <Text className="text-lg ltr:mr-2 rtl:ml-2">{lang.flag}</Text>
                 <View className="flex-1">
-                  <Text className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                  <Text className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {lang.nativeName || lang.name}
                   </Text>
-                  <Text className="text-xs text-gray-500 dark:text-gray-400 uppercase">{lang.code}</Text>
+                  <Text className="text-xs uppercase text-gray-500 dark:text-gray-400">{lang.code}</Text>
                 </View>
                 {currentLanguage === lang.code && (
                   <Ionicons name="checkmark" size={16} color="#10b981" />
@@ -92,7 +92,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
 
         {open && (
           <View
-            className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900"
+            className="absolute z-50 mt-2 rounded-xl bg-white dark:bg-neutral-900 ltr:right-0 rtl:left-0"
             style={{ minWidth: 140, paddingVertical: 4, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 }}
           >
             {languages.map((lang) => (
@@ -106,7 +106,7 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
                   currentLanguage === lang.code ? 'bg-gray-50 dark:bg-neutral-800' : ''
                 }`}
               >
-                <Text className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                <Text className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {lang.nativeName || lang.name}
                 </Text>
                 {currentLanguage === lang.code && (
@@ -127,10 +127,10 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
           <TouchableOpacity
             key={lang.code}
             onPress={() => changeLanguage(lang.code)}
-            className={`px-3 py-1.5 rounded-full border ${
+            className={`rounded-full border px-3 py-1.5 ${
               currentLanguage === lang.code
-                ? 'bg-primary border-primary'
-                : 'bg-gray-100 dark:bg-neutral-900 border-gray-300 dark:border-neutral-700'
+                ? 'border-primary bg-primary'
+                : 'border-gray-300 bg-gray-100 dark:border-neutral-700 dark:bg-neutral-900'
             }`}
           >
             <Text
@@ -154,10 +154,10 @@ export function LanguageSwitcher({ variant = 'full' }: LanguageSwitcherProps) {
         <TouchableOpacity
           key={lang.code}
           onPress={() => changeLanguage(lang.code)}
-          className={`flex-row items-center px-5 py-2 rounded-full border-2 ${
+          className={`flex-row items-center rounded-full border-2 px-5 py-2 ${
             currentLanguage === lang.code
-              ? 'bg-blue-100 border-blue-500'
-              : 'bg-gray-100 border-gray-300'
+              ? 'border-blue-500 bg-blue-100'
+              : 'border-gray-300 bg-gray-100'
           }`}
         >
           <Text className="text-xl ltr:mr-2 rtl:ml-2">{lang.flag}</Text>

@@ -131,7 +131,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
   };
 
   return (
-    <View className={`bg-white dark:bg-neutral-900 mb-4 rounded-2xl overflow-hidden shadow-sm border border-gray-100 dark:border-neutral-800 ${className}`}>
+    <View className={`mb-4 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900 ${className}`}>
       {/* User Header */}
       <TouchableOpacity 
         onPress={onUserPress}
@@ -145,7 +145,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
               {item.user?.name || 'Unknown User'}
             </CustomText>
             {connectedItemInfo && (
-              <View className="flex-row items-center ml-2 px-2 py-0.5 rounded-full" style={{ backgroundColor: `${connectedItemInfo.color}15` }}>
+              <View className="ml-2 flex-row items-center rounded-full px-2 py-0.5" style={{ backgroundColor: `${connectedItemInfo.color}15` }}>
                 <Ionicons
                   name={connectedItemInfo.icon as any}
                   size={12}
@@ -158,7 +158,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
               </View>
             )}
           </View>
-          <View className="flex-row items-center mt-1">
+          <View className="mt-1 flex-row items-center">
             {entityInfo.location ? (
               <TouchableOpacity
                 onPress={e => {
@@ -179,7 +179,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
                 </CustomText>
               </TouchableOpacity>
             ) : null}
-            <CustomText className="text-sm text-gray-400 dark:text-gray-500 ml-2">
+            <CustomText className="ml-2 text-sm text-gray-400 dark:text-gray-500">
               • {formatRelativeTime(item.createdAt)}
             </CustomText>
           </View>
@@ -205,21 +205,21 @@ export const FeedItem = React.memo<FeedItemProps>(({
             <TouchableOpacity
               activeOpacity={1}
               onPress={() => setShowMenu(false)}
-              className="flex-1 bg-black/50 justify-center items-center"
+              className="flex-1 items-center justify-center bg-black/50"
             >
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={(e) => e.stopPropagation()}
-                className="bg-white dark:bg-neutral-800 rounded-xl shadow-2xl border border-gray-200 dark:border-neutral-700 min-w-[160px] overflow-hidden"
+                className="min-w-[160px] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-neutral-700 dark:bg-neutral-800"
               >
                 {isOwner && onEdit && (
                   <TouchableOpacity
                     onPress={handleEdit}
-                    className="flex-row items-center px-5 py-4 border-b border-gray-100 dark:border-neutral-700"
+                    className="flex-row items-center border-b border-gray-100 px-5 py-4 dark:border-neutral-700"
                     activeOpacity={0.7}
                   >
                     <Ionicons name="create-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-                    <CustomText className="text-base text-gray-700 dark:text-gray-300 ml-3 font-medium">
+                    <CustomText className="ml-3 text-base font-medium text-gray-700 dark:text-gray-300">
                       {t('common.edit') || 'Edit'}
                     </CustomText>
                   </TouchableOpacity>
@@ -233,7 +233,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
                   activeOpacity={0.7}
                 >
                   <Ionicons name="share-outline" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-                  <CustomText className="text-base text-gray-700 dark:text-gray-300 ml-3 font-medium">
+                  <CustomText className="ml-3 text-base font-medium text-gray-700 dark:text-gray-300">
                     {t('common.share') || 'Share'}
                   </CustomText>
                 </TouchableOpacity>
@@ -257,8 +257,8 @@ export const FeedItem = React.memo<FeedItemProps>(({
 
       {/* Content */}
       {item.content && (
-        <View className="px-4 pt-3 pb-2">
-          <CustomText className="text-base text-gray-800 dark:text-gray-200 leading-5">
+        <View className="px-4 pb-2 pt-3">
+          <CustomText className="text-base leading-5 text-gray-800 dark:text-gray-200">
             {item.content}
           </CustomText>
         </View>
@@ -266,21 +266,21 @@ export const FeedItem = React.memo<FeedItemProps>(({
 
       {/* Latest Comments */}
       {item.comments && item.comments.length > 0 && (
-        <View className="px-4 pt-2 pb-3 border-t border-gray-100 dark:border-neutral-800">
+        <View className="border-t border-gray-100 px-4 pb-3 pt-2 dark:border-neutral-800">
           {item.comments.slice(0, 4).map((comment: any, index: number) => (
             <View key={comment.id || index} className="mb-2 last:mb-0">
               <View className="flex-row items-start">
                 <UserAvatar avatar={comment.user?.avatar} size={24} className="mr-2" userId={comment.user?.id} username={comment.user?.username} />
                 <View className="flex-1">
-                  <View className="flex-row items-center mb-0.5">
-                    <CustomText weight="medium" className="text-xs text-black dark:text-white mr-2">
+                  <View className="mb-0.5 flex-row items-center">
+                    <CustomText weight="medium" className="mr-2 text-xs text-black dark:text-white">
                       {comment.user?.name || 'Unknown'}
                     </CustomText>
                     <CustomText className="text-xs text-gray-400 dark:text-gray-500">
                       {formatRelativeTime(comment.createdAt)}
                     </CustomText>
                   </View>
-                  <CustomText className="text-sm text-gray-700 dark:text-gray-300 leading-4">
+                  <CustomText className="text-sm leading-4 text-gray-700 dark:text-gray-300">
                     {comment.content}
                   </CustomText>
                 </View>
@@ -305,10 +305,10 @@ export const FeedItem = React.memo<FeedItemProps>(({
       )}
 
       {/* Actions */}
-      <View className="flex-row items-center px-4 py-3 border-t border-gray-100 dark:border-neutral-800">
+      <View className="flex-row items-center border-t border-gray-100 px-4 py-3 dark:border-neutral-800">
         <TouchableOpacity 
           onPress={handleLike} 
-          className="flex-row items-center mr-6"
+          className="mr-6 flex-row items-center"
           activeOpacity={0.7}
         >
           <Ionicons 
@@ -316,7 +316,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
             size={24} 
             color={hasLiked ? '#ef4444' : (isDark ? '#9ca3af' : '#6b7280')} 
           />
-          <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-2 font-medium">
+          <CustomText className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             {item.reactionsCount || 0}
           </CustomText>
         </TouchableOpacity>
@@ -325,7 +325,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
             onComment();
             onPostPress();
           }} 
-          className="flex-row items-center mr-6"
+          className="mr-6 flex-row items-center"
           activeOpacity={0.7}
         >
           <Ionicons 
@@ -333,7 +333,7 @@ export const FeedItem = React.memo<FeedItemProps>(({
             size={24} 
             color={isDark ? '#9ca3af' : '#6b7280'} 
           />
-          <CustomText className="text-sm text-gray-700 dark:text-gray-300 ml-2 font-medium">
+          <CustomText className="ml-2 text-sm font-medium text-gray-700 dark:text-gray-300">
             {item.commentsCount || 0}
           </CustomText>
         </TouchableOpacity>

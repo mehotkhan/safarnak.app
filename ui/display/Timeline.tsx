@@ -37,23 +37,23 @@ export const Timeline = React.memo<TimelineProps>(({ items, className = '' }) =>
     <View className={`relative ${className}`}>
       {/* Timeline Line */}
       <View 
-        className="absolute left-4 top-0 bottom-0 w-0.5"
+        className="absolute inset-y-0 left-4 w-0.5"
         style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
       />
       
       {items.map((item, index) => (
-        <View key={item.day || index} className="flex-row mb-6">
+        <View key={item.day || index} className="mb-6 flex-row">
           {/* Timeline Dot */}
           <View className="relative mr-4">
             <View 
-              className="w-8 h-8 rounded-full border-2 items-center justify-center"
+              className="size-8 items-center justify-center rounded-full border-2"
               style={{ 
                 backgroundColor: isDark ? '#000000' : '#ffffff',
                 borderColor: isDark ? Colors.dark.primary : Colors.light.primary,
               }}
             >
               <View 
-                className="w-3 h-3 rounded-full"
+                className="size-3 rounded-full"
                 style={{ backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary }}
               />
             </View>
@@ -61,21 +61,21 @@ export const Timeline = React.memo<TimelineProps>(({ items, className = '' }) =>
           
           {/* Day Content */}
           <View className="flex-1 pb-4">
-            <View className="bg-gray-50 dark:bg-neutral-900 rounded-2xl p-4">
+            <View className="rounded-2xl bg-gray-50 p-4 dark:bg-neutral-900">
               <CustomText
                 weight="bold"
-                className="text-base text-black dark:text-white mb-2"
+                className="mb-2 text-base text-black dark:text-white"
               >
                 {t('tripDetail.day') || 'Day'} {item.day}: {item.title}
               </CustomText>
               <View className="mt-2">
                 {item.activities.map((activity, actIndex) => (
-                  <View key={actIndex} className="flex-row items-start mb-2">
+                  <View key={actIndex} className="mb-2 flex-row items-start">
                     <View 
-                      className="w-1.5 h-1.5 rounded-full mt-2 mr-2"
+                      className="mr-2 mt-2 size-1.5 rounded-full"
                       style={{ backgroundColor: isDark ? '#6b7280' : '#9ca3af' }}
                     />
-                    <CustomText className="text-sm text-gray-700 dark:text-gray-300 flex-1">
+                    <CustomText className="flex-1 text-sm text-gray-700 dark:text-gray-300">
                       {activity}
                     </CustomText>
                   </View>

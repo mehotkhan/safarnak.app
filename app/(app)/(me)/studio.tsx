@@ -48,7 +48,7 @@ export default function StudioScreen() {
     <ScreenLayout title={t('me.studio.title') || 'Studio'}>
       <ScrollView className="flex-1">
         <View className="px-6 py-4">
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 mb-6">
+          <CustomText className="mb-6 text-base text-gray-600 dark:text-gray-400">
             {t('me.studio.description') || 'Manage all your content in one place'}
           </CustomText>
 
@@ -56,11 +56,11 @@ export default function StudioScreen() {
             <TouchableOpacity
               key={section.id}
               onPress={() => router.push(section.route as any)}
-              className="flex-row items-center p-4 mb-3 rounded-2xl bg-gray-50 dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800"
+              className="mb-3 flex-row items-center rounded-2xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-800 dark:bg-neutral-900"
               activeOpacity={0.7}
             >
               <View
-                className="w-12 h-12 rounded-full items-center justify-center mr-4"
+                className="mr-4 size-12 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: isDark ? '#374151' : '#f3f4f6',
                 }}
@@ -72,7 +72,7 @@ export default function StudioScreen() {
                 />
               </View>
               <View className="flex-1">
-                <CustomText weight="bold" className="text-base text-black dark:text-white mb-1">
+                <CustomText weight="bold" className="mb-1 text-base text-black dark:text-white">
                   {section.title}
                 </CustomText>
                 <CustomText className="text-sm text-gray-600 dark:text-gray-400">

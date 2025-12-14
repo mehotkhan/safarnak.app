@@ -99,10 +99,10 @@ function IntroSlider({
             style={{ width: SCREEN_WIDTH }}
             className="items-center justify-center px-8"
           >
-            <CustomText weight="bold" className="text-4xl text-white mb-4 text-center">
+            <CustomText weight="bold" className="mb-4 text-center text-4xl text-white">
               {t(item.titleKey)}
             </CustomText>
-            <CustomText className="text-lg text-white/95 text-center leading-7 px-4">
+            <CustomText className="px-4 text-center text-lg leading-7 text-white/95">
               {t(item.subtitleKey)}
             </CustomText>
           </View>
@@ -112,7 +112,7 @@ function IntroSlider({
       />
 
       {/* Pagination Dots */}
-      <View className="flex-row justify-center items-center mt-8 gap-2">
+      <View className="mt-8 flex-row items-center justify-center gap-2">
         {SLIDES.map((slide, index) => (
           <View
             key={slide.key}
@@ -133,36 +133,36 @@ function HeroSection() {
   const { t } = useTranslation();
 
   return (
-    <View className="px-6 mb-8">
-      <View className="bg-white/95 dark:bg-black/95 rounded-2xl p-6 border border-white/20">
-        <CustomText weight="bold" className="text-lg text-black dark:text-white mb-2">
+    <View className="mb-8 px-6">
+      <View className="rounded-2xl border border-white/20 bg-white/95 p-6 dark:bg-black/95">
+        <CustomText weight="bold" className="mb-2 text-lg text-black dark:text-white">
           {t('onboarding.welcome.heroTitle') || 'AI-Powered Trip Planning'}
         </CustomText>
-        <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+        <CustomText className="mb-4 text-sm text-gray-700 dark:text-gray-300">
           {t('onboarding.welcome.heroDescription') ||
             "Tell us about your trip and Safarnak's AI will design the best route for you."}
         </CustomText>
 
         {/* Three value props */}
-        <View className="flex-row justify-between items-center mt-4 gap-4">
+        <View className="mt-4 flex-row items-center justify-between gap-4">
           {/* AI */}
           <View className="flex-1 items-center">
             <Ionicons name="sparkles" size={22} color="#3b82f6" />
-            <CustomText className="text-xs text-gray-700 dark:text-gray-300 mt-2 font-medium">
+            <CustomText className="mt-2 text-xs font-medium text-gray-700 dark:text-gray-300">
               {t('onboarding.welcome.ai') || 'Smart AI'}
             </CustomText>
           </View>
           {/* Social */}
           <View className="flex-1 items-center">
             <Ionicons name="people" size={22} color="#3b82f6" />
-            <CustomText className="text-xs text-gray-700 dark:text-gray-300 mt-2 font-medium">
+            <CustomText className="mt-2 text-xs font-medium text-gray-700 dark:text-gray-300">
               {t('onboarding.welcome.social') || 'Travel together'}
             </CustomText>
           </View>
           {/* Offline */}
           <View className="flex-1 items-center">
             <Ionicons name="cloud-offline" size={22} color="#3b82f6" />
-            <CustomText className="text-xs text-gray-700 dark:text-gray-300 mt-2 font-medium">
+            <CustomText className="mt-2 text-xs font-medium text-gray-700 dark:text-gray-300">
               {t('onboarding.welcome.offline') || 'Offline ready'}
             </CustomText>
           </View>
@@ -185,7 +185,7 @@ function CTASection({
   const { t } = useTranslation();
 
   return (
-    <View className="px-6 pb-8 mt-4">
+    <View className="mt-4 px-6 pb-8">
       <CustomButton
         title={t('onboarding.welcome.startAITrip') || 'Start with AI Trip'}
         onPress={onStartWithAITrip}
@@ -196,7 +196,7 @@ function CTASection({
         <TouchableOpacity
           onPress={onJustLookAround}
           disabled={loading}
-          className="w-full rounded-full py-3 px-3 flex flex-row justify-center items-center border border-white/30 bg-transparent"
+          className="flex w-full flex-row items-center justify-center rounded-full border border-white/30 bg-transparent p-3"
         >
           {loading ? (
             <ActivityIndicator color="#ffffff" size="small" />
@@ -344,17 +344,17 @@ export default function WelcomeScreen() {
 
       {/* Header - transparent */}
       <View
-        className="pt-12 pb-4 px-5"
+        className="px-5 pb-4 pt-12"
         style={{ zIndex: 10 }}
       >
         <View className="flex-row items-center justify-between">
-          <Image source={logoBeta} className="w-16 h-16" resizeMode="contain" />
+          <Image source={logoBeta} className="size-16" resizeMode="contain" />
           <View style={{ position: 'relative' }}>
             <TouchableOpacity
               onPress={() => setLanguageDropdownOpen(!languageDropdownOpen)}
-              className="flex-row items-center justify-center rounded-full px-3 py-1.5 bg-white/20 backdrop-blur"
+              className="flex-row items-center justify-center rounded-full bg-white/20 px-3 py-1.5 backdrop-blur"
             >
-              <CustomText className="text-base font-medium ltr:mr-1 rtl:ml-1 text-white">
+              <CustomText className="text-base font-medium text-white ltr:mr-1 rtl:ml-1">
                 {currentLang.name}
               </CustomText>
               <Ionicons
@@ -366,7 +366,7 @@ export default function WelcomeScreen() {
 
             {languageDropdownOpen && (
               <View
-                className="absolute z-50 mt-2 ltr:right-0 rtl:left-0 rounded-xl bg-white dark:bg-neutral-900"
+                className="absolute z-50 mt-2 rounded-xl bg-white dark:bg-neutral-900 ltr:right-0 rtl:left-0"
                 style={{
                   minWidth: 140,
                   paddingVertical: 4,
@@ -388,7 +388,7 @@ export default function WelcomeScreen() {
                       currentLanguage === lang.code ? 'bg-gray-50 dark:bg-neutral-800' : ''
                     }`}
                   >
-                    <CustomText className="text-sm text-gray-900 dark:text-gray-100 font-medium">
+                    <CustomText className="text-sm font-medium text-gray-900 dark:text-gray-100">
                       {lang.name}
                     </CustomText>
                     {currentLanguage === lang.code && (

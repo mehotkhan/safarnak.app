@@ -49,7 +49,7 @@ export const SearchBar = React.memo<SearchBarProps>(({
 
   return (
     <View className={`flex-row items-center ${className}`}>
-      <View className="flex-1 flex-row items-center bg-gray-100 dark:bg-neutral-900 rounded-full px-4 py-3 mr-3">
+      <View className="mr-3 flex-1 flex-row items-center rounded-full bg-gray-100 px-4 py-3 dark:bg-neutral-900">
         <Ionicons
           name="search"
           size={20}
@@ -60,7 +60,7 @@ export const SearchBar = React.memo<SearchBarProps>(({
           placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
           value={value}
           onChangeText={onChangeText}
-          className="flex-1 ml-2 text-black dark:text-white"
+          className="ml-2 flex-1 text-black dark:text-white"
         />
         {value.length > 0 && (
           <TouchableOpacity onPress={handleClear} activeOpacity={0.7}>
@@ -75,7 +75,7 @@ export const SearchBar = React.memo<SearchBarProps>(({
       {showFilterButton && onFilterPress ? (
         <TouchableOpacity
           onPress={onFilterPress}
-          className={`w-12 h-12 rounded-full items-center justify-center ${
+          className={`size-12 items-center justify-center rounded-full ${
             (filterButtonBadge ?? 0) > 0 
               ? 'bg-primary' 
               : 'bg-gray-100 dark:bg-neutral-900'
@@ -92,7 +92,7 @@ export const SearchBar = React.memo<SearchBarProps>(({
             }
           />
           {(filterButtonBadge ?? 0) > 0 ? (
-            <View className="absolute -top-1 -right-1 bg-red-500 rounded-full w-5 h-5 items-center justify-center">
+            <View className="absolute -right-1 -top-1 size-5 items-center justify-center rounded-full bg-red-500">
               <CustomText className="text-xs text-white" weight="bold">
                 {filterButtonBadge! > 9 ? '9+' : String(filterButtonBadge)}
               </CustomText>

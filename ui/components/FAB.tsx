@@ -95,11 +95,11 @@ export default function FAB({ options, visible = true, position = 'bottom-right'
             >
               <TouchableOpacity
                 onPress={() => handleOptionPress(option)}
-                className="flex-row items-center bg-white dark:bg-neutral-800 px-4 py-3 rounded-full border border-gray-200 dark:border-neutral-700"
+                className="flex-row items-center rounded-full border border-gray-200 bg-white px-4 py-3 dark:border-neutral-700 dark:bg-neutral-800"
                 activeOpacity={0.8}
               >
                 <View 
-                  className="w-10 h-10 items-center justify-center rounded-full ltr:mr-3 rtl:ml-3"
+                  className="size-10 items-center justify-center rounded-full ltr:mr-3 rtl:ml-3"
                   style={{ backgroundColor: `${option.color || primaryColor}20` }}
                 >
                   <Ionicons 
@@ -120,7 +120,7 @@ export default function FAB({ options, visible = true, position = 'bottom-right'
       {/* Main FAB Button */}
       <TouchableOpacity
         onPress={toggleFab}
-        className="w-14 h-14 items-center justify-center rounded-full"
+        className="size-14 items-center justify-center rounded-full"
         style={{ backgroundColor: primaryColor }}
         activeOpacity={0.8}
       >

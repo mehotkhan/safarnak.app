@@ -38,7 +38,7 @@ export const LoadingState = React.memo<LoadingStateProps>(({
     <View className={containerClass}>
       <ActivityIndicator size={size} color={indicatorColor} />
       {message && (
-        <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+        <CustomText className="mt-4 text-gray-500 dark:text-gray-400">
           {message}
         </CustomText>
       )}

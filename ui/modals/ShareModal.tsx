@@ -120,14 +120,14 @@ export default function ShareModal({
             }}
           >
             {/* Header */}
-            <View className="px-6 pt-6 pb-4 border-b border-gray-200 dark:border-neutral-800">
+            <View className="border-b border-gray-200 px-6 pb-4 pt-6 dark:border-neutral-800">
               <View className="flex-row items-center justify-between">
                 <CustomText weight="bold" className="text-2xl text-black dark:text-white">
                   {t('feed.share.title') || 'Share to Feed'}
                 </CustomText>
                 <TouchableOpacity 
                   onPress={onClose}
-                  className="w-8 h-8 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
+                  className="size-8 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -151,8 +151,8 @@ export default function ShareModal({
               }}
             >
               {entityTitle && type && relatedId && (
-                <View className="mb-4 p-4 bg-gray-50 dark:bg-neutral-800/50 rounded-xl border border-gray-200 dark:border-neutral-700">
-                  <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+                <View className="mb-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-neutral-700 dark:bg-neutral-800/50">
+                  <CustomText className="mb-2 text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400">
                     {t('feed.share.sharing') || 'Sharing:'}
                   </CustomText>
                   <CustomText weight="bold" className="text-base text-black dark:text-white">
@@ -162,7 +162,7 @@ export default function ShareModal({
               )}
 
               <View className="mb-6">
-                <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                <CustomText className="mb-2 text-sm text-gray-700 dark:text-gray-300">
                   {t('feed.share.addMessage') || 'Add a message (optional)'}
                 </CustomText>
                 <TextInput
@@ -172,7 +172,7 @@ export default function ShareModal({
                   placeholderTextColor={isDark ? '#6b7280' : '#9ca3af'}
                   multiline
                   numberOfLines={8}
-                  className="bg-gray-50 dark:bg-neutral-800 rounded-xl p-4 text-base"
+                  className="rounded-xl bg-gray-50 p-4 text-base dark:bg-neutral-800"
                   style={{
                     textAlignVertical: 'top',
                     color: isDark ? '#fff' : '#000',

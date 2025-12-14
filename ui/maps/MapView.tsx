@@ -9,7 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { View, TouchableOpacity, ActivityIndicator, Text } from 'react-native';
-import { MapView as MLMapView, PointAnnotation, Camera, UserLocation, ShapeSource, LineLayer, SymbolLayer } from '@maplibre/maplibre-react-native';
+import { MapView as MLMapView, PointAnnotation, Camera, UserLocation, ShapeSource, LineLayer } from '@maplibre/maplibre-react-native';
 import { useColorScheme } from '@hooks/useColorScheme';
 import { getStyleForLayer } from './mapStyles';
 import MapLibreLayerSelector, { type MapLibreLayer } from './MapLibreLayerSelector';
@@ -160,13 +160,6 @@ export default function MapView({
     }
   }, [mapBounds]);
 
-  const handleMapLayerChange = useCallback(() => {
-    const layers: MapLayerName[] = ['standard', 'satellite', 'terrain'];
-    const currentIndex = layers.indexOf(mapLayer);
-    const nextLayer = layers[(currentIndex + 1) % layers.length] as MapLayerName;
-    setMapLayer(nextLayer);
-  }, [mapLayer]);
-
   // Convert waypoints to markers
   const markers = useMemo(() => {
     const markerList: Array<{
@@ -201,7 +194,7 @@ export default function MapView({
     <View className="flex-1">
       {/* Loading Indicator */}
       {isMapLoading && (
-        <View className="absolute inset-0 justify-center items-center bg-white/90 dark:bg-black/90 z-[1000]">
+        <View className="absolute inset-0 z-[1000] items-center justify-center bg-white/90 dark:bg-black/90">
           <ActivityIndicator size="large" color="#8b5cf6" />
           <Text className="mt-2.5 text-base text-gray-800 dark:text-gray-200">Loading Map...</Text>
         </View>
@@ -284,14 +277,14 @@ export default function MapView({
             <View className="items-center justify-center">
               {/* Place Name Label */}
               {marker.title && (
-                <View className="mb-1 px-2 py-1 bg-white/95 dark:bg-gray-900/95 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md">
+                <View className="mb-1 rounded-lg border border-gray-200 bg-white/95 px-2 py-1 shadow-md dark:border-gray-700 dark:bg-gray-900/95">
                   <Text className="text-xs font-semibold text-gray-900 dark:text-gray-100" numberOfLines={1}>
                     {marker.title}
                   </Text>
                 </View>
               )}
               {/* Marker Icon */}
-              <View className="w-8 h-8 bg-purple-500 rounded-full border-2 border-white shadow-lg items-center justify-center">
+              <View className="size-8 items-center justify-center rounded-full border-2 border-white bg-purple-500 shadow-lg">
                 <Ionicons name="location" size={16} color="#FFFFFF" />
               </View>
             </View>
@@ -316,10 +309,10 @@ export default function MapView({
           />
 
           {/* Control Buttons */}
-        <View className="absolute bottom-8 ltr:right-5 rtl:left-5 flex-col z-[100] gap-2">
+        <View className="absolute bottom-8 z-[100] flex-col gap-2 ltr:right-5 rtl:left-5">
           {/* Zoom In */}
           <TouchableOpacity
-            className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"
+            className="size-12 items-center justify-center rounded-full bg-white shadow-lg dark:bg-gray-800"
             onPress={handleZoomIn}
             activeOpacity={0.7}
           >
@@ -328,7 +321,7 @@ export default function MapView({
 
           {/* Zoom Out */}
           <TouchableOpacity
-            className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"
+            className="size-12 items-center justify-center rounded-full bg-white shadow-lg dark:bg-gray-800"
             onPress={handleZoomOut}
             activeOpacity={0.7}
           >
@@ -337,7 +330,7 @@ export default function MapView({
 
           {/* Center on Location */}
           <TouchableOpacity
-            className="w-12 h-12 rounded-full bg-purple-500 justify-center items-center shadow-lg"
+            className="size-12 items-center justify-center rounded-full bg-purple-500 shadow-lg"
             onPress={handleCenterLocation}
             activeOpacity={0.7}
             disabled={!location && !validWaypoints.length}

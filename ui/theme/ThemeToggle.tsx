@@ -14,7 +14,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
   return (
     <TouchableOpacity onPress={toggleTheme} className="flex-row items-center">
       <View
-        className={`w-16 h-7 rounded-full ${
+        className={`h-7 w-16 rounded-full ${
           isDark ? 'bg-primary' : 'bg-gray-300 dark:bg-neutral-700'
         } relative`}
       >
@@ -32,7 +32,7 @@ export function ThemeToggle({ showLabel = true }: ThemeToggleProps) {
           />
         </View>
         <View
-          className={`absolute w-6 h-6 bg-white rounded-full ${
+          className={`absolute size-6 rounded-full bg-white ${
             isDark ? 'right-0.5' : 'left-0.5'
           }`}
           style={{

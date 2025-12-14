@@ -93,7 +93,7 @@ export const NotificationCard = React.memo<NotificationCardProps>(({
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="flex-row items-start px-4 py-4 border-b border-gray-200 dark:border-neutral-800"
+      className="flex-row items-start border-b border-gray-200 p-4 dark:border-neutral-800"
       style={{
         backgroundColor: read
           ? 'transparent'
@@ -103,7 +103,7 @@ export const NotificationCard = React.memo<NotificationCardProps>(({
     >
       {/* Icon */}
       <View
-        className="w-12 h-12 rounded-full items-center justify-center mr-3"
+        className="mr-3 size-12 items-center justify-center rounded-full"
         style={{
           backgroundColor: isDark ? '#374151' : '#f3f4f6',
         }}
@@ -117,28 +117,28 @@ export const NotificationCard = React.memo<NotificationCardProps>(({
 
       {/* Content */}
       <View className="flex-1">
-        <View className="flex-row items-center justify-between mb-1">
+        <View className="mb-1 flex-row items-center justify-between">
           <CustomText
             weight="bold"
-            className="text-base text-black dark:text-white flex-1"
+            className="flex-1 text-base text-black dark:text-white"
             numberOfLines={1}
           >
             {title}
           </CustomText>
           {!read && (
             <View
-              className="w-2 h-2 rounded-full ml-2"
+              className="ml-2 size-2 rounded-full"
               style={{ backgroundColor: isDark ? Colors.dark.primary : Colors.light.primary }}
             />
           )}
         </View>
         <CustomText
-          className="text-sm text-gray-600 dark:text-gray-400 mt-1"
+          className="mt-1 text-sm text-gray-600 dark:text-gray-400"
           numberOfLines={2}
         >
           {message}
         </CustomText>
-        <View className="flex-row items-center justify-between mt-2">
+        <View className="mt-2 flex-row items-center justify-between">
           <CustomText className="text-xs text-gray-500 dark:text-gray-500">
             {formatRelativeTime(timestampStr)}
           </CustomText>

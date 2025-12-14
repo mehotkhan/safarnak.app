@@ -50,11 +50,11 @@ export const RatingDisplay = React.memo<RatingDisplayProps>(({
   return (
     <View className={`flex-row items-center ${className}`}>
       <Ionicons name="star" size={starSize} color="#fbbf24" />
-      <CustomText className={`${textSize} text-gray-700 dark:text-gray-300 ml-1`}>
+      <CustomText className={`${textSize} ml-1 text-gray-700 dark:text-gray-300`}>
         {displayRating}
       </CustomText>
       {showReviews && reviews !== undefined && (
-        <CustomText className={`${textSize} text-gray-600 dark:text-gray-400 ml-1`}>
+        <CustomText className={`${textSize} ml-1 text-gray-600 dark:text-gray-400`}>
           ({reviews})
         </CustomText>
       )}

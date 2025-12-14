@@ -153,7 +153,7 @@ export default function UserProfileScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-black">
         <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-        <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+        <CustomText className="mt-4 text-gray-500 dark:text-gray-400">
           {t('common.loading')}
         </CustomText>
       </View>
@@ -162,17 +162,17 @@ export default function UserProfileScreen() {
 
   if (error || !user) {
     return (
-      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-black">
+      <View className="flex-1 items-center justify-center bg-white px-6 dark:bg-black">
         <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+        <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
           {t('common.error')}
         </CustomText>
-        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+        <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
           {String((error as any)?.message || t('common.errorMessage') || 'User not found')}
         </CustomText>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="mt-4 bg-primary px-6 py-3 rounded-lg"
+          className="mt-4 rounded-lg bg-primary px-6 py-3"
         >
           <CustomText className="text-white" weight="medium">
             {t('common.back') || 'Go Back'}
@@ -196,13 +196,13 @@ export default function UserProfileScreen() {
       />
 
       {/* Header */}
-      <View className="px-6 py-6 border-b border-gray-200 dark:border-neutral-800">
-        <View className="flex-row items-start mb-4">
+      <View className="border-b border-gray-200 p-6 dark:border-neutral-800">
+        <View className="mb-4 flex-row items-start">
           {/* Avatar */}
-          <View className="w-20 h-20 rounded-full overflow-hidden bg-white dark:bg-neutral-800 border-2 border-primary mr-4">
+          <View className="mr-4 size-20 overflow-hidden rounded-full border-2 border-primary bg-white dark:bg-neutral-800">
             <Image
               source={appIcon}
-              className="w-full h-full"
+              className="size-full"
               resizeMode="contain"
             />
           </View>
@@ -237,23 +237,23 @@ export default function UserProfileScreen() {
         </View>
 
         {/* User Info */}
-        <CustomText weight="bold" className="text-xl text-black dark:text-white mb-1">
+        <CustomText weight="bold" className="mb-1 text-xl text-black dark:text-white">
           {user.name}
         </CustomText>
         {user.avatar && (
           <View className="mb-3">
             <Image
               source={{ uri: user.avatar }}
-              className="w-16 h-16 rounded-full"
+              className="size-16 rounded-full"
               resizeMode="cover"
             />
           </View>
         )}
 
         {joinedDate && (
-          <View className="flex-row items-center mb-3">
+          <View className="mb-3 flex-row items-center">
             <Ionicons name="calendar-outline" size={14} color={isDark ? '#9ca3af' : '#6b7280'} />
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2">
+            <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400">
               {t('userProfile.joined')} {joinedDate}
             </CustomText>
           </View>
@@ -261,7 +261,7 @@ export default function UserProfileScreen() {
 
         {/* Action Buttons */}
         {!isOwnProfile && (
-          <View className="flex-row gap-3 mt-4">
+          <View className="mt-4 flex-row gap-3">
             <View className="flex-1">
               <CustomButton
                 title={isFollowing ? t('userProfile.following') : t('userProfile.follow')}
@@ -300,7 +300,7 @@ export default function UserProfileScreen() {
       <View className="flex-row border-b border-gray-200 dark:border-neutral-800">
         <TouchableOpacity
           onPress={() => setSelectedTab('posts')}
-          className={`flex-1 py-4 items-center border-b-2 ${
+          className={`flex-1 items-center border-b-2 py-4 ${
             selectedTab === 'posts'
               ? 'border-primary'
               : 'border-transparent'
@@ -319,7 +319,7 @@ export default function UserProfileScreen() {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => setSelectedTab('trips')}
-          className={`flex-1 py-4 items-center border-b-2 ${
+          className={`flex-1 items-center border-b-2 py-4 ${
             selectedTab === 'trips'
               ? 'border-primary'
               : 'border-transparent'
@@ -347,12 +347,12 @@ export default function UserProfileScreen() {
                 <TouchableOpacity
                   key={post.id}
                   onPress={() => router.push(`/(app)/(home)/${post.id}` as any)}
-                  className="w-[32%] aspect-square bg-gray-200 dark:bg-neutral-800 rounded-lg items-center justify-center"
+                  className="aspect-square w-[32%] items-center justify-center rounded-lg bg-gray-200 dark:bg-neutral-800"
                 >
                   {post.attachments && post.attachments.length > 0 ? (
                     <Image
                       source={{ uri: post.attachments[0] }}
-                      className="w-full h-full rounded-lg"
+                      className="size-full rounded-lg"
                       resizeMode="cover"
                     />
                   ) : (
@@ -364,7 +364,7 @@ export default function UserProfileScreen() {
           ) : (
             <View className="items-center justify-center py-12">
               <Ionicons name="image-outline" size={64} color={isDark ? '#4b5563' : '#d1d5db'} />
-              <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+              <CustomText className="mt-4 text-gray-600 dark:text-gray-400">
                 {t('userProfile.noPosts') || 'No posts yet'}
               </CustomText>
             </View>
@@ -376,9 +376,9 @@ export default function UserProfileScreen() {
                 <TouchableOpacity
                   key={trip.id}
                   onPress={() => router.push(`/(app)/(trips)/${trip.id}` as any)}
-                  className="bg-white dark:bg-neutral-900 rounded-2xl p-4 mb-3 border border-gray-200 dark:border-neutral-800"
+                  className="mb-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
                 >
-                  <CustomText weight="bold" className="text-lg text-black dark:text-white mb-1">
+                  <CustomText weight="bold" className="mb-1 text-lg text-black dark:text-white">
                     {trip.destination || 'Untitled Trip'}
                   </CustomText>
                   {trip.startDate && (
@@ -393,7 +393,7 @@ export default function UserProfileScreen() {
           ) : (
             <View className="items-center justify-center py-12">
               <Ionicons name="airplane-outline" size={64} color={isDark ? '#4b5563' : '#d1d5db'} />
-              <CustomText className="text-gray-600 dark:text-gray-400 mt-4">
+              <CustomText className="mt-4 text-gray-600 dark:text-gray-400">
                 {t('userProfile.noTrips') || 'No trips yet'}
               </CustomText>
             </View>

@@ -93,7 +93,7 @@ export const InfoBanner = React.memo<InfoBannerProps>(({
   const colors = getColors();
 
   return (
-    <View className={`${colors.bg} ${colors.border} border rounded-xl p-3 ${className}`}>
+    <View className={`${colors.bg} ${colors.border} rounded-xl border p-3 ${className}`}>
       <View className="flex-row items-start">
         <Ionicons
           name={getIconName() as any}

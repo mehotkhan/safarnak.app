@@ -56,7 +56,7 @@ export const TabBar = React.memo<TabBarProps>(({
           <TouchableOpacity
             key={tab.id}
             onPress={() => onTabChange(tab.id)}
-            className={`flex-row items-center px-3 py-1.5 rounded-full mr-2 ${
+            className={`mr-2 flex-row items-center rounded-full px-3 py-1.5 ${
               activeTab === tab.id
                 ? 'bg-primary'
                 : 'bg-gray-100 dark:bg-neutral-800'
@@ -124,12 +124,12 @@ export const TabBar = React.memo<TabBarProps>(({
 
   // Segmented variant (default - for trips/explore tabs)
   return (
-    <View className={`flex-row bg-gray-100 dark:bg-neutral-900 rounded-xl p-1 ${className}`}>
+    <View className={`flex-row rounded-xl bg-gray-100 p-1 dark:bg-neutral-900 ${className}`}>
       {tabs.map((tab) => (
         <TouchableOpacity
           key={tab.id}
           onPress={() => onTabChange(tab.id)}
-          className={`flex-1 py-2 rounded-lg ${
+          className={`flex-1 rounded-lg py-2 ${
             activeTab === tab.id
               ? 'bg-white dark:bg-neutral-800'
               : ''

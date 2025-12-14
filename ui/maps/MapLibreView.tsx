@@ -172,14 +172,14 @@ export default function MapLibreView({
             <View className="items-center justify-center">
               {/* Place Name Label */}
               {marker.title && (
-                <View className="mb-1 px-2 py-1 bg-white/95 dark:bg-gray-900/95 rounded-lg border border-gray-200 dark:border-gray-700 shadow-md">
+                <View className="mb-1 rounded-lg border border-gray-200 bg-white/95 px-2 py-1 shadow-md dark:border-gray-700 dark:bg-gray-900/95">
                   <Text className="text-xs font-semibold text-gray-900 dark:text-gray-100" numberOfLines={1}>
                     {marker.title}
                   </Text>
                 </View>
               )}
               {/* Marker Icon */}
-              <View className="w-6 h-6 bg-red-500 rounded-full border-2 border-white shadow-lg" />
+              <View className="size-6 rounded-full border-2 border-white bg-red-500 shadow-lg" />
             </View>
           </PointAnnotation>
         ))}
@@ -199,10 +199,10 @@ export default function MapLibreView({
           )}
 
           {/* Control Buttons */}
-          <View className="absolute bottom-8 ltr:right-5 rtl:left-5 flex-col z-[100] gap-2">
+          <View className="absolute bottom-8 z-[100] flex-col gap-2 ltr:right-5 rtl:left-5">
             {/* Zoom In */}
             <TouchableOpacity
-              className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"
+              className="size-12 items-center justify-center rounded-full bg-white shadow-lg dark:bg-gray-800"
               onPress={handleZoomIn}
               activeOpacity={0.7}
             >
@@ -211,7 +211,7 @@ export default function MapLibreView({
 
             {/* Zoom Out */}
             <TouchableOpacity
-              className="w-12 h-12 rounded-full bg-white dark:bg-gray-800 justify-center items-center shadow-lg"
+              className="size-12 items-center justify-center rounded-full bg-white shadow-lg dark:bg-gray-800"
               onPress={handleZoomOut}
               activeOpacity={0.7}
             >
@@ -220,7 +220,7 @@ export default function MapLibreView({
 
             {/* Center on Location/Markers */}
             <TouchableOpacity
-              className="w-12 h-12 rounded-full bg-purple-500 justify-center items-center shadow-lg"
+              className="size-12 items-center justify-center rounded-full bg-purple-500 shadow-lg"
               onPress={handleCenterLocation}
               activeOpacity={0.7}
               disabled={markers.length === 0 && !showUserLocation}

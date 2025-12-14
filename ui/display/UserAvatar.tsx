@@ -97,25 +97,25 @@ export const UserAvatar = React.memo<UserAvatarProps>(({
 
   const content = (
     <View 
-      className={`rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 ${borderClass} ${className}`}
+      className={`overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800 ${borderClass} ${className}`}
       style={{ width: size, height: size }}
     >
       {avatar && !hasError ? (
         <Image
           source={{ uri: avatar }}
-          className="w-full h-full"
+          className="size-full"
           resizeMode="cover"
           onError={handleError}
         />
       ) : shouldShowPlaceholderImage ? (
         <Image
           source={{ uri: placeholderImageUrl }}
-          className="w-full h-full"
+          className="size-full"
           resizeMode="cover"
           onError={handleError}
         />
       ) : (
-        <View className="w-full h-full items-center justify-center">
+        <View className="size-full items-center justify-center">
           <Ionicons name="person" size={size * 0.5} color={iconColor} />
         </View>
       )}

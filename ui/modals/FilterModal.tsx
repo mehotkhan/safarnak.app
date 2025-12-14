@@ -119,7 +119,7 @@ export default function FilterModal({
     <ScrollView className="flex-1">
       {/* Category */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.category')}
         </CustomText>
         <View className="flex-row flex-wrap">
@@ -132,7 +132,7 @@ export default function FilterModal({
                   category: localTourFilters.category === cat.id ? undefined : cat.id,
                 })
               }
-              className={`px-4 py-2 rounded-full mr-2 mb-2 ${
+              className={`mb-2 mr-2 rounded-full px-4 py-2 ${
                 localTourFilters.category === cat.id
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -154,25 +154,25 @@ export default function FilterModal({
 
       {/* Price Range */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.priceRange')}
         </CustomText>
         <View className="flex-row items-center">
-          <View className="flex-1 mr-2">
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+          <View className="mr-2 flex-1">
+            <CustomText className="mb-1 text-sm text-gray-600 dark:text-gray-400">
               {t('explore.filters.minPrice')}
             </CustomText>
-            <View className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-2">
+            <View className="rounded-lg bg-gray-100 px-3 py-2 dark:bg-neutral-800">
               <CustomText className="text-black dark:text-white">
                 ${localTourFilters.minPrice || 0}
               </CustomText>
             </View>
           </View>
           <View className="flex-1">
-            <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+            <CustomText className="mb-1 text-sm text-gray-600 dark:text-gray-400">
               {t('explore.filters.maxPrice')}
             </CustomText>
-            <View className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-2">
+            <View className="rounded-lg bg-gray-100 px-3 py-2 dark:bg-neutral-800">
               <CustomText className="text-black dark:text-white">
                 ${localTourFilters.maxPrice || 10000}
               </CustomText>
@@ -183,7 +183,7 @@ export default function FilterModal({
 
       {/* Rating */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.minRating')}
         </CustomText>
         <View className="flex-row">
@@ -196,7 +196,7 @@ export default function FilterModal({
                   minRating: localTourFilters.minRating === rating ? undefined : rating,
                 })
               }
-              className={`w-12 h-12 rounded-full items-center justify-center mr-2 ${
+              className={`mr-2 size-12 items-center justify-center rounded-full ${
                 localTourFilters.minRating === rating
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -208,7 +208,7 @@ export default function FilterModal({
                 color={localTourFilters.minRating === rating ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
               />
               <CustomText
-                className={`text-xs mt-0.5 ${
+                className={`mt-0.5 text-xs ${
                   localTourFilters.minRating === rating
                     ? 'text-white'
                     : 'text-gray-600 dark:text-gray-400'
@@ -223,7 +223,7 @@ export default function FilterModal({
 
       {/* Difficulty */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.difficulty')}
         </CustomText>
         <View className="flex-row flex-wrap">
@@ -236,7 +236,7 @@ export default function FilterModal({
                   difficulty: localTourFilters.difficulty === diff.id ? undefined : diff.id,
                 })
               }
-              className={`px-4 py-2 rounded-full mr-2 mb-2 ${
+              className={`mb-2 mr-2 rounded-full px-4 py-2 ${
                 localTourFilters.difficulty === diff.id
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -258,7 +258,7 @@ export default function FilterModal({
 
       {/* Sort By */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.sortBy')}
         </CustomText>
         <View className="gap-2">
@@ -271,7 +271,7 @@ export default function FilterModal({
                   sortBy: option.id as any,
                 })
               }
-              className={`flex-row items-center justify-between p-3 rounded-lg mb-2 ${
+              className={`mb-2 flex-row items-center justify-between rounded-lg p-3 ${
                 localTourFilters.sortBy === option.id
                   ? 'bg-primary/15 dark:bg-primary/25'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -300,7 +300,7 @@ export default function FilterModal({
     <ScrollView className="flex-1">
       {/* Type */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.type')}
         </CustomText>
         <View className="flex-row flex-wrap">
@@ -313,7 +313,7 @@ export default function FilterModal({
                   type: localPlaceFilters.type === type.id ? undefined : type.id,
                 })
               }
-              className={`px-4 py-2 rounded-full mr-2 mb-2 ${
+              className={`mb-2 mr-2 rounded-full px-4 py-2 ${
                 localPlaceFilters.type === type.id
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -335,7 +335,7 @@ export default function FilterModal({
 
       {/* Rating */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.minRating')}
         </CustomText>
         <View className="flex-row">
@@ -348,7 +348,7 @@ export default function FilterModal({
                   minRating: localPlaceFilters.minRating === rating ? undefined : rating,
                 })
               }
-              className={`w-12 h-12 rounded-full items-center justify-center mr-2 ${
+              className={`mr-2 size-12 items-center justify-center rounded-full ${
                 localPlaceFilters.minRating === rating
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -360,7 +360,7 @@ export default function FilterModal({
                 color={localPlaceFilters.minRating === rating ? '#fff' : (isDark ? '#9ca3af' : '#6b7280')}
               />
               <CustomText
-                className={`text-xs mt-0.5 ${
+                className={`mt-0.5 text-xs ${
                   localPlaceFilters.minRating === rating
                     ? 'text-white'
                     : 'text-gray-600 dark:text-gray-400'
@@ -395,7 +395,7 @@ export default function FilterModal({
 
       {/* Sort By */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.sortBy')}
         </CustomText>
         <View className="gap-2">
@@ -408,7 +408,7 @@ export default function FilterModal({
                   sortBy: option.id as any,
                 })
               }
-              className={`flex-row items-center justify-between p-3 rounded-lg mb-2 ${
+              className={`mb-2 flex-row items-center justify-between rounded-lg p-3 ${
                 localPlaceFilters.sortBy === option.id
                   ? 'bg-primary/15 dark:bg-primary/25'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -437,7 +437,7 @@ export default function FilterModal({
     <ScrollView className="flex-1">
       {/* Type */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.type')}
         </CustomText>
         <View className="flex-row flex-wrap">
@@ -454,7 +454,7 @@ export default function FilterModal({
                   type: localPostFilters.type === type.id ? undefined : type.id,
                 })
               }
-              className={`px-4 py-2 rounded-full mr-2 mb-2 ${
+              className={`mb-2 mr-2 rounded-full px-4 py-2 ${
                 localPostFilters.type === type.id
                   ? 'bg-primary'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -476,7 +476,7 @@ export default function FilterModal({
 
       {/* Sort By */}
       <View className="mb-6">
-        <CustomText weight="medium" className="text-base text-black dark:text-white mb-3">
+        <CustomText weight="medium" className="mb-3 text-base text-black dark:text-white">
           {t('explore.filters.sortBy')}
         </CustomText>
         <View className="gap-2">
@@ -489,7 +489,7 @@ export default function FilterModal({
                   sortBy: option.id as any,
                 })
               }
-              className={`flex-row items-center justify-between p-3 rounded-lg mb-2 ${
+              className={`mb-2 flex-row items-center justify-between rounded-lg p-3 ${
                 localPostFilters.sortBy === option.id
                   ? 'bg-primary/15 dark:bg-primary/25'
                   : 'bg-gray-100 dark:bg-neutral-800'
@@ -521,13 +521,13 @@ export default function FilterModal({
       transparent
       onRequestClose={onClose}
     >
-      <View className="flex-1 bg-black/50 justify-end">
+      <View className="flex-1 justify-end bg-black/50">
         <View
-          className="bg-white dark:bg-neutral-900 rounded-t-3xl"
+          className="rounded-t-3xl bg-white dark:bg-neutral-900"
           style={{ height: '85%', maxHeight: '90%' }}
         >
           {/* Header */}
-          <View className="flex-row items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-800">
+          <View className="flex-row items-center justify-between border-b border-gray-200 p-4 dark:border-neutral-800">
             <CustomText weight="bold" className="text-xl text-black dark:text-white">
               {t('explore.filters.title')}
             </CustomText>
@@ -548,10 +548,10 @@ export default function FilterModal({
           </View>
 
           {/* Footer */}
-          <View className="flex-row p-4 border-t border-gray-200 dark:border-neutral-800">
+          <View className="flex-row border-t border-gray-200 p-4 dark:border-neutral-800">
             <TouchableOpacity
               onPress={handleReset}
-              className="flex-1 py-3 rounded-lg bg-gray-100 dark:bg-neutral-800 mr-3 items-center"
+              className="mr-3 flex-1 items-center rounded-lg bg-gray-100 py-3 dark:bg-neutral-800"
             >
               <CustomText className="text-gray-700 dark:text-gray-300">
                 {t('explore.filters.reset')}
@@ -559,7 +559,7 @@ export default function FilterModal({
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleApply}
-              className="flex-1 py-3 rounded-lg bg-primary items-center"
+              className="flex-1 items-center rounded-lg bg-primary py-3"
             >
               <CustomText weight="medium" className="text-white">
                 {t('explore.filters.apply')}

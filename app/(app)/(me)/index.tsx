@@ -155,11 +155,11 @@ export default function MeScreen() {
       />
       <CustomText
         weight="bold"
-        className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center"
+        className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300"
       >
         {t('me.feed.empty') || 'No posts yet'}
       </CustomText>
-      <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+      <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
         {t('me.feed.emptyDescription') ||
           'Your public content will appear here'}
       </CustomText>
@@ -174,11 +174,11 @@ export default function MeScreen() {
       <View className="mb-6">
         <CustomText
           weight="bold"
-          className="text-lg text-black dark:text-white mb-3"
+          className="mb-3 text-lg text-black dark:text-white"
         >
           {t('me.about.bio') || 'Bio'}
         </CustomText>
-        <CustomText className="text-base text-gray-700 dark:text-gray-300 leading-6">
+        <CustomText className="text-base leading-6 text-gray-700 dark:text-gray-300">
           {user?.bio || t('me.about.noBio') || 'No bio yet'}
         </CustomText>
       </View>
@@ -187,7 +187,7 @@ export default function MeScreen() {
       <View className="mb-6">
         <CustomText
           weight="bold"
-          className="text-lg text-black dark:text-white mb-3"
+          className="mb-3 text-lg text-black dark:text-white"
         >
           {t('me.about.travelStyle') || 'Travel Style'}
         </CustomText>
@@ -200,7 +200,7 @@ export default function MeScreen() {
       <View className="mb-6">
         <CustomText
           weight="bold"
-          className="text-lg text-black dark:text-white mb-3"
+          className="mb-3 text-lg text-black dark:text-white"
         >
           {t('me.about.languages') || 'Languages'}
         </CustomText>
@@ -214,7 +214,7 @@ export default function MeScreen() {
         <View className="mb-6">
           <CustomText
             weight="bold"
-            className="text-lg text-black dark:text-white mb-3"
+            className="mb-3 text-lg text-black dark:text-white"
           >
             {t('me.about.links') || 'Links'}
           </CustomText>
@@ -255,10 +255,10 @@ export default function MeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-black">
       {/* Settings Icon in Header */}
-      <View className="absolute top-12 right-4 z-10">
+      <View className="absolute right-4 top-12 z-10">
         <TouchableOpacity
           onPress={() => router.push('/(app)/(me)/settings' as any)}
-          className="w-10 h-10 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
+          className="size-10 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
           activeOpacity={0.7}
         >
           <Ionicons
@@ -285,18 +285,18 @@ export default function MeScreen() {
           }
         >
           {/* Header */}
-          <View className="px-6 pt-6 pb-4">
-            <View className="items-center mb-4">
+          <View className="px-6 pb-4 pt-6">
+            <View className="mb-4 items-center">
               {/* Avatar */}
-              <View className="w-24 h-24 rounded-full overflow-hidden mb-3 bg-gray-200 dark:bg-neutral-800">
+              <View className="mb-3 size-24 overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
                 {user?.avatar && typeof user.avatar === 'string' ? (
                   <Image
                     source={{ uri: user.avatar }}
-                    className="w-full h-full"
+                    className="size-full"
                     resizeMode="cover"
                   />
                 ) : (
-                  <View className="w-full h-full items-center justify-center">
+                  <View className="size-full items-center justify-center">
                     <Ionicons
                       name="person"
                       size={48}
@@ -309,14 +309,14 @@ export default function MeScreen() {
               {/* Display Name */}
               <CustomText
                 weight="bold"
-                className="text-2xl text-black dark:text-white mb-1"
+                className="mb-1 text-2xl text-black dark:text-white"
               >
                 {user?.name || t('common.guest') || 'Guest'}
               </CustomText>
 
               {/* Username + User Level Badge */}
-              <View className="flex-row items-center justify-center mb-2">
-                <CustomText className="text-base text-gray-600 dark:text-gray-400 mr-2">
+              <View className="mb-2 flex-row items-center justify-center">
+                <CustomText className="mr-2 text-base text-gray-600 dark:text-gray-400">
                   @{user?.username || 'guest'}
                 </CustomText>
                 {/* User Level Badge */}
@@ -353,13 +353,13 @@ export default function MeScreen() {
 
               {/* Home Base */}
               {user?.homeBase && typeof user.homeBase === 'string' && (
-                <View className="flex-row items-center mb-2">
+                <View className="mb-2 flex-row items-center">
                   <Ionicons
                     name="location"
                     size={16}
                     color={isDark ? '#9ca3af' : '#6b7280'}
                   />
-                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-1">
+                  <CustomText className="ml-1 text-sm text-gray-600 dark:text-gray-400">
                     {user.homeBase}
                   </CustomText>
                 </View>
@@ -367,7 +367,7 @@ export default function MeScreen() {
 
               {/* Short Bio */}
               {user?.bio && typeof user.bio === 'string' && (
-                <CustomText className="text-sm text-gray-600 dark:text-gray-400 text-center px-4 mb-4">
+                <CustomText className="mb-4 px-4 text-center text-sm text-gray-600 dark:text-gray-400">
                   {user.bio.length > 100
                     ? `${user.bio.substring(0, 100)}...`
                     : user.bio}
@@ -378,7 +378,7 @@ export default function MeScreen() {
               <View className="flex-row gap-3">
                 <TouchableOpacity
                   onPress={() => router.push('/(app)/(me)/edit' as any)}
-                  className="px-4 py-2 rounded-full bg-gray-100 dark:bg-neutral-800 flex-row items-center"
+                  className="flex-row items-center rounded-full bg-gray-100 px-4 py-2 dark:bg-neutral-800"
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -397,7 +397,7 @@ export default function MeScreen() {
 
                 <TouchableOpacity
                   onPress={() => router.push('/(app)/(me)/studio' as any)}
-                  className="px-4 py-2 rounded-full bg-primary flex-row items-center"
+                  className="flex-row items-center rounded-full bg-primary px-4 py-2"
                   activeOpacity={0.7}
                 >
                   <Ionicons
@@ -415,7 +415,7 @@ export default function MeScreen() {
               <TouchableOpacity
                 onPress={handleSelfMessage}
                 activeOpacity={0.8}
-                className="mt-4 w-full flex-row items-center justify-center rounded-2xl border border-dashed border-primary/40 px-4 py-3 bg-primary/5 dark:bg-primary/10"
+                className="mt-4 w-full flex-row items-center justify-center rounded-2xl border border-dashed border-primary/40 bg-primary/5 px-4 py-3 dark:bg-primary/10"
               >
                 <Ionicons
                   name="chatbubble-ellipses-outline"
@@ -441,15 +441,15 @@ export default function MeScreen() {
             {/* Upgrade Cards */}
             {/* Guest → Member Upgrade Card */}
             {userLevel === 'guest' && (
-              <View className="mx-6 mb-4 bg-primary/5 dark:bg-primary/10 rounded-xl p-4 border border-primary/20">
+              <View className="mx-6 mb-4 rounded-xl border border-primary/20 bg-primary/5 p-4 dark:bg-primary/10">
                 <CustomText
                   weight="bold"
-                  className="text-lg text-black dark:text-white mb-2"
+                  className="mb-2 text-lg text-black dark:text-white"
                 >
                   {t('profile.upgrade.guestToMember.title') ||
                     'Complete your account'}
                 </CustomText>
-                <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                <CustomText className="mb-4 text-sm text-gray-700 dark:text-gray-300">
                   {t('profile.upgrade.guestToMember.description') ||
                     'Add phone and email to protect your trips and enable notifications.'}
                 </CustomText>
@@ -457,10 +457,10 @@ export default function MeScreen() {
                   onPress={() =>
                     router.push('/(app)/(me)/complete-account' as any)
                   }
-                  className="bg-primary rounded-lg py-3 px-4 items-center"
+                  className="items-center rounded-lg bg-primary px-4 py-3"
                   activeOpacity={0.7}
                 >
-                  <CustomText className="text-white font-semibold">
+                  <CustomText className="font-semibold text-white">
                     {t('profile.upgrade.guestToMember.button') ||
                       'Complete profile'}
                   </CustomText>
@@ -470,15 +470,15 @@ export default function MeScreen() {
 
             {/* Member → Pro Upgrade Card */}
             {userLevel === 'member' && (
-              <View className="mx-6 mb-4 bg-yellow-500/5 dark:bg-yellow-500/10 rounded-xl p-4 border border-yellow-500/20">
+              <View className="mx-6 mb-4 rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-4 dark:bg-yellow-500/10">
                 <CustomText
                   weight="bold"
-                  className="text-lg text-black dark:text-white mb-2"
+                  className="mb-2 text-lg text-black dark:text-white"
                 >
                   {t('profile.upgrade.memberToPro.title') ||
                     'Upgrade to Safarnak Pro'}
                 </CustomText>
-                <CustomText className="text-sm text-gray-700 dark:text-gray-300 mb-4">
+                <CustomText className="mb-4 text-sm text-gray-700 dark:text-gray-300">
                   {t('profile.upgrade.memberToPro.description') ||
                     'Get more AI planning, priority features, and more.'}
                 </CustomText>
@@ -486,10 +486,10 @@ export default function MeScreen() {
                   onPress={() =>
                     router.push('/(app)/(me)/subscription' as any)
                   }
-                  className="bg-yellow-500 rounded-lg py-3 px-4 items-center"
+                  className="items-center rounded-lg bg-yellow-500 px-4 py-3"
                   activeOpacity={0.7}
                 >
-                  <CustomText className="text-white font-semibold">
+                  <CustomText className="font-semibold text-white">
                     {t('profile.upgrade.memberToPro.button') || 'See plans'}
                   </CustomText>
                 </TouchableOpacity>
@@ -497,7 +497,7 @@ export default function MeScreen() {
             )}
 
             {/* Stats Row */}
-            <View className="flex-row justify-around py-4 border-t border-b border-gray-200 dark:border-neutral-800">
+            <View className="flex-row justify-around border-y border-gray-200 py-4 dark:border-neutral-800">
               <View className="items-center">
                 <CustomText
                   weight="bold"

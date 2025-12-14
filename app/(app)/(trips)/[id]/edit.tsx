@@ -108,7 +108,7 @@ export default function EditTripScreen() {
     return (
       <View className="flex-1 items-center justify-center bg-white dark:bg-black">
         <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-        <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+        <CustomText className="mt-4 text-gray-500 dark:text-gray-400">
           {t('common.loading')}
         </CustomText>
       </View>
@@ -117,12 +117,12 @@ export default function EditTripScreen() {
 
   if (tripError || !trip) {
     return (
-      <View className="flex-1 items-center justify-center px-6 bg-white dark:bg-black">
+      <View className="flex-1 items-center justify-center bg-white px-6 dark:bg-black">
         <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-        <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+        <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
           {t('common.error')}
         </CustomText>
-        <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+        <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
           {String((tripError as any)?.message || t('plan.tripNotFound') || 'Trip not found')}
         </CustomText>
         <CustomButton
@@ -139,7 +139,7 @@ export default function EditTripScreen() {
       <Stack.Screen options={{ title: t('plan.editPlan') }} />
       
       <ScrollView className="flex-1 px-6 py-4">
-        <CustomText weight="bold" className="text-2xl text-black dark:text-white mb-6">
+        <CustomText weight="bold" className="mb-6 text-2xl text-black dark:text-white">
           {t('plan.editPlan')}
         </CustomText>
 
@@ -151,7 +151,7 @@ export default function EditTripScreen() {
           icon="location-outline"
         />
 
-        <View className="flex-row gap-3 mb-4">
+        <View className="mb-4 flex-row gap-3">
           <View className="flex-1">
             <DatePicker
               label={t('plan.form.startDate')}

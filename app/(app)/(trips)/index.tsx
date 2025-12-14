@@ -16,9 +16,7 @@ import { TabBar } from '@ui/layout';
 import { CreateFAB } from '@ui/components';
 import { useGetTripsQuery } from '@api';
 import { useAppSelector } from '@state/hooks';
-import { useActivationGuard } from '@ui/hooks/useActivationGuard';
 import Colors from '@constants/Colors';
-import { NetworkStatus } from '@apollo/client';
 
 type TabType = 'myTrips' | 'joined' | 'drafts';
 
@@ -27,12 +25,11 @@ export default function PlanScreen() {
   const { isDark } = useTheme();
   const router = useRouter();
   const { user } = useAppSelector(state => state.auth);
-  const { checkActivation } = useActivationGuard();
   const [activeTab, setActiveTab] = useState<TabType>('myTrips');
   const [refreshing, setRefreshing] = useState(false);
 
   // GraphQL Queries
-  const { data: tripsData, loading: tripsLoading, networkStatus: tripsNetworkStatus, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
+  const { data: tripsData, loading: tripsLoading, error: tripsError, refetch: refetchTrips } = useGetTripsQuery({
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
@@ -101,7 +98,6 @@ export default function PlanScreen() {
 
   // Loading and error states - data-first pattern (after currentData is defined)
   const isInitialLoad = !currentData.length && tripsLoading;
-  const isRefetching = currentData.length > 0 && tripsNetworkStatus === NetworkStatus.refetch;
   const currentError = tripsError;
 
   // Render content based on active tab
@@ -137,7 +133,7 @@ export default function PlanScreen() {
       return (
         <View className="flex-1 items-center justify-center py-20">
           <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-          <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+          <CustomText className="mt-4 text-gray-500 dark:text-gray-400">
             {t('common.loading')}
           </CustomText>
         </View>
@@ -148,14 +144,14 @@ export default function PlanScreen() {
       return (
         <View className="flex-1 items-center justify-center px-6 py-20">
           <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('common.error')}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-2">
+          <CustomText className="mb-2 text-center text-base text-gray-600 dark:text-gray-400">
             {String((currentError as any)?.message || t('common.error'))}
           </CustomText>
           {!user?.id && (
-            <CustomText className="text-sm text-gray-500 dark:text-gray-500 text-center mt-2">
+            <CustomText className="mt-2 text-center text-sm text-gray-500 dark:text-gray-500">
               {t('trips.error.notAuthenticated', { defaultValue: 'Please log in to view your trips' })}
             </CustomText>
           )}
@@ -183,16 +179,16 @@ export default function PlanScreen() {
   return (
         <View className="flex-1 items-center justify-center px-6 py-20">
           <Ionicons name={emptyIcons[activeTab] as any} size={80} color={isDark ? '#4b5563' : '#d1d5db'} />
-          <CustomText weight="bold" className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-xl text-gray-800 dark:text-gray-300">
             {emptyMessages[activeTab]}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-4">
+          <CustomText className="mb-4 text-center text-base text-gray-600 dark:text-gray-400">
             {emptyDescriptions[activeTab]}
           </CustomText>
           {activeTab === 'myTrips' && (
             <TouchableOpacity
               onPress={() => router.push('/(app)/(trips)/new' as any)}
-              className="bg-primary px-6 py-3 rounded-lg"
+              className="rounded-lg bg-primary px-6 py-3"
               activeOpacity={0.8}
             >
               <CustomText className="text-white" weight="medium">
@@ -213,8 +209,8 @@ export default function PlanScreen() {
       <Stack.Screen options={{ title: t('plan.title') || t('trips.title') || 'Trips', headerShown: false }} />
 
       {/* Header */}
-      <View className="px-6 pt-12 pb-4 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
-        <View className="flex-row items-center justify-between mb-4">
+      <View className="border-b border-gray-200 bg-white px-6 pb-4 pt-12 dark:border-neutral-800 dark:bg-black">
+        <View className="mb-4 flex-row items-center justify-between">
             <CustomText
               weight="bold"
             className="text-3xl text-black dark:text-white"

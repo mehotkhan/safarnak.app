@@ -122,12 +122,12 @@ export default function PaymentsScreen() {
           maxHeight: 50,
         }}
           >
-        <View className='flex-row px-4 py-2 gap-2'>
+        <View className='flex-row gap-2 px-4 py-2'>
           {filters.map((filter) => (
           <TouchableOpacity
               key={filter.id}
               onPress={() => setSelectedFilter(filter.id)}
-              className='px-4 py-2 rounded-full'
+              className='rounded-full px-4 py-2'
               style={{
                 backgroundColor:
                   selectedFilter === filter.id
@@ -166,18 +166,18 @@ export default function PaymentsScreen() {
               color={isDark ? '#6b7280' : '#9ca3af'}
           />
             <Text
-              className='text-lg font-semibold mt-4'
+              className='mt-4 text-lg font-semibold'
               style={{ color: colors.text }}
           >
             {t('payments.emptyState')}
             </Text>
         </View>
       ) : (
-          <View className='p-4 gap-3'>
+          <View className='gap-3 p-4'>
             {filteredInvoices.map((invoice) => (
               <TouchableOpacity
                 key={invoice.id}
-                className='p-4 rounded-xl'
+                className='rounded-xl p-4'
                 style={{
                   backgroundColor: isDark ? '#1f2937' : '#fff',
                   shadowColor: '#000',
@@ -193,9 +193,9 @@ export default function PaymentsScreen() {
                 }}
               >
                 {/* Header */}
-                <View className='flex-row items-center justify-between mb-3'>
+                <View className='mb-3 flex-row items-center justify-between'>
                   <View className='flex-1'>
-                    <Text className='text-base font-bold mb-1' style={{ color: colors.text }}>
+                    <Text className='mb-1 text-base font-bold' style={{ color: colors.text }}>
                       {t('common.appName')} {getPlanLabel(invoice.plan)}
                     </Text>
                     <Text className='text-sm' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
@@ -203,7 +203,7 @@ export default function PaymentsScreen() {
                     </Text>
                   </View>
                   <View
-                    className='px-3 py-1 rounded-full'
+                    className='rounded-full px-3 py-1'
                     style={{
                       backgroundColor: `${getStatusColor(invoice.status)}20`,
                     }}
@@ -218,7 +218,7 @@ export default function PaymentsScreen() {
                 </View>
 
                 {/* Amount */}
-                <View className='flex-row items-center justify-between pt-3 border-t' style={{ borderTopColor: isDark ? '#374151' : '#e5e7eb' }}>
+                <View className='flex-row items-center justify-between border-t pt-3' style={{ borderTopColor: isDark ? '#374151' : '#e5e7eb' }}>
                   <View>
                     <Text className='text-xs' style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
                       {t('payments.amount')}
@@ -231,7 +231,7 @@ export default function PaymentsScreen() {
                     <Text className='text-xs' style={{ color: isDark ? '#6b7280' : '#9ca3af' }}>
                       {t('payments.transactionId')}
                     </Text>
-                    <Text className='text-xs font-mono' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
+                    <Text className='font-mono text-xs' style={{ color: isDark ? '#9ca3af' : '#6b7280' }}>
                       {invoice.invoiceNumber}
                     </Text>
                   </View>

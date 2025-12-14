@@ -88,10 +88,10 @@ export default function BookmarksScreen() {
       ) : error ? (
         <View className="flex-1 items-center justify-center px-6">
           <Ionicons name="alert-circle-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('common.error') || 'Error'}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
             {String((error as any)?.message || 'Failed to load bookmarks')}
           </CustomText>
         </View>
@@ -108,7 +108,7 @@ export default function BookmarksScreen() {
           />
           <CustomText
             weight="bold"
-            className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center"
+            className="mb-2 mt-4 text-center text-xl text-gray-800 dark:text-gray-300"
           >
             {t('profile.bookmarks.emptyState', { 
               defaultValue: 
@@ -118,7 +118,7 @@ export default function BookmarksScreen() {
             })}
           </CustomText>
           <CustomText
-            className="text-base text-gray-600 dark:text-gray-400 text-center"
+            className="text-center text-base text-gray-600 dark:text-gray-400"
           >
             {t('profile.bookmarks.emptyStateSubtitle', { 
               defaultValue: 'Start exploring and bookmark your favorite ' + 
@@ -145,15 +145,15 @@ export default function BookmarksScreen() {
                   router.push(`/(app)/(home)/places/${item.id}` as any);
                 }
               }}
-              className="bg-white dark:bg-neutral-900 rounded-2xl mb-4 overflow-hidden shadow-sm border border-gray-200 dark:border-neutral-800"
+              className="mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
               activeOpacity={0.7}
             >
               {/* Image */}
               {(item.imageUrl || item.attachments?.[0]) && (
-                <View className="w-full h-48 bg-gray-200 dark:bg-neutral-800">
+                <View className="h-48 w-full bg-gray-200 dark:bg-neutral-800">
                   <Image
                     source={{ uri: item.imageUrl || item.attachments[0] }}
-                    className="w-full h-full"
+                    className="size-full"
                     resizeMode="cover"
                   />
                 </View>
@@ -163,43 +163,43 @@ export default function BookmarksScreen() {
               <View className="p-4">
                 <CustomText
                   weight="bold"
-                  className="text-lg text-black dark:text-white mb-2"
+                  className="mb-2 text-lg text-black dark:text-white"
                   numberOfLines={2}
                 >
                   {item.title || item.name || item.content}
                 </CustomText>
                 
                 {item.location && (
-                  <View className="flex-row items-center mb-2">
+                  <View className="mb-2 flex-row items-center">
                     <Ionicons
                       name="location-outline"
                       size={16}
                       color={isDark ? '#9ca3af' : '#6b7280'}
                     />
-                    <CustomText className="text-sm text-gray-600 dark:text-gray-400 ml-2" numberOfLines={1}>
+                    <CustomText className="ml-2 text-sm text-gray-600 dark:text-gray-400" numberOfLines={1}>
                       {item.location}
                     </CustomText>
                   </View>
                 )}
                 
                 {item.content && selectedTab === 'posts' && (
-                  <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-2" numberOfLines={2}>
+                  <CustomText className="mb-2 text-sm text-gray-600 dark:text-gray-400" numberOfLines={2}>
                     {item.content}
                   </CustomText>
                 )}
                 
-                <View className="flex-row items-center justify-between mt-2">
+                <View className="mt-2 flex-row items-center justify-between">
                   {item.user && (
                     <View className="flex-row items-center">
-                      <View className="w-6 h-6 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-2">
+                      <View className="mr-2 size-6 overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
                         {item.user.avatar ? (
                           <Image
                             source={{ uri: item.user.avatar }}
-                            className="w-full h-full"
+                            className="size-full"
                             resizeMode="cover"
                           />
                         ) : (
-                          <View className="w-full h-full items-center justify-center">
+                          <View className="size-full items-center justify-center">
                             <Ionicons name="person" size={12} color={isDark ? '#9ca3af' : '#6b7280'} />
                           </View>
                         )}

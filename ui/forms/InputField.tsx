@@ -55,7 +55,7 @@ export default function InputField({
       );
     } else {
       // It's an image source
-      return <Image source={icon} className={`w-6 h-6 ${iconStyle}`} style={iconMarginStyle} />;
+      return <Image source={icon} className={`size-6 ${iconStyle}`} style={iconMarginStyle} />;
     }
   };
   
@@ -63,14 +63,14 @@ export default function InputField({
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View className={`my-2 w-full ${className}`}>
-          {label && <Text className={`text-xl mb-3 ${labelStyle}`}>{label}</Text>}
+          {label && <Text className={`mb-3 text-xl ${labelStyle}`}>{label}</Text>}
           <View
-            className={`justify-start items-center relative bg-neutral-100 rounded-full border border-neutral-100 ${containerStyle}`}
+            className={`relative items-center justify-start rounded-full border border-neutral-100 bg-neutral-100 ${containerStyle}`}
             style={{ flexDirection: I18nManager.isRTL ? 'row-reverse' : 'row' }}
           >
             {renderIcon()}
             <TextInput
-              className={`rounded-full p-4 text-black text-[15px] flex-1 ${inputStyle} placeholder:text-neutral-500`}
+              className={`flex-1 rounded-full p-4 text-[15px] text-black ${inputStyle} placeholder:text-neutral-500`}
               secureTextEntry={secureTextEntry}
               style={{ textAlign: I18nManager.isRTL ? 'right' : 'left' }}
               {...props}

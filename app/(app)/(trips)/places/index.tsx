@@ -59,32 +59,32 @@ export default function PlacesManagementScreen() {
       {loading && myPlaces.length === 0 ? (
         <View className="flex-1 items-center justify-center py-20">
           <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />
-          <CustomText className="text-gray-500 dark:text-gray-400 mt-4">
+          <CustomText className="mt-4 text-gray-500 dark:text-gray-400">
             {t('common.loading')}
           </CustomText>
         </View>
       ) : error && myPlaces.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6 py-20">
           <Ionicons name="warning-outline" size={64} color={isDark ? '#ef4444' : '#dc2626'} />
-          <CustomText weight="bold" className="text-lg text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-lg text-gray-800 dark:text-gray-300">
             {t('common.error')}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+          <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
             {String((error as any)?.message || t('places.errors.loadFailed') || 'Failed to load places')}
           </CustomText>
         </View>
       ) : myPlaces.length === 0 ? (
         <View className="flex-1 items-center justify-center px-6 py-20">
           <Ionicons name="location-outline" size={80} color={isDark ? '#4b5563' : '#d1d5db'} />
-          <CustomText weight="bold" className="text-xl text-gray-800 dark:text-gray-300 mt-4 mb-2 text-center">
+          <CustomText weight="bold" className="mb-2 mt-4 text-center text-xl text-gray-800 dark:text-gray-300">
             {t('trips.tabs.placesEmpty') || 'No places yet'}
           </CustomText>
-          <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center mb-4">
+          <CustomText className="mb-4 text-center text-base text-gray-600 dark:text-gray-400">
             {t('trips.tabs.placesEmptyDescription') || 'Create your first place'}
           </CustomText>
           <TouchableOpacity
             onPress={handleCreatePlace}
-            className="bg-primary px-6 py-3 rounded-lg"
+            className="rounded-lg bg-primary px-6 py-3"
           >
             <CustomText className="text-white" weight="medium">
               {t('trips.tabs.placesCreate') || 'Create Place'}
@@ -105,10 +105,10 @@ export default function PlacesManagementScreen() {
           refreshing={refreshing}
           onRefresh={onRefresh}
           ListHeaderComponent={
-            <View className="px-6 pt-12 pb-4 mb-3 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
+            <View className="mb-3 border-b border-gray-200 bg-white px-6 pb-4 pt-12 dark:border-neutral-800 dark:bg-black">
               <CustomText
                 weight="bold"
-                className="text-3xl text-black dark:text-white mb-2"
+                className="mb-2 text-3xl text-black dark:text-white"
               >
                 {t('trips.tabs.places') || 'My Places'}
               </CustomText>

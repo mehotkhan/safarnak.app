@@ -26,9 +26,9 @@ const ToggleRow = ({
   const color = isDark ? Colors.dark.primary : Colors.light.primary;
   
   return (
-    <View className="flex-row items-center py-4 border-b border-gray-200 dark:border-neutral-800">
+    <View className="flex-row items-center border-b border-gray-200 py-4 dark:border-neutral-800">
       <View
-        className="w-10 h-10 rounded-full items-center justify-center mr-3"
+        className="mr-3 size-10 items-center justify-center rounded-full"
         style={{ backgroundColor: color + '20' }}
       >
         <Ionicons name={icon} size={20} color={color} />
@@ -37,7 +37,7 @@ const ToggleRow = ({
         <CustomText weight="medium" className="text-base text-black dark:text-white">
           {title}
         </CustomText>
-        <CustomText className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <CustomText className="mt-1 text-sm text-gray-500 dark:text-gray-400">
           {subtitle}
         </CustomText>
       </View>
@@ -64,15 +64,15 @@ export default function NotificationsScreen() {
 
   return (
     <ScrollView className="flex-1 bg-white dark:bg-black">
-      <View className="px-4 py-4">
+      <View className="p-4">
         <View className="mb-4">
           <CustomText
             weight="bold"
-            className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
+            className="mb-2 text-sm uppercase text-gray-500 dark:text-gray-400"
           >
             {t('settings.notifications', { defaultValue: 'Notifications' })}
           </CustomText>
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl px-4">
+          <View className="rounded-2xl bg-white px-4 dark:bg-neutral-900">
             <ToggleRow
               icon="notifications-outline"
               title={t('profile.notifications.enablePush', { defaultValue: 'Enable Push Notifications' })}

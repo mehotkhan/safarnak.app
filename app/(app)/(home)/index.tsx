@@ -223,8 +223,8 @@ export default function HomeScreen() {
       <Stack.Screen options={{ title: t('home.title'), headerShown: false }} />
       
       {/* Header with Logo - Compact */}
-      <View className="px-4 pt-12 pb-2 bg-white dark:bg-black border-b border-gray-200 dark:border-neutral-800">
-        <View className="flex-row items-center justify-between mb-2">
+      <View className="border-b border-gray-200 bg-white px-4 pb-2 pt-12 dark:border-neutral-800 dark:bg-black">
+        <View className="mb-2 flex-row items-center justify-between">
           <CustomText weight="bold" className="text-xl text-black dark:text-white">
             {t('common.appName')}
           </CustomText>
@@ -240,7 +240,7 @@ export default function HomeScreen() {
 
             {/* Customize Feed Preferences */}
             <TouchableOpacity
-              className="w-9 h-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
+              className="size-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
               onPress={() => router.push('/(app)/(me)/settings/preferences' as any)}
               activeOpacity={0.7}
             >
@@ -253,7 +253,7 @@ export default function HomeScreen() {
 
             {/* Messages Icon */}
             <TouchableOpacity
-              className="w-9 h-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800 relative"
+              className="relative size-9 items-center justify-center rounded-full bg-gray-100 dark:bg-neutral-800"
               onPress={() => {
                 router.push('/(app)/(inbox)' as any);
               }}
@@ -266,7 +266,7 @@ export default function HomeScreen() {
               />
               {/* Connection Status Badge */}
               <View
-                className={`absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 ${
+                className={`absolute -right-1 -top-1 size-2.5 rounded-full border-2 ${
                   isDark ? 'border-black' : 'border-white'
                 } ${isOffline ? 'bg-red-500' : 'bg-green-500'}`}
               />
@@ -277,13 +277,13 @@ export default function HomeScreen() {
         {/* Travel Inspirations Button */}
         <TouchableOpacity
           onPress={() => router.push('/(app)/(home)/inspirations' as any)}
-          className="mt-2 mb-2 p-3 rounded-xl flex-row items-center justify-between z-10"
+          className="z-10 my-2 flex-row items-center justify-between rounded-xl p-3"
           style={{ backgroundColor: isDark ? '#1f2937' : '#f3f4f6' }}
           activeOpacity={0.7}
         >
           <View className="flex-row items-center gap-3">
             <View
-              className="w-10 h-10 rounded-full items-center justify-center"
+              className="size-10 items-center justify-center rounded-full"
               style={{ backgroundColor: isDark ? '#374151' : '#e5e7eb' }}
             >
               <Ionicons
@@ -314,7 +314,7 @@ export default function HomeScreen() {
         <TouchableOpacity
           onPress={showNew}
           activeOpacity={0.8}
-          className="mx-4 mt-3 mb-1 rounded-full bg-primary items-center justify-center"
+          className="mx-4 mb-1 mt-3 items-center justify-center rounded-full bg-primary"
           style={{ paddingVertical: 8 }}
         >
           <CustomText weight="bold" className="text-white">

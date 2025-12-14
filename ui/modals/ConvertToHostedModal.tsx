@@ -141,7 +141,7 @@ export default function ConvertToHostedModal({
             }}
           >
             {/* Header */}
-            <View className="px-6 pt-6 pb-4 border-b border-gray-200 dark:border-neutral-800">
+            <View className="border-b border-gray-200 px-6 pb-4 pt-6 dark:border-neutral-800">
               <View className="flex-row items-center justify-between">
               <CustomText weight="bold" className="text-xl text-black dark:text-white">
                 {t('tripDetail.convertToHosted.title', { defaultValue: 'Convert to Hosted Trip' })}
@@ -167,7 +167,7 @@ export default function ConvertToHostedModal({
                 paddingBottom: 24,
               }}
             >
-              <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <CustomText className="mb-4 text-sm text-gray-600 dark:text-gray-400">
                 {t('tripDetail.convertToHosted.description', { 
                   defaultValue: 'Make your trip discoverable by others. Set pricing, capacity, and join settings.' 
                 })}
@@ -175,12 +175,12 @@ export default function ConvertToHostedModal({
 
               {/* Price */}
               <View className="mb-4">
-                <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+                <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
                   {t('tripDetail.convertToHosted.price', { defaultValue: 'Price' })}
                 </CustomText>
                 <View className="flex-row">
                   <TextInput
-                    className="flex-1 bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-black dark:text-white"
+                    className="flex-1 rounded-lg bg-gray-100 px-4 py-3 text-black dark:bg-neutral-800 dark:text-white"
                     placeholder={t('tripDetail.convertToHosted.pricePlaceholder', { defaultValue: '0.00' })}
                     placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                     value={price}
@@ -189,7 +189,7 @@ export default function ConvertToHostedModal({
                     editable={!loading}
                   />
                   <View className="ml-2">
-                    <View className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-3">
+                    <View className="rounded-lg bg-gray-100 p-3 dark:bg-neutral-800">
                       <CustomText className="text-black dark:text-white">
                         {currency}
                       </CustomText>
@@ -200,7 +200,7 @@ export default function ConvertToHostedModal({
 
               {/* Currency Selector */}
               <View className="mb-4">
-                <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+                <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
                   {t('tripDetail.convertToHosted.currency', { defaultValue: 'Currency' })}
                 </CustomText>
                 <View className="flex-row flex-wrap">
@@ -209,7 +209,7 @@ export default function ConvertToHostedModal({
                       key={curr}
                       onPress={() => setCurrency(curr)}
                       disabled={loading}
-                      className={`px-4 py-2 rounded-lg mr-2 mb-2 ${
+                      className={`mb-2 mr-2 rounded-lg px-4 py-2 ${
                         currency === curr
                           ? 'bg-primary'
                           : 'bg-gray-100 dark:bg-neutral-800'
@@ -227,16 +227,16 @@ export default function ConvertToHostedModal({
 
               {/* Participants */}
               <View className="mb-4">
-                <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+                <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
                   {t('tripDetail.convertToHosted.participants', { defaultValue: 'Participants' })}
                 </CustomText>
                 <View className="flex-row">
-                  <View className="flex-1 mr-2">
-                    <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <View className="mr-2 flex-1">
+                    <CustomText className="mb-1 text-sm text-gray-600 dark:text-gray-400">
                       {t('tripDetail.convertToHosted.minParticipants', { defaultValue: 'Min' })}
                     </CustomText>
                     <TextInput
-                      className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-black dark:text-white"
+                      className="rounded-lg bg-gray-100 px-4 py-3 text-black dark:bg-neutral-800 dark:text-white"
                       placeholder="1"
                       placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                       value={minParticipants}
@@ -245,12 +245,12 @@ export default function ConvertToHostedModal({
                       editable={!loading}
                     />
                   </View>
-                  <View className="flex-1 ml-2">
-                    <CustomText className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                  <View className="ml-2 flex-1">
+                    <CustomText className="mb-1 text-sm text-gray-600 dark:text-gray-400">
                       {t('tripDetail.convertToHosted.maxParticipants', { defaultValue: 'Max (optional)' })}
                     </CustomText>
                     <TextInput
-                      className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-black dark:text-white"
+                      className="rounded-lg bg-gray-100 px-4 py-3 text-black dark:bg-neutral-800 dark:text-white"
                       placeholder={t('tripDetail.convertToHosted.maxParticipantsPlaceholder', { defaultValue: 'Unlimited' })}
                       placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                       value={maxParticipants}
@@ -264,7 +264,7 @@ export default function ConvertToHostedModal({
 
               {/* Join Policy */}
               <View className="mb-4">
-                <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+                <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
                   {t('tripDetail.convertToHosted.joinPolicy', { defaultValue: 'Join Policy' })}
                 </CustomText>
                 <View className="space-y-2">
@@ -273,10 +273,10 @@ export default function ConvertToHostedModal({
                       key={policy}
                       onPress={() => setJoinPolicy(policy)}
                       disabled={loading}
-                      className={`p-3 rounded-lg border ${
+                      className={`rounded-lg border p-3 ${
                         joinPolicy === policy
                           ? 'border-primary bg-primary/10'
-                          : 'border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800'
+                          : 'border-gray-200 bg-gray-50 dark:border-neutral-700 dark:bg-neutral-800'
                       }`}
                     >
                       <CustomText
@@ -293,7 +293,7 @@ export default function ConvertToHostedModal({
                                        'Invite Only - Only invited users can join'
                         })}
                       </CustomText>
-                      <CustomText className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      <CustomText className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                         {t(`tripDetail.convertToHosted.joinPolicy.${policy.toLowerCase()}Description`, {
                           defaultValue: policy === 'OPEN' ? 'Anyone can join immediately' : 
                                        policy === 'REQUEST' ? 'Users request, you approve' :
@@ -307,11 +307,11 @@ export default function ConvertToHostedModal({
 
               {/* Description */}
               <View className="mb-4">
-                <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+                <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
                   {t('tripDetail.convertToHosted.descriptionLabel', { defaultValue: 'Description (optional)' })}
                 </CustomText>
                 <TextInput
-                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-black dark:text-white"
+                  className="rounded-lg bg-gray-100 px-4 py-3 text-black dark:bg-neutral-800 dark:text-white"
                   placeholder={t('tripDetail.convertToHosted.descriptionPlaceholder', { defaultValue: 'Describe your hosted trip...' })}
                   placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                   value={description}
@@ -325,11 +325,11 @@ export default function ConvertToHostedModal({
 
               {/* Host Intro */}
               <View className="mb-4">
-                <CustomText weight="medium" className="text-base text-black dark:text-white mb-2">
+                <CustomText weight="medium" className="mb-2 text-base text-black dark:text-white">
                   {t('tripDetail.convertToHosted.hostIntro', { defaultValue: 'Host Introduction (optional)' })}
                 </CustomText>
                 <TextInput
-                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-black dark:text-white"
+                  className="rounded-lg bg-gray-100 px-4 py-3 text-black dark:bg-neutral-800 dark:text-white"
                   placeholder={t('tripDetail.convertToHosted.hostIntroPlaceholder', { defaultValue: 'Tell participants about yourself...' })}
                   placeholderTextColor={isDark ? '#9ca3af' : '#6b7280'}
                   value={hostIntro}
@@ -343,11 +343,11 @@ export default function ConvertToHostedModal({
             </ScrollView>
 
             {/* Footer */}
-            <View className="flex-row p-4 border-t border-gray-200 dark:border-neutral-800">
+            <View className="flex-row border-t border-gray-200 p-4 dark:border-neutral-800">
               <TouchableOpacity
                 onPress={onClose}
                 disabled={loading}
-                className="flex-1 py-3 rounded-lg bg-gray-100 dark:bg-neutral-800 mr-3 items-center"
+                className="mr-3 flex-1 items-center rounded-lg bg-gray-100 py-3 dark:bg-neutral-800"
               >
                 <CustomText className="text-gray-700 dark:text-gray-300">
                   {t('common.cancel')}
@@ -356,7 +356,7 @@ export default function ConvertToHostedModal({
               <TouchableOpacity
                 onPress={handleSubmit}
                 disabled={loading}
-                className="flex-1 py-3 rounded-lg bg-primary items-center"
+                className="flex-1 items-center rounded-lg bg-primary py-3"
               >
                 {loading ? (
                   <CustomText className="text-white">...</CustomText>

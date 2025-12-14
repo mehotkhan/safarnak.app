@@ -153,18 +153,18 @@ export default function HistoryScreen() {
             />
             <CustomText
               weight='bold'
-              className='text-lg mt-4'
+              className='mt-4 text-lg'
               style={{ color: colors.text }}
             >
               {t('me.tripsList.emptyState')}
             </CustomText>
           </View>
         ) : (
-          <View className='p-4 gap-4'>
+          <View className='gap-4 p-4'>
             {filteredHistory.map(item => (
               <TouchableOpacity
                 key={item.id}
-                className='rounded-2xl overflow-hidden'
+                className='overflow-hidden rounded-2xl'
                 style={{
                   backgroundColor: isDark ? '#1f2937' : '#fff',
                   shadowColor: '#000',
@@ -181,12 +181,12 @@ export default function HistoryScreen() {
                   <View className='relative'>
                     <Image
                       source={{ uri: item.imageUrl }}
-                      className='w-full h-40'
+                      className='h-40 w-full'
                       resizeMode='cover'
                     />
                     {/* Type badge */}
                     <View
-                      className='absolute top-3 right-3 px-3 py-1 rounded-full flex-row items-center gap-1'
+                      className='absolute right-3 top-3 flex-row items-center gap-1 rounded-full px-3 py-1'
                       style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}
                     >
                       <Ionicons
@@ -210,7 +210,7 @@ export default function HistoryScreen() {
                 <View className='p-4'>
                   <CustomText
                     weight='bold'
-                    className='text-lg mb-1'
+                    className='mb-1 text-lg'
                     style={{ color: colors.text }}
                     numberOfLines={1}
                   >
@@ -218,7 +218,7 @@ export default function HistoryScreen() {
                   </CustomText>
 
                   {/* Location & Date */}
-                  <View className='flex-row items-center justify-between mb-3'>
+                  <View className='mb-3 flex-row items-center justify-between'>
                     <View className='flex-row items-center'>
                       <Ionicons
                         name='location-outline'
@@ -226,7 +226,7 @@ export default function HistoryScreen() {
                         color={isDark ? '#9ca3af' : '#6b7280'}
                       />
                       <CustomText
-                        className='text-xs ml-1.5'
+                        className='ml-1.5 text-xs'
                         style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
                         numberOfLines={1}
                       >
@@ -240,7 +240,7 @@ export default function HistoryScreen() {
                         color={isDark ? '#9ca3af' : '#6b7280'}
                       />
                       <CustomText
-                        className='text-xs ml-1.5'
+                        className='ml-1.5 text-xs'
                         style={{ color: isDark ? '#9ca3af' : '#6b7280' }}
                       >
                         {formatDateRange(item.startDate, item.endDate)}
@@ -251,7 +251,7 @@ export default function HistoryScreen() {
                   {/* Status */}
                   <View className='flex-row items-center justify-between'>
                     <View
-                      className='px-3 py-1 rounded-full'
+                      className='rounded-full px-3 py-1'
                       style={{
                         backgroundColor:
                           item.status === 'completed'

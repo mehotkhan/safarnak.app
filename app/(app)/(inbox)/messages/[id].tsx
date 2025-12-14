@@ -35,7 +35,7 @@ const MessageBubble = ({
   return (
     <View className={`mb-3 ${isOwnMessage ? 'items-end' : 'items-start'}`}>
       <View
-        className={`max-w-[75%] px-4 py-3 rounded-2xl ${
+        className={`max-w-[75%] rounded-2xl px-4 py-3 ${
           isOwnMessage ? 'bg-primary' : 'bg-gray-100 dark:bg-neutral-800'
         } ${pending ? 'opacity-60' : ''}`}
       >
@@ -43,7 +43,7 @@ const MessageBubble = ({
           {text}
         </CustomText>
       </View>
-      <CustomText className="text-xs text-gray-500 dark:text-gray-400 mt-1 px-2">
+      <CustomText className="mt-1 px-2 text-xs text-gray-500 dark:text-gray-400">
         {pending ? 'Pending…' : timestamp ? formatTime(timestamp) : ''}
       </CustomText>
     </View>
@@ -116,17 +116,17 @@ export default function ConversationScreen() {
           }}
         />
 
-        <View className="px-6 py-3 bg-gray-50 dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-800">
+        <View className="border-b border-gray-200 bg-gray-50 px-6 py-3 dark:border-neutral-800 dark:bg-neutral-900">
           <View className="flex-row items-center">
-            <View className="w-10 h-10 rounded-full overflow-hidden bg-gray-200 dark:bg-neutral-800 mr-3">
+            <View className="mr-3 size-10 overflow-hidden rounded-full bg-gray-200 dark:bg-neutral-800">
               {conversation?.members[0]?.avatar ? (
                 <Image
                   source={{ uri: conversation.members[0].avatar || undefined }}
-                  className="w-full h-full"
+                  className="size-full"
                   resizeMode="cover"
                 />
               ) : (
-                <View className="w-full h-full items-center justify-center">
+                <View className="size-full items-center justify-center">
                   <Ionicons name="person" size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
                 </View>
               )}
@@ -146,7 +146,7 @@ export default function ConversationScreen() {
 
         {/* Chat content / messages list */}
         <View style={{ flex: 1 }}>
-          <ScrollView ref={scrollViewRef} className="flex-1 px-4 py-4" contentContainerStyle={{ flexGrow: 1 }}>
+          <ScrollView ref={scrollViewRef} className="flex-1 p-4" contentContainerStyle={{ flexGrow: 1 }}>
             {(messagesLoading && messages.length === 0) || !conversation ? (
               <View className="flex-1 items-center justify-center py-20">
                 <ActivityIndicator size="large" color={isDark ? Colors.dark.primary : Colors.light.primary} />

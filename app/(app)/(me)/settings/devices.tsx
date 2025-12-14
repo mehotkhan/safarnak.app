@@ -119,7 +119,7 @@ export default function DevicesScreen() {
 
   if (loading && !data) {
     return (
-      <View className="flex-1 bg-white dark:bg-black items-center justify-center">
+      <View className="flex-1 items-center justify-center bg-white dark:bg-black">
         <ActivityIndicator size="large" color={isDark ? '#fff' : '#000'} />
       </View>
     );
@@ -130,7 +130,7 @@ export default function DevicesScreen() {
       className="flex-1 bg-white dark:bg-black"
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
     >
-      <View className="px-4 py-4">
+      <View className="p-4">
         {/* Info Banner */}
         <View className="mb-4">
           <InfoBanner
@@ -150,14 +150,14 @@ export default function DevicesScreen() {
           <View className="mb-4">
             <CustomText
               weight="bold"
-              className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
+              className="mb-2 text-sm uppercase text-gray-500 dark:text-gray-400"
             >
               {t('settings.currentDevice', { defaultValue: 'Current Device' })}
             </CustomText>
-            <View className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800">
+            <View className="rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
               <View className="flex-row items-center justify-between">
                 <View className="flex-1">
-                  <View className="flex-row items-center mb-2">
+                  <View className="mb-2 flex-row items-center">
                     <Ionicons
                       name="phone-portrait"
                       size={20}
@@ -167,13 +167,13 @@ export default function DevicesScreen() {
                     <CustomText weight="bold" className="text-base text-black dark:text-white">
                       {Device.modelName || Device.deviceName || t('settings.thisDevice', { defaultValue: 'This Device' })}
                     </CustomText>
-                    <View className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded-full">
+                    <View className="ml-2 rounded-full bg-green-100 px-2 py-0.5 dark:bg-green-900/30">
                       <CustomText className="text-xs text-green-700 dark:text-green-400">
                         {t('settings.active', { defaultValue: 'Active' })}
                       </CustomText>
                     </View>
                   </View>
-                  <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                  <CustomText className="mb-1 text-xs text-gray-500 dark:text-gray-400">
                     {t('settings.deviceId', { defaultValue: 'Device ID' })}:{' '}
                     {deviceKeyPair.deviceId}
                   </CustomText>
@@ -191,13 +191,13 @@ export default function DevicesScreen() {
         <View className="mb-4">
           <CustomText
             weight="bold"
-            className="text-sm text-gray-500 dark:text-gray-400 mb-2 uppercase"
+            className="mb-2 text-sm uppercase text-gray-500 dark:text-gray-400"
           >
             {t('settings.allDevices', { defaultValue: 'All Devices' })} ({devices.length})
           </CustomText>
 
           {error && (
-            <View className="mb-4 bg-red-50 dark:bg-red-900/20 rounded-xl p-3 border border-red-200 dark:border-red-800">
+            <View className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 dark:border-red-800 dark:bg-red-900/20">
               <CustomText className="text-sm text-red-800 dark:text-red-300">
                 {t('settings.errorLoadingDevices', {
                   defaultValue: 'Error loading devices',
@@ -207,14 +207,14 @@ export default function DevicesScreen() {
           )}
 
           {devices.length === 0 ? (
-            <View className="bg-white dark:bg-neutral-900 rounded-2xl p-6 border border-gray-200 dark:border-neutral-800 items-center">
+            <View className="items-center rounded-2xl border border-gray-200 bg-white p-6 dark:border-neutral-800 dark:bg-neutral-900">
               <Ionicons
                 name="phone-portrait-outline"
                 size={48}
                 color={isDark ? '#666' : '#9ca3af'}
                 style={{ marginBottom: 12 }}
               />
-              <CustomText className="text-base text-gray-600 dark:text-gray-400 text-center">
+              <CustomText className="text-center text-base text-gray-600 dark:text-gray-400">
                 {t('settings.noDevices', { defaultValue: 'No devices found' })}
               </CustomText>
             </View>
@@ -225,11 +225,11 @@ export default function DevicesScreen() {
                 return (
                   <View
                     key={device.id}
-                    className="bg-white dark:bg-neutral-900 rounded-2xl p-4 border border-gray-200 dark:border-neutral-800 mb-3"
+                    className="mb-3 rounded-2xl border border-gray-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900"
                   >
-                    <View className="flex-row items-start justify-between mb-3">
+                    <View className="mb-3 flex-row items-start justify-between">
                       <View className="flex-1">
-                        <View className="flex-row items-center mb-2">
+                        <View className="mb-2 flex-row items-center">
                           <Ionicons
                             name="phone-portrait"
                             size={18}
@@ -240,18 +240,18 @@ export default function DevicesScreen() {
                             {getDeviceName(device)}
                           </CustomText>
                           {isCurrent && (
-                            <View className="ml-2 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 rounded-full">
+                            <View className="ml-2 rounded-full bg-green-100 px-2 py-0.5 dark:bg-green-900/30">
                               <CustomText className="text-xs text-green-700 dark:text-green-400">
                                 {t('settings.current', { defaultValue: 'Current' })}
                               </CustomText>
                             </View>
                           )}
                         </View>
-                        <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <CustomText className="mb-1 text-xs text-gray-500 dark:text-gray-400">
                           {t('settings.deviceId', { defaultValue: 'Device ID' })}:{' '}
                           {device.deviceId}
                         </CustomText>
-                        <CustomText className="text-xs text-gray-500 dark:text-gray-400 mb-1">
+                        <CustomText className="mb-1 text-xs text-gray-500 dark:text-gray-400">
                           {t('settings.publicKey', { defaultValue: 'Public Key' })}:{' '}
                           {truncatePublicKey(device.publicKey)}
                         </CustomText>
@@ -264,14 +264,14 @@ export default function DevicesScreen() {
                         <TouchableOpacity
                           onPress={() => handleRevokeDevice(device)}
                           disabled={revoking}
-                          className="ml-3 px-3 py-2 bg-red-50 dark:bg-red-900/20 rounded-lg flex-row items-center"
+                          className="ml-3 flex-row items-center rounded-lg bg-red-50 px-3 py-2 dark:bg-red-900/20"
                         >
                           {revoking ? (
                             <ActivityIndicator size="small" color="#ef4444" />
                           ) : (
                             <>
                               <Ionicons name="close-circle" size={18} color="#ef4444" style={{ marginRight: 6 }} />
-                              <CustomText className="text-xs text-red-600 dark:text-red-400 font-medium">
+                              <CustomText className="text-xs font-medium text-red-600 dark:text-red-400">
                                 {t('settings.revoke', { defaultValue: 'Revoke' })}
                               </CustomText>
                             </>
