@@ -12,6 +12,7 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "env": {
+        "APP_VARIANT": "debug",
         "APP_NAME": "سفرناک دیباگ",
         "APP_SCHEME": "safarnak-debug",
         "GRAPHQL_URL": "http://192.168.1.51:8787/graphql",
@@ -25,6 +26,7 @@
         "gradleCommand": ":app:assembleRelease"
       },
       "env": {
+        "APP_VARIANT": "release",
         "APP_NAME": "سفرناک",
         "APP_SCHEME": "safarnak",
         "EXPO_PUBLIC_GRAPHQL_URL": "https://safarnak.app/graphql",

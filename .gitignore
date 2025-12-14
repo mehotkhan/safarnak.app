@@ -48,30 +48,15 @@ web-build/
 .metro-health-check*
 
 # ============================================================================
-# Android - Bare Workflow Strategy (FULL CONTROL)
+# Android - Ephemeral Strategy (GENERATED VIA PREBUILD)
 # ============================================================================
-# We commit the entire android/ folder to git for full control over builds.
-# No more expo prebuild in CI! What we see locally = what CI builds.
+# Android project is generated via `expo prebuild` and should not be committed.
+# This ensures Expo config (app.config.js) is the single source of truth for
+# package names, app names, and other build settings.
+# CI always runs: rm -rf android && npx expo prebuild --platform android --no-install --clear
 
-# Ignore only build artifacts and temporary files
-android/build/
-android/.gradle/
-android/.kotlin/
-android/app/build/
-android/app/.cxx/
-android/app/src/debug/
-android/local.properties
-android/*.iml
-android/.idea/
-
-# Everything else in android/ is tracked:
-# - android/gradle.properties (all optimizations committed!)
-# - android/app/proguard-rules.pro (R8 rules committed!)
-# - android/app/build.gradle (build config)
-# - android/build.gradle (root build)
-# - android/settings.gradle (modules)
-# - android/gradlew* (gradle wrapper)
-# - android/app/src/main/ (source code)
+# Ignore entire android/ folder (ephemeral, regenerated via prebuild)
+android/
 
 # ============================================================================
 # iOS (Keep source, ignore build artifacts)
