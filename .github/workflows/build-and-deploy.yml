@@ -15,8 +15,6 @@ jobs:
     name: Build Android APK
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Skip CI loop on version bump commit
-    if: ${{ github.event_name != 'push' || !contains(github.event.head_commit.message || '', '[skip ci]') }}
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
       cancel-in-progress: false
@@ -409,7 +407,7 @@ jobs:
         if: steps.version_changed.outputs.changed == 'true'
         run: |
           echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
-          npx expo prebuild --platform android --no-install --clean --clear
+          npx expo prebuild --platform android --no-install --clean
           echo "✅ Expo prebuild completed"
         env:
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
