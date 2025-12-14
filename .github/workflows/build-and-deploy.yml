@@ -411,6 +411,7 @@ jobs:
           echo "✅ Expo prebuild completed"
         env:
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
+          APP_VARIANT: 'release'
           NODE_ENV: 'production'
           APP_NAME: 'سفرناک'
           BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'

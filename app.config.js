@@ -175,8 +175,11 @@ const getAppConfig = () => {
           {
             android: {
               // These are applied at plugin level (not Gradle)
-              // enableProguardInReleaseBuilds is deprecated, use enableMinifyInReleaseBuilds instead
+              // REQUIRED by current expo-build-properties validation:
+              enableProguardInReleaseBuilds: true,
+              // Newer name (safe to keep; ignored by older versions):
               enableMinifyInReleaseBuilds: true,
+              // Now allowed (requires enableProguardInReleaseBuilds):
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
               // Additional APK size optimizations
