@@ -175,7 +175,7 @@ const getAppConfig = () => {
           {
             android: {
               // These are applied at plugin level (not Gradle)
-              enableProguardInReleaseBuilds: true,
+              // enableProguardInReleaseBuilds is deprecated, use enableMinifyInReleaseBuilds instead
               enableMinifyInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
