@@ -174,15 +174,15 @@ const getAppConfig = () => {
           'expo-build-properties',
           {
             android: {
-              // These are applied at plugin level (not Gradle)
               // REQUIRED by current expo-build-properties validation:
+              // These must be set unconditionally for the plugin to apply them correctly
               enableProguardInReleaseBuilds: true,
               // Newer name (safe to keep; ignored by older versions):
               enableMinifyInReleaseBuilds: true,
-              // Now allowed (requires enableProguardInReleaseBuilds):
-              enableShrinkResourcesInReleaseBuilds: true,
+              // Temporarily disabled until minification is confirmed working
+              // enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
-              // Additional APK size optimizations
+              // Additional APK size optimizations (only in production)
               ...(isProduction && {
                 // Aggressive optimizations for production
                 enableHermes: true,
