@@ -177,10 +177,10 @@ const getAppConfig = () => {
           'expo-build-properties',
           {
             android: {
-              // REQUIRED by expo-build-properties validation (and enables minify):
-              // Keep only the Proguard flag so the plugin applies minifyEnabled=true for release.
+              // Keep both flags for compatibility with current expo-build-properties
+              // (plugin validates shrinkResources requires Proguard/minify)
               enableProguardInReleaseBuilds: true,
-              // Shrink resources (requires Proguard/minify to be enabled)
+              enableMinifyInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
               ...(isProduction && {
@@ -189,8 +189,8 @@ const getAppConfig = () => {
                 enableCppOptimizations: true,
                 optimizeNativeLibs: true,
                 useLegacyPackaging: false,
-                // optionally:
-                // enableBundleCompression: true,
+                // Enable bundle compression to further reduce APK size
+                enableBundleCompression: true,
               }),
             },
             ios: isProduction ? {
