@@ -177,26 +177,17 @@ const getAppConfig = () => {
           'expo-build-properties',
           {
             android: {
-              // REQUIRED by current expo-build-properties validation:
-              // These must be set unconditionally for the plugin to apply them correctly
-              enableProguardInReleaseBuilds: true,
-              // Newer name (safe to keep; ignored by older versions):
               enableMinifyInReleaseBuilds: true,
-              // Re-enabled: both ProGuard flags are set, so resource shrinking should work
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
-              // Additional APK size optimizations (only in production)
               ...(isProduction && {
-                // Aggressive optimizations for production
                 enableHermes: true,
-                // Disable unused native libraries
                 excludeUnusedPackages: true,
-                // Strip unused C++ code
                 enableCppOptimizations: true,
-                // Optimize native library loading
                 optimizeNativeLibs: true,
-                // Remove unused architecture support
                 useLegacyPackaging: false,
+                // optionally:
+                // enableBundleCompression: true,
               }),
             },
             ios: isProduction ? {
