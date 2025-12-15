@@ -441,7 +441,10 @@ jobs:
             -x lint \
             -x test \
             --build-cache \
-            -PreactNativeArchitectures=arm64-v8a
+            -PreactNativeArchitectures=arm64-v8a \
+            -Pandroid.enableProguardInReleaseBuilds=true \
+            -Pandroid.enableMinifyInReleaseBuilds=true \
+            -Pandroid.enableShrinkResourcesInReleaseBuilds=true
         env:
           NODE_ENV: 'production'
           APP_NAME: 'سفرناک'
