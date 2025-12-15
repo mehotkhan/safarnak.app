@@ -66,20 +66,23 @@ const getAppConfig = () => {
   const appVersion = packageJson.version;
 
   // Resolve GraphQL URL once here and expose via extras so runtime can read it reliably
+  // Use isReleaseBuild (not isDevRuntime) to determine production vs dev
   const isDevRuntime = isDebug || isDevelopment;
-  const graphUrl = isDevRuntime
+  const graphUrl = isReleaseBuild
     ? (
+        // Production: prefer env vars, fallback to production URL
+        process.env.EXPO_PUBLIC_GRAPHQL_URL ||
+        process.env.GRAPHQL_URL ||
+        'https://safarnak.app/graphql'
+      )
+    : (
+        // Development: prefer dev env vars, fallback to local dev server
         process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV ||
         process.env.EXPO_PUBLIC_GRAPHQL_URL ||
         process.env.GRAPHQL_URL_DEV ||
         process.env.GRAPHQL_URL ||
         // Dev fallback per repo rule (update to your LAN IP when needed)
         'http://192.168.1.51:8787/graphql'
-      )
-    : (
-        process.env.EXPO_PUBLIC_GRAPHQL_URL ||
-        process.env.GRAPHQL_URL ||
-        'https://safarnak.app/graphql'
       );
 
   // Mapbox removed from the project
@@ -179,8 +182,8 @@ const getAppConfig = () => {
               enableProguardInReleaseBuilds: true,
               // Newer name (safe to keep; ignored by older versions):
               enableMinifyInReleaseBuilds: true,
-              // Temporarily disabled until minification is confirmed working
-              // enableShrinkResourcesInReleaseBuilds: true,
+              // Re-enabled: both ProGuard flags are set, so resource shrinking should work
+              enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
               // Additional APK size optimizations (only in production)
               ...(isProduction && {
