@@ -177,11 +177,10 @@ const getAppConfig = () => {
           'expo-build-properties',
           {
             android: {
-              // REQUIRED by expo-build-properties validation (even though deprecated):
+              // REQUIRED by expo-build-properties validation (and enables minify):
+              // Keep only the Proguard flag so the plugin applies minifyEnabled=true for release.
               enableProguardInReleaseBuilds: true,
-              // Newer name (preferred, but plugin still requires enableProguardInReleaseBuilds):
-              enableMinifyInReleaseBuilds: true,
-              // Requires enableProguardInReleaseBuilds to be enabled:
+              // Shrink resources (requires Proguard/minify to be enabled)
               enableShrinkResourcesInReleaseBuilds: true,
               abiFilters: ['arm64-v8a'],
               ...(isProduction && {
