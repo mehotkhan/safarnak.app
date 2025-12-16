@@ -448,6 +448,7 @@ jobs:
           # Version information
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           APP_VERSION: ${{ steps.version_code.outputs.version }}
+          APP_VARIANT: 'release'
           # Node/React Native environment
           NODE_ENV: 'production'
           # These are already set in gradle.properties but can be overridden
