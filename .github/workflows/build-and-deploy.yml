@@ -125,9 +125,10 @@ jobs:
                 }
               }
             } else {
-              console.log('\n📋 No previous release tag found, checking last 50 commits...');
-              const commits = cp.execSync('git log --pretty=%B --no-merges -50', { encoding: 'utf8' }).trim();
+              console.log('\n📋 No previous release tag found, getting ALL commits...');
+              const commits = cp.execSync('git log --pretty=%B --no-merges', { encoding: 'utf8' }).trim();
               commitMessages = commits.split('\n\n').filter(msg => msg.trim());
+              console.log(`   Found ${commitMessages.length} total commit(s) in repository`);
             }
           } catch (e) {
             console.log('ℹ️  Could not get commits, using latest commit only');
@@ -253,36 +254,41 @@ jobs:
           console.log(`   Features: ${featCount} commit(s)`);
           console.log(`   Fixes: ${fixCount} commit(s)`);
           console.log(`   Breaking: ${hasBreaking ? '✅' : '❌'}`);
+          console.log(`   Other commits: ${commitMessages.length - featCount - fixCount}`);
           console.log(`   Types found: ${[...new Set(commitTypes)].join(', ')}`);
           
           // Determine bump type based on commit analysis
           // CRITICAL: Calculate bump from baseVersion (last tag), not current package.json
-          // PLAN B: Each feat/fix increments separately (cumulative bumping)
+          // Cumulative bumping: Each feat/fix increments the version number
           let bump = 'build';
           const m = baseVersion.split('.').map(n => parseInt(n, 10) || 0);
+          console.log(`\n🔢 Version calculation from base ${baseVersion}:`);
           
           if (hasBreaking) {
             // Breaking changes → major bump (resets minor/patch)
+            console.log(`   Major: ${m[0]} → ${m[0] + 1} (breaking change)`);
             m[0] += 1;
             m[1] = 0;
             m[2] = 0;
             bump = 'major';
-            console.log('🚨 Breaking changes detected → major version bump');
+            console.log('   🚨 Result: Breaking changes → major version bump');
           } else if (featCount > 0) {
-            // Each feature → increment minor, reset patch
-            // If multiple features, bump minor by count (2.6.0 + 3 feats = 2.9.0)
+            // Each feature increments minor version
+            // Multiple features = multiple minor bumps (cumulative)
+            console.log(`   Minor: ${m[1]} + ${featCount} features = ${m[1] + featCount}`);
             m[1] += featCount;
-            m[2] = 0;
+            m[2] = 0; // Reset patch
             bump = 'minor';
-            console.log(`✨ ${featCount} feature(s) detected → minor version bump by ${featCount}`);
+            console.log(`   ✨ Result: ${featCount} feature(s) → minor +${featCount}`);
           } else if (fixCount > 0) {
-            // Each fix → increment patch
-            // Multiple fixes stack (2.6.0 + 3 fixes = 2.6.3)
+            // Each fix increments patch version  
+            // Multiple fixes = multiple patch bumps (cumulative)
+            console.log(`   Patch: ${m[2]} + ${fixCount} fixes = ${m[2] + fixCount}`);
             m[2] += fixCount;
             bump = 'patch';
-            console.log(`🐛 ${fixCount} fix(es) detected → patch version bump by ${fixCount}`);
+            console.log(`   🐛 Result: ${fixCount} fix(es) → patch +${fixCount}`);
           } else {
-            console.log('ℹ️  No feat/fix commits detected → build only (no version change)');
+            console.log('   ℹ️  No feat/fix commits → no version change');
           }
           
           const next = bump === 'build' ? current : `${m[0]}.${m[1]}.${m[2]}`;
@@ -403,30 +409,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-metro-
 
-      - name: Expo prebuild (ephemeral android + propagate version)
-        if: steps.version_changed.outputs.changed == 'true'
-        run: |
-          echo "Running Expo prebuild with version code: ${{ steps.version_code.outputs.version_code }}"
-          npx expo prebuild --platform android --no-install --clean
-          echo "✅ Expo prebuild completed"
-        env:
-          ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
-          APP_VARIANT: 'release'
-          NODE_ENV: 'production'
-          APP_NAME: 'سفرناک'
-          BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
-          APP_SCHEME: 'safarnak'
-          EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
-          GRAPHQL_URL: 'https://safarnak.app/graphql'
+      # Android files are now tracked in git, no prebuild needed
+      # Version code is passed via ANDROID_VERSION_CODE env variable
 
-      - name: Verify Android manifest + gradle versioning
-        if: steps.version_changed.outputs.changed == 'true'
-        run: |
-          echo "---- AndroidManifest label ----"
-          grep -R --line-number "android:label" android/app/src/main/AndroidManifest.xml || true
-
-          echo "---- build.gradle applicationId/version ----"
-          grep -R --line-number "applicationId\\|versionName\\|versionCode" android/app/build.gradle || true
+      # Android files are tracked in git, versioning is handled via env variables
 
       - name: Make Gradle wrapper executable
         if: steps.version_changed.outputs.changed == 'true'
@@ -438,19 +424,22 @@ jobs:
         run: |
           ./gradlew assembleRelease \
             --stacktrace \
+            --no-daemon \
             -x lint \
             -x test \
             --build-cache \
-            -PreactNativeArchitectures=arm64-v8a \
-            -Pandroid.enableProguardInReleaseBuilds=true \
-            -Pandroid.enableMinifyInReleaseBuilds=true \
-            -Pandroid.enableShrinkResourcesInReleaseBuilds=true
+            --parallel \
+            -PreactNativeArchitectures=arm64-v8a
         env:
-          NODE_ENV: 'production'
-          APP_NAME: 'سفرناک'
-          BUNDLE_IDENTIFIER: 'ir.mohet.safarnak'
+          # Version information
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
-          REACT_NATIVE_ANDROID_ARCHITECTURES: arm64-v8a
+          APP_VERSION: ${{ steps.version_code.outputs.version }}
+          # Node/React Native environment
+          NODE_ENV: 'production'
+          # These are already set in gradle.properties but can be overridden
+          # ANDROID_ENABLE_PROGUARD_IN_RELEASE_BUILDS: 'true'
+          # ANDROID_ENABLE_MINIFY_IN_RELEASE_BUILDS: 'true'
+          # ANDROID_ENABLE_SHRINK_RESOURCES_IN_RELEASE_BUILDS: 'true'
 
       - name: List APK files
         if: steps.version_changed.outputs.changed == 'true'
@@ -495,49 +484,104 @@ jobs:
           LAST_TAG=$(git tag --sort=-version:refname | grep -E "^v[0-9]+\.[0-9]+\.[0-9]+$" | head -n 1 || echo "")
           
           if [ -z "$LAST_TAG" ]; then
-            echo "⚠️ No previous release tag found, showing last 20 commits"
-            ALL_COMMITS=$(git log --oneline --no-decorate --format="%s|||%h" -20)
+            echo "⚠️ No previous release tag found, showing all commits"
+            ALL_COMMITS=$(git log --oneline --no-decorate --format="%s|||%h|||%an|||%as" --no-merges)
           else
-            echo "📋 Finding commits since last release: $LAST_TAG"
-            ALL_COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="%s|||%h" | \
+            echo "📋 Finding ALL commits since last release: $LAST_TAG"
+            # Get ALL commits since last tag, excluding version bumps
+            ALL_COMMITS=$(git log ${LAST_TAG}..HEAD --oneline --no-decorate --format="%s|||%h|||%an|||%as" --no-merges | \
               grep -v "chore: bump version" | \
               grep -v "chore(release)" | \
               grep -v "\[skip ci\]" || echo "")
           fi
           
+          # Count commits by type for summary
+          FEAT_COUNT=0
+          FIX_COUNT=0
+          OTHER_COUNT=0
+          TOTAL_COUNT=0
+          
           # Categorize commits by type
           FEATURES=""
           FIXES=""
+          REFACTORS=""
+          CHORES=""
+          DOCS=""
           OTHERS=""
           
-          while IFS='|||' read -r msg hash; do
-            if [[ "$msg" =~ ^feat(\(|:) ]]; then
+          while IFS='|||' read -r msg hash author date; do
+            if [ -z "$msg" ]; then continue; fi
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            
+            if [[ "$msg" =~ ^feat(\(|:)|^feature(\(|:) ]]; then
               FEATURES="${FEATURES}- ✨ ${msg} (\`${hash}\`)\n"
-            elif [[ "$msg" =~ ^fix(\(|:) ]]; then
+              FEAT_COUNT=$((FEAT_COUNT + 1))
+            elif [[ "$msg" =~ ^fix(\(|:)|^bugfix(\(|:) ]]; then
               FIXES="${FIXES}- 🐛 ${msg} (\`${hash}\`)\n"
+              FIX_COUNT=$((FIX_COUNT + 1))
+            elif [[ "$msg" =~ ^refactor(\(|:) ]]; then
+              REFACTORS="${REFACTORS}- ♻️ ${msg} (\`${hash}\`)\n"
+              OTHER_COUNT=$((OTHER_COUNT + 1))
+            elif [[ "$msg" =~ ^chore(\(|:) ]]; then
+              CHORES="${CHORES}- 🔧 ${msg} (\`${hash}\`)\n"
+              OTHER_COUNT=$((OTHER_COUNT + 1))
+            elif [[ "$msg" =~ ^docs(\(|:) ]]; then
+              DOCS="${DOCS}- 📝 ${msg} (\`${hash}\`)\n"
+              OTHER_COUNT=$((OTHER_COUNT + 1))
+            elif [[ "$msg" =~ ^ci(\(|:) ]]; then
+              CHORES="${CHORES}- 🔧 ${msg} (\`${hash}\`)\n"
+              OTHER_COUNT=$((OTHER_COUNT + 1))
             else
-              OTHERS="${OTHERS}- ${msg} (\`${hash}\`)\n"
+              OTHERS="${OTHERS}- 🔸 ${msg} (\`${hash}\`)\n"
+              OTHER_COUNT=$((OTHER_COUNT + 1))
             fi
           done <<< "$ALL_COMMITS"
           
-          # Build formatted output
-          FORMATTED=""
+          # Build summary
+          SUMMARY="## 📊 Summary\n\n"
+          if [ -n "$LAST_TAG" ]; then
+            SUMMARY="${SUMMARY}Changes since **${LAST_TAG}**:\n"
+          fi
+          SUMMARY="${SUMMARY}- **Total commits**: ${TOTAL_COUNT}\n"
+          if [ $FEAT_COUNT -gt 0 ]; then
+            SUMMARY="${SUMMARY}- **New features**: ${FEAT_COUNT}\n"
+          fi
+          if [ $FIX_COUNT -gt 0 ]; then
+            SUMMARY="${SUMMARY}- **Bug fixes**: ${FIX_COUNT}\n"
+          fi
+          if [ $OTHER_COUNT -gt 0 ]; then
+            SUMMARY="${SUMMARY}- **Other changes**: ${OTHER_COUNT}\n"
+          fi
+          SUMMARY="${SUMMARY}\n"
+          
+          # Build formatted output with all commits
+          FORMATTED="${SUMMARY}"
+          
           if [ -n "$FEATURES" ]; then
-            FORMATTED="${FORMATTED}### ✨ Features\n${FEATURES}\n"
+            FORMATTED="${FORMATTED}### ✨ New Features\n${FEATURES}\n"
           fi
           if [ -n "$FIXES" ]; then
             FORMATTED="${FORMATTED}### 🐛 Bug Fixes\n${FIXES}\n"
           fi
+          if [ -n "$REFACTORS" ]; then
+            FORMATTED="${FORMATTED}### ♻️ Refactoring\n${REFACTORS}\n"
+          fi
+          if [ -n "$DOCS" ]; then
+            FORMATTED="${FORMATTED}### 📝 Documentation\n${DOCS}\n"
+          fi
+          if [ -n "$CHORES" ]; then
+            FORMATTED="${FORMATTED}### 🔧 Maintenance\n${CHORES}\n"
+          fi
           if [ -n "$OTHERS" ]; then
-            FORMATTED="${FORMATTED}### 🔧 Other Changes\n${OTHERS}\n"
+            FORMATTED="${FORMATTED}### 🔸 Other Changes\n${OTHERS}\n"
           fi
           
-          if [ -z "$FORMATTED" ]; then
+          if [ -z "$FORMATTED" ] || [ "$TOTAL_COUNT" -eq 0 ]; then
             FORMATTED="No new commits since last release"
           fi
           
-          echo "✅ Formatted commits for release notes"
-          echo -e "$FORMATTED" | head -50
+          echo "✅ Generated release notes with ${TOTAL_COUNT} commits"
+          echo -e "$FORMATTED" | head -100
           echo "commits<<EOF" >> $GITHUB_OUTPUT
           echo -e "$FORMATTED" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -562,7 +606,7 @@ jobs:
 
             > **سفرناک** - AI-powered offline-first travel companion
 
-            ## 📦 What's New
+            **Version**: `${{ steps.version_code.outputs.version }}` | **Build**: #${{ github.run_number }} | **Version Code**: `${{ steps.version_code.outputs.version_code }}`
 
             ${{ steps.commits.outputs.commits }}
           files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk

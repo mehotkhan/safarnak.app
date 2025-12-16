@@ -26,40 +26,18 @@ const getAppConfig = () => {
   const isDevelopment = !isDebug && !isReleaseBuild; // Development mode (expo run:android)
   const isProduction = isReleaseBuild || isProductionEnv;
 
-  // Default configuration
-  let appName = 'سفرناک';
-  let bundleIdentifier = 'ir.mohet.safarnak';
-  let packageName = 'ir.mohet.safarnak';
-  let scheme = 'safarnak';
+  // Configuration based on build variant - different packages for debug/release
+  // This allows installing both versions on the same device
+  const appName = isRelease ? 'سفرناک' : 'سفرناک دیباگ';
+  const bundleIdentifier = isRelease ? 'ir.mohet.safarnak' : 'ir.mohet.safarnak_debug';
+  const packageName = isRelease ? 'ir.mohet.safarnak' : 'ir.mohet.safarnak_debug';
+  const scheme = isRelease ? 'safarnak' : 'safarnak-debug';
 
-  // Set specific configurations based on variant (single source of truth)
-  if (isRelease) {
-    // Release build - use production name and package
-    appName = 'سفرناک';
-    bundleIdentifier = 'ir.mohet.safarnak';
-    packageName = 'ir.mohet.safarnak';
-    scheme = 'safarnak';
-  } else {
-    // Debug/development build - use debug name and package
-    appName = 'سفرناک دیباگ';
-    bundleIdentifier = 'ir.mohet.safarnak_debug';
-    packageName = 'ir.mohet.safarnak_debug';
-    scheme = 'safarnak-debug';
-  }
-
-  // Override with environment variables if available (after mode detection)
-  if (process.env.APP_NAME) {
-    appName = process.env.APP_NAME;
-  }
-
-  if (process.env.BUNDLE_IDENTIFIER) {
-    bundleIdentifier = process.env.BUNDLE_IDENTIFIER;
-    packageName = process.env.BUNDLE_IDENTIFIER;
-  }
-
-  if (process.env.APP_SCHEME) {
-    scheme = process.env.APP_SCHEME;
-  }
+  // Allow environment variable overrides
+  const finalAppName = process.env.APP_NAME || appName;
+  const finalBundleIdentifier = process.env.BUNDLE_IDENTIFIER || bundleIdentifier;
+  const finalPackageName = process.env.BUNDLE_IDENTIFIER || packageName;
+  const finalScheme = process.env.APP_SCHEME || scheme;
 
   // Read version from package.json
   const packageJson = JSON.parse(require('fs').readFileSync('./package.json', 'utf8'));
@@ -89,12 +67,12 @@ const getAppConfig = () => {
 
   return {
     expo: {
-      name: appName,
+      name: finalAppName,
       slug: 'safarNak',
       version: appVersion,
       orientation: 'portrait',
-      icon: './assets/images/icon.png', // PNG required for Expo prebuild (jimp-compact doesn't support WebP)
-      scheme: scheme,
+      icon: './assets/images/icon.png',
+      scheme: finalScheme,
       userInterfaceStyle: 'automatic',
       // Enable New Architecture for debug and local development builds, or when explicitly overridden
       // Set NEW_ARCH=1 (or 'true') to force-enable in any profile
@@ -104,13 +82,11 @@ const getAppConfig = () => {
         isDebug ||
         isDevelopment,
       splash: {
-        image: './assets/images/splash-icon.png', // PNG required for Expo prebuild (jimp-compact doesn't support WebP)
+        image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
         backgroundColor: '#ffffff',
-        // Optimize splash screen for smaller APK
         ...(isProduction && {
-          // Disable splash screen animation in production for faster startup
-          enableSplashScreenAnimation: false,
+          enableSplashScreenAnimation: false, // Faster startup in production
         }),
       },
       android: {
@@ -129,12 +105,12 @@ const getAppConfig = () => {
             return maj * 10000 + min * 100 + pat;
           })(),
         adaptiveIcon: {
-          foregroundImage: './assets/images/adaptive-icon.png', // PNG required for Expo prebuild (jimp-compact doesn't support WebP)
+          foregroundImage: './assets/images/adaptive-icon.png',
           backgroundColor: '#ffffff',
         },
         edgeToEdgeEnabled: true,
         predictiveBackGestureEnabled: false,
-        package: packageName,
+        package: finalPackageName,
         // Prefer resize so the window shrinks and content can layout naturally
         softwareKeyboardLayoutMode: 'resize',
         // Ensure the OS resizes the window when keyboard appears
@@ -167,9 +143,9 @@ const getAppConfig = () => {
         [
           'expo-location',
           {
-            locationAlwaysAndWhenInUsePermission: `Allow ${appName} to use your location.`,
-            locationAlwaysPermission: `Allow ${appName} to use your location.`,
-            locationWhenInUsePermission: `Allow ${appName} to use your location.`,
+            locationAlwaysAndWhenInUsePermission: `Allow ${finalAppName} to use your location.`,
+            locationAlwaysPermission: `Allow ${finalAppName} to use your location.`,
+            locationWhenInUsePermission: `Allow ${finalAppName} to use your location.`,
             isAndroidBackgroundLocationEnabled: true,
           },
         ],
@@ -177,27 +153,14 @@ const getAppConfig = () => {
           'expo-build-properties',
           {
             android: {
-              // Keep both flags for compatibility with current expo-build-properties
-              // (plugin validates shrinkResources requires Proguard/minify)
+              // Core build optimizations (already in gradle.properties)
               enableProguardInReleaseBuilds: true,
               enableMinifyInReleaseBuilds: true,
               enableShrinkResourcesInReleaseBuilds: true,
-              abiFilters: ['arm64-v8a'],
-              ...(isProduction && {
-                enableHermes: true,
-                excludeUnusedPackages: true,
-                enableCppOptimizations: true,
-                optimizeNativeLibs: true,
-                useLegacyPackaging: false,
-                // Enable bundle compression to further reduce APK size
-                enableBundleCompression: true,
-              }),
+              abiFilters: ['arm64-v8a'], // Single architecture for smaller APK
+              enableHermes: true, // Modern JS engine
+              useLegacyPackaging: false, // Modern packaging
             },
-            ios: isProduction ? {
-              // iOS optimizations (if you add iOS later)
-              deploymentTarget: '13.4',
-              enableHermes: true,
-            } : {},
           },
         ],
         "@maplibre/maplibre-react-native"
@@ -233,9 +196,9 @@ const getAppConfig = () => {
         },
         // Single source of truth for client GraphQL URL (dev/prod decided above)
         graphqlUrl: graphUrl,
-        appName: process.env.APP_NAME || appName,
-        appScheme: process.env.APP_SCHEME || scheme,
-        bundleIdentifier: process.env.BUNDLE_IDENTIFIER || bundleIdentifier,
+        appName: finalAppName,
+        appScheme: finalScheme,
+        bundleIdentifier: finalBundleIdentifier,
         supportsRTL: true,
       },
     },

@@ -1,6 +1,8 @@
 android/app/debug.keystore
 android/app/build/
 android/build/
+*.apk
+*.aab
 .expo/
 node_modules/.cache/
 .keystore/
@@ -48,15 +50,42 @@ web-build/
 .metro-health-check*
 
 # ============================================================================
-# Android - Ephemeral Strategy (GENERATED VIA PREBUILD)
+# Android - Partial Tracking Strategy (KEEP CONFIG FILES)
 # ============================================================================
-# Android project is generated via `expo prebuild` and should not be committed.
-# This ensures Expo config (app.config.js) is the single source of truth for
-# package names, app names, and other build settings.
-# CI always runs: rm -rf android && npx expo prebuild --platform android --no-install --clear
+# Track essential Android configuration files for CI builds
+# Ignore build outputs and generated files
 
-# Ignore entire android/ folder (ephemeral, regenerated via prebuild)
-android/
+# Build outputs and generated files
+android/.gradle/
+android/.idea/
+android/.cxx/
+android/build/
+android/app/build/
+android/app/.cxx/
+android/captures/
+android/local.properties
+
+# Keep essential Android configuration files for CI
+!android/
+!android/settings.gradle
+!android/build.gradle
+!android/gradle.properties
+!android/gradle/
+!android/gradle/**
+!android/gradlew
+!android/gradlew.bat
+!android/app/
+!android/app/build.gradle
+!android/app/proguard-rules.pro
+!android/app/src/
+!android/app/src/main/
+!android/app/src/main/AndroidManifest.xml
+!android/app/src/main/java/
+!android/app/src/main/java/**
+!android/app/src/main/res/
+!android/app/src/main/res/**
+!android/app/src/debug/
+!android/app/src/debug/**
 
 # ============================================================================
 # iOS (Keep source, ignore build artifacts)
