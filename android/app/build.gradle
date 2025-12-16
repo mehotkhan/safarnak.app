@@ -87,11 +87,11 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    // Namespace matches the Java package structure (debug version)
+    // Namespace matches the Java package structure
     namespace 'ir.mohet.safarnak_debug'
     defaultConfig {
-        // Default applicationId for debug builds
-        applicationId 'ir.mohet.safarnak_debug'
+        // Base applicationId - will be modified by build types
+        applicationId 'ir.mohet.safarnak'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
 
@@ -163,15 +163,16 @@ android {
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            // No suffix needed - already using ir.mohet.safarnak_debug
+            // Add suffix for debug builds to differentiate from production
+            applicationIdSuffix "_debug"
             // Debug-specific optimizations
             debuggable true
             minifyEnabled false
             shrinkResources false
         }
         release {
-            // Production build configuration - override to use production package
-            applicationId 'ir.mohet.safarnak'
+            // Production build configuration
+            // Uses base applicationId 'ir.mohet.safarnak' (no suffix)
             signingConfig signingConfigs.debug // TODO: Use release keystore for production
             def enableShrinkResources = findProperty('android.enableShrinkResourcesInReleaseBuilds') ?: 'false'
             shrinkResources enableShrinkResources.toBoolean()
