@@ -9,10 +9,10 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleDebug"
+        "gradleCommand": ":app:assembleDevDebug"
       },
       "env": {
-        "APP_VARIANT": "debug",
+        "APP_VARIANT": "dev",
         "APP_NAME": "سفرناک دیباگ",
         "APP_SCHEME": "safarnak-debug",
         "GRAPHQL_URL": "http://192.168.1.51:8787/graphql",
@@ -23,10 +23,10 @@
     "release": {
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:assembleProdRelease"
       },
       "env": {
-        "APP_VARIANT": "release",
+        "APP_VARIANT": "prod",
         "APP_NAME": "سفرناک",
         "APP_SCHEME": "safarnak",
         "EXPO_PUBLIC_GRAPHQL_URL": "https://safarnak.app/graphql",
@@ -39,10 +39,11 @@
     "preview": {
       "android": {
         "buildType": "apk",
-        "gradleCommand": ":app:assembleRelease"
+        "gradleCommand": ":app:assembleProdRelease"
       },
       "env": {
         "APP_NAME": "سفرناک پیش‌نمایش",
+        "APP_VARIANT": "prod",
         "APP_SCHEME": "safarnak-preview",
         "GRAPHQL_URL": "https://safarnak-worker.mehot1.workers.dev/graphql",
         "GRAPHQL_URL_DEV": "http://192.168.1.51:8787/graphql"

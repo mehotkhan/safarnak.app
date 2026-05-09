@@ -14,24 +14,14 @@ const withAndroidRTL = config =>
   });
 
 const getAppConfig = () => {
-  // Prefer APP_VARIANT, fall back to EAS_BUILD_PROFILE, default to 'debug'
-  const variant = process.env.APP_VARIANT ?? process.env.EAS_BUILD_PROFILE ?? 'debug';
-  const isRelease = variant === 'release';
-  const isDebug = variant === 'debug';
-  
-  // Check NODE_ENV for CI/production builds (GitHub Actions sets NODE_ENV=production)
-  const isProductionEnv = process.env.NODE_ENV === 'production';
-  // In CI, if NODE_ENV=production and variant is not explicitly debug, treat as release
-  const isReleaseBuild = isRelease || (isProductionEnv && !isDebug && variant !== 'debug');
-  const isDevelopment = !isDebug && !isReleaseBuild; // Development mode (expo run:android)
-  const isProduction = isReleaseBuild || isProductionEnv;
+  const rawVariant = process.env.APP_VARIANT ?? process.env.EAS_BUILD_PROFILE ?? 'dev';
+  const variant = ['prod', 'production', 'release'].includes(rawVariant) ? 'prod' : 'dev';
+  const isProduction = variant === 'prod';
 
-  // Configuration based on build variant - different packages for debug/release
-  // This allows installing both versions on the same device
-  const appName = isRelease ? 'سفرناک' : 'سفرناک دیباگ';
-  const bundleIdentifier = isRelease ? 'ir.mohet.safarnak' : 'ir.mohet.safarnak_debug';
-  const packageName = isRelease ? 'ir.mohet.safarnak' : 'ir.mohet.safarnak_debug';
-  const scheme = isRelease ? 'safarnak' : 'safarnak-debug';
+  const appName = variant === 'prod' ? 'سفرناک' : 'سفرناک دیباگ';
+  const bundleIdentifier = variant === 'prod' ? 'ir.mohet.safarnak' : 'ir.mohet.safarnak_debug';
+  const packageName = bundleIdentifier;
+  const scheme = variant === 'prod' ? 'safarnak' : 'safarnak-debug';
 
   // Allow environment variable overrides
   const finalAppName = process.env.APP_NAME || appName;
@@ -44,9 +34,7 @@ const getAppConfig = () => {
   const appVersion = packageJson.version;
 
   // Resolve GraphQL URL once here and expose via extras so runtime can read it reliably
-  // Use isReleaseBuild (not isDevRuntime) to determine production vs dev
-  const isDevRuntime = isDebug || isDevelopment;
-  const graphUrl = isReleaseBuild
+  const graphUrl = variant === 'prod'
     ? (
         // Production: prefer env vars, fallback to production URL
         process.env.EXPO_PUBLIC_GRAPHQL_URL ||
@@ -54,12 +42,11 @@ const getAppConfig = () => {
         'https://safarnak.app/graphql'
       )
     : (
-        // Development: prefer dev env vars, fallback to local dev server
+        // Development: prefer dev env vars, fallback to local Worker.
         process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV ||
         process.env.EXPO_PUBLIC_GRAPHQL_URL ||
         process.env.GRAPHQL_URL_DEV ||
         process.env.GRAPHQL_URL ||
-        // Dev fallback per repo rule (update to your LAN IP when needed)
         'http://192.168.1.51:8787/graphql'
       );
 
@@ -79,8 +66,7 @@ const getAppConfig = () => {
       newArchEnabled:
         process.env.NEW_ARCH === '1' ||
         process.env.NEW_ARCH === 'true' ||
-        isDebug ||
-        isDevelopment,
+        variant === 'dev',
       splash: {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',
@@ -200,6 +186,7 @@ const getAppConfig = () => {
         appScheme: finalScheme,
         bundleIdentifier: finalBundleIdentifier,
         supportsRTL: true,
+        variant,
       },
     },
   };

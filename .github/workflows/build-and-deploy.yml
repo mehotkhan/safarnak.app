@@ -418,11 +418,37 @@ jobs:
         if: steps.version_changed.outputs.changed == 'true'
         run: chmod +x android/gradlew
 
+      - name: Generate debug keystore for CI
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
+          keytool -genkey -v \
+            -keystore android/app/debug.keystore \
+            -storepass android \
+            -alias androiddebugkey \
+            -keypass android \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Android Debug,O=Android,C=US"
+          echo "✅ Debug keystore generated for CI build"
+
+      - name: Prepare Android release signing
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
+          if [ -n "$SAFARNAK_ANDROID_KEYSTORE_BASE64" ]; then
+            echo "$SAFARNAK_ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+            echo "✅ Release keystore decoded"
+          else
+            echo "ℹ️ No release keystore secret configured; Gradle will use the local fallback signing config"
+          fi
+        env:
+          SAFARNAK_ANDROID_KEYSTORE_BASE64: ${{ secrets.SAFARNAK_ANDROID_KEYSTORE_BASE64 }}
+
       - name: Build Android APK (Release - Optimized)
         if: steps.version_changed.outputs.changed == 'true'
         working-directory: android
         run: |
-          ./gradlew assembleRelease \
+          ./gradlew :app:assembleProdRelease \
             --stacktrace \
             --no-daemon \
             -x lint \
@@ -440,7 +466,7 @@ jobs:
             -Pandroid.enableBundleCompression=true
           
           # Verify APK was created and check size
-          APK_PATH="app/build/outputs/apk/release/"
+          APK_PATH="app/build/outputs/apk/prod/release/"
           if [ -d "$APK_PATH" ]; then
             echo "✅ APK build successful"
             du -h "$APK_PATH"*.apk 2>/dev/null || echo "APK files: $(ls -la $APK_PATH/*.apk | wc -l)"
@@ -451,9 +477,15 @@ jobs:
           # Version information
           ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
           APP_VERSION: ${{ steps.version_code.outputs.version }}
-          APP_VARIANT: 'release'
+          APP_VARIANT: 'prod'
           # Node/React Native environment
           NODE_ENV: 'production'
+          EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
+          GRAPHQL_URL: 'https://safarnak.app/graphql'
+          SAFARNAK_ANDROID_KEYSTORE: 'app/release.keystore'
+          SAFARNAK_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEYSTORE_PASSWORD }}
+          SAFARNAK_ANDROID_KEY_ALIAS: ${{ secrets.SAFARNAK_ANDROID_KEY_ALIAS }}
+          SAFARNAK_ANDROID_KEY_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEY_PASSWORD }}
           # These are already set in gradle.properties but can be overridden
           # ANDROID_ENABLE_PROGUARD_IN_RELEASE_BUILDS: 'true'
           # ANDROID_ENABLE_MINIFY_IN_RELEASE_BUILDS: 'true'
@@ -461,7 +493,7 @@ jobs:
 
       - name: List APK files
         if: steps.version_changed.outputs.changed == 'true'
-        working-directory: android/app/build/outputs/apk/release
+        working-directory: android/app/build/outputs/apk/prod/release
         run: |
           ls -lh *.apk
           if [ ! -f *.apk ]; then
@@ -472,7 +504,7 @@ jobs:
       - name: Rename APK with descriptive name
         if: steps.version_changed.outputs.changed == 'true'
         run: |
-          cd android/app/build/outputs/apk/release
+          cd android/app/build/outputs/apk/prod/release
           APK_FILE=$(ls *.apk 2>/dev/null | head -n 1)
           if [ -z "$APK_FILE" ]; then
             echo "❌ No APK file found!"
@@ -487,7 +519,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: safarnak-android-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
-          path: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
+          path: android/app/build/outputs/apk/prod/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
           retention-days: 30
           compression-level: 0
           
@@ -627,7 +659,7 @@ jobs:
             **Version**: `${{ steps.version_code.outputs.version }}` | **Build**: #${{ github.run_number }} | **Version Code**: `${{ steps.version_code.outputs.version_code }}`
 
             ${{ steps.commits.outputs.commits }}
-          files: android/app/build/outputs/apk/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
+          files: android/app/build/outputs/apk/prod/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
