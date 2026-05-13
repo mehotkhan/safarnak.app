@@ -296,7 +296,7 @@ jobs:
           fi
         env:
           NODE_ENV: 'production'
-          SAFARNAK_ANDROID_KEYSTORE: 'app/release.keystore'
+          SAFARNAK_ANDROID_KEYSTORE: 'release.keystore'
           SAFARNAK_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEYSTORE_PASSWORD }}
           SAFARNAK_ANDROID_KEY_ALIAS: ${{ secrets.SAFARNAK_ANDROID_KEY_ALIAS }}
           SAFARNAK_ANDROID_KEY_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEY_PASSWORD }}
