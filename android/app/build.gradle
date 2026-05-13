@@ -3,6 +3,7 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 
 def projectRoot = rootDir.getAbsoluteFile().getParentFile().getAbsolutePath()
+def safarnakReleaseSigningConfigured = false
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -100,7 +101,7 @@ android {
         // 1) ANDROID_VERSION_CODE (int) can override versionCode
         // 2) APP_VERSION (semver) can override versionName
         // 3) Fallback versionName to package.json version
-        def envVersionName = System.getenv('APP_VERSION')
+        def envVersionName = rootProject.ext.envValue('APP_VERSION')
         // Resolve version from package.json using Node (consistent across envs)
         def resolvedVersionName = envVersionName
         if (!resolvedVersionName) {
@@ -123,7 +124,7 @@ android {
             }
         }
 
-        def envVersionCode = System.getenv('ANDROID_VERSION_CODE')
+        def envVersionCode = rootProject.ext.envValue('ANDROID_VERSION_CODE')
         def computeCode = { String v ->
             def m = (v =~ /(\d+)\.(\d+)\.(\d+)/)
             if (m) {
@@ -180,12 +181,13 @@ android {
             keyPassword 'android'
         }
         release {
-            def releaseStoreFile = System.getenv('SAFARNAK_ANDROID_KEYSTORE')
-            def releaseStorePassword = System.getenv('SAFARNAK_ANDROID_KEYSTORE_PASSWORD')
-            def releaseKeyAlias = System.getenv('SAFARNAK_ANDROID_KEY_ALIAS')
-            def releaseKeyPassword = System.getenv('SAFARNAK_ANDROID_KEY_PASSWORD')
+            def releaseStoreFile = rootProject.ext.envValue('SAFARNAK_ANDROID_KEYSTORE')
+            def releaseStorePassword = rootProject.ext.envValue('SAFARNAK_ANDROID_KEYSTORE_PASSWORD')
+            def releaseKeyAlias = rootProject.ext.envValue('SAFARNAK_ANDROID_KEY_ALIAS')
+            def releaseKeyPassword = rootProject.ext.envValue('SAFARNAK_ANDROID_KEY_PASSWORD')
             def releaseStore = releaseStoreFile ? file(releaseStoreFile) : null
             if (releaseStore?.exists() && releaseStorePassword && releaseKeyAlias && releaseKeyPassword) {
+                safarnakReleaseSigningConfigured = true
                 storeFile releaseStore
                 storePassword releaseStorePassword
                 keyAlias releaseKeyAlias
@@ -229,6 +231,17 @@ android {
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
+    }
+}
+
+gradle.taskGraph.whenReady { taskGraph ->
+    def buildsProdRelease = taskGraph.allTasks.any { task ->
+        task.path.toLowerCase(Locale.ROOT).contains('prodrelease')
+    }
+    if (buildsProdRelease && !safarnakReleaseSigningConfigured) {
+        throw new GradleException(
+            'Production release builds require SAFARNAK_ANDROID_KEYSTORE, SAFARNAK_ANDROID_KEYSTORE_PASSWORD, SAFARNAK_ANDROID_KEY_ALIAS, and SAFARNAK_ANDROID_KEY_PASSWORD.'
+        )
     }
 }
 

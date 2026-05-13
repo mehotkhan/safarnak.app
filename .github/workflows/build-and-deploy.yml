@@ -49,319 +49,141 @@ jobs:
       # -----------------------
       - name: Determine semantic version bump
         id: version_bump
-        env:
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
           node <<'NODE'
           const fs = require('fs');
           const cp = require('child_process');
-          const pkg = JSON.parse(fs.readFileSync('package.json','utf8'));
-          const current = pkg.version.trim();
-          
-          // Fetch all tags to get latest release (ensure we have all tags)
-          try {
-            cp.execSync('git fetch origin --tags --force 2>/dev/null', { stdio: 'ignore' });
-            console.log('✅ Fetched tags from origin');
-          } catch (e) {
-            console.log('ℹ️  Could not fetch tags from origin, trying local tags...');
+          const output = (key, value) => fs.appendFileSync(process.env.GITHUB_OUTPUT, `${key}=${value}\n`);
+          const run = (command, fallback = '') => {
             try {
-              cp.execSync('git fetch --tags --force 2>/dev/null', { stdio: 'ignore' });
-            } catch (e2) {
-              console.log('ℹ️  Could not fetch tags, continuing with local tags...');
+              return cp.execSync(command, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+            } catch {
+              return fallback;
             }
-          }
-          
-          // Get latest release tag (matching pattern vX.Y.Z)
-          let lastTag = '';
-          let lastTagVersion = '';
-          try {
-            const tags = cp.execSync('git tag --sort=-version:refname | grep -E "^v[0-9]+\\.[0-9]+\\.[0-9]+$" | head -n 1', { encoding: 'utf8' }).trim();
-            if (tags) {
-              lastTag = tags.split('\n')[0];
-              lastTagVersion = lastTag.replace(/^v/, '');
-              console.log(`📋 Found last release tag: ${lastTag} (version: ${lastTagVersion})`);
-              
-              // Verify the tag exists in the current repository
-              try {
-                cp.execSync(`git rev-parse ${lastTag}`, { stdio: 'ignore' });
-                console.log(`✅ Tag ${lastTag} verified in repository`);
-              } catch (e) {
-                console.log(`⚠️  Tag ${lastTag} not found in repository, will use all commits`);
-                lastTag = '';
-                lastTagVersion = '';
-              }
-            } else {
-              console.log('ℹ️  No previous release tag found');
-            }
-          } catch (e) {
-            console.log('ℹ️  Error finding tags:', e.message);
-          }
-          
-          // CRITICAL: Use lastTagVersion as base, NOT package.json current version
-          // This prevents double-bumping when package.json was already updated
-          const baseVersion = lastTagVersion || current;
-          console.log(`\n📌 Base version for bump calculation: ${baseVersion}`);
-          console.log(`   (package.json is at ${current}, but we use last tag ${lastTagVersion || 'none'} as base)`);
-          
-          // Get all commits since last release (or last 50 commits if no tag)
-          let commitMessages = [];
-          try {
-            if (lastTag) {
-              console.log(`\n📋 Collecting all commits between ${lastTag} and HEAD...`);
-              const commits = cp.execSync(`git log ${lastTag}..HEAD --pretty=%B --no-merges --reverse`, { encoding: 'utf8' }).trim();
-              commitMessages = commits.split('\n\n').filter(msg => msg.trim());
-              console.log(`   Range: ${lastTag}..HEAD (exclusive of tag, inclusive of HEAD)`);
-              console.log(`   Found ${commitMessages.length} commit(s) in range`);
-              
-              // Verify we got commits
-              if (commitMessages.length === 0) {
-                console.log('⚠️  No commits found in range, checking if tag is at HEAD...');
-                const tagCommit = cp.execSync(`git rev-parse ${lastTag}`, { encoding: 'utf8' }).trim();
-                const headCommit = cp.execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
-                console.log(`   Tag commit: ${tagCommit.substring(0, 7)}`);
-                console.log(`   HEAD commit: ${headCommit.substring(0, 7)}`);
-                if (tagCommit === headCommit) {
-                  console.log('ℹ️  Tag is at HEAD, no new commits since last release');
-                }
-              }
-            } else {
-              console.log('\n📋 No previous release tag found, getting ALL commits...');
-              const commits = cp.execSync('git log --pretty=%B --no-merges', { encoding: 'utf8' }).trim();
-              commitMessages = commits.split('\n\n').filter(msg => msg.trim());
-              console.log(`   Found ${commitMessages.length} total commit(s) in repository`);
-            }
-          } catch (e) {
-            console.log('ℹ️  Could not get commits, using latest commit only');
-            console.log('   Error:', e.message);
-            let latestMsg = process.env.COMMIT_MSG || '';
-            if (!latestMsg || latestMsg === 'null') {
-              try { latestMsg = cp.execSync('git log -1 --pretty=%B').toString().trim(); } catch {}
-            }
-            commitMessages = [latestMsg];
-          }
-          
-          console.log(`\n📊 Found ${commitMessages.length} commit(s) since last release (before filtering)`);
-          
-          // Debug: Show first few lines of each commit
-          if (commitMessages.length > 0) {
-            console.log('\n📝 Raw commits found:');
-            commitMessages.slice(0, 5).forEach((msg, i) => {
-              const firstLine = msg.split('\n')[0];
-              console.log(`   ${i + 1}. ${firstLine.substring(0, 80)}`);
-            });
-            if (commitMessages.length > 5) {
-              console.log(`   ... and ${commitMessages.length - 5} more`);
-            }
-          }
-          
-          // Helper function to check if a commit should be filtered out
-          const shouldFilterCommit = (msg) => {
-            const firstLine = msg.trim().split('\n')[0];
-            
-            // Check for version bump commits
-            // Matches: "chore: bump version to 1.8.0 [skip ci]", "chore: bump version", "chore(release): ..."
-            const isVersionBump = (
+          };
+          const isIgnoredCommit = (message) => {
+            const firstLine = message.trim().split('\n')[0];
+            return (
               /^chore\s*[:(]\s*bump\s+version/i.test(firstLine) ||
               /^chore\s*[:(]\s*release/i.test(firstLine) ||
-              (msg.includes('[skip ci]') && /bump\s+version/i.test(msg))
+              message.includes('[skip ci]')
             );
-            
-            // Check for [skip ci] flag
-            const hasSkipCI = msg.includes('[skip ci]');
-            
-            return isVersionBump || hasSkipCI;
           };
-          
-          // Filter out version bump commits and [skip ci] commits
-          const filteredCommitMessages = [];
-          const filteredOutCommits = [];
-          
-          commitMessages.forEach((msg, index) => {
-            const firstLine = msg.split('\n')[0];
-            if (shouldFilterCommit(msg)) {
-              const reason = /bump\s+version/i.test(msg) ? 'version bump' : '[skip ci]';
-              filteredOutCommits.push({ index: index + 1, msg: firstLine.substring(0, 60), reason });
-            } else {
-              filteredCommitMessages.push(msg);
-            }
-          });
-          
-          // Log filtered commits for debugging
-          if (filteredOutCommits.length > 0) {
-            console.log(`\n🔍 Filtered out ${filteredOutCommits.length} commit(s):`);
-            filteredOutCommits.forEach(({ index, msg, reason }) => {
-              console.log(`   ${index}. ${msg} (${reason})`);
-            });
+          const isBreaking = (message) => {
+            const firstLine = message.trim().split('\n')[0];
+            return message.includes('BREAKING CHANGE') || /^[^:]+!:/.test(firstLine);
+          };
+          const versionCode = (version) => {
+            const [major, minor, patch] = version.split('.').map(n => parseInt(n, 10) || 0);
+            return major * 10000 + minor * 100 + patch;
+          };
+
+          run('git fetch origin --tags --force');
+
+          const packageVersion = JSON.parse(fs.readFileSync('package.json', 'utf8')).version.trim();
+          const latestTag = run('git tag --sort=-version:refname')
+            .split('\n')
+            .find(tag => /^v\d+\.\d+\.\d+$/.test(tag)) || '';
+          const baseVersion = latestTag ? latestTag.slice(1) : packageVersion;
+          const range = latestTag ? `${latestTag}..HEAD` : 'HEAD';
+          const rawLog = run(`git log ${range} --format=%B%x1e --no-merges --reverse`);
+          const commits = rawLog
+            .split('\x1e')
+            .map(message => message.trim())
+            .filter(Boolean)
+            .filter(message => !isIgnoredCommit(message));
+
+          let bumpType = 'skip';
+          const next = baseVersion.split('.').map(n => parseInt(n, 10) || 0);
+          const breaking = commits.some(isBreaking);
+          const features = commits.filter(message => /^(feat|feature)(\(|:)/i.test(message.split('\n')[0])).length;
+          const fixes = commits.filter(message => /^(fix|bugfix)(\(|:)/i.test(message.split('\n')[0])).length;
+
+          if (breaking) {
+            bumpType = 'major';
+            next[0] += 1;
+            next[1] = 0;
+            next[2] = 0;
+          } else if (features > 0) {
+            bumpType = 'minor';
+            next[1] += features;
+            next[2] = 0;
+          } else if (fixes > 0) {
+            bumpType = 'patch';
+            next[2] += fixes;
           }
-          
-          if (filteredCommitMessages.length === 0) {
-            console.log('\n⏭️  No relevant commits found (all commits were filtered out)');
-            console.log(`   Total commits: ${commitMessages.length}, All were version bumps or [skip ci]`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${current}\n`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=skip\n`);
-            fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=false\n`);
-            process.exit(0);
-          }
-          
-          // Use filtered commits for analysis
-          commitMessages = filteredCommitMessages;
-          
-          console.log(`\n📊 Analyzing ${commitMessages.length} commit(s) since last release:`);
-          commitMessages.forEach((msg, i) => {
-            const firstLine = msg.split('\n')[0];
-            console.log(`  ${i + 1}. ${firstLine.substring(0, 60)}${firstLine.length > 60 ? '...' : ''}`);
-          });
-          
-          // Analyze all commits to determine bump type
-          // COUNT each feat/fix for cumulative bumping (Plan B)
-          let featCount = 0;
-          let fixCount = 0;
-          let hasBreaking = false;
-          const commitTypes = [];
-          
-          commitMessages.forEach(msg => {
-            const firstLine = msg.trim().split('\n')[0];
-            let commitType = 'other';
-            
-            // Check for features (minor bump)
-            if (/^(feat|feature)(\(|:)/i.test(firstLine)) {
-              featCount++;
-              commitType = 'feat';
-            }
-            // Check for fixes (patch bump)
-            else if (/^(fix|bugfix)(\(|:)/i.test(firstLine)) {
-              fixCount++;
-              commitType = 'fix';
-            }
-            // Check for breaking changes
-            if (msg.includes('BREAKING CHANGE') || /^[^:]+!:/.test(firstLine)) {
-              hasBreaking = true;
-              commitType = 'breaking';
-            }
-            // Check for refactor
-            else if (/^refactor(\(|:)/i.test(firstLine)) {
-              commitType = 'refactor';
-            }
-            // Check for chore
-            else if (/^chore(\(|:)/i.test(firstLine)) {
-              commitType = 'chore';
-            }
-            
-            commitTypes.push(commitType);
-          });
-          
-          console.log(`\n📈 Commit type analysis:`);
-          console.log(`   Features: ${featCount} commit(s)`);
-          console.log(`   Fixes: ${fixCount} commit(s)`);
-          console.log(`   Breaking: ${hasBreaking ? '✅' : '❌'}`);
-          console.log(`   Other commits: ${commitMessages.length - featCount - fixCount}`);
-          console.log(`   Types found: ${[...new Set(commitTypes)].join(', ')}`);
-          
-          // Determine bump type based on commit analysis
-          // CRITICAL: Calculate bump from baseVersion (last tag), not current package.json
-          // Cumulative bumping: Each feat/fix increments the version number
-          let bump = 'build';
-          const m = baseVersion.split('.').map(n => parseInt(n, 10) || 0);
-          console.log(`\n🔢 Version calculation from base ${baseVersion}:`);
-          
-          if (hasBreaking) {
-            // Breaking changes → major bump (resets minor/patch)
-            console.log(`   Major: ${m[0]} → ${m[0] + 1} (breaking change)`);
-            m[0] += 1;
-            m[1] = 0;
-            m[2] = 0;
-            bump = 'major';
-            console.log('   🚨 Result: Breaking changes → major version bump');
-          } else if (featCount > 0) {
-            // Each feature increments minor version
-            // Multiple features = multiple minor bumps (cumulative)
-            console.log(`   Minor: ${m[1]} + ${featCount} features = ${m[1] + featCount}`);
-            m[1] += featCount;
-            m[2] = 0; // Reset patch
-            bump = 'minor';
-            console.log(`   ✨ Result: ${featCount} feature(s) → minor +${featCount}`);
-          } else if (fixCount > 0) {
-            // Each fix increments patch version  
-            // Multiple fixes = multiple patch bumps (cumulative)
-            console.log(`   Patch: ${m[2]} + ${fixCount} fixes = ${m[2] + fixCount}`);
-            m[2] += fixCount;
-            bump = 'patch';
-            console.log(`   🐛 Result: ${fixCount} fix(es) → patch +${fixCount}`);
-          } else {
-            console.log('   ℹ️  No feat/fix commits → no version change');
-          }
-          
-          const next = bump === 'build' ? current : `${m[0]}.${m[1]}.${m[2]}`;
-          const shouldRelease = bump !== 'build';
-          
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `version=${next}\n`);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `bump_type=${bump}\n`);
-          fs.appendFileSync(process.env.GITHUB_OUTPUT, `should_release=${shouldRelease}\n`);
-          
-          console.log(`\n📦 Version: ${baseVersion} → ${next} (${bump})`);
-          console.log(`   package.json was at ${current}, will be updated to ${next}`);
-          if (shouldRelease) {
-            console.log('✅ Will create new release');
-          } else {
-            console.log('ℹ️  Build-only (no version change)');
-          }
+
+          const version = bumpType === 'skip' ? baseVersion : next.join('.');
+          const shouldRelease = bumpType !== 'skip';
+
+          output('version', version);
+          output('version_code', versionCode(version));
+          output('base_version', baseVersion);
+          output('last_tag', latestTag);
+          output('bump_type', bumpType);
+          output('commit_count', commits.length);
+          output('feature_count', features);
+          output('fix_count', fixes);
+          output('should_release', shouldRelease);
+
+          console.log(`Package version: ${packageVersion}`);
+          console.log(`Latest release tag: ${latestTag || 'none'}`);
+          console.log(`Base version: ${baseVersion}`);
+          console.log(`Commits considered: ${commits.length}`);
+          console.log(`Features: ${features}, fixes: ${fixes}, breaking: ${breaking}`);
+          console.log(`Release decision: ${version} (${bumpType}), should_release=${shouldRelease}`);
           NODE
 
-      - name: Check if version actually changed
-        id: version_changed
-        run: |
-          CURRENT_VERSION=$(node -p "require('./package.json').version")
-          NEW_VERSION=${{ steps.version_bump.outputs.version }}
-          
-          if [ "$CURRENT_VERSION" != "$NEW_VERSION" ]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-            echo "✅ Version will change: $CURRENT_VERSION → $NEW_VERSION"
-          else
-            echo "changed=false" >> $GITHUB_OUTPUT
-            echo "ℹ️  Version unchanged: $CURRENT_VERSION"
-          fi
-
-      - name: Apply version bump (update package.json)
-        if: steps.version_changed.outputs.changed == 'true'
+      - name: Apply version bump
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
           NEW_VERSION=${{ steps.version_bump.outputs.version }}
           
-          # Update package.json
           node -e "
             const fs = require('fs');
             const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
             pkg.version = '${NEW_VERSION}';
             fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
-            console.log('✅ package.json updated to ${NEW_VERSION}');
+            fs.writeFileSync('worker/version.ts', [
+              \"export const DEFAULT_APP_VERSION = '${NEW_VERSION}';\",
+              '',
+              'export const resolveAppVersion = (env?: { APP_VERSION?: string }): string => {',
+              '  return env?.APP_VERSION || DEFAULT_APP_VERSION;',
+              '};',
+              '',
+            ].join('\n'));
+            console.log('✅ package.json and worker/version.ts updated to ${NEW_VERSION}');
           "
-          
-          echo "✅ Version files updated to ${NEW_VERSION}"
 
-      - name: Calculate version code for Android
-        if: steps.version_changed.outputs.changed == 'true'
-        id: version_code
+      - name: Write production .env for runner
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
-          VERSION=$(node -p "require('./package.json').version")
-          VERSION_CODE=$(node -e "
-            const v = '$VERSION'.split('.').map(n => parseInt(n, 10) || 0);
-            const code = v[0] * 10000 + v[1] * 100 + v[2];
-            console.log(code);
-          ")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "version_code=$VERSION_CODE" >> $GITHUB_OUTPUT
-          echo "📱 Version: $VERSION → Version Code: $VERSION_CODE"
+          cat > .env <<EOF
+          APP_VERSION=${{ steps.version_bump.outputs.version }}
+          ANDROID_VERSION_CODE=${{ steps.version_bump.outputs.version_code }}
+          APP_VARIANT=prod
+          EXPO_PUBLIC_APP_VARIANT=prod
+          APP_NAME=سفرناک
+          APP_SCHEME=safarnak
+          BUNDLE_IDENTIFIER=ir.mohet.safarnak
+          EXPO_PUBLIC_GRAPHQL_URL=https://safarnak.app/graphql
+          GRAPHQL_URL=https://safarnak.app/graphql
+          EOF
+          sed -i 's/^[[:space:]]*//' .env
+          cat .env >> "$GITHUB_ENV"
+          echo "✅ Runner .env written for version ${{ steps.version_bump.outputs.version }}"
 
       # -----------------------
       # Heavy steps only when releasing
       # -----------------------
       - name: Install dependencies
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
           yarn install --frozen-lockfile --prefer-offline --no-progress --network-timeout 100000
           echo "Dependencies installed successfully"
 
       - name: Setup Java
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -369,13 +191,13 @@ jobs:
           check-latest: false
 
       - name: Setup Gradle (caching)
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: gradle/actions/setup-gradle@v5
         with:
           add-job-summary: never
 
       - name: Setup Android SDK
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: android-actions/setup-android@v3
         with:
           cmdline-tools-version: '11076708'
@@ -384,7 +206,7 @@ jobs:
           packages: 'platforms;android-36 build-tools;36.0.0 platform-tools'
 
       - name: Cache Expo tooling
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: actions/cache@v4
         continue-on-error: true
         with:
@@ -396,7 +218,7 @@ jobs:
             ${{ runner.os }}-expo-
 
       - name: Cache Metro bundler
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: actions/cache@v4
         continue-on-error: true
         with:
@@ -414,38 +236,37 @@ jobs:
 
       # Android files are tracked in git, versioning is handled via env variables
 
+      - name: Validate production Expo config
+        if: steps.version_bump.outputs.should_release == 'true'
+        run: npx expo config --json > /tmp/safarnak-prod-expo-config.json
+
       - name: Make Gradle wrapper executable
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         run: chmod +x android/gradlew
 
-      - name: Generate debug keystore for CI
-        if: steps.version_changed.outputs.changed == 'true'
-        run: |
-          keytool -genkey -v \
-            -keystore android/app/debug.keystore \
-            -storepass android \
-            -alias androiddebugkey \
-            -keypass android \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -dname "CN=Android Debug,O=Android,C=US"
-          echo "✅ Debug keystore generated for CI build"
-
       - name: Prepare Android release signing
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
+          if [ -z "$SAFARNAK_ANDROID_KEYSTORE_BASE64" ]; then
+            echo "❌ SAFARNAK_ANDROID_KEYSTORE_BASE64 is required for production release signing"
+            exit 1
+          fi
+          if [ -z "$SAFARNAK_ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$SAFARNAK_ANDROID_KEY_ALIAS" ] || [ -z "$SAFARNAK_ANDROID_KEY_PASSWORD" ]; then
+            echo "❌ Release signing password/alias secrets are required"
+            exit 1
+          fi
           if [ -n "$SAFARNAK_ANDROID_KEYSTORE_BASE64" ]; then
             echo "$SAFARNAK_ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
             echo "✅ Release keystore decoded"
-          else
-            echo "ℹ️ No release keystore secret configured; Gradle will use the local fallback signing config"
           fi
         env:
           SAFARNAK_ANDROID_KEYSTORE_BASE64: ${{ secrets.SAFARNAK_ANDROID_KEYSTORE_BASE64 }}
+          SAFARNAK_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEYSTORE_PASSWORD }}
+          SAFARNAK_ANDROID_KEY_ALIAS: ${{ secrets.SAFARNAK_ANDROID_KEY_ALIAS }}
+          SAFARNAK_ANDROID_KEY_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEY_PASSWORD }}
 
       - name: Build Android APK (Release - Optimized)
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         working-directory: android
         run: |
           ./gradlew :app:assembleProdRelease \
@@ -474,14 +295,7 @@ jobs:
             echo "⚠️  APK directory not found: $APK_PATH"
           fi
         env:
-          # Version information
-          ANDROID_VERSION_CODE: ${{ steps.version_code.outputs.version_code }}
-          APP_VERSION: ${{ steps.version_code.outputs.version }}
-          APP_VARIANT: 'prod'
-          # Node/React Native environment
           NODE_ENV: 'production'
-          EXPO_PUBLIC_GRAPHQL_URL: 'https://safarnak.app/graphql'
-          GRAPHQL_URL: 'https://safarnak.app/graphql'
           SAFARNAK_ANDROID_KEYSTORE: 'app/release.keystore'
           SAFARNAK_ANDROID_KEYSTORE_PASSWORD: ${{ secrets.SAFARNAK_ANDROID_KEYSTORE_PASSWORD }}
           SAFARNAK_ANDROID_KEY_ALIAS: ${{ secrets.SAFARNAK_ANDROID_KEY_ALIAS }}
@@ -492,7 +306,7 @@ jobs:
           # ANDROID_ENABLE_SHRINK_RESOURCES_IN_RELEASE_BUILDS: 'true'
 
       - name: List APK files
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         working-directory: android/app/build/outputs/apk/prod/release
         run: |
           ls -lh *.apk
@@ -502,7 +316,7 @@ jobs:
           fi
 
       - name: Rename APK with descriptive name
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
           cd android/app/build/outputs/apk/prod/release
           APK_FILE=$(ls *.apk 2>/dev/null | head -n 1)
@@ -510,21 +324,21 @@ jobs:
             echo "❌ No APK file found!"
             exit 1
           fi
-          NEW_NAME="Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk"
+          NEW_NAME="Safarnak-v${{ steps.version_bump.outputs.version }}-build${{ github.run_number }}.apk"
           cp "$APK_FILE" "$NEW_NAME"
           ls -lh "$NEW_NAME"
 
       - name: Upload APK artifact
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: safarnak-android-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}
-          path: android/app/build/outputs/apk/prod/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
+          name: safarnak-android-v${{ steps.version_bump.outputs.version }}-build${{ github.run_number }}
+          path: android/app/build/outputs/apk/prod/release/Safarnak-v${{ steps.version_bump.outputs.version }}-build${{ github.run_number }}.apk
           retention-days: 30
           compression-level: 0
           
       - name: Generate commit list for release notes
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         id: commits
         run: |
           # Fetch all tags to ensure we have the latest releases
@@ -637,29 +451,29 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Commit version bump if changed
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package.json
-          git commit -m "chore: bump version to ${{ steps.version_code.outputs.version }} [skip ci]" || echo "No changes to commit"
+          git add package.json worker/version.ts
+          git commit -m "chore: bump version to ${{ steps.version_bump.outputs.version }} [skip ci]" || echo "No changes to commit"
           git push origin HEAD || echo "Push failed or unnecessary"
 
       - name: Create GitHub Release with APK
-        if: steps.version_changed.outputs.changed == 'true'
+        if: steps.version_bump.outputs.should_release == 'true'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.version_code.outputs.version }}
-          name: Safarnak v${{ steps.version_code.outputs.version }}
+          tag_name: v${{ steps.version_bump.outputs.version }}
+          name: Safarnak v${{ steps.version_bump.outputs.version }}
           body: |
-            # 🚀 Safarnak v${{ steps.version_code.outputs.version }}
+            # 🚀 Safarnak v${{ steps.version_bump.outputs.version }}
 
             > **سفرناک** - AI-powered offline-first travel companion
 
-            **Version**: `${{ steps.version_code.outputs.version }}` | **Build**: #${{ github.run_number }} | **Version Code**: `${{ steps.version_code.outputs.version_code }}`
+            **Version**: `${{ steps.version_bump.outputs.version }}` | **Build**: #${{ github.run_number }} | **Version Code**: `${{ steps.version_bump.outputs.version_code }}`
 
             ${{ steps.commits.outputs.commits }}
-          files: android/app/build/outputs/apk/prod/release/Safarnak-v${{ steps.version_code.outputs.version }}-build${{ github.run_number }}.apk
+          files: android/app/build/outputs/apk/prod/release/Safarnak-v${{ steps.version_bump.outputs.version }}-build${{ github.run_number }}.apk
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
