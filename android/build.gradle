@@ -12,6 +12,43 @@ buildscript {
   }
 }
 
+def dotenv = [:]
+def loadDotenv = { String name ->
+  def dotenvFile = file("../${name}")
+  if (!dotenvFile.exists()) {
+    return
+  }
+
+  dotenvFile.eachLine('UTF-8') { line ->
+    def trimmed = line.trim()
+    if (!trimmed || trimmed.startsWith('#') || !trimmed.contains('=')) {
+      return
+    }
+
+    if (trimmed.startsWith('export ')) {
+      trimmed = trimmed.substring('export '.length()).trim()
+    }
+
+    def separator = trimmed.indexOf('=')
+    def key = trimmed.substring(0, separator).trim()
+    def value = trimmed.substring(separator + 1).trim()
+    if (
+      (value.startsWith('"') && value.endsWith('"')) ||
+      (value.startsWith("'") && value.endsWith("'"))
+    ) {
+      value = value.substring(1, value.length() - 1)
+    }
+    dotenv[key] = value
+  }
+}
+
+loadDotenv('.env')
+loadDotenv('.env.local')
+
+ext.envValue = { String key ->
+  return System.getenv(key) ?: dotenv[key]
+}
+
 allprojects {
   repositories {
     google()

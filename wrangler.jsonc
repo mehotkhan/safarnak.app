@@ -33,6 +33,7 @@
   //   wrangler secret put OPENTRIPMAP_API_KEY
   //   wrangler secret put ORS_API_KEY
   "vars": {
+    "APP_VERSION": "2.21.10",
     "GRAPHQL_URL": "http://192.168.1.51:8787/graphql",
     // External API keys (set via .dev.vars for local, secrets for production)
     "OPENTRIPMAP_API_KEY": "",
@@ -157,4 +158,3 @@
     },
   ],
 }
-

@@ -35,7 +35,9 @@ config.resolver.extraNodeModules = {
 
 // Production optimizations for smaller APK (keep minimal/safe overrides)
 const isProduction =
-  process.env.NODE_ENV === 'production' || process.env.EXPO_PUBLIC_ENV === 'production';
+  process.env.EXPO_PUBLIC_APP_VARIANT === 'prod' ||
+  process.env.APP_VARIANT === 'prod' ||
+  process.env.NODE_ENV === 'production';
 if (isProduction) {
   // Enhanced minification for production (do not change Babel lookup/caching)
   config.transformer = {

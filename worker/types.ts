@@ -20,6 +20,7 @@ export interface Env {
   AI: Ai; // Workers AI binding
 
   // External API Keys
+  APP_VERSION?: string; // Release version injected by CI or local env
   OPENTRIPMAP_API_KEY: string; // OpenTripMap - POIs/attractions
   ORS_API_KEY: string;         // OpenRouteService - routing/directions (optional)
   // Note: Open-Meteo and Wikivoyage don't need API keys

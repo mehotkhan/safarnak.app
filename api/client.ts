@@ -44,27 +44,27 @@ const getDevServerHost = (): string | null => {
 const getGraphQLURI = (): string => {
   const fromExtras = Constants.expoConfig?.extra?.graphqlUrl as string | undefined;
   if (fromExtras) {
-    console.log('📡 Using GraphQL URL from app.config.js:', fromExtras);
+    console.log('Using GraphQL URL from app config:', fromExtras);
     return fromExtras;
   }
 
-  const fromEnv = (process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV || process.env.EXPO_PUBLIC_GRAPHQL_URL) as string | undefined;
+  const fromEnv = process.env.EXPO_PUBLIC_GRAPHQL_URL as string | undefined;
   if (fromEnv) {
-    console.log('📡 Using GraphQL URL from EXPO_PUBLIC env:', fromEnv);
+    console.log('Using GraphQL URL from EXPO_PUBLIC_GRAPHQL_URL:', fromEnv);
     return fromEnv;
   }
 
   const maybeHost = __DEV__ ? getDevServerHost() : null;
   const fallbackHost = maybeHost || '127.0.0.1';
   const local = `http://${fallbackHost}:8787/graphql`;
-  console.log('📡 Using derived fallback GraphQL URL:', local);
+  console.log('Using derived fallback GraphQL URL:', local);
   return local;
 };
 
 export const GRAPHQL_URI = getGraphQLURI();
 
 if (__DEV__) {
-  console.log('📡 GraphQL URI:', GRAPHQL_URI);
+  console.log('GraphQL URI:', GRAPHQL_URI);
 }
 
 export const GRAPHQL_URI_NORMALIZED = GRAPHQL_URI.replace(/\/+$/, '');

@@ -1,7 +1,59 @@
-import 'dotenv/config';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const fs = require('fs');
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const dotenv = require('dotenv');
 // Inline config plugin to ensure Android manifest has supportsRtl=true
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { withAndroidManifest } = require('@expo/config-plugins');
+
+const initialEnv = { ...process.env };
+
+const loadEnvFile = fileName => {
+  if (fs.existsSync(fileName)) {
+    const parsed = dotenv.parse(fs.readFileSync(fileName));
+    for (const [key, value] of Object.entries(parsed)) {
+      if (initialEnv[key] === undefined) {
+        process.env[key] = value;
+      }
+    }
+  }
+};
+
+loadEnvFile('.env');
+loadEnvFile('.env.local');
+
+const DEFAULT_GRAPHQL_URLS = {
+  dev: 'http://192.168.1.51:8787/graphql',
+  prod: 'https://safarnak.app/graphql',
+};
+
+const normalizeVariant = value => {
+  if (['prod', 'production', 'release'].includes(value)) {
+    return 'prod';
+  }
+  return 'dev';
+};
+
+const resolveVariant = () => {
+  const rawVariant =
+    process.env.APP_VARIANT ??
+    process.env.EXPO_PUBLIC_APP_VARIANT ??
+    process.env.EAS_BUILD_PROFILE ??
+    'dev';
+  return normalizeVariant(rawVariant);
+};
+
+const requireClientUrl = variant => {
+  const value = process.env.EXPO_PUBLIC_GRAPHQL_URL || DEFAULT_GRAPHQL_URLS[variant];
+
+  if (variant === 'prod' && /^http:\/\/(localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\.)/.test(value)) {
+    throw new Error(
+      `Production builds must not use a local EXPO_PUBLIC_GRAPHQL_URL. Current value: ${value}`,
+    );
+  }
+
+  return value;
+};
 
 const withAndroidRTL = config =>
   withAndroidManifest(config, config => {
@@ -14,8 +66,7 @@ const withAndroidRTL = config =>
   });
 
 const getAppConfig = () => {
-  const rawVariant = process.env.APP_VARIANT ?? process.env.EAS_BUILD_PROFILE ?? 'dev';
-  const variant = ['prod', 'production', 'release'].includes(rawVariant) ? 'prod' : 'dev';
+  const variant = resolveVariant();
   const isProduction = variant === 'prod';
 
   const appName = variant === 'prod' ? 'سفرناک' : 'سفرناک دیباگ';
@@ -29,26 +80,11 @@ const getAppConfig = () => {
   const finalPackageName = process.env.BUNDLE_IDENTIFIER || packageName;
   const finalScheme = process.env.APP_SCHEME || scheme;
 
-  // Read version from package.json
-  const packageJson = JSON.parse(require('fs').readFileSync('./package.json', 'utf8'));
-  const appVersion = packageJson.version;
+  // APP_VERSION is the release pipeline override; package.json is the local fallback.
+  const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf8'));
+  const appVersion = process.env.APP_VERSION || packageJson.version;
 
-  // Resolve GraphQL URL once here and expose via extras so runtime can read it reliably
-  const graphUrl = variant === 'prod'
-    ? (
-        // Production: prefer env vars, fallback to production URL
-        process.env.EXPO_PUBLIC_GRAPHQL_URL ||
-        process.env.GRAPHQL_URL ||
-        'https://safarnak.app/graphql'
-      )
-    : (
-        // Development: prefer dev env vars, fallback to local Worker.
-        process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV ||
-        process.env.EXPO_PUBLIC_GRAPHQL_URL ||
-        process.env.GRAPHQL_URL_DEV ||
-        process.env.GRAPHQL_URL ||
-        'http://192.168.1.51:8787/graphql'
-      );
+  const graphUrl = requireClientUrl(variant);
 
   // Mapbox removed from the project
 
@@ -182,11 +218,13 @@ const getAppConfig = () => {
         },
         // Single source of truth for client GraphQL URL (dev/prod decided above)
         graphqlUrl: graphUrl,
+        appVersion,
         appName: finalAppName,
         appScheme: finalScheme,
         bundleIdentifier: finalBundleIdentifier,
         supportsRTL: true,
         variant,
+        environment: isProduction ? 'production' : 'development',
       },
     },
   };

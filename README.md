@@ -540,10 +540,7 @@ This will start:
 ### Run on Device/Emulator
 
 ```bash
-# Android (New Architecture - recommended)
-yarn android:newarch
-
-# Android (Legacy Architecture)
+# Android
 yarn android
 
 # Web browser
@@ -557,7 +554,7 @@ yarn ios
 
 - **Worker URL**: If you see connection errors, check that the worker is running on port 8787
 - **GraphQL Playground**: Visit `http://localhost:8787/graphql` to test GraphQL queries
-- **Metro Bundler**: If you see cache issues, run `yarn clean` and restart
+- **Metro Bundler**: If you see cache issues, clear `.expo`, `node_modules/.cache`, and `android/app/build`, then restart
 - **Database**: The local D1 database is stored in `.wrangler/state/v3/d1/`
 
 ### Verify Installation
@@ -1232,18 +1229,20 @@ tours: toursReducer,
 The client determines the GraphQL URL in this order:
 
 1. `app.config.js` → `expo.extra.graphqlUrl` (recommended)
-2. `process.env.EXPO_PUBLIC_GRAPHQL_URL_DEV` or `process.env.EXPO_PUBLIC_GRAPHQL_URL`
-3. `process.env.GRAPHQL_URL_DEV` or `process.env.GRAPHQL_URL`
-4. Fallback in dev to `http://192.168.1.51:8787/graphql`
+2. `process.env.EXPO_PUBLIC_GRAPHQL_URL`
+3. Fallback in dev to the Expo dev-server host on port `8787`
 
-Configure production and development endpoints via environment variables used by `app.config.js`:
+Use one public client endpoint name everywhere. `APP_VARIANT` controls the native app identity; `EXPO_PUBLIC_GRAPHQL_URL` controls the API endpoint embedded into the JavaScript bundle.
 
 ```bash
-# .env
-EXPO_PUBLIC_GRAPHQL_URL=https://safarnak.app/graphql
-# Optional dev override
-EXPO_PUBLIC_GRAPHQL_URL_DEV=http://127.0.0.1:8787/graphql
+# .env.local
+APP_VARIANT=dev
+EXPO_PUBLIC_APP_VARIANT=dev
+EXPO_PUBLIC_GRAPHQL_URL=http://127.0.0.1:8787/graphql
+GRAPHQL_URL=http://127.0.0.1:8787/graphql
 ```
+
+For EAS builds, prefer the `environment` field in `eas.json` (`development`, `preview`, `production`) and keep matching values in EAS environment variables. Production builds fail fast if `EXPO_PUBLIC_GRAPHQL_URL` points at a local network URL.
 
 Relevant sources:
 - `api/client.ts` (URI resolution and auth link)
@@ -1304,18 +1303,14 @@ yarn codegen:watch    # Watch mode
 
 # Build
 yarn android          # Run on Android
-yarn build:debug      # EAS debug build (Android)
-yarn build:release    # Build release APK
 yarn build:local      # Local gradle release build
 
 # Utilities
-yarn clean            # Clear caches
 yarn lint             # Check code quality
 yarn lint:fix         # Fix issues
  
-# Versioning & Commits
-yarn commit:generate  # Generate a conventional commit message
-yarn version:minor    # Release-it minor bump (CI)
+# Commits
+yarn commit           # Commitizen conventional commit prompt
 ```
 
 ---
@@ -1341,14 +1336,14 @@ yarn version:minor    # Release-it minor bump (CI)
 
 ## 🧪 Development Tips
 
-1. **Metro Cache Issues**: Run `yarn clean`
+1. **Metro Cache Issues**: Clear `.expo`, `node_modules/.cache`, and `android/app/build`
 2. **Database Reset**: Delete `.wrangler/state/v3/d1/` and run `yarn db:migrate`
 3. **Type Errors**: Run `yarn codegen` to regenerate types
 4. **GraphQL Changes**: Always run `yarn codegen` after schema changes
 5. **Worker Logs**: Check terminal running `yarn worker:dev`
 6. **Worker URL**: `http://127.0.0.1:8787/graphql` (or `http://localhost:8787/graphql`)
 7. **Styling Issues**: Ensure `global.css` is imported in `app/_layout.tsx`, check `tailwind.config.js` content paths
-8. **NativeWind Not Working**: Clear Metro cache and restart: `yarn clean && yarn start`
+8. **NativeWind Not Working**: Clear Metro cache and restart `yarn start`
 
 ---
 
