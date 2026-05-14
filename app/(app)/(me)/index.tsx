@@ -7,7 +7,7 @@ import {
   Image,
   ActivityIndicator,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -27,6 +27,7 @@ export default function MeScreen() {
   const { t } = useTranslation();
   const router = useRouter();
   const { isDark } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const { user: reduxUser } = useAppSelector((state) => state.auth);
   const { openOrCreateDm } = useMessagingActions();
@@ -253,7 +254,10 @@ export default function MeScreen() {
   const isLoadingInitial = meLoading && !user;
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-black">
+    <View
+      className="flex-1 bg-white dark:bg-black"
+      style={{ paddingTop: insets.top, paddingBottom: insets.bottom }}
+    >
       {/* Settings Icon in Header */}
       <View className="absolute right-4 top-12 z-10">
         <TouchableOpacity
@@ -603,6 +607,6 @@ export default function MeScreen() {
           },
         ]}
       />
-    </SafeAreaView>
+    </View>
   );
 }
