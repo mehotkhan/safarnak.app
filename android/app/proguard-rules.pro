@@ -11,7 +11,17 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
-# expo-sqlite
+# Expo native modules convert JS option maps into Kotlin Record classes through
+# reflection. Release R8 must keep record annotations, Kotlin metadata, and the
+# affected native option classes or biometric/SQLite calls fail before JS logic.
+-keepattributes *Annotation*,Signature,InnerClasses,EnclosingMethod
+-keep class kotlin.Metadata { *; }
+-keep class * implements expo.modules.kotlin.records.Record { *; }
+-keep enum * implements expo.modules.kotlin.types.Enumerable { *; }
+-keep class expo.modules.kotlin.records.** { *; }
+-keep class expo.modules.kotlin.types.** { *; }
+-keep class expo.modules.kotlin.allocators.** { *; }
+-keep class expo.modules.localauthentication.** { *; }
 -keep class expo.modules.sqlite.** { *; }
 
 # Add any project specific keep options here:
