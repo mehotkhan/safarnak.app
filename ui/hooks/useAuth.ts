@@ -45,6 +45,21 @@ export interface AuthResult {
 const DEVICE_KEY_PAIR_KEY = '@safarnak_device_keypair';
 const USERNAME_KEY = '@safarnak_username';
 
+type GraphQLResultWithErrors = {
+  error?: { message?: string };
+  errors?: readonly { message?: string }[];
+};
+
+const getGraphQLResultError = (result: unknown): string | null => {
+  const graphQLResult = result as GraphQLResultWithErrors;
+  if (graphQLResult.error?.message) {
+    return graphQLResult.error.message;
+  }
+
+  const firstError = graphQLResult.errors?.find((item) => item?.message);
+  return firstError?.message ?? null;
+};
+
 // ============================================================================
 // useAuth Hook
 // ============================================================================
@@ -152,12 +167,21 @@ export const useAuth = () => {
         }
 
         // Check if username is available
-        const { data: availData } = await runCheckUsernameAvailability({
+        const availabilityResult = await runCheckUsernameAvailability({
           variables: { username },
+          fetchPolicy: 'network-only',
         });
+        const availabilityError = getGraphQLResultError(availabilityResult);
+        if (availabilityError) {
+          throw new Error(`Failed to check username availability: ${availabilityError}`);
+        }
 
-        if (!availData?.checkUsernameAvailability) {
+        const isUsernameAvailable = availabilityResult.data?.checkUsernameAvailability;
+        if (isUsernameAvailable === false) {
           throw new Error('Username is already taken');
+        }
+        if (isUsernameAvailable !== true) {
+          throw new Error('Failed to check username availability');
         }
 
         const canUseBiometrics = await checkBiometrics();
@@ -194,11 +218,15 @@ export const useAuth = () => {
         });
 
         // Request challenge from backend
-        const { data: challengeData } = await requestChallengeMutation({
+        const challengeResult = await requestChallengeMutation({
           variables: { username, isRegister: true },
         });
+        const challengeError = getGraphQLResultError(challengeResult);
+        if (challengeError) {
+          throw new Error(`Failed to get challenge from server: ${challengeError}`);
+        }
 
-        const nonce = challengeData?.requestChallenge;
+        const nonce = challengeResult.data?.requestChallenge;
         if (!nonce) {
           throw new Error('Failed to get challenge from server');
         }
@@ -209,15 +237,19 @@ export const useAuth = () => {
         const signature = await signMessage(nonce, privateKey);
 
         // Register user on backend (sends publicKey, server creates device entry)
-        const { data: registerData } = await registerMutation({
+        const registerResult = await registerMutation({
           variables: { username, publicKey, signature, deviceId },
         });
+        const registerError = getGraphQLResultError(registerResult);
+        if (registerError) {
+          throw new Error(`Registration failed: ${registerError}`);
+        }
 
-        if (!registerData?.registerUser) {
+        if (!registerResult.data?.registerUser) {
           throw new Error('Registration failed');
         }
 
-        const { user, token } = registerData.registerUser;
+        const { user, token } = registerResult.data.registerUser;
 
         // Store NEW device key pair in Redux and AsyncStorage
         console.log('[useAuth] Storing new device key pair:', {
@@ -302,11 +334,15 @@ export const useAuth = () => {
         });
 
         // Request challenge from backend
-        const { data: challengeData } = await requestChallengeMutation({
+        const challengeResult = await requestChallengeMutation({
           variables: { username, isRegister: false },
         });
+        const challengeError = getGraphQLResultError(challengeResult);
+        if (challengeError) {
+          throw new Error(`Failed to get challenge from server: ${challengeError}`);
+        }
 
-        const nonce = challengeData?.requestChallenge;
+        const nonce = challengeResult.data?.requestChallenge;
         if (!nonce) {
           throw new Error('Failed to get challenge from server');
         }
@@ -318,7 +354,7 @@ export const useAuth = () => {
 
         // Login user on backend (server verifies signature and creates/updates device entry)
         // Send publicKey for new device login (server will check if device exists)
-        const { data: loginData } = await loginMutation({
+        const loginResult = await loginMutation({
           variables: {
             username,
             signature,
@@ -326,12 +362,16 @@ export const useAuth = () => {
             publicKey: keyPair.publicKey, // Send publicKey for new device registration
           },
         });
+        const loginError = getGraphQLResultError(loginResult);
+        if (loginError) {
+          throw new Error(`Login failed: ${loginError}`);
+        }
 
-        if (!loginData?.loginUser) {
+        if (!loginResult.data?.loginUser) {
           throw new Error('Login failed');
         }
 
-        const { user, token } = loginData.loginUser;
+        const { user, token } = loginResult.data.loginUser;
 
         // Store NEW device key pair in Redux and AsyncStorage
         dispatch(setDeviceKeyPair(keyPair));

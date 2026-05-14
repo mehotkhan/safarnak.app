@@ -11,4 +11,7 @@
 -keep class com.swmansion.reanimated.** { *; }
 -keep class com.facebook.react.turbomodule.** { *; }
 
+# expo-sqlite
+-keep class expo.modules.sqlite.** { *; }
+
 # Add any project specific keep options here:
