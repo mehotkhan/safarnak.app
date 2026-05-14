@@ -17,7 +17,7 @@ mkdir -p "${KS_DIR}"
 
 ALIAS="safarnak-release"
 STOREPASS="$(openssl rand -hex 16)"
-KEYPASS="$(openssl rand -hex 16)"
+KEYPASS="${STOREPASS}"
 
 if [[ -f "${KS_FILE}" || -f "${B64_FILE}" ]]; then
   BACKUP_STAMP="$(date -u +%Y%m%d%H%M%S)"
@@ -30,6 +30,7 @@ keytool -genkeypair \
   -keyalg RSA \
   -keysize 2048 \
   -validity 9125 \
+  -storetype PKCS12 \
   -keystore "${KS_FILE}" \
   -storepass "${STOREPASS}" \
   -keypass "${KEYPASS}" \
