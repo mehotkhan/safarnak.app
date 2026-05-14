@@ -306,7 +306,7 @@ Safarnak supports English and Persian (Farsi) with RTL layout:
 
 ### Documentation
 
-- [README.md](README.md) - Project overview and setup
+- [README.md](../README.md) - Project overview and setup
 - Development guidelines are embedded in repository rules within README and code comments
 - Architecture details in README (Architecture Overview)
 

@@ -1675,13 +1675,13 @@ For more details, see the offline architecture implementation in `database/` fol
 
 ## 🤝 Contributing
 
-Please read `CONTRIBUTING.md` for setup, workflow, and PR checklist.
+Please read `docs/CONTRIBUTING.md` for setup, workflow, and PR checklist.
 
 ---
 
 ## 🧭 Code of Conduct
 
-Community guidelines are in `CODE_OF_CONDUCT.md`.
+Community guidelines are in `docs/CODE_OF_CONDUCT.md`.
 
 ---
 
@@ -1736,7 +1736,7 @@ The project is currently at **v1.13.0**. Our focus is on:
 4. **Testing**: Adding unit and integration tests
 5. **Documentation**: ✅ **Updated** - Comprehensive docs in README
 
-See `TECHNICAL_REVIEW.md` for current technical debt and priorities.
+See `docs/refactor-work-report.md` and `docs/docs-inventory-review.md` for current cleanup priorities.
 
 ## 📄 License
 

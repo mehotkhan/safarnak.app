@@ -6,7 +6,6 @@ android/build/
 .expo/
 node_modules/.cache/
 .keystore/
-docs/
 
 # ============================================================================
 # Safarnak App - Unified Monorepo .gitignore
