@@ -55,11 +55,12 @@ Safarnak is a modern offline-first travel companion built with:
 
 ## 🏗️ Architecture Overview
 
-### Perfect Separation
+### Backend and Client Boundaries
 
-- **📁 GraphQL Folder**: Shared schema and query definitions only
-- **📁 API Folder**: All client-specific code including auto-generated hooks
-- **📁 Worker Folder**: All server-specific resolvers and logic
+- **GraphQL**: Shared schema and operation definitions.
+- **API**: Client Apollo setup and generated hooks/types.
+- **Worker**: Cloudflare Worker backend, GraphQL resolvers, Agents, Workflows, and server-only utilities.
+- **Database**: Shared Drizzle schema plus server/client adapters.
 
 ### Key Directories
 
@@ -68,7 +69,7 @@ safarnak.app/
 ├── worker/          # Server-side GraphQL resolvers
 ├── graphql/         # Shared GraphQL schema and operations
 ├── api/             # Client-side API layer with auto-generated hooks
-├── database/        # Database schemas and migrations
+├── database/        # Shared Drizzle schema and server/client adapters
 ├── ui/              # All client UI code
 │   ├── hooks/       # React hooks
 │   ├── state/       # Redux state management
@@ -96,6 +97,7 @@ yarn codegen
 
 # 4. Create resolvers
 # Add resolver functions to worker/mutations/ or worker/queries/
+# For AI-backed behavior, keep GraphQL thin and route through Worker domain services/Agents.
 
 # 5. Use in components
 # Import generated hooks in React components
@@ -105,7 +107,7 @@ yarn codegen
 
 ```bash
 # 1. Update schema
-# Edit database/drizzle.ts
+# Edit database/schema.ts
 
 # 2. Generate migration
 yarn db:generate

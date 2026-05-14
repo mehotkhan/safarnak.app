@@ -158,7 +158,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 ### Getting Help
 
-- **Documentation**: [README.md](../README.md) and [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Documentation**: [Docs README](../README.md) and [Contributing](contributing.md)
 - **Issues**: [GitHub Issues](https://github.com/mehotkhan/safarnak.app/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/mehotkhan/safarnak.app/discussions)
 - **Email**: mehotkhan@gmail.com
