@@ -97,12 +97,11 @@ const getAppConfig = () => {
       icon: './assets/images/icon.png',
       scheme: finalScheme,
       userInterfaceStyle: 'automatic',
-      // Enable New Architecture for debug and local development builds, or when explicitly overridden
-      // Set NEW_ARCH=1 (or 'true') to force-enable in any profile
+      // Keep New Architecture opt-in for now. MapLibre Android is not stable
+      // under Fabric in this app, so enable only when testing that path.
       newArchEnabled:
         process.env.NEW_ARCH === '1' ||
-        process.env.NEW_ARCH === 'true' ||
-        variant === 'dev',
+        process.env.NEW_ARCH === 'true',
       splash: {
         image: './assets/images/splash-icon.png',
         resizeMode: 'contain',

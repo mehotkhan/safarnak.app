@@ -24,4 +24,14 @@
 -keep class expo.modules.localauthentication.** { *; }
 -keep class expo.modules.sqlite.** { *; }
 
+# MapLibre native map components are registered through React Native view
+# managers and call into MapLibre Android SDK/plugins from JS. The package does
+# not ship consumer ProGuard rules, so keep its bridge and native SDK classes in
+# release builds.
+-keep class org.maplibre.reactnative.** { *; }
+-keep class org.maplibre.android.** { *; }
+-keep class org.maplibre.geojson.** { *; }
+-keep class org.maplibre.turf.** { *; }
+-keep class org.maplibre.gl.** { *; }
+
 # Add any project specific keep options here:

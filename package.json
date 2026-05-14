@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "concurrently -k -n worker,expo -c yellow,cyan \"yarn worker:dev\" \"yarn start\"",
-    "start": "APP_VARIANT=dev EXPO_PUBLIC_APP_VARIANT=dev NEW_ARCH=1 expo start",
+    "start": "APP_VARIANT=dev EXPO_PUBLIC_APP_VARIANT=dev expo start",
     "android": "cd android && APP_VARIANT=dev ./gradlew :app:installDevDebug --stacktrace --build-cache --parallel --max-workers=4 -x lint",
     "assets:generate": "bash scripts/generate-icons.sh",
     "web": "expo start --web",
