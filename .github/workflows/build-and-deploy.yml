@@ -14,10 +14,11 @@ jobs:
   build-android:
     name: Build Android APK
     runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip ci]')
     timeout-minutes: 60
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false
+      cancel-in-progress: true
     permissions:
       contents: write
       packages: write
@@ -271,7 +272,6 @@ jobs:
         run: |
           ./gradlew :app:assembleProdRelease \
             --stacktrace \
-            --no-daemon \
             -x lint \
             -x test \
             --build-cache \
